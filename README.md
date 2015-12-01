@@ -29,8 +29,9 @@ ignore those button labels -- should they be?); reply to message
 "Published".  (But not yet implemented.)  Is this a good idea?
 Same as deleted, actually (also not implemented).
 
-* Should be good history tracking of everything, including not-yet-visible
-reparenting feature.  Haven't actually tested yet though because no UI.
+* Time travel!  You can drag through history and see past versions.
+In general, there should be good, automatic history tracking of everything,
+including a not-yet-visible reparenting feature.
 
 * Import from osqa's XML dump, including old edit history!  Haven't snarfed
 the image URLs/uploads yet though.
