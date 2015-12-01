@@ -12,11 +12,15 @@ template(name="badMessage")
 template(name="submessage")
   .panel.panel-primary.message
     .panel-heading
-      if editingRV
-        input.form-control.title(type="text", placeholder="Title", value="{{title}}", data-message=_id, style="width: 100%")
+      unless history
+        if editingRV
+          input.form-control.title(type="text", placeholder="Title", value="{{title}}", data-message=_id, style="width: 100%")
       .space-between
         .unit
           unless editingRV
+            //if history
+            //  span.title.tex2jax= historyTitle
+            //else
             span.title.tex2jax= title
             span.space
           if deleted
@@ -25,63 +29,62 @@ template(name="submessage")
             unless published
               span.label.label-warning Unpublished
         .unit
-          if editingRV
-            button.btn.btn-default.editButton(data-message=_id) Stop Editing
-            .btn-group
-              button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
-                | #{keyboard}
-                span.caret
-              ul.dropdown-menu(role="menu")
-                li.editorKeyboard(class="{{activeKeyboard 'ace'}}")
-                  a(href="#",data-keyboard="ace") Ace
-                li.editorKeyboard(class="{{activeKeyboard 'vim'}}")
-                  a(href="#",data-keyboard="vim") Vim
-                li.editorKeyboard(class="{{activeKeyboard 'emacs'}}")
-                  a(href="#",data-keyboard="emacs") Emacs
-            .btn-group
-              button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
-                | #{format}
-                span.caret
-              ul.dropdown-menu(role="menu")
-                li.editorFormat(class="{{activeFormat 'html'}}")
-                  a(href="#",data-format="html") HTML
-                li.editorFormat(class="{{activeFormat 'markdown'}}")
-                  a(href="#",data-format="markdown") Markdown
+          if history
+            button.btn.btn-default.historyButton Stop History
           else
-            if canEdit
-              button.btn.btn-default.editButton(data-message=_id) Edit
-          if deleted
-            if canUndelete
-              button.btn.btn-success.deleteButton(data-message=_id) Undelete
-            if canSuperdelete
-              button.btn.btn-danger.superdeleteButton(data-message=_id) Superdelete
-          else
-            if published
-              if canUnpublish
-                button.btn.btn-danger.publishButton(data-message=_id) Unpublish
+            if editingRV
+              button.btn.btn-default.editButton(data-message=_id) Stop Editing
+              .btn-group
+                button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
+                  | #{keyboard}
+                  span.caret
+                ul.dropdown-menu(role="menu")
+                  li.editorKeyboard(class="{{activeKeyboard 'ace'}}")
+                    a(href="#",data-keyboard="ace") Ace
+                  li.editorKeyboard(class="{{activeKeyboard 'vim'}}")
+                    a(href="#",data-keyboard="vim") Vim
+                  li.editorKeyboard(class="{{activeKeyboard 'emacs'}}")
+                    a(href="#",data-keyboard="emacs") Emacs
+              .btn-group
+                button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
+                  | #{format}
+                  span.caret
+                ul.dropdown-menu(role="menu")
+                  li.editorFormat(class="{{activeFormat 'html'}}")
+                    a(href="#",data-format="html") HTML
+                  li.editorFormat(class="{{activeFormat 'markdown'}}")
+                    a(href="#",data-format="markdown") Markdown
             else
-              if canPublish
-                button.btn.btn-success.publishButton(data-message=_id) Publish
-            if canDelete
-              button.btn.btn-danger.deleteButton(data-message=_id) Delete
-    with nothing
-      if editingRV
-        //+sharejsAce docid=editingRV
-        +sharejsAce docid=editingNR onRender=config
+              button.btn.btn-default.historyButton History
+              if canEdit
+                button.btn.btn-default.editButton(data-message=_id) Edit
+            if deleted
+              if canUndelete
+                button.btn.btn-success.deleteButton(data-message=_id) Undelete
+              if canSuperdelete
+                button.btn.btn-danger.superdeleteButton(data-message=_id) Superdelete
+            else
+              if published
+                if canUnpublish
+                  button.btn.btn-danger.publishButton(data-message=_id) Unpublish
+              else
+                if canPublish
+                  button.btn.btn-success.publishButton(data-message=_id) Publish
+              if canDelete
+                button.btn.btn-danger.deleteButton(data-message=_id) Delete
     if history
-      .panel-body
-        +messageHistory
+      +messageHistory forHistory
     else
-      .panel-body.tex2jax !{body}
+      with nothing
+        if editingRV
+          //+sharejsAce docid=editingRV
+          +sharejsAce docid=editingNR onRender=config
+    .panel-body.tex2jax !{body}
     table.message-footer
       tr
         td
           if canReply
             button.btn.btn-default.replyButton(data-message=_id) Reply
-          if history
-            button.btn.btn-default.historyButton Stop History
-          else
-            button.btn.btn-default.historyButton History
         td.author
           if published
             | (posed by
@@ -107,6 +110,6 @@ template(name="superdelete")
           button.btn.btn-success.cancelButton.fullwidth Cancel
 
 template(name="messageHistory")
-  .tex2jax !{body}
+  //.tex2jax !{body}
   .historySlider
     input(type="text", style="display: none")

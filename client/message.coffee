@@ -29,7 +29,7 @@ idle = 1000   ## one second
 Template.submessage.onCreated ->
   @keyboard = new ReactiveVar 'ace'
   @editing = new ReactiveVar null
-  @history = new ReactiveVar false
+  @history = new ReactiveVar null
   @autorun =>
     return unless Template.currentData()?
     #@myid = Template.currentData()._id
@@ -40,15 +40,12 @@ Template.submessage.onCreated ->
     #console.log 'automathjax'
     automathjax()
 
-formatBody = (body) ->
-  return body unless body
-  switch @format
-    when 'markdown'
-      body = marked body
-  sanitized = sanitizeHtml body
-  if sanitized != body
-    console.warn "Sanitized '#{body}' -> '#{sanitized}'"
-  sanitized
+historify = (x) -> () ->
+  history = Template.instance().history.get()
+  if history?
+    history[x]
+  else
+    @[x]
 
 Template.submessage.helpers
   nothing: {}
@@ -91,7 +88,24 @@ Template.submessage.helpers
     else
       ''
 
-  body: -> formatBody.call @, @body
+  title: historify 'title'
+  deleted: historify 'deleted'
+  published: historify 'published'
+
+  body: ->
+    history = Template.instance().history.get()
+    if history?
+      body = history.body
+    else
+      body = @body
+    return body unless body
+    switch @format
+      when 'markdown'
+        body = marked body
+    sanitized = sanitizeHtml body
+    if sanitized != body
+      console.warn "Sanitized '#{body}' -> '#{sanitized}'"
+    sanitized
 
   authors: ->
     a = for own author, date of @authors when author != @creator or date.getTime() != @created.getTime()
@@ -107,7 +121,10 @@ Template.submessage.helpers
   canSuperdelete: -> canSuperdelete @_id
   canReply: -> canPost @group, @_id
 
-  history: -> Template.instance().history.get()
+  history: -> Template.instance().history.get()?
+  forHistory: ->
+    _id: @_id
+    history: Template.instance().history
 
 Template.submessage.events
   'click .editButton': (e) ->
@@ -172,7 +189,10 @@ Template.submessage.events
   'click .historyButton': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
-    t.history.set not t.history.get()
+    if t.history.get()?
+      t.history.set null
+    else
+      t.history.set _.clone @
 
   'click .superdeleteButton': (e) ->
     e.preventDefault()
@@ -202,7 +222,6 @@ Template.superdelete.events
 
 Template.messageHistory.onCreated ->
   @diffsub = @subscribe 'messages.diff', @data._id
-  @historyBody = new ReactiveVar @data.body
 
 Template.messageHistory.onRendered ->
   @autorun =>
@@ -210,10 +229,17 @@ Template.messageHistory.onRendered ->
         id: @data._id
       .fetch()
     return if diffs.length < 2  ## don't show a zero-length slider
+    ## Accumulate diffs
+    for diff, i in diffs
+      if i >= 0
+        for own key, value of diffs[i-1]
+          unless key of diff
+            diff[key] = value
     @$('input').slider
-      min: 0
-      max: diffs.length-1
+      #min: 0                 ## min and max needed when using ticks
+      #max: diffs.length-1
       #value: diffs.length-1  ## doesn't update, unlike setValue method below
+      ticks: [0...diffs.length]
       ticks_snap_bounds: 999999999
       tooltip: 'always'
       tooltip_position: 'bottom'
@@ -226,8 +252,5 @@ Template.messageHistory.onRendered ->
     .off 'change'
     .on 'change', (e) =>
       value = parseInt e.value.newValue
-      @historyBody.set diffs[value].body
-
-Template.messageHistory.helpers
-  body: ->
-    formatBody.call @, Template.instance().historyBody.get()
+      @data.history.set diffs[value]
+    @data.history.set diffs[diffs.length-1]
