@@ -1574,3 +1574,5 @@
 
 	return Slider;
 }));
+
+Slider = this.Slider;  //METEOR

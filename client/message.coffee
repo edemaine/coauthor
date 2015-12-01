@@ -235,8 +235,9 @@ Template.messageHistory.onRendered ->
         for own key, value of diffs[i-1]
           unless key of diff
             diff[key] = value
-    @$('input').slider
-      #min: 0                 ## min and max needed when using ticks
+    @slider?.destroy()
+    @slider = new Slider @$('input')[0],
+      #min: 0                 ## min and max not needed when using ticks
       #max: diffs.length-1
       #value: diffs.length-1  ## doesn't update, unlike setValue method below
       ticks: [0...diffs.length]
@@ -248,9 +249,8 @@ Template.messageHistory.onRendered ->
           formatDate(diffs[i].updated, '') + '\n' + diffs[i].updators.join ', '
         else
           i
-    .slider 'setValue', diffs.length-1
-    .off 'change'
-    .on 'change', (e) =>
-      value = parseInt e.value.newValue
-      @data.history.set diffs[value]
+    @slider.setValue diffs.length-1
+    #@slider.off 'change'
+    @slider.on 'change', (e) =>
+      @data.history.set diffs[e.newValue]
     @data.history.set diffs[diffs.length-1]
