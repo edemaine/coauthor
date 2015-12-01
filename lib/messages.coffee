@@ -8,6 +8,10 @@ if Meteor.isServer
     Messages.find
       group: group
 
+  Meteor.publish 'messages.diff', (message) ->
+    MessagesDiff.find
+      id: message
+
   ## Remove all editors, so that we can restart listeners.
   Messages.find().forEach (message) ->
     if message.editing?.length

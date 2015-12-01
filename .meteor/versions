@@ -27,6 +27,7 @@ diff-sequence@1.0.1
 djedi:sanitize-html-client@1.11.1
 ecmascript@0.1.6
 ecmascript-runtime@0.2.6
+edemaine:bootstrap-slider@1.0.1
 ejson@1.0.7
 email@1.0.8
 fastclick@1.0.7
@@ -67,7 +68,6 @@ mongo-livedata@1.0.9
 mquandalle:jade@0.4.5
 mquandalle:jade-compiler@0.4.5
 npm-bcrypt@0.7.8_2
-npm-container@1.2.0
 npm-mongo@1.4.39_1
 observe-sequence@1.0.7
 ordered-dict@1.0.4

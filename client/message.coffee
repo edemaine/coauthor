@@ -29,6 +29,7 @@ idle = 1000   ## one second
 Template.submessage.onCreated ->
   @keyboard = new ReactiveVar 'ace'
   @editing = new ReactiveVar null
+  @history = new ReactiveVar false
   @autorun =>
     return unless Template.currentData()?
     #@myid = Template.currentData()._id
@@ -39,18 +40,27 @@ Template.submessage.onCreated ->
     #console.log 'automathjax'
     automathjax()
 
+formatBody = (body) ->
+  return body unless body
+  switch @format
+    when 'markdown'
+      body = marked body
+  sanitized = sanitizeHtml body
+  if sanitized != body
+    console.warn "Sanitized '#{body}' -> '#{sanitized}'"
+  sanitized
+
 Template.submessage.helpers
-  'nothing': {}
-  'editingRV': -> Template.instance().editing.get()
-  'editingNR': -> Tracker.nonreactive -> Template.instance().editing.get()
-  #'myid': -> Tracker.nonreactive -> Template.instance().myid
-  #'editing': ->
-  #  editing @
-  'children': ->
-    if @.children
-      Messages.find _id: $in: @.children
+  nothing: {}
+  editingRV: -> Template.instance().editing.get()
+  editingNR: -> Tracker.nonreactive -> Template.instance().editing.get()
+  #myid: -> Tracker.nonreactive -> Template.instance().myid
+  #editing: -> editing @
+  children: ->
+    if @children
+      Messages.find _id: $in: @children
         .fetch()
-  'config': ->
+  config: ->
     ti = Tracker.nonreactive -> Template.instance()
     (editor) ->
       #console.log 'config', editor.getValue(), '.'
@@ -65,46 +75,39 @@ Template.submessage.helpers
       editor.setShowFoldWidgets true
       editor.getSession().setUseWrapMode true
 
-  'keyboard': ->
+  keyboard: ->
     capitalize Template.instance().keyboard.get()
-  'activeKeyboard': (match) ->
+  activeKeyboard: (match) ->
     if Template.instance().keyboard.get() == match
       'active'
     else
       ''
 
-  'format': ->
+  format: ->
     capitalize @format
-  'activeFormat': (match) ->
+  activeFormat: (match) ->
     if @format == match
       'active'
     else
       ''
 
-  'body': ->
-    return @body unless @body?
-    body = @body
-    switch @format
-      when 'markdown'
-        body = marked body
-    sanitized = sanitizeHtml body
-    if sanitized != body
-      console.warn "Sanitized '#{body}' -> '#{sanitized}'"
-    sanitized
+  body: -> formatBody.call @, @body
 
-  'authors': ->
+  authors: ->
     a = for own author, date of @authors when author != @creator or date.getTime() != @created.getTime()
           "#{author} #{formatDate date}"
     if a.length > 0
       ', edited by ' + a.join ", "
 
-  'canEdit': -> canEdit @_id
-  'canDelete': -> canEdit @_id
-  'canUndelete': -> canEdit @_id
-  'canPublish': -> canEdit @_id
-  'canUnpublish': -> canEdit @_id
-  'canSuperdelete': -> canSuperdelete @_id
-  'canReply': -> canPost @group, @_id
+  canEdit: -> canEdit @_id
+  canDelete: -> canEdit @_id
+  canUndelete: -> canEdit @_id
+  canPublish: -> canEdit @_id
+  canUnpublish: -> canEdit @_id
+  canSuperdelete: -> canSuperdelete @_id
+  canReply: -> canPost @group, @_id
+
+  history: -> Template.instance().history.get()
 
 Template.submessage.events
   'click .editButton': (e) ->
@@ -166,6 +169,11 @@ Template.submessage.events
         else
           console.error "messageNew did not return problem -- not authorized?"
 
+  'click .historyButton': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    t.history.set not t.history.get()
+
   'click .superdeleteButton': (e) ->
     e.preventDefault()
     e.stopPropagation()
@@ -191,3 +199,35 @@ Template.superdelete.events
     e.preventDefault()
     e.stopPropagation()
     Modal.hide()
+
+Template.messageHistory.onCreated ->
+  @diffsub = @subscribe 'messages.diff', @data._id
+  @historyBody = new ReactiveVar @data.body
+
+Template.messageHistory.onRendered ->
+  @autorun =>
+    diffs = MessagesDiff.find
+        id: @data._id
+      .fetch()
+    return if diffs.length < 2  ## don't show a zero-length slider
+    @$('input').slider
+      min: 0
+      max: diffs.length-1
+      #value: diffs.length-1  ## doesn't update, unlike setValue method below
+      ticks_snap_bounds: 999999999
+      tooltip: 'always'
+      tooltip_position: 'bottom'
+      formatter: (i) ->
+        if i of diffs
+          formatDate(diffs[i].updated, '') + '\n' + diffs[i].updators.join ', '
+        else
+          i
+    .slider 'setValue', diffs.length-1
+    .off 'change'
+    .on 'change', (e) =>
+      value = parseInt e.value.newValue
+      @historyBody.set diffs[value].body
+
+Template.messageHistory.helpers
+  body: ->
+    formatBody.call @, Template.instance().historyBody.get()
