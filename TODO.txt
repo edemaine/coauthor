@@ -2,8 +2,6 @@ FEATURES
 
 * actual image upload support, and conversion of 6890 URLs into image blobs
 
-* time travel: looking at old versions
-
 * security model
 
 PERFORMANCE
