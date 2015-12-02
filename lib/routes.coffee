@@ -41,5 +41,16 @@ Router.route '/:group',
   data: ->
     group: @params.group
 
+@wildGroupRoute = 'GLOBAL'
+
+Router.route '/:group/users',
+  name: 'users'
+  template: 'users'
+  subscriptions: -> [
+    Meteor.subscribe 'users'
+  ]
+  data: ->
+    group: @params.group
+
 Router.route '/',
   name: 'frontpage'

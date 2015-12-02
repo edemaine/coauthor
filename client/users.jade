@@ -1,0 +1,28 @@
+template(name="users")
+  table.table.table-striped.table-hover.users
+    tbody
+      tr
+        th Username
+        th Read
+        th Post
+        th Edit
+        th Super
+        th Admin
+      each users
+        tr
+          th #{username}
+          td !{readRole}
+          td !{postRole}
+          td !{editRole}
+          td !{superRole}
+          td !{adminRole}
+      tr
+        th
+          i &lt;anonymous&gt;
+        td !{anonReadRole}
+        td !{anonPostRole}
+        td !{anonEditRole}
+        td !{anonSuperRole}
+        td !{anonAdminRole}
+  if wildLink
+    button.globalUsersButton.btn.btn-warning Edit Global User Permissions
