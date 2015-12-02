@@ -11,12 +11,9 @@
     name: group
   ?.anonymous ? []
 
-@groupRoleCheck = (group, role, userId = null) ->
+@groupRoleCheck = (group, role, user = Meteor.user()) ->
   ## Note that group may be wildGroup to check specifically for global role.
-  if userId?  ## for use in Meteor.publish handler
-    user = Meteor.users.findOne userId
-  else
-    user = Meteor.user()
+  ## If e.g. in Meteor.publish handler, pass in Meteor.users.findOne userId
   role in (user?.roles?[wildGroup] ? []) or
   role in (user?.roles?[group] ? []) or
   role in groupAnonymousRoles group
@@ -26,14 +23,15 @@ if Meteor.isServer
     if @userId?
       user = Meteor.users.findOne @userId
       if not user.roles  ## user has no permissions
-        []
-      else if 'read' in user.roles[wildGroup] ? []  ## super-reading user
+        Groups.find
+          anonymous: 'read'
+      else if 'read' in (user.roles[wildGroup] ? [])  ## super-reading user
         Groups.find()
       else  ## groups readable by this user or by anonymous
         Groups.find
           $or: [
             {anonymous: 'read'}
-            {name: $in: group for group, roles of user.roles ? {} when 'read' in roles}
+            {name: $in: group for own group, roles of user.roles ? {} when 'read' in roles}
           ]
     else  ## anonymous user
       Groups.find
@@ -45,6 +43,7 @@ Meteor.methods
     check user, String
     check role, String
     check yesno, Boolean
+    #console.log 'setRole', group, user, role, yesno
     if groupRoleCheck group, 'admin'
       if user == anonymousUser
         if yesno

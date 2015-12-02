@@ -5,7 +5,7 @@
 if Meteor.isServer
   Meteor.publish 'messages', (group) ->
     check group, String
-    if groupRoleCheck group, 'read', @userId
+    if groupRoleCheck group, 'read', Meteor.users.findOne @userId
       Messages.find
         group: group
 
