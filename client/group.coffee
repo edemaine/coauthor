@@ -19,6 +19,8 @@ Template.registerHelper 'groups', ->
 Template.registerHelper 'groupcount', ->
   Groups.find().count()
 
+Template.registerHelper 'admin', -> canAdmin @group
+
 Template.registerHelper 'canImport', -> canImport @group
 
 Template.postButtons.helpers

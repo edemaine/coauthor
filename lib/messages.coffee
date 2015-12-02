@@ -46,6 +46,9 @@ if Meteor.isServer
 @canSuperdelete = (message) ->
   canSuper message2group message
 
+@canAdmin = (group) ->
+  groupRoleCheck group, 'admin'
+
 idle = 1000   ## one second
 
 @message2group = (message) ->
