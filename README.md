@@ -1,4 +1,12 @@
-Features so far:
+# Coauthor #
+
+**Coauthor** is a tool for group collaboration, discussion, keeping track of
+notes/results of meetings, etc.  Its primary goal is to ease multiauthor
+collaboration on unsolved problems in theoretical computer science, so
+e.g. you'll find LaTeX math support; hopefully it will have applications
+in other fields too.
+
+# Features So Far #
 
 * Live updates/redraw of everything, thanks to Meteor.  No more hitting
 "reload".  If you're looking at a problem and someone posts/edits something,
@@ -16,7 +24,7 @@ document has not changed for 1 second.)
 
 * Two formats for rendering: HTML (sanitized) and Github-style Markdown,
 with proper execution of Mathjax for LaTeX math.  (But there are some
-weird interactions between Markdown and Mathjax in _s I need to resolve.)
+weird interactions between Markdown and Mathjax (_) I need to resolve.)
 
 * Ace editor supports "regular" keybindings as well as Vim and (limited)
 Emacs style.  (You may recall problem sessions where I needed to use Vim to
