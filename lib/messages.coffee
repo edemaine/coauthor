@@ -8,10 +8,16 @@ if Meteor.isServer
     if groupRoleCheck group, 'read', Meteor.users.findOne @userId
       Messages.find
         group: group
+    else
+      @ready()
 
   Meteor.publish 'messages.diff', (message) ->
-    MessagesDiff.find
-      id: message
+    check message, String
+    if groupRoleCheck message2group(message), 'read', Meteor.users.findOne @userId
+      MessagesDiff.find
+        id: message
+    else
+      @ready()
 
   ## Remove all editors on server start, so that we can restart listeners.
   Messages.find().forEach (message) ->
