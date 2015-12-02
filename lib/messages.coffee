@@ -5,7 +5,7 @@
 if Meteor.isServer
   Meteor.publish 'messages', (group) ->
     check group, String
-    if groupRoleCheck group, 'read', Meteor.users.findOne @userId
+    if groupRoleCheck group, 'read', findUser @userId
       Messages.find
         group: group
     else
@@ -13,7 +13,7 @@ if Meteor.isServer
 
   Meteor.publish 'messages.diff', (message) ->
     check message, String
-    if groupRoleCheck message2group(message), 'read', Meteor.users.findOne @userId
+    if groupRoleCheck message2group(message), 'read', findUser @userId
       MessagesDiff.find
         id: message
     else

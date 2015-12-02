@@ -13,4 +13,4 @@ Template.layout.events
   'click .usersButton': (e) ->
     e.preventDefault()
     e.stopPropagation()
-    Router.go 'users', group: @group
+    Router.go 'users', group: @group ? wildGroupRoute

@@ -1,6 +1,6 @@
 haveRole = (role, roles) ->
   group = routeGroup()
-  if role in (roles?[group] ? [])
+  if role in (roles?[escapeGroup group] ? [])
     btnclass = 'success'
     local = 'YES'
   else

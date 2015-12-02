@@ -1,6 +1,12 @@
+@findUser = (userId) ->
+  if userId?
+    Meteor.users.findOne(userId) ? {}
+  else
+    {}
+
 if Meteor.isServer
   Meteor.publish 'users', (group) ->
-    if groupRoleCheck group, 'admin', Meteor.users.findOne @userId
+    if groupRoleCheck group, 'admin', findUser @userId
       Meteor.users.find {},
         roles: 1
     else
