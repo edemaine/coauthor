@@ -13,8 +13,8 @@
     user = Meteor.users.findOne userId
   else
     user = Meteor.user()
-  role in user.roles?[wildGroup] ? [] or
-  role in user.roles?[group] ? [] or
+  role in (user.roles?[wildGroup] ? []) or
+  role in (user.roles?[group] ? []) or
   role in groupAnonymousRoles group
 
 #@groupsWithRole = (role) ->
