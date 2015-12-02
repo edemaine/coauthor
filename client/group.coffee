@@ -7,6 +7,9 @@
 
 Template.registerHelper 'routeGroup', routeGroup
 
+Template.registerHelper 'wildGroup', ->
+  routeGroup() == wildGroup
+
 Template.registerHelper 'groupData', ->
   Groups.findOne {name: routeGroup()}
 
