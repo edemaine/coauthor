@@ -1,4 +1,5 @@
 @wildGroup = '*'
+@anonymousUser = '*'
 
 @validGroup = (group) ->
   group and group.charAt(0) not in ['*', '$']
@@ -16,8 +17,8 @@
     user = Meteor.users.findOne userId
   else
     user = Meteor.user()
-  role in (user.roles?[wildGroup] ? []) or
-  role in (user.roles?[group] ? []) or
+  role in (user?.roles?[wildGroup] ? []) or
+  role in (user?.roles?[group] ? []) or
   role in groupAnonymousRoles group
 
 if Meteor.isServer
@@ -38,6 +39,31 @@ if Meteor.isServer
       Groups.find
         anonymous: 'read'
 
-#Meteor.methods
-#  setRole: (user, role, yesno) ->
-#    
+Meteor.methods
+  setRole: (group, user, role, yesno) ->
+    check group, String
+    check user, String
+    check role, String
+    check yesno, Boolean
+    if groupRoleCheck group, 'admin'
+      if user == anonymousUser
+        if yesno
+          Groups.update
+            name: group
+          , $addToSet: anonymous: role
+        else
+          Groups.update
+            name: group
+          , $pull: anonymous: role
+      else
+        key = 'roles.' + group
+        op = {}
+        op[key] = role
+        if yesno
+          Meteor.users.update
+            username: user
+          , $addToSet: op
+        else
+          Meteor.users.update
+            username: user
+          , $pull: op

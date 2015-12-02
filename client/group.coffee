@@ -1,4 +1,9 @@
-@routeGroup = -> Iron.controller().getParams().group
+@routeGroup = ->
+  group = Iron.controller().getParams().group
+  if group == wildGroupRoute
+    wildGroup
+  else
+    group
 
 Template.registerHelper 'routeGroup', routeGroup
 
