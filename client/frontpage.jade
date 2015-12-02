@@ -1,6 +1,17 @@
 template(name="frontpage")
-  p Welcome to Coauthor!
+  h1 Welcome to Coauthor!
   if currentUser
-    | Choose a group to get started.
+    if groupcount
+      .alert.alert-success(role="alert") Choose a <B>group</B> below to get started.
+    else
+      .alert.alert-danger(role="alert") You do not appear to have access to any groups.  You probably need to talk to someone in charge.
   else
-    | Login to get started.
+    if groupcount
+      .alert.alert-warning(role="alert") Choose a <B>public group</B> below, or <B>sign in</B> (in the upper-right corner) to gain more access.
+    else
+      .alert.alert-danger(role="alert") Please <B>sign in</B> (in the upper-right corner) to get started.
+  ul
+    each groups
+      li
+        a(href="{{pathFor 'group' group=name}}") name
+  i #{groupcount} groups
