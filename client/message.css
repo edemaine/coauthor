@@ -1,0 +1,18 @@
+.space { padding-left: 0.5em; }
+.space-between { display: flex; justify-content: space-between; align-items: center }
+.unit { width: auto; }
+
+.title { font-weight: bold; }
+.author { font-style: italic; }
+.message .author { text-align: right; margin-right: 1em; }
+.message-footer { width: 100%; }
+.message-footer td { padding: 0ex 1em; }
+
+.ace_editor { width: 100%; height: 20em; }
+
+.children { margin-top: 1.5ex; margin-left: 1em; }
+
+img { max-width: 100% }
+
+.historySlider { margin-left: 5em; margin-right: 5em; }
+.slider.slider-horizontal { width: 100%; }

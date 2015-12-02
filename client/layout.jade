@@ -1,0 +1,36 @@
+template(name="layout")
+  .container-fluid
+    nav.navbar.navbar-default(role="navigation")
+      .navbar-header
+        button.navbar-toggle.collapsed(type="button", data-toggle="collapse", data-target="#navbar")
+          span.sr-only Toggle navigation
+          span.icon-bar
+          span.icon-bar
+          span.icon-bar
+        if group
+          a.navbar-brand(href="{{pathFor 'group' group=group}}") Coauthor
+        else
+          a.navbar-brand(href="{{pathFor 'frontpage'}}") Coauthor
+      .collapse.navbar-collapse#navbar
+        ul.nav.navbar-nav
+          li.dropdown
+            a.dropdown-toggle(href="#", data-toggle="dropdown", role="button", aria-expanded="false")
+              if groupData
+                | #{group}
+              else if group
+                | #{group}?
+              else
+                i Select Group
+              span.caret
+            ul.dropdown-menu(role="menu")
+              each groups
+                li(class="{{activeGroup}}")
+                  a(href="{{pathFor 'group' group=name}}") {{name}}
+              //-
+                li.divider
+                li
+                  a(href="#") Request Access
+        ul.nav.navbar-nav.navbar-right
+          +loginButtons
+    #main.row-fluid
+      +yield

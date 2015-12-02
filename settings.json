@@ -1,0 +1,32 @@
+{
+  "sharejs": {
+    "options": {
+      "db": {
+        "type": "none"
+      }
+      "accounts_auth_NOTYET": {
+        "authorize": {
+            "collection": "documents",
+            "token_validations": {
+              "or": {
+                "invitedUsers": "is_in_array",
+                "userId": "is_equal"
+              }
+            },
+            "apply_on": [
+              "read",
+              "update",
+              "create",
+              "delete"
+            ]
+        },
+        "authenticate": {
+            "collection": "users",
+            "token_validations": {
+              "_id": "is_equal"
+            }
+        }
+      }
+    }
+  }
+}

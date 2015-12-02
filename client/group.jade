@@ -1,0 +1,42 @@
+template(name="group")
+  if group
+    +postButtons
+    +messageList
+    +importButton
+  else
+    +badGroup
+
+template(name="postButtons")
+  button.btn.btn-default.postButton(class=disablePost,name="problem") Pose New Problem
+  button.btn.btn-default.postButton(class=disablePost,name="discussion") Start Discussion Thread
+
+template(name="messageList")
+  div.list-group
+    each topMessages
+      a.list-group-item(href=messageLink)
+        +messageShort
+  i.panel-heading #{topMessageCount}
+
+template(name="importButton")
+  if canImport
+    input(type="file", id="importInput", style="display:none")
+    button.btn.btn-default.importButton Import
+
+template(name="messageShort")
+  .messageShort
+    span.title.tex2jax= title
+    if published
+      span.author (posed by #{creator} {{formatDate published}})
+    else
+      span.author (created by #{creator} {{formatDate created}})
+    span.badge= comments
+    if deleted
+      span.label.label-danger Deleted
+    else
+      unless published
+        span.label.label-warning Unpublished
+
+template(name="badGroup")
+  p The group &ldquo;<b>#{group}</b>&rdquo; does not exist or you do not have permission to access it.
+  unless currentUser
+    p You probably need to log in.

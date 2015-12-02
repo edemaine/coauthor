@@ -1,0 +1,21 @@
+FEATURES
+
+* actual image upload support, and conversion of 6890 URLs into image blobs
+
+* security model
+
+PERFORMANCE
+
+* can we decouple child submessages from parent, so they don't all re-render
+  when just the parent changes?
+
+BUGS
+
+* Markdown and LaTeX have some bad interaction with _s.
+  Need to fix Markdown package (marked) for this.
+
+* messageSuperdelete doesn't remove stuff from MessagesParent or MessagesDiff logs
+
+* Problem vs. Discussion Thread markings...
+
+* Respect Published and Deleted flags

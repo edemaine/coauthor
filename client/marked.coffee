@@ -1,0 +1,2 @@
+marked.setOptions
+  smartypants: true
