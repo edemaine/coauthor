@@ -19,7 +19,7 @@ if Meteor.isServer
       Messages.update message._id,
         $unset: editing: ''
 
-## @canRead check isn't necessary, as it's implied by Meteor.publish'd
+## @canRead check isn't necessary, as it's computed/implied by Meteor.publish'd
 ## groups and messages.
 
 @canPost = (group, parent) ->

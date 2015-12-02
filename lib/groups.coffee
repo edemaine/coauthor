@@ -9,7 +9,7 @@
   Groups.findOne(group).anonymous
 
 @groupRoleCheck = (group, role, userId = null) ->
-  if userId?
+  if userId?  ## for use in Meteor.publish handler
     user = Meteor.users.findOne userId
   else
     user = Meteor.user()
