@@ -16,13 +16,14 @@ template(name="users")
           td(data-role="edit") !{editRole}
           td(data-role="super") !{superRole}
           td(data-role="admin") !{adminRole}
-      tr(data-username="*")
-        th
-          i &lt;anonymous&gt;
-        td(data-role="read") !{anonReadRole}
-        td(data-role="post") !{anonPostRole}
-        td(data-role="edit") !{anonEditRole}
-        td(data-role="super") !{anonSuperRole}
-        td(data-role="admin") !{anonAdminRole}
+      if showAnonymous
+        tr(data-username="*")
+          th
+            i &lt;anonymous&gt;
+          td(data-role="read") !{anonReadRole}
+          td(data-role="post") !{anonPostRole}
+          td(data-role="edit") !{anonEditRole}
+          td(data-role="super") !{anonSuperRole}
+          td(data-role="admin") !{anonAdminRole}
   if wildLink
     button.globalUsersButton.btn.btn-warning Edit Global User Permissions

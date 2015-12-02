@@ -8,7 +8,10 @@ template(name="layout")
           span.icon-bar
           span.icon-bar
         if routeGroup
-          a.navbar-brand(href="{{pathFor 'group' group=routeGroup}}") Coauthor
+          if wildGroup
+            a.navbar-brand(href="{{pathFor 'frontpage'}}") Coauthor
+          else
+            a.navbar-brand(href="{{pathFor 'group' group=routeGroup}}") Coauthor
         else
           a.navbar-brand(href="{{pathFor 'frontpage'}}") Coauthor
       .collapse.navbar-collapse#navbar

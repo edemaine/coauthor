@@ -50,7 +50,7 @@ Router.route '/:group/users',
     Meteor.subscribe 'users'
   ]
   data: ->
-    group: @params.group
+    group: routeGroup()
 
 Router.route '/',
   name: 'frontpage'

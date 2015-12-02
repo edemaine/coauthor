@@ -32,6 +32,8 @@ anonRole = (role, group) ->
 Template.users.helpers
   users: ->
     Meteor.users.find()
+  showAnonymous: ->
+    @group != wildGroup
 
   readRole: -> haveRole 'read', @roles
   postRole: -> haveRole 'post', @roles
@@ -45,7 +47,7 @@ Template.users.helpers
   anonSuperRole: -> anonRole 'super', @group
   anonAdminRole: -> anonRole 'admin', @group
 
-  wildLink: -> groupRoleCheck wildGroup, 'admin'
+  wildLink: -> @group != wildGroup and groupRoleCheck wildGroup, 'admin'
 
 Template.users.events
   'click .globalUsersButton': (e) ->
