@@ -44,5 +44,8 @@ template(name="layout")
                   a(href="#") Request Access
         ul.nav.navbar-nav.navbar-right
           +loginButtons
+        if showUsers
+          ul.nav.navbar-nav.navbar-right.navbar-btn
+            button.usersButton.btn.btn-warning Users
     #main.row-fluid
       +yield
