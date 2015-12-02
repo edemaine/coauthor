@@ -5,40 +5,40 @@
 if Meteor.isServer
   Meteor.publish 'messages', (group) ->
     check group, String
-    Messages.find
-      group: group
+    if groupRoleCheck group, 'read', @userId
+      Messages.find
+        group: group
 
   Meteor.publish 'messages.diff', (message) ->
     MessagesDiff.find
       id: message
 
-  ## Remove all editors, so that we can restart listeners.
+  ## Remove all editors on server start, so that we can restart listeners.
   Messages.find().forEach (message) ->
     if message.editing?.length
       Messages.update message._id,
         $unset: editing: ''
 
+## @canRead check isn't necessary, as it's implied by Meteor.publish'd
+## groups and messages.
+
 @canPost = (group, parent) ->
-  if Meteor.userId()
-    true   # xxx AUTHORIZE
-  else
-    false
+  ## parent actually ignored
+  groupRoleCheck group, 'post'
 
 @canEdit = (message) ->
-  if Meteor.userId()
-    true   # xxx AUTHORIZE
-  else
-    false
+  ## Can edit message if an "author" (the creator or edited in the past),
+  ## or if we have global edit privileges in this group.
+  msg = Messages.findOne message
+  Meteor.user()?.username of msg.authors or
+  groupRoleCheck msg.group, 'edit'
 
-@isSuper = (group) ->
-  if Meteor.user()?.username == 'edemaine'
-    true   # xxx AUTHORIZE
-  else
-    false
+@canSuper = (group) ->
+  groupRoleCheck group, 'super'
 
-@canImport = (group) -> isSuper group
+@canImport = (group) -> canSuper group
 @canSuperdelete = (message) ->
-  isSuper message2group message
+  canSuper message2group message
 
 idle = 1000   ## one second
 
@@ -103,6 +103,45 @@ idle = 1000   ## one second
   MessagesDiff.insert message
   id
 
+_messageParent: (child, parent, position = null, oldParent = true, importing = false) ->
+  ## oldParent is an internal option for server only; true means "search for/
+  ## deal with old parent", while null means we assert there is no old parent.
+  check Meteor.userId(), String  ## should be done by 'canEdit'
+  check parent, String if parent?
+  check position, Number if position?
+  #check oldParent, Boolean
+  #check importing, Boolean
+  pmsg = Messages.findOne parent
+  if canEdit child and canPost pmsg.group, parent
+    if oldParent
+      oldParent = findMessageParent child
+      if oldParent?
+        Messages.update oldParent,
+          $pop: children: child
+    if position?
+      Messages.update parent,
+        $push: children:
+          $each: [child]
+          $position: position
+    else
+      Messages.update parent,
+        $push: children: child
+    Messages.update child,
+      $set: root: pmsg.root ? parent
+    doc =
+      child: child
+      parent: parent
+      position: position
+      oldParent: oldParent
+    if importing
+      cmsg = Messages.findOne child
+      doc.updator = cmsg.creator
+      doc.updated = cmsg.created
+    else
+      doc.updator = Meteor.user().username
+      doc.updated = new Date
+    MessagesParent.insert doc
+
 Meteor.methods
   messageUpdate: (id, message) -> _messageUpdate id, message
 
@@ -140,7 +179,7 @@ Meteor.methods
       message.updated = now
       MessagesDiff.insert message
       if parent?
-        Meteor.call 'messageParent', id, parent, position
+        _messageParent id, parent, position, null  ## there's no old parent
       id
 
     ## Initial URL (short name) is the Mongo-provided ID.  User can edit later.
@@ -150,40 +189,10 @@ Meteor.methods
     #    url: id
     #message
 
-  messageParent: (child, parent, position = null, oldParent = null, importing = false) ->
-    check Meteor.userId(), String  ## should be done by 'canEdit'
-    check parent, String if parent?
-    check position, Number if position?
-    check oldParent, String if oldParent?
-    if canEdit child and canPost null, parent
-      pmsg = Messages.findOne parent
-      return unless canImport pmsg.group
-      if oldParent?
-        Messages.update oldParent,
-          $pop: children: child
-      if position?
-        Messages.update parent,
-          $push: children:
-            $each: [child]
-            $position: position
-      else
-        Messages.update parent,
-          $push: children: child
-      Messages.update child,
-        $set: root: pmsg.root ? parent
-      doc =
-        child: child
-        parent: parent
-        position: position
-        oldParent: oldParent
-      if importing
-        cmsg = Messages.findOne child
-        doc.updator = cmsg.creator
-        doc.updated = cmsg.created
-      else
-        doc.updator = Meteor.user().username
-        doc.updated = new Date
-      MessagesParent.insert doc
+  messageParent: (child, parent, position = null) ->
+    ## Notably, disabling oldParent search and importing options are not
+    ## allowed from client, only internal to server.
+    _messageParent id, parent, position
 
   messageEditStart: (id) ->
     check Meteor.userId(), String
@@ -254,7 +263,7 @@ Meteor.methods
       updated: Match.Optional Date
       updators: Match.Optional [String]
     ]
-    if canImport group, parent
+    if canImport group
       now = new Date
       if message.published == true
         message.published = now
@@ -271,7 +280,7 @@ Meteor.methods
         diff.group = group
         MessagesDiff.insert diff
       if parent?
-        Meteor.call 'messageParent', id, parent, null, null, true
+        _messageParent id, parent, null, null, true
       id
 
   messageSuperdelete: (message) ->

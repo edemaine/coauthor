@@ -6,7 +6,7 @@ collaboration on unsolved problems in theoretical computer science, so
 e.g. you'll find LaTeX math support; hopefully it will have applications
 in other fields too.
 
-# Features So Far #
+## Features So Far ##
 
 * Live updates/redraw of everything, thanks to Meteor.  No more hitting
 "reload".  If you're looking at a problem and someone posts/edits something,
@@ -24,7 +24,7 @@ document has not changed for 1 second.)
 
 * Two formats for rendering: HTML (sanitized) and Github-style Markdown,
 with proper execution of Mathjax for LaTeX math.  (But there are some
-weird interactions between Markdown and Mathjax (_) I need to resolve.)
+weird interactions between Markdown and Mathjax (\_) I need to resolve.)
 
 * Ace editor supports "regular" keybindings as well as Vim and (limited)
 Emacs style.  (You may recall problem sessions where I needed to use Vim to
@@ -44,3 +44,26 @@ including a not-yet-visible reparenting feature.
 
 * Import from osqa's XML dump, including old edit history!  Haven't snarfed
 the image URLs/uploads yet though.
+
+* Basic permissions model for protecting content, both reading and writing.
+(See below.)
+
+## Permissions ##
+
+To get started, you'll need to make a user who can grant privileges to other
+users.  First, create the user on the web.  Then run a command like this from
+`meteor mongo`:
+
+```
+meteor:PRIMARY> db.users.update({username: 'edemaine'}, {$set: {'roles.*': ['read', 'post', 'edit', 'super', 'admin']}})
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+```
+
+`*` means all groups, so this user gets the following permissions globally:
+
+* read: see the group and read the messages (otherwise invisible)
+* post: create new messages, replies, etc. in the group
+* edit: modify other people's messages
+* super: somewhat dangerous "super" operations like history-destroying
+  superdelete and history-creating import
+* admin: administer over other users, in particular setting permissions

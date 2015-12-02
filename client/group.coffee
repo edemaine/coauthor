@@ -1,7 +1,17 @@
 @routeGroup = -> Iron.controller().getParams().group
 
+Template.registerHelper 'routeGroup', routeGroup
+
 Template.registerHelper 'groupData', ->
   Groups.findOne {name: routeGroup()}
+
+Template.registerHelper 'groups', ->
+  Groups.find()
+
+Template.registerHelper 'groupcount', ->
+  Groups.find().count()
+
+Template.registerHelper 'canImport', -> canImport @group
 
 Template.postButtons.helpers
   disablePost: ->

@@ -7,8 +7,8 @@ template(name="layout")
           span.icon-bar
           span.icon-bar
           span.icon-bar
-        if group
-          a.navbar-brand(href="{{pathFor 'group' group=group}}") Coauthor
+        if routeGroup
+          a.navbar-brand(href="{{pathFor 'group' group=routeGroup}}") Coauthor
         else
           a.navbar-brand(href="{{pathFor 'frontpage'}}") Coauthor
       .collapse.navbar-collapse#navbar
@@ -16,16 +16,25 @@ template(name="layout")
           li.dropdown
             a.dropdown-toggle(href="#", data-toggle="dropdown", role="button", aria-expanded="false")
               if groupData
-                | #{group}
-              else if group
-                | #{group}?
+                | #{routeGroup}
+              else if routeGroup
+                | #{routeGroup}?
               else
                 i Select Group
               span.caret
             ul.dropdown-menu(role="menu")
-              each groups
-                li(class="{{activeGroup}}")
-                  a(href="{{pathFor 'group' group=name}}") {{name}}
+              if groupcount
+                each groups
+                  li(class="{{activeGroup}}")
+                    a(href="{{pathFor 'group' group=name}}") {{name}}
+              else if currentUser
+                li
+                  a
+                    i No groups available to you...
+              else
+                li
+                  a
+                    i No groups available &mdash; should you sign in?
               //-
                 li.divider
                 li

@@ -1,5 +1,5 @@
 template(name="group")
-  if group
+  if groupData
     +postButtons
     +messageList
     +importButton
@@ -25,11 +25,12 @@ template(name="importButton")
 template(name="messageShort")
   .messageShort
     span.title.tex2jax= title
+    span.space
     if published
       span.author (posed by #{creator} {{formatDate published}})
     else
       span.author (created by #{creator} {{formatDate created}})
-    span.badge= comments
+    //span.badge= comments
     if deleted
       span.label.label-danger Deleted
     else
@@ -37,6 +38,8 @@ template(name="messageShort")
         span.label.label-warning Unpublished
 
 template(name="badGroup")
-  p The group &ldquo;<b>#{group}</b>&rdquo; does not exist or you do not have permission to access it.
-  unless currentUser
-    p You probably need to log in.
+  .alert.alert-danger(role="alert") The group &ldquo;<b>#{group}</b>&rdquo; either does not exist or you do not have permission to access it.
+    if currentUser
+      p Barring typos, you probably need to <B>talk to someone in charge</B> of the group.
+    else
+      p You probably need to <B>sign in</B> (in the upper-right corner).
