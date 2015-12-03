@@ -14,6 +14,8 @@ BUGS
 
 * messageSuperdelete doesn't remove stuff from MessagesParent or MessagesDiff logs
 
+* role changes aren't logged anywhere, but should be
+
 * Problem vs. Discussion Thread markings...
 
 * Respect Published and Deleted flags
