@@ -3,11 +3,16 @@ template(name="users")
     tbody
       tr
         th Username
-        th Read
-        th Post
-        th Edit
-        th Super
-        th Admin
+        th
+          span(data-toggle="tooltip", title="Permission to see the group at all, and read all messages within") Read
+        th
+          span(data-toggle="tooltip", title="Permission to post new messages and replies to the group, and to edit those authored messages") Post
+        th
+          span(data-toggle="tooltip", title="Permission to edit all messages, not just previously authored messages") Edit
+        th
+          span(data-toggle="tooltip", title="Permission to perform dangerous operations: history-destroying superdelete and XML import") Super
+        th
+          span(data-toggle="tooltip", title="Permission to administer other users in the group, i.e., to change their permissions") Admin
       each users
         tr(data-username=username)
           th #{username}

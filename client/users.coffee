@@ -69,3 +69,6 @@ Template.users.events
       Meteor.call 'setRole', t.data.group, username, role, false
     else if 0 <= old.indexOf 'NO'
       Meteor.call 'setRole', t.data.group, username, role, true
+
+Template.users.onRendered ->
+  $('[data-toggle="tooltip"]').tooltip()
