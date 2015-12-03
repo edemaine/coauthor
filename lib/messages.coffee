@@ -36,7 +36,7 @@ if Meteor.isServer
   ## Can edit message if an "author" (the creator or edited in the past),
   ## or if we have global edit privileges in this group.
   msg = Messages.findOne message
-  Meteor.user()?.username of msg.authors or
+  Meteor.user()?.username of (msg.authors ? {}) or
   groupRoleCheck msg.group, 'edit'
 
 @canSuper = (group) ->
@@ -112,7 +112,7 @@ idle = 1000   ## one second
   MessagesDiff.insert message
   id
 
-_messageParent: (child, parent, position = null, oldParent = true, importing = false) ->
+_messageParent = (child, parent, position = null, oldParent = true, importing = false) ->
   ## oldParent is an internal option for server only; true means "search for/
   ## deal with old parent", while null means we assert there is no old parent.
   check Meteor.userId(), String  ## should be done by 'canEdit'
@@ -121,7 +121,7 @@ _messageParent: (child, parent, position = null, oldParent = true, importing = f
   #check oldParent, Boolean
   #check importing, Boolean
   pmsg = Messages.findOne parent
-  if canEdit child and canPost pmsg.group, parent
+  if canEdit(child) and canPost pmsg.group, parent
     if oldParent
       oldParent = findMessageParent child
       if oldParent?
@@ -157,6 +157,7 @@ Meteor.methods
   messageNew: (group, parent = null, position = null) ->
     check Meteor.userId(), String  ## should be done by 'canPost'
     check parent, String if parent?
+    check position, Number if position?
     check group, String
     if canPost group, parent
       now = new Date
