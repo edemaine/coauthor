@@ -171,13 +171,12 @@ Template.submessage.events
         title: e.target.value
     , idle
 
-  'click .replyButton': (e) ->
+  'click .replyButton': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
-    message = e.target.getAttribute 'data-message'
-    if canPost @group, message
-      group = @group  ## for closure
-      Meteor.call 'messageNew', group, message, (error, result) ->
+    message = @_id
+    if canPost @group, @_id
+      Meteor.call 'messageNew', @group, @_id, (error, result) ->
         if error
           console.error error
         else if result
