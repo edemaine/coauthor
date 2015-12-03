@@ -2,8 +2,6 @@ FEATURES
 
 * actual image upload support, and conversion of 6890 URLs into image blobs
 
-* security model
-
 PERFORMANCE
 
 * can we decouple child submessages from parent, so they don't all re-render
