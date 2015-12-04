@@ -14,3 +14,8 @@ Template.layout.events
     e.preventDefault()
     e.stopPropagation()
     Router.go 'users', group: @group ? wildGroupRoute
+
+  'click .settingsButton': (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+    Router.go 'settings', group: @group ? wildGroupRoute

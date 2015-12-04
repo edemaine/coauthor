@@ -1,3 +1,11 @@
+@availableFormats = ['html', 'markdown']
+
+Template.registerHelper 'formats', ->
+  for format in availableFormats
+    format: format
+    active: if Template.currentData()?.format == format then 'active' else ''
+    capitalized: capitalize format
+
 Template.badMessage.helpers
   'message': -> Iron.controller().getParams().message
 
@@ -80,14 +88,6 @@ Template.submessage.helpers
     else
       ''
 
-  format: ->
-    capitalize @format
-  activeFormat: (match) ->
-    if @format == match
-      'active'
-    else
-      ''
-
   title: historify 'title'
   deleted: historify 'deleted'
   published: historify 'published'
@@ -129,6 +129,7 @@ Template.submessage.helpers
 Template.submessage.events
   'click .editButton': (e) ->
     e.preventDefault()
+    e.stopPropagation()
     message = e.target.getAttribute 'data-message'
     if editing @
       Meteor.call 'messageEditStop', message
@@ -137,6 +138,7 @@ Template.submessage.events
 
   'click .publishButton': (e) ->
     e.preventDefault()
+    e.stopPropagation()
     message = e.target.getAttribute 'data-message'
     ## Stop editing if we are publishing.
     if not @published and editing @
@@ -146,6 +148,7 @@ Template.submessage.events
 
   'click .deleteButton': (e) ->
     e.preventDefault()
+    e.stopPropagation()
     message = e.target.getAttribute 'data-message'
     ## Stop editing if we are deleting.
     if not @deleted and editing @
@@ -155,13 +158,17 @@ Template.submessage.events
 
   'click .editorKeyboard': (e, t) ->
     e.preventDefault()
+    e.stopPropagation()
     t.keyboard.set kb = e.target.getAttribute 'data-keyboard'
     t.editor.setKeyboardHandler if kb == 'ace' then '' else 'ace/keyboard/' + kb
+    $(e.target).parent().dropdown 'toggle'
 
   'click .editorFormat': (e, t) ->
     e.preventDefault()
+    e.stopPropagation()
     Meteor.call 'messageUpdate', t.data._id,
       format: e.target.getAttribute 'data-format'
+    $(e.target).parent().dropdown 'toggle'
 
   'keyup input.title': (e, t) ->
     message = e.target.getAttribute 'data-message'

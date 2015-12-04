@@ -45,12 +45,14 @@ Router.route '/:group',
 
 Router.route '/:group/users',
   name: 'users'
-  template: 'users'
   subscriptions: -> [
     Meteor.subscribe 'users'
   ]
   data: ->
     group: routeGroup()
+
+Router.route '/:group/settings',
+  name: 'settings'
 
 Router.route '/',
   name: 'frontpage'

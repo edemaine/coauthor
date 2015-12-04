@@ -45,15 +45,7 @@ template(name="submessage")
                     a(href="#",data-keyboard="vim") Vim
                   li.editorKeyboard(class="{{activeKeyboard 'emacs'}}")
                     a(href="#",data-keyboard="emacs") Emacs
-              .btn-group
-                button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
-                  | #{format}
-                  span.caret
-                ul.dropdown-menu(role="menu")
-                  li.editorFormat(class="{{activeFormat 'html'}}")
-                    a(href="#",data-format="html") HTML
-                  li.editorFormat(class="{{activeFormat 'markdown'}}")
-                    a(href="#",data-format="markdown") Markdown
+              +formatSelector
             else
               button.btn.btn-default.historyButton History
               if canEdit
@@ -94,6 +86,16 @@ template(name="submessage")
     .children
       each children
         +submessage
+
+template(name="formatSelector")
+  .btn-group
+    button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
+      | {{capitalize format}}
+      span.caret
+    ul.dropdown-menu(role="menu")
+      each formats
+        li.editorFormat(class="#{active}")
+          a(href="#",data-format=format)= capitalized
 
 template(name="superdelete")
   .modal
