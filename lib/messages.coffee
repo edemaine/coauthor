@@ -25,6 +25,8 @@ if Meteor.isServer
       Messages.update message._id,
         $unset: editing: ''
 
+@defaultFormat = 'markdown'
+
 ## @canRead check isn't necessary, as it's computed/implied by Meteor.publish'd
 ## groups and messages.
 
@@ -173,6 +175,7 @@ Meteor.methods
         children: []
         published: false
         deleted: false
+        format: Meteor.user()?.profile?.format or defaultFormat
         title: ""
       if parent?
         pmsg = Messages.findOne parent
