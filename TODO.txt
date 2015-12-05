@@ -2,6 +2,9 @@ FEATURES
 
 * actual image upload support, and conversion of 6890 URLs into image blobs
 
+* SSL (then force-ssl package).  Perhaps using Meteor Up:
+  https://github.com/arunoda/meteor-up#ssl-support
+
 PERFORMANCE
 
 * can we decouple child submessages from parent, so they don't all re-render
