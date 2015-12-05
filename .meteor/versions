@@ -31,6 +31,7 @@ edemaine:bootstrap-slider@1.0.1
 ejson@1.0.7
 email@1.0.8
 fastclick@1.0.7
+force-ssl@1.0.6
 geojson-utils@1.0.4
 handlebars@1.0.4
 hot-code-push@1.0.0
@@ -96,5 +97,6 @@ tracker@1.0.9
 ui@1.0.8
 underscore@1.0.4
 url@1.0.5
+vsivsi:file-collection@1.2.2
 webapp@1.2.3
 webapp-hashing@1.0.5
