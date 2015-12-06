@@ -1,0 +1,9 @@
+template(name="settings")
+  if currentUser
+    h1 Settings
+    with profile
+      label Preferred message format: 
+      span.space
+      +formatSelector
+  else
+    .alert.alert-danger(role="alert") Please <B>sign in</B> (in the upper-right corner) to change your settings.
