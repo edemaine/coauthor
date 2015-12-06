@@ -5,10 +5,11 @@
     method: 'get'
     path: '/id/:_id'
     lookup: (params, query) ->
-      console.log params, query
-      console.log params._id
       _id: params._id
   ]
+
+@findFile = (id) ->
+  Files.findOne new Meteor.Collection.ObjectID id
 
 if Meteor.isServer
   Meteor.publish 'files', (userId) ->
@@ -17,7 +18,10 @@ if Meteor.isServer
     if @userId is userId
       Files.find
         'metadata._Resumable': $exists: false
-        'metadata.updator': @userId
+        #$or:
+        #  'metadata.updator': @userId
+        'metadata.group': $in:
+          group.name for group in readableGroups(@userId).fetch()
     else
       @ready()
 
@@ -66,7 +70,7 @@ else
     updateUploading -> @[file.uniqueIdentifier].progress = Math.floor 100*file.progress()
   Files.resumable.on 'fileSuccess', (file) ->
     updateUploading -> delete @[file.uniqueIdentifier]
-    file.file.callback?()
+    file.file.callback?(file)
   Files.resumable.on 'fileError', (file) ->
     console.error "Error uploading", file.uniqueIdentifier
     updateUploading -> delete @[file.uniqueIdentifier]

@@ -93,13 +93,19 @@ Template.submessage.helpers
   published: historify 'published'
 
   body: ->
-    history = Template.instance().history.get()
-    if history?
-      body = history.body
-    else
-      body = @body
+    history = Template.instance().history.get() ? @
+    body = history.body
     return body unless body
-    switch @format
+    switch history.format
+      when 'file'
+        file = findFile body
+        if file?
+          if file.contentType[...6] == 'image/'
+            body = "<img src='#{Files.baseURL}/id/#{file._id}'/>"
+          else
+            body = "<i><a href='#{Files.baseURL}/id/#{file._id}'>&lt;#{file.length}-byte #{file.contentType} file&gt;</a></i>"
+        else
+          body = "<i>&lt;unknown file with ID #{body}&gt;</i>"
       when 'markdown'
         body = marked body
     sanitized = sanitizeHtml body
@@ -113,6 +119,7 @@ Template.submessage.helpers
     if a.length > 0
       ', edited by ' + a.join ", "
 
+  isFile: -> @format == 'file'
   canEdit: -> canEdit @_id
   canDelete: -> canEdit @_id
   canUndelete: -> canEdit @_id
@@ -269,10 +276,19 @@ Template.messageHistory.onRendered ->
 
 attachFiles = (files, e, t) ->
   message = t.data._id
+  group = t.data.group
   for file in files
-    file.callback = ->
-      console.log 'added file to', message
-    file.group = t.data.group
+    file.callback = (file2) ->
+      Meteor.call 'messageNew', group, message,
+        (error, result) ->
+          if error?
+            throw error
+          else
+            Meteor.call 'messageUpdate', result,
+              format: 'file'
+              title: file2.fileName
+              body: file2.uniqueIdentifier
+    file.group = group
     Files.resumable.addFile file, e
 
 Template.messageAttach.events
