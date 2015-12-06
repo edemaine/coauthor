@@ -85,6 +85,8 @@ template(name="submessage")
           else
             | (created by
           | #{creator} {{formatDate created}}#{authors})
+    if canAttach
+      +messageProgress
     .children
       each children
         +submessage
@@ -119,9 +121,11 @@ template(name="messageHistory")
     input(type="text", style="display: none")
 
 template(name="messageAttach")
-  input.attachInput(type="file", style="display:none")
+  input.attachInput(type="file", style="display:none", multiple)
   button.btn.btn-default.attachButton Attach
+
+template(name="messageProgress")
   each uploading
     label= filename
     .progress
-      .progress-bar.progress-bar-striped.active(role="progressbar", aria-valuenow=progress, aria-valuemin="0", aria-valuemax="100", style="width: #{progress}%")= progress
+      .progress-bar.progress-bar-striped.active(role="progressbar", aria-valuenow=progress, aria-valuemin="0", aria-valuemax="100", style="width: #{progress}%") #{progress}%
