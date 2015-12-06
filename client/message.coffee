@@ -310,6 +310,5 @@ Template.messageAttach.events
     e.stopPropagation()
     attachFiles e.originalEvent.dataTransfer.files, e, t
 
-Template.messageProgress.helpers
-  'uploading': ->
-    value for own key, value of Session.get 'uploading'
+Template.registerHelper 'uploading', ->
+  value for own key, value of Session.get 'uploading'
