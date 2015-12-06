@@ -49,9 +49,9 @@ Template.importButton.events
   'click .importButton': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
-    t.find('#importInput').click()
-  'change #importInput': (e, t) ->
-    importFiles t.data.group, t.find('#importInput').files
+    t.find('.importInput').click()
+  'change .importInput': (e, t) ->
+    importFiles t.data.group, e.target.files
   'dragenter .importButton': (e) ->
     e.preventDefault()
     e.stopPropagation()

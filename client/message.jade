@@ -77,6 +77,8 @@ template(name="submessage")
         td
           if canReply
             button.btn.btn-default.replyButton Reply
+          if canAttach
+            +messageAttach
         td.author
           if published
             | (posed by
@@ -115,3 +117,11 @@ template(name="messageHistory")
   //.tex2jax !{body}
   .historySlider
     input(type="text", style="display: none")
+
+template(name="messageAttach")
+  input.attachInput(type="file", style="display:none")
+  button.btn.btn-default.attachButton Attach
+  each uploading
+    label= filename
+    .progress
+      .progress-bar.progress-bar-striped.active(role="progressbar", aria-valuenow=progress, aria-valuemin="0", aria-valuemax="100", style="width: #{progress}%")= progress
