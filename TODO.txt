@@ -1,9 +1,27 @@
 FEATURES
 
-* actual image upload support, and conversion of 6890 URLs into image blobs
+* Should messages have types?  (e.g. problem, question, idea, paper, figure...)
+
+* Backup
+
+* Image embedding, and conversion of 6890 URLs into image blobs
+
+* Tags + import
+
+* Email notifications
 
 * SSL (then force-ssl package).  Perhaps using Meteor Up:
   https://github.com/arunoda/meteor-up#ssl-support
+
+* Dropbox plugin
+
+* MIT certificates
+
+* \label/\ref
+
+* Folding
+
+* Search
 
 PERFORMANCE
 
