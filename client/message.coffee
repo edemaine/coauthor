@@ -267,61 +267,33 @@ Template.messageHistory.onRendered ->
       @data.history.set diffs[e.newValue]
     @data.history.set diffs[diffs.length-1]
 
-Template.messageAttach.onCreated ->
-  @resumable = new Resumable
-    target: "#{Files.baseURL}/_resumable"
-    generateUniqueIdentifier: (file) -> "#{new Meteor.Collection.ObjectID()}"
-    fileParameterName: 'file'
-    chunkSize: Files.chunkSize
-    testChunks: true
-    testMethod: 'HEAD'
-    permanentErrors: [204, 404, 415, 500, 501]
-    simultaneousUploads: 10
-    maxFiles: undefined
-    maxFilesErrorCallback: undefined
-    prioritizeFirstAndLastChunk: false
-    query: undefined
-    headers: {}
-  #@resumable.messageParent = @data._id
-  @uploading = new ReactiveVar {}
-  updateUploading = (changer) =>
-    uploading = @uploading.get()
-    changer.call uploading
-    @uploading.set uploading
-  @resumable.on 'fileAdded', (file) =>
-    updateUploading -> @[file.uniqueIdentifier] =
-      filename: file.fileName
-      progress: 0
-    Files.insert
-      _id: file.uniqueIdentifier    ## This is the ID resumable will use.
-      filename: file.fileName
-      contentType: file.file.type
-    , (err, _id) =>
-      if err
-        console.error "File creation failed:", err
-      else
-        ## Once the file exists on the server, start uploading.
-        console.log 'hi'
-        @resumable.upload()  ## xxx couldn't this upload the wrong file?...
-  @resumable.on 'fileProgress', (file) =>
-    updateUploading -> @[file.uniqueIdentifier].progress = Math.floor 100*file.progress()
-  @resumable.on 'fileSuccess', (file) ->
-    updateUploading -> delete @[file.uniqueIdentifier]
-    #xxx
-  @resumable.on 'fileError', (file) ->
-    console.error "Error uploading", file.uniqueIdentifier
-    updateUploading -> delete @[file.uniqueIdentifier]
-
-Template.messageAttach.onRendered ->
-  @resumable.assignBrowse @find '.attachInput'
-  @resumable.assignDrop @find '.attachButton'
-
-Template.messageAttach.helpers
-  'uploading': ->
-    value for own key, value of Template.instance().uploading.get()
+attachFiles = (files, e, t) ->
+  message = t.data._id
+  for file in files
+    file.callback = ->
+      console.log 'added file to', message
+    file.group = t.data.group
+    Files.resumable.addFile file, e
 
 Template.messageAttach.events
   'click .attachButton': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
     t.find('.attachInput').click()
+  'change .attachInput': (e, t) ->
+    attachFiles e.target.files, e, t
+    e.target.value = ''
+  'dragenter .attachButton': (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+  'dragover .attachButton': (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+  'drop .attachButton': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    attachFiles e.originalEvent.dataTransfer.files, e, t
+
+Template.messageProgress.helpers
+  'uploading': ->
+    value for own key, value of Session.get 'uploading'
