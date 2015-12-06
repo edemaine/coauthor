@@ -24,15 +24,16 @@ if Meteor.isServer
   Files.allow
     insert: (userId, file) ->
       file.metadata = {} unless file.metadata?
+      check file.metadata,
+        group: Match.Optional String
       file.metadata.uploader = userId
-      userId?   ## xxx AUTHENTICATE
+      groupRoleCheck file.metadata.group ? wildGroup, 'post'
     remove: (userId, file) ->
-      file.metadata?.uploader == userId
+      file.metadata?.uploader in [userId, null]
     read: (userId, file) ->
-      file.metadata?.uploader == userId
+      file.metadata?.uploader in [userId, null]
     write: (userId, file, fields) ->
-      #console.log file, userId
-      file.metadata?.uploader == userId
+      file.metadata?.uploader in [userId, null]
 else
   Tracker.autorun ->
     Meteor.subscribe 'files', Meteor.userId()
