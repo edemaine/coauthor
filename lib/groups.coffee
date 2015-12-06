@@ -24,8 +24,8 @@
   role in groupAnonymousRoles group
 
 if Meteor.isServer
-  Meteor.publish 'groups', ->
-    user = findUser @userId
+  @readableGroups = (userId) ->
+    user = findUser userId
     if not user.roles  ## anonymous user or user has no permissions
       Groups.find
         anonymous: 'read'
@@ -37,6 +37,9 @@ if Meteor.isServer
           {anonymous: 'read'}
           {name: $in: (unescapeGroup group for own group, roles of user.roles ? {} when 'read' in roles)}
         ]
+
+  Meteor.publish 'groups', ->
+    readableGroups @userId
 
 Meteor.methods
   setRole: (group, user, role, yesno) ->

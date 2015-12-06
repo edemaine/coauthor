@@ -49,7 +49,8 @@ template(name="submessage")
             else
               button.btn.btn-default.historyButton History
               if canEdit
-                button.btn.btn-default.editButton(data-message=_id) Edit
+                unless isFile
+                  button.btn.btn-default.editButton(data-message=_id) Edit
             if deleted
               if canUndelete
                 button.btn.btn-success.deleteButton(data-message=_id) Undelete
