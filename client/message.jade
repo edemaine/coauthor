@@ -86,8 +86,6 @@ template(name="submessage")
           else
             | (created by
           | #{creator} {{formatDate created}}#{authors})
-    if canAttach
-      +messageProgress
     .children
       each children
         +submessage
