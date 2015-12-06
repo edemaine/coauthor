@@ -22,3 +22,6 @@ BUGS
 * Problem vs. Discussion Thread markings...
 
 * Respect Published and Deleted flags
+
+* Permissions are not reactive: adding permissions doesn't currently update
+  subscriptions, so people have to reload...
