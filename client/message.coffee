@@ -120,6 +120,7 @@ Template.submessage.helpers
   canUnpublish: -> canEdit @_id
   canSuperdelete: -> canSuperdelete @_id
   canReply: -> canPost @group, @_id
+  canAttach: -> canPost @group, @_id
 
   history: -> Template.instance().history.get()?
   forHistory: ->
@@ -205,6 +206,11 @@ Template.submessage.events
     e.stopPropagation()
     Modal.show 'superdelete', @
 
+  'click .attachButton': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    
+
 Template.superdelete.events
   'click .shallowSuperdeleteButton': (e, t) ->
     e.preventDefault()
@@ -260,3 +266,62 @@ Template.messageHistory.onRendered ->
     @slider.on 'change', (e) =>
       @data.history.set diffs[e.newValue]
     @data.history.set diffs[diffs.length-1]
+
+Template.messageAttach.onCreated ->
+  @resumable = new Resumable
+    target: "#{Files.baseURL}/_resumable"
+    generateUniqueIdentifier: (file) -> "#{new Meteor.Collection.ObjectID()}"
+    fileParameterName: 'file'
+    chunkSize: Files.chunkSize
+    testChunks: true
+    testMethod: 'HEAD'
+    permanentErrors: [204, 404, 415, 500, 501]
+    simultaneousUploads: 10
+    maxFiles: undefined
+    maxFilesErrorCallback: undefined
+    prioritizeFirstAndLastChunk: false
+    query: undefined
+    headers: {}
+  #@resumable.messageParent = @data._id
+  @uploading = new ReactiveVar {}
+  updateUploading = (changer) =>
+    uploading = @uploading.get()
+    changer.call uploading
+    @uploading.set uploading
+  @resumable.on 'fileAdded', (file) =>
+    updateUploading -> @[file.uniqueIdentifier] =
+      filename: file.fileName
+      progress: 0
+    Files.insert
+      _id: file.uniqueIdentifier    ## This is the ID resumable will use.
+      filename: file.fileName
+      contentType: file.file.type
+    , (err, _id) =>
+      if err
+        console.error "File creation failed:", err
+      else
+        ## Once the file exists on the server, start uploading.
+        console.log 'hi'
+        @resumable.upload()  ## xxx couldn't this upload the wrong file?...
+  @resumable.on 'fileProgress', (file) =>
+    updateUploading -> @[file.uniqueIdentifier].progress = Math.floor 100*file.progress()
+  @resumable.on 'fileSuccess', (file) ->
+    updateUploading -> delete @[file.uniqueIdentifier]
+    #xxx
+  @resumable.on 'fileError', (file) ->
+    console.error "Error uploading", file.uniqueIdentifier
+    updateUploading -> delete @[file.uniqueIdentifier]
+
+Template.messageAttach.onRendered ->
+  @resumable.assignBrowse @find '.attachInput'
+  @resumable.assignDrop @find '.attachButton'
+
+Template.messageAttach.helpers
+  'uploading': ->
+    value for own key, value of Template.instance().uploading.get()
+
+Template.messageAttach.events
+  'click .attachButton': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    t.find('.attachInput').click()

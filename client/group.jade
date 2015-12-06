@@ -19,7 +19,7 @@ template(name="messageList")
 
 template(name="importButton")
   if canImport
-    input(type="file", id="importInput", style="display:none")
+    input.importInput(type="file", style="display:none")
     button.btn.btn-default.importButton Import
 
 template(name="messageShort")
