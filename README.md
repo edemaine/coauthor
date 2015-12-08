@@ -23,8 +23,7 @@ number of "old versions" that will get saved -- server only pushes after
 document has not changed for 1 second.)
 
 * Two formats for rendering: HTML (sanitized) and Github-style Markdown,
-with proper execution of Mathjax for LaTeX math.  (But there are some
-weird interactions between Markdown and Mathjax (\_) I need to resolve.)
+with proper execution of MathJax for LaTeX math.  Easy to add other formats.
 
 * Ace editor supports "regular" keybindings as well as Vim and (limited)
 Emacs style.  (You may recall problem sessions where I needed to use Vim to
