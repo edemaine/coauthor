@@ -30,9 +30,6 @@ PERFORMANCE
 
 BUGS
 
-* Markdown and LaTeX have some bad interaction with _s.
-  Need to fix Markdown package (marked) for this.
-
 * messageSuperdelete doesn't remove stuff from MessagesParent or MessagesDiff logs
 
 * role changes aren't logged anywhere, but should be
