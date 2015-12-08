@@ -2,8 +2,6 @@ FEATURES
 
 * Should messages have types?  (e.g. problem, question, idea, paper, figure...)
 
-* Backup
-
 * Image embedding, and conversion of 6890 URLs into image blobs
 
 * Tags + import
@@ -12,6 +10,8 @@ FEATURES
 
 * SSL (then force-ssl package).  Perhaps using Meteor Up:
   https://github.com/arunoda/meteor-up#ssl-support
+
+* Backup via mongodump (once we're using a proper server e.g. Meteor Up...)
 
 * Dropbox plugin
 
@@ -40,3 +40,7 @@ BUGS
 
 * Permissions are not reactive: adding permissions doesn't currently update
   subscriptions, so people have to reload...
+
+* OT issues: Need to require authentication.
+  Also, should use in-memory instead of database, OR, when starting server and
+  setting all editing to [], should also delete the OT documents.
