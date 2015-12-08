@@ -87,9 +87,9 @@ Template.submessage.helpers
   tex2jax: ->
     history = Template.instance().history.get() ? @
     if history.format in mathjaxFormats
-      ''
-    else
       'tex2jax'
+    else
+      ''
   body: ->
     history = Template.instance().history.get() ? @
     body = history.body
