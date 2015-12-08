@@ -1,11 +1,3 @@
-@availableFormats = ['html', 'markdown']
-
-Template.registerHelper 'formats', ->
-  for format in availableFormats
-    format: format
-    active: if Template.currentData()?.format == format then 'active' else ''
-    capitalized: capitalize format
-
 Template.badMessage.helpers
   'message': -> Iron.controller().getParams().message
 
@@ -92,22 +84,17 @@ Template.submessage.helpers
   deleted: historify 'deleted'
   published: historify 'published'
 
+  tex2jax: ->
+    history = Template.instance().history.get() ? @
+    if history.format in mathjaxFormats
+      ''
+    else
+      'tex2jax'
   body: ->
     history = Template.instance().history.get() ? @
     body = history.body
     return body unless body
-    switch history.format
-      when 'file'
-        file = findFile body
-        if file?
-          if file.contentType[...6] == 'image/'
-            body = "<img src='#{Files.baseURL}/id/#{file._id}'/>"
-          else
-            body = "<i><a href='#{Files.baseURL}/id/#{file._id}'>&lt;#{file.length}-byte #{file.contentType} file&gt;</a></i>"
-        else
-          body = "<i>&lt;unknown file with ID #{body}&gt;</i>"
-      when 'markdown'
-        body = marked body
+    body = formatBody history.format, body
     sanitized = sanitizeHtml body
     if sanitized != body
       console.warn "Sanitized '#{body}' -> '#{sanitized}'"
