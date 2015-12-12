@@ -299,7 +299,7 @@ replaceFiles = (files, e, t) ->
   message = t.data._id
   group = t.data.group
   if files.length != 1
-    console.warn "Attempt to replace #{message} with #{files.length} files -- expected 1"
+    console.error "Attempt to replace #{message} with #{files.length} files -- expected 1"
   else
     file = files[0]
     file.callback = (file2) ->
