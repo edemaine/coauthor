@@ -156,27 +156,39 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
 Meteor.methods
   messageUpdate: (id, message) -> _messageUpdate id, message
 
-  messageNew: (group, parent = null, position = null) ->
+  messageNew: (group, parent = null, position = null, message = {}) ->
     check Meteor.userId(), String  ## should be done by 'canPost'
     check parent, String if parent?
     check position, Number if position?
     check group, String
+    check message,
+      title: Match.Optional String
+      body: Match.Optional String
+      format: Match.Optional String
+      tags: Match.Optional [String]
+      #children: Match.Optional [String]  ## must be set via messageParent
+      #parent: Match.Optional String      ## use children, not parent
+      published: Match.Optional Boolean
+      deleted: Match.Optional Boolean
+
     if canPost group, parent
       now = new Date
       username = Meteor.user().username
+      message.creator = username
+      message.created = now
       authors = {}
       authors[username] = now
-      message =
-        creator: username
-        created: now
-        authors: authors
-        group: group
-        #parent: parent         ## use children, not parent
-        children: []
-        published: false
-        deleted: false
-        format: Meteor.user()?.profile?.format or defaultFormat
-        title: ""
+      message.authors = authors
+      message.group = group
+      #message.parent: parent         ## use children, not parent
+      message.children = []
+      ## Default content.
+      message.title = "" unless message.title?
+      message.body = "" unless message.body?
+      message.format = Meteor.user()?.profile?.format or defaultFormat unless message.format?
+      message.tags = [] unless message.tags?
+      message.published = false unless message.published?
+      message.deleted = false unless message.deleted?
       if parent?
         pmsg = Messages.findOne parent
         message.root = pmsg.root ? parent
