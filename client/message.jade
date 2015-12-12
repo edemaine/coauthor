@@ -53,7 +53,7 @@ template(name="submessage")
                   button.btn.btn-default.editButton Edit
                 else
                   // In future, support basic image editing.  For now, just:
-                  button.btn.btn-default.replaceButton Replace
+                  +messageReplace
             if deleted
               if canUndelete
                 button.btn.btn-success.deleteButton Undelete
@@ -126,8 +126,6 @@ template(name="messageAttach")
   input.attachInput(type="file", style="display:none", multiple)
   button.btn.btn-default.attachButton Attach
 
-template(name="messageProgress")
-  each uploading
-    label= filename
-    .progress
-      .progress-bar.progress-bar-striped.active(role="progressbar", aria-valuenow=progress, aria-valuemin="0", aria-valuemax="100", style="width: #{progress}%") #{progress}%
+template(name="messageReplace")
+  input.replaceInput(type="file", style="display:none")
+  button.btn.btn-default.replaceButton Replace

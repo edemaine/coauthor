@@ -200,10 +200,9 @@ Template.submessage.events
     e.stopPropagation()
     Modal.show 'superdelete', @
 
-  'click .attachButton': (e, t) ->
+  'click .replaceButton': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
-    
 
 Template.superdelete.events
   'click .shallowSuperdeleteButton': (e, t) ->
@@ -261,41 +260,54 @@ Template.messageHistory.onRendered ->
       @data.history.set diffs[e.newValue]
     @data.history.set diffs[diffs.length-1]
 
+uploader = (template, button, input, callback) ->
+  Template[template].events {
+    "click .#{button}": (e, t) ->
+      e.preventDefault()
+      e.stopPropagation()
+      t.find(".#{input}").click()
+    "change .#{input}": (e, t) ->
+      callback e.target.files, e, t
+      e.target.value = ''
+    "dragenter .#{button}": (e) ->
+      e.preventDefault()
+      e.stopPropagation()
+    "dragover .#{button}": (e) ->
+      e.preventDefault()
+      e.stopPropagation()
+    "drop .#{button}": (e, t) ->
+      e.preventDefault()
+      e.stopPropagation()
+      callback e.originalEvent.dataTransfer.files, e, t
+  }
+
 attachFiles = (files, e, t) ->
   message = t.data._id
   group = t.data.group
   for file in files
     file.callback = (file2) ->
-      Meteor.call 'messageNew', group, message,
-        (error, result) ->
-          if error?
-            throw error
-          else
-            Meteor.call 'messageUpdate', result,
-              format: 'file'
-              title: file2.fileName
-              body: file2.uniqueIdentifier
+      Meteor.call 'messageNew', group, message, null,
+        format: 'file'
+        title: file2.fileName
+        body: file2.uniqueIdentifier
     file.group = group
     Files.resumable.addFile file, e
 
-Template.messageAttach.events
-  'click .attachButton': (e, t) ->
-    e.preventDefault()
-    e.stopPropagation()
-    t.find('.attachInput').click()
-  'change .attachInput': (e, t) ->
-    attachFiles e.target.files, e, t
-    e.target.value = ''
-  'dragenter .attachButton': (e) ->
-    e.preventDefault()
-    e.stopPropagation()
-  'dragover .attachButton': (e) ->
-    e.preventDefault()
-    e.stopPropagation()
-  'drop .attachButton': (e, t) ->
-    e.preventDefault()
-    e.stopPropagation()
-    attachFiles e.originalEvent.dataTransfer.files, e, t
+uploader 'messageAttach', 'attachButton', 'attachInput', attachFiles
 
-Template.registerHelper 'uploading', ->
-  value for own key, value of Session.get 'uploading'
+replaceFiles = (files, e, t) ->
+  message = t.data._id
+  group = t.data.group
+  if files.length != 1
+    console.warn "Attempt to replace #{message} with #{files.length} files -- expected 1"
+  else
+    file = files[0]
+    file.callback = (file2) ->
+      Meteor.call 'messageUpdate', message,
+        format: 'file'
+        title: file2.fileName
+        body: file2.uniqueIdentifier
+    file.group = group
+    Files.resumable.addFile file, e
+
+uploader 'messageReplace', 'replaceButton', 'replaceInput', replaceFiles

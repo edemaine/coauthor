@@ -1,3 +1,6 @@
+Template.registerHelper 'uploading', ->
+  value for own key, value of Session.get 'uploading'
+
 Template.layout.helpers
   activeGroup: ->
     data = Template.parentData()

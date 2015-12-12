@@ -2,8 +2,6 @@ FEATURES
 
 * Should messages have types?  (e.g. problem, question, idea, paper, figure...)
 
-* Image replacing/updating
-
 * Image embedding, and conversion of 6890 URLs into image blobs
 
 * Tags + import
