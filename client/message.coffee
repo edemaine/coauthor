@@ -122,29 +122,29 @@ Template.submessage.helpers
     history: Template.instance().history
 
 Template.submessage.events
-  'click .editButton': (e) ->
+  'click .editButton': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
-    message = e.target.getAttribute 'data-message'
+    message = t.data._id  #e.target.getAttribute 'data-message'
     if editing @
       Meteor.call 'messageEditStop', message
     else
       Meteor.call 'messageEditStart', message
 
-  'click .publishButton': (e) ->
+  'click .publishButton': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
-    message = e.target.getAttribute 'data-message'
+    message = t.data._id
     ## Stop editing if we are publishing.
     if not @published and editing @
       Meteor.call 'messageEditStop', message
     Meteor.call 'messageUpdate', message,
       published: not @published
 
-  'click .deleteButton': (e) ->
+  'click .deleteButton': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
-    message = e.target.getAttribute 'data-message'
+    message = t.data._id
     ## Stop editing if we are deleting.
     if not @deleted and editing @
       Meteor.call 'messageEditStop', message
@@ -166,7 +166,7 @@ Template.submessage.events
     $(e.target).parent().dropdown 'toggle'
 
   'keyup input.title': (e, t) ->
-    message = e.target.getAttribute 'data-message'
+    message = t.data._id
     Meteor.clearTimeout t.timer
     t.timer = Meteor.setTimeout ->
       Meteor.call 'messageUpdate', message,
