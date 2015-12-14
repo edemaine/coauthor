@@ -11,8 +11,6 @@ FEATURES
 * SSL (then force-ssl package).  Perhaps using Meteor Up:
   https://github.com/arunoda/meteor-up#ssl-support
 
-* Backup via mongodump (once we're using a proper server e.g. Meteor Up...)
-
 * Dropbox plugin
 
 * MIT certificates
