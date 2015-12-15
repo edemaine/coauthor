@@ -1,6 +1,6 @@
 @formatDate = (date, prefix = 'on ') ->
   return '???' unless date?
-  return "?#{date}?" unless date instanceOf Date  ## have seen this briefly, not sure when
+  return "?#{date}?" unless date instanceof Date  ## have seen this briefly, not sure when
   now = new Date()
   options =
     weekday: 'long'
