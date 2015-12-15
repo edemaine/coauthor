@@ -36,9 +36,6 @@ BUGS
 
 * Respect Published and Deleted flags
 
-* Permissions are not reactive: adding permissions doesn't currently update
-  subscriptions, so people have to reload...
-
 * OT issues: Need to require authentication.
   Also, should use in-memory instead of database, OR, when starting server and
   setting all editing to [], should also delete the OT documents.
