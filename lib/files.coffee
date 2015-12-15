@@ -16,12 +16,14 @@ if Meteor.isServer
     ## This prevents a race condition on the client between Meteor.userId() and subscriptions to this publish
     ## See: https://stackoverflow.com/questions/24445404/how-to-prevent-a-client-reactive-race-between-meteor-userid-and-a-subscription/24460877#24460877
     if @userId is userId
-      Files.find
-        'metadata._Resumable': $exists: false
-        #$or:
-        #  'metadata.updator': @userId
-        'metadata.group': $in:
-          group.name for group in readableGroups(@userId).fetch()
+      @autorun ->
+        Files.find
+          'metadata._Resumable': $exists: false
+          #$or:
+          #  'metadata.updator': @userId
+          'metadata.group': $in:
+            group.name for group in readableGroups(@userId).fetch()
+      null
     else
       @ready()
 
