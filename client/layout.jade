@@ -51,6 +51,7 @@ template(name="layout")
             button.settingsButton.btn.btn-default Settings
     #main.row-fluid
       +yield
+  +loading
   if uploading
     .alert.alert-success.footer
       +uploadProgress
