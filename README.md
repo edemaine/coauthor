@@ -34,7 +34,8 @@ ignore those button labels -- should they be?); reply to message
 (appending as last child).
 
 * Messages can be switched to Unpublished or Deleted, which hides them from
-non-authors.
+non-authors.  Default published state is initially true (so everyone sees
+the new message immediately), but can vary by user.
 
 * Time travel!  You can drag through history and see past versions.
 In general, there should be good, automatic history tracking of everything,

@@ -96,7 +96,10 @@ template(name="submessage")
 template(name="formatSelector")
   .btn-group
     button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
-      | {{capitalize format}}
+      if format
+        | {{capitalize format}}
+      else
+        | ?
       span.caret
     ul.dropdown-menu(role="menu")
       each formats

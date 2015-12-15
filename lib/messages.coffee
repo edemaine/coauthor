@@ -44,8 +44,6 @@ if Meteor.isServer
       Messages.update message._id,
         $unset: editing: ''
 
-@defaultFormat = 'markdown'
-
 @canSee = (message) ->
   ## Visibility of a message is implied by its existence in the Meteor.publish
   ## above, so we don't need to check this in the client.  But this function
@@ -219,7 +217,7 @@ Meteor.methods
       message.body = "" unless message.body?
       message.format = Meteor.user()?.profile?.format or defaultFormat unless message.format?
       message.tags = [] unless message.tags?
-      message.published = false unless message.published?
+      message.published = autopublish() unless message.published?
       message.deleted = false unless message.deleted?
       if parent?
         pmsg = Messages.findOne parent
