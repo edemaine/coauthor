@@ -21,6 +21,9 @@ FEATURES
 
 * Search
 
+* Thumbnail generation, especially for PDF, following
+  https://github.com/vsivsi/meteor-file-job-sample-app/blob/master/sample.coffee
+
 PERFORMANCE
 
 * can we decouple child submessages from parent, so they don't all re-render
@@ -34,7 +37,8 @@ BUGS
 
 * Problem vs. Discussion Thread markings...
 
-* Respect Published and Deleted flags
+* Respect Published and Deleted flags.  Maybe make Published the default state,
+  or a user-settable parameter.
 
 * OT issues: Need to require authentication.
   Also, should use in-memory instead of database, OR, when starting server and
