@@ -37,7 +37,8 @@ if Meteor.isServer
     remove: (userId, file) ->
       file.metadata?.uploader in [userId, null]
     read: (userId, file) ->
-      file.metadata?.uploader in [userId, null]
+      file.metadata?.uploader in [userId, null] or
+      groupRoleCheck file.metadata?.group, 'read', findUser userId
     write: (userId, file, fields) ->
       file.metadata?.uploader in [userId, null]
 else
