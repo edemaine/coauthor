@@ -6,9 +6,24 @@ if Meteor.isServer
   Meteor.publish 'messages', (group) ->
     check group, String
     @autorun ->
-      if groupRoleCheck group, 'read', findUser @userId
+      user = findUser @userId
+      ## Mimic logic of `canSee` below.
+      if groupRoleCheck group, 'super', user
+        ## Super-user can see all messages, even unpublished/deleted messages.
         Messages.find
           group: group
+      else if groupRoleCheck group, 'read', user
+        ## Regular users can see all messages they authored, plus
+        ## published undeleted messages by others.
+        Messages.find
+          $and: [
+            group: group
+          , $or: [
+              published: $not: $eq: false    ## published is false or Date
+              deleted: false
+            , "authors.#{user.username}": $exists: true
+            ]
+          ]
       else
         @ready()
     null
@@ -16,7 +31,7 @@ if Meteor.isServer
   Meteor.publish 'messages.diff', (message) ->
     check message, String
     @autorun ->
-      if groupRoleCheck message2group(message), 'read', findUser @userId
+      if canSee message
         MessagesDiff.find
           id: message
       else
@@ -31,8 +46,21 @@ if Meteor.isServer
 
 @defaultFormat = 'markdown'
 
-## @canRead check isn't necessary, as it's computed/implied by Meteor.publish'd
-## groups and messages.
+@canSee = (message) ->
+  ## Visibility of a message is implied by its existence in the Meteor.publish
+  ## above, so we don't need to check this in the client.  But this function
+  ## is still needed in the server for messages.diff subscription above.
+  group = message2group message
+  if groupRoleCheck group, 'super', user
+    ## Super-user can see all messages, even unpublished/deleted messages.
+    true
+  else if groupRoleCheck group, 'read', user
+    ## Regular users can see all messages they authored, plus
+    ## published undeleted messages by others.
+    msg = Messages.findOne message
+    msg.published and not msg.deleted
+  else
+    false
 
 @canPost = (group, parent) ->
   ## parent actually ignored
@@ -104,7 +132,7 @@ idle = 1000   ## one second
   return unless diff
 
   now = new Date
-  if message.published
+  if message.published == true
     message.published = now
   for author in authors
     message["authors." + author] = now
