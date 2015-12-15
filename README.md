@@ -33,9 +33,8 @@ do rectangular selection... now it's built in!)
 ignore those button labels -- should they be?); reply to message
 (appending as last child).
 
-* Messages are intended to be hidden to non-authors until they are marked
-"Published".  (But not yet implemented.)  Is this a good idea?
-Same as deleted, actually (also not implemented).
+* Messages can be switched to Unpublished or Deleted, which hides them from
+non-authors.
 
 * Time travel!  You can drag through history and see past versions.
 In general, there should be good, automatic history tracking of everything,

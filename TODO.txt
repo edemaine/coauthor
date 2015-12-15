@@ -37,8 +37,7 @@ BUGS
 
 * Problem vs. Discussion Thread markings...
 
-* Respect Published and Deleted flags.  Maybe make Published the default state,
-  or a user-settable parameter.
+* Maybe make Published the default state, or a user-settable parameter.
 
 * OT issues: Need to require authentication.
   Also, should use in-memory instead of database, OR, when starting server and
