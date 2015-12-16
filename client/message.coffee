@@ -166,6 +166,7 @@ Template.submessage.events
     $(e.target).parent().dropdown 'toggle'
 
   'keyup input.title': (e, t) ->
+    e.stopPropagation()
     message = t.data._id
     Meteor.clearTimeout t.timer
     t.timer = Meteor.setTimeout ->
