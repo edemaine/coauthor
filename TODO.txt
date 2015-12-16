@@ -4,7 +4,8 @@ PHASE 3 = switch entirely over to coauthor
 
 FEATURES
 
-* Should messages have types?  (e.g. problem, question, idea, paper, figure...)
+* Should messages have types?
+  (e.g. problem, discussion, question, idea, paper, figure...)
 
 * Image embedding, and conversion of 6890 URLs into image blobs
 
@@ -49,13 +50,13 @@ PERFORMANCE
 
 BUGS
 
+* History isn't working :-(
+
 * Editor isn't working on Android: each key erases the previous. :-(
 
 * messageSuperdelete doesn't remove stuff from MessagesParent or MessagesDiff logs [PHASE 3]
 
 * role changes aren't logged anywhere, but should be
-
-* Problem vs. Discussion Thread markings -- should switch to 1 button [PHASE 1]
 
 * OT issues: Need to require authentication.
   Also, should use in-memory instead of database, OR, when starting server and
