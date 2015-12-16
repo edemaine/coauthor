@@ -59,3 +59,5 @@ BUGS
 * OT issues: Need to require authentication.
   Also, should use in-memory instead of database, OR, when starting server and
   setting all editing to [], should also delete the OT documents.
+
+* Disabled New Problem button doesn't show tooltip

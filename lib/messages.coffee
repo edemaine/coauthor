@@ -62,6 +62,7 @@ if Meteor.isServer
 
 @canPost = (group, parent) ->
   ## parent actually ignored
+  Meteor.userId()? and
   groupRoleCheck group, 'post'
 
 @canEdit = (message) ->

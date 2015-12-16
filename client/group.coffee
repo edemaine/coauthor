@@ -24,8 +24,21 @@ Template.registerHelper 'admin', -> canAdmin @group
 Template.registerHelper 'canImport', -> canImport @group
 
 Template.postButtons.helpers
-  disablePost: ->
-    if canPost @group then '' else 'disabled'
+  disableClass: ->
+    if canPost @group
+      ''
+    else
+      'disabled'
+  disableTitle: ->
+    if canPost @group
+      ''
+    else if Meteor.userId()?
+      'You do not have permission to post a message in this group.'
+    else
+      'You need to be logged in to post a message.'
+
+Template.postButtons.onRendered ->
+  $('[data-toggle="tooltip"]').tooltip()
 
 Template.postButtons.events
   'click .postButton': (e) ->
