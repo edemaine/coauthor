@@ -154,6 +154,10 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
   #check importing, Boolean
   pmsg = Messages.findOne parent
   if canEdit(child) and canPost pmsg.group, parent
+    cmsg = Messages.findOne child
+    unless cmsg.root
+      throw "Attempt to reparent root message #{child}"
+      ## To support this case, we'd need to change the root of all descendants.
     if oldParent
       oldParent = findMessageParent child
       if oldParent?
@@ -175,7 +179,7 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
       position: position
       oldParent: oldParent
     if importing
-      cmsg = Messages.findOne child
+      #cmsg = Messages.findOne child
       doc.updator = cmsg.creator
       doc.updated = cmsg.created
     else
