@@ -31,7 +31,7 @@ if Meteor.isServer
   Meteor.publish 'messages.diff', (message) ->
     check message, String
     @autorun ->
-      if canSee message
+      if canSee message, findUser @userId
         MessagesDiff.find
           id: message
       else
@@ -44,7 +44,7 @@ if Meteor.isServer
       Messages.update message._id,
         $unset: editing: ''
 
-@canSee = (message) ->
+@canSee = (message, user = Meteor.user()) ->
   ## Visibility of a message is implied by its existence in the Meteor.publish
   ## above, so we don't need to check this in the client.  But this function
   ## is still needed in the server for messages.diff subscription above.
