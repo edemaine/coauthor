@@ -50,8 +50,6 @@ PERFORMANCE
 
 BUGS
 
-* History isn't working :-(
-
 * Editor isn't working on Android: each key erases the previous. :-(
 
 * messageSuperdelete doesn't remove stuff from MessagesParent or MessagesDiff logs [PHASE 3]
