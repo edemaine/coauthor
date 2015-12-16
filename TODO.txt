@@ -8,12 +8,16 @@ FEATURES
 
 * Image embedding, and conversion of 6890 URLs into image blobs
 
+* Reparenting (moving messages around): within same root, across roots?
+
 * Import users (with email addresses, but probably no passwords)
   when importing messages [PHASE 3]
 
-* Import deleted flags
+* Import deleted flags [PHASE 3]
 
-* Import specific group (6.851 vs. 6.890)
+* Import specific group (6.851 vs. 6.890) [PHASE 3]
+
+* Related: Moving messages between groups
 
 * Tags + import [PHASE 3]
 
@@ -44,6 +48,8 @@ PERFORMANCE
   when just the parent changes?
 
 BUGS
+
+* Editor isn't working on Android: each key erases the previous. :-(
 
 * messageSuperdelete doesn't remove stuff from MessagesParent or MessagesDiff logs [PHASE 3]
 
