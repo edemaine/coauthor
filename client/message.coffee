@@ -2,24 +2,10 @@ Template.badMessage.helpers
   'message': -> Iron.controller().getParams().message
 
 Template.message.onRendered ->
-  ## Start edit mode (if not already there) and select title if #edit is in
-  ## the URL (as caused by creating a brand new message from the group).
-  ## This is a bit hacky, via jquery, because we don't have an easy way to
-  ## get to the (first) child submessage template...
-  if window.location.hash == '#edit'
-    button = $('.editButton').first()
-    if button.text() == 'Edit'
-      button.click()
-    count = 50  ## give up after 5 seconds
-    focusTitle = ->
-      input = $('input.title')
-      if input.length == 0
-        count -= 1
-        if count < 0
-          Meteor.setTimeout focusTitle, 100
-      else
-        input[0].focus()
-    Meteor.setTimeout focusTitle, 100
+  ## Give focus to first Title input, if there is one.
+  titles = $('input.title')
+  if titles.length
+    titles[0].focus()
 
 editing = (self) ->
   Meteor.user()? and Meteor.user().username in (self.editing ? [])
