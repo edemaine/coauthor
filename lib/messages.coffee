@@ -218,6 +218,8 @@ Meteor.methods
       message.format = Meteor.user()?.profile?.format or defaultFormat unless message.format?
       message.tags = [] unless message.tags?
       message.published = autopublish() unless message.published?
+      if message.published == true
+        message.published = now
       message.deleted = false unless message.deleted?
       if parent?
         pmsg = Messages.findOne parent
