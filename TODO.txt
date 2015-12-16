@@ -11,6 +11,10 @@ FEATURES
 * Import users (with email addresses, but probably no passwords)
   when importing messages [PHASE 3]
 
+* Import deleted flags
+
+* Import specific group (6.851 vs. 6.890)
+
 * Tags + import [PHASE 3]
 
 * Email notifications [PHASE 2]
