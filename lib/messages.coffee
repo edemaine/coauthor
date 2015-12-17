@@ -356,9 +356,10 @@ Meteor.methods
       id
 
   messageSuperdelete: (message) ->
-    ## xxx doesn't remove stuff from MessagesParent or MessagesDiff logs
     check message, String
     if canSuperdelete message
+      user = Meteor.user().username
+      now = new Date
       msg = Messages.findOne message
       return unless msg?
       Messages.remove message
@@ -372,10 +373,27 @@ Meteor.methods
             $each: children
             $position: parent.children.indexOf message
         ## children roots remain the same
+        for child, i in children
+          MessagesParent.insert
+            child: child
+            position: i + parent.children.indexOf message
+            parent: parent
+            updator: user
+            updated: now
       else
         for child in children
           Messages.update child,
             $unset: root: ''
+      ## Delete all diffs for this message.
+      MessagesDiff.remove
+        id: message
+      ## Delete all parent references to this message.
+      ## 
+      MessagesParent.remove
+        $or: [
+          child: message
+        , parent: message
+        ]
 
   recomputeAuthors: ->
     ## Force recomputation of all `authors` fields to be the latest update

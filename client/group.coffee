@@ -87,11 +87,15 @@ Template.superdeleteImport.events
     e.preventDefault()
     e.stopPropagation()
     Modal.hide()
+    count = 0
     Messages.find
+      group: t.data.group
       imported: $ne: null
     .forEach (msg) ->
-      #console.log msg
+      count += 1
+      console.log 'Superdeleting', msg._id
       Meteor.call 'messageSuperdelete', msg._id
+    console.log 'Superdeleted', count, 'imported messages'
   'click .cancelButton': (e) ->
     e.preventDefault()
     e.stopPropagation()
