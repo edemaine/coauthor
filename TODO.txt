@@ -50,8 +50,6 @@ PERFORMANCE
 
 BUGS
 
-* Editor isn't working on Android: each key erases the previous. :-(
-
 * role changes aren't logged anywhere, but should be
 
 * OT issues: Need to require authentication.
