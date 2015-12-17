@@ -15,15 +15,21 @@ if Meteor.isServer
       else if groupRoleCheck group, 'read', user
         ## Regular users can see all messages they authored, plus
         ## published undeleted messages by others.
-        Messages.find
-          $and: [
-            group: group
-          , $or: [
-              published: $not: $eq: false    ## published is false or Date
-              deleted: false
-            , "authors.#{escapeUser user.username}": $exists: true
+        if user?.username
+          Messages.find
+            $and: [
+              group: group
+            , $or: [
+                published: $not: $eq: false    ## published is false or Date
+                deleted: false
+              , "authors.#{escapeUser user.username}": $exists: true
+              ]
             ]
-          ]
+        else
+          Messages.find
+            group: group
+            published: $not: $eq: false    ## published is false or Date
+            deleted: false
       else
         @ready()
     null
