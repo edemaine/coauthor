@@ -11,6 +11,8 @@ Template.layout.helpers
   showUsers: ->
     Router.current().route.getName() != 'users' and
     canAdmin routeGroup()
+  inUsers: ->
+    Router.current().route.getName() == 'users'
 
 Template.layout.events
   'click .usersButton': (e) ->
