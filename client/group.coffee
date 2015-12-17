@@ -107,6 +107,8 @@ Template.messageList.helpers
     Messages.find
       group: @group
       root: null
+    , sort:
+      published: -1
   topMessageCount: ->
     pluralize(Messages.find
       group: @group
