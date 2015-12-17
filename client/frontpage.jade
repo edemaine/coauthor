@@ -14,3 +14,6 @@ template(name="frontpage")
     each groups
       a.list-group-item(href="{{pathFor 'group' group=name}}")= name
   i #{groupcount} groups
+  if canSuper
+    span.space
+    button.btn.btn-warning.recomputeAuthorsButton Recompute Authors

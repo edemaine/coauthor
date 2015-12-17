@@ -365,3 +365,20 @@ Meteor.methods
         for child in children
           Messages.update child,
             $unset: root: ''
+
+  recomputeAuthors: ->
+    ## Force recomputation of all `authors` fields to be the latest update
+    ## for each updator.
+    if canSuper wildGroup
+      Messages.find({}).forEach (msg) ->
+        authors = {}
+        MessagesDiff.find
+          id: msg._id
+        .forEach (diff) ->
+          for updator in diff.updators
+            updated = diff.updated
+            escape = escapeUser updator
+            if escape not of authors or authors[escape].getTime() < updated.getTime()
+              authors[escape] = updated
+        Messages.update msg._id,
+          $set: authors: authors
