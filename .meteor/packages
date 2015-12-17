@@ -41,3 +41,6 @@ edemaine:bootstrap-slider
 vsivsi:file-collection
 benjaminrh:jquery-cookie
 peerlibrary:reactive-publish
+gcampax:accounts-dropbox
+bozhao:link-accounts
+gcampax:dropbox-oauth

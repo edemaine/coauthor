@@ -18,5 +18,13 @@ template(name="settings")
               button.btn.btn-success.autopublishButton(type="button", data-toggle="button", autocomplete="off") Yes
             else
               button.btn.btn-warning.autopublishButton(type="button", data-toggle="button", autocomplete="off") No
+        tr
+          th
+            label Dropbox account linking:
+          td
+            if dropbox
+              button.btn.btn-danger.unlinkDropbox Unlink Dropbox Account
+            else
+              button.btn.btn-default.linkDropbox Link Dropbox Account
   else
     .alert.alert-danger(role="alert") Please <B>sign in</B> (in the upper-right corner) to change your settings.

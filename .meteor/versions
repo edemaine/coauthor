@@ -1,4 +1,5 @@
 accounts-base@1.2.2
+accounts-oauth@1.1.8
 accounts-password@1.1.4
 anti:i18n@0.4.3
 autoupdate@1.2.4
@@ -11,6 +12,7 @@ blaze@2.1.3
 blaze-html-templates@1.0.1
 blaze-tools@1.0.4
 boilerplate-generator@1.0.4
+bozhao:link-accounts@1.1.18
 caching-compiler@1.0.0
 caching-html-compiler@1.0.2
 callback-hook@1.0.4
@@ -32,6 +34,8 @@ edemaine:bootstrap-slider@1.0.1
 ejson@1.0.7
 email@1.0.8
 fastclick@1.0.7
+gcampax:accounts-dropbox@1.0.0
+gcampax:dropbox-oauth@1.0.0
 geojson-utils@1.0.4
 handlebars@1.0.4
 hot-code-push@1.0.0
@@ -70,6 +74,8 @@ mquandalle:jade@0.4.5
 mquandalle:jade-compiler@0.4.5
 npm-bcrypt@0.7.8_2
 npm-mongo@1.4.39_1
+oauth@1.1.6
+oauth2@1.1.5
 observe-sequence@1.0.7
 ordered-dict@1.0.4
 peerlibrary:assert@0.2.5

@@ -25,6 +25,7 @@ if Meteor.isServer
           _id: @userId
         , fields:
             roles: 1
+            'services.dropbox.id': 1
       else
         @ready()
     null
