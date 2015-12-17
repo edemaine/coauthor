@@ -4,6 +4,10 @@
   else
     {}
 
+## Need to escape dots in usernames.
+@escapeUser = escapeGroup
+@unescapeUser = unescapeGroup
+
 if Meteor.isServer
   Meteor.publish 'users', (group) ->
     @autorun ->

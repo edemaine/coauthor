@@ -21,7 +21,7 @@ if Meteor.isServer
           , $or: [
               published: $not: $eq: false    ## published is false or Date
               deleted: false
-            , "authors.#{user.username}": $exists: true
+            , "authors.#{escapeUser user.username}": $exists: true
             ]
           ]
       else
@@ -69,7 +69,7 @@ if Meteor.isServer
   ## Can edit message if an "author" (the creator or edited in the past),
   ## or if we have global edit privileges in this group.
   msg = Messages.findOne message
-  Meteor.user()?.username of (msg.authors ? {}) or
+  escapeUser(Meteor.user()?.username) of (msg.authors ? {}) or
   groupRoleCheck msg.group, 'edit'
 
 @canSuper = (group) ->
@@ -134,11 +134,11 @@ idle = 1000   ## one second
   if message.published == true
     message.published = now
   for author in authors
-    message["authors." + author] = now
+    message["authors." + escapeUser author] = now
   Messages.update id,
     $set: message
   for author in authors
-    delete message["authors." + author]
+    delete message["authors." + escapeUser author]
   message.updators = authors
   message.updated = now
   message.id = id
@@ -211,9 +211,8 @@ Meteor.methods
       username = Meteor.user().username
       message.creator = username
       message.created = now
-      authors = {}
-      authors[username] = now
-      message.authors = authors
+      message.authors =
+        "#{escapeUser username}": now
       message.group = group
       #message.parent: parent         ## use children, not parent
       message.children = []

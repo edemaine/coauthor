@@ -88,7 +88,7 @@ Template.submessage.helpers
 
   authors: ->
     a = for own author, date of @authors when author != @creator or date.getTime() != @created.getTime()
-          "#{author} #{formatDate date}"
+          "#{unescapeUser author} #{formatDate date}"
     if a.length > 0
       ', edited by ' + a.join ", "
 
