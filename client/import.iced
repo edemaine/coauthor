@@ -12,6 +12,7 @@ bodymap = (body) ->
     reader = new FileReader
     reader.onload = (e) ->
       zip = new JSZip e.target.result
+
       users = parseXML zip.files['users.xml']
       usermap = {}
       for user in users.find 'user'
@@ -26,6 +27,23 @@ bodymap = (body) ->
         else
           console.error 'no mapping for user', author
           author
+
+      actions = parseXML zip.files['actions.xml']
+      deleted = {}
+      for action in actions.find 'action'
+        action = $(action)
+        type = action.children('type').text()
+        if type == 'delete'
+          node = action.children('node').text()
+          if action.children('canceled').attr('state') == 'false'
+            ## Canceled deletions don't seem to have a cancelation date,
+            ## so we can't create delete and undelete events in the history.
+            ## Instead, just ignored canceled deletions.
+            deleted[node] =
+              deleted: true
+              updated: new Date action.children('date').text()
+              updators: [mapauthor action.children('user').text()]
+
       nodes = parseXML zip.files['nodes.xml']
       idmap = {}
       count = 0
@@ -63,8 +81,12 @@ bodymap = (body) ->
         ## Message body is actually the rendered HTML.  To get markdown format,
         ## use last revision:
         message.body = revisions[revisions.length-1].body
+        if id of deleted
+          message.deleted = true
+          revisions.push deleted[id]
+        else
+          message.deleted = false
         message.published = message.created
-        message.deleted = false  ## deleted messages seem not to be in export
         message.authors = {}
         for revision in revisions
           for author in revision.updators[0]

@@ -14,13 +14,9 @@ FEATURES
 * Import users (with email addresses, but probably no passwords)
   when importing messages [PHASE 3]
 
-* Import deleted flags [PHASE 3]
-
-* Import specific group (6.851 vs. 6.890) [PHASE 3]
-
 * Related: Moving messages between groups
 
-* Tags + import [PHASE 3]
+* Tags (already imported) [PHASE 3]
 
 * Email notifications [PHASE 2]
 

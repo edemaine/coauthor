@@ -327,16 +327,18 @@ Meteor.methods
       body: Match.Optional String
       format: Match.Optional String
       tags: Match.Optional [String]
+      deleted: Match.Optional Boolean
       updated: Match.Optional Date
       updators: Match.Optional [String]
     ]
     if canImport group
       now = new Date
+      me = Meteor.user().username
       if message.published == true
         message.published = now
       message.group = group
       message.children = []
-      message.importer = Meteor.user().username
+      message.importer = me
       message.imported = now
       if parent?
         pmsg = Messages.findOne parent
@@ -345,6 +347,8 @@ Meteor.methods
       for diff in diffs
         diff.id = id
         diff.group = group
+        diff.importer = me
+        diff.imported = now
         MessagesDiff.insert diff
       if parent?
         _messageParent id, parent, null, null, true
