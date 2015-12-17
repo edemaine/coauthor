@@ -66,3 +66,12 @@ WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
 * super: somewhat dangerous "super" operations like history-destroying
   superdelete and history-creating import
 * admin: administer over other users, in particular setting permissions
+
+## MathJax ##
+
+Currently, [MathJax](https://www.mathjax.org/) isn't bundled in this repository,
+partly because Meteor updates/bundles really slowly when all 33,000 files of MathJax
+are in the project, so I only add it at the last minute.  To add it,
+[download MathJax](https://github.com/mathjax/MathJax/archive/master.zip)
+and extract `MathJax-master` as `public/mathjax`.  (In the future, this should
+probably be made into a Meteor package.)
