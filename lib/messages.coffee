@@ -20,7 +20,7 @@ if Meteor.isServer
             $and: [
               group: group
             , $or: [
-                published: $not: $eq: false    ## published is false or Date
+                published: $ne: false    ## published is false or Date
                 deleted: false
               , "authors.#{escapeUser user.username}": $exists: true
               ]
@@ -28,7 +28,7 @@ if Meteor.isServer
         else
           Messages.find
             group: group
-            published: $not: $eq: false    ## published is false or Date
+            published: $ne: false    ## published is false or Date
             deleted: false
       else
         @ready()
@@ -330,6 +330,7 @@ Meteor.methods
       deleted: Match.Optional Boolean
       updated: Match.Optional Date
       updators: Match.Optional [String]
+      published: Match.Optional Date
     ]
     if canImport group
       now = new Date

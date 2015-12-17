@@ -77,6 +77,26 @@ Template.importButton.events
     e.stopPropagation()
     importFiles t.data.group, e.originalEvent.dataTransfer.files
 
+  'click .superdeleteImportButton': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    Modal.show 'superdeleteImport', @
+
+Template.superdeleteImport.events
+  'click .shallowSuperdeleteButton': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    Modal.hide()
+    Messages.find
+      imported: $ne: null
+    .forEach (msg) ->
+      #console.log msg
+      Meteor.call 'messageSuperdelete', msg._id
+  'click .cancelButton': (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+    Modal.hide()
+
 Template.messageList.onRendered mathjax
 Template.messageList.helpers
   topMessages: ->

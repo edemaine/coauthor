@@ -78,6 +78,7 @@ bodymap = (body) ->
           ## parent), score (useless), marked (?), wiki (useless),
           ## extraRef, extraData, extraCount (always empty)
           format: 'markdown'
+        revisions[0].format = message.format
         ## Message body is actually the rendered HTML.  To get markdown format,
         ## use last revision:
         message.body = revisions[revisions.length-1].body
@@ -86,7 +87,7 @@ bodymap = (body) ->
           revisions.push deleted[id]
         else
           message.deleted = false
-        message.published = message.created
+        message.published = revisions[0].published = message.created
         message.authors = {}
         for revision in revisions
           for author in revision.updators[0]

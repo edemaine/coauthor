@@ -22,6 +22,20 @@ template(name="importButton")
   if canImport
     input.importInput(type="file", style="display:none")
     button.btn.btn-default.importButton Import
+    button.btn.btn-danger.superdeleteImportButton Superdelete Imported
+
+template(name="superdeleteImport")
+  .modal
+    .modal-dialog
+      .modal-content
+        .modal-header
+          h2 Confirm Superdelete
+        .modal-body
+          p Are you sure you want to delete ALL imported messages in group &ldquo;#{group}&rdquo;?
+          p Superdelete destroys all logs of the message ever existing and cannot be undone.  Use only for silly mistakes.
+        .modal-footer
+          button.btn.btn-danger.shallowSuperdeleteButton Yes, superdelete
+          button.btn.btn-success.cancelButton.fullwidth Cancel
 
 template(name="messageShort")
   .messageShort
