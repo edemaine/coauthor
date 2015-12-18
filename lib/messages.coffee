@@ -384,6 +384,12 @@ Meteor.methods
         for child in children
           Messages.update child,
             $unset: root: ''
+      ## Delete all associated files.
+      MessagesDiff.find
+        id: message
+      .forEach (diff) ->
+        if diff.format == 'file'
+          deleteFile diff.body
       ## Delete all diffs for this message.
       MessagesDiff.remove
         id: message
