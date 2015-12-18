@@ -44,3 +44,4 @@ peerlibrary:reactive-publish
 gcampax:accounts-dropbox
 bozhao:link-accounts
 gcampax:dropbox-oauth
+http
