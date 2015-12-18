@@ -20,9 +20,6 @@ FEATURES
 
 * Email notifications [PHASE 2]
 
-* SSL (then force-ssl package).  Perhaps using Meteor Up:
-  https://github.com/arunoda/meteor-up#ssl-support
-
 * Dropbox plugin
 
 * MIT certificates
