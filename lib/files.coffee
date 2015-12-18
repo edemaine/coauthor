@@ -10,6 +10,8 @@
 
 @findFile = (id) ->
   Files.findOne new Meteor.Collection.ObjectID id
+@deleteFile = (id) ->
+  Files.remove new Meteor.Collection.ObjectID id
 
 if Meteor.isServer
   Meteor.publish 'files', (userId) ->
