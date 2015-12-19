@@ -94,10 +94,10 @@ Template.submessage.helpers
 
   isFile: -> @format == 'file'
   canEdit: -> canEdit @_id
-  canDelete: -> canEdit @_id
-  canUndelete: -> canEdit @_id
-  canPublish: -> canEdit @_id
-  canUnpublish: -> canEdit @_id
+  canDelete: -> canDelete @_id
+  canUndelete: -> canUndelete @_id
+  canPublish: -> canPublish @_id
+  canUnpublish: -> canUnpublish @_id
   canSuperdelete: -> canSuperdelete @_id
   canReply: -> canPost @group, @_id
   canAttach: -> canPost @group, @_id

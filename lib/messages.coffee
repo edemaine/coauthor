@@ -78,6 +78,13 @@ if Meteor.isServer
   escapeUser(Meteor.user()?.username) of (msg.authors ? {}) or
   groupRoleCheck msg.group, 'edit'
 
+@canDelete = canEdit
+@canUndelete = canEdit
+@canPublish = canEdit
+
+@canUnpublish = (message) ->
+  canSuper message2group message
+
 @canSuper = (group) ->
   groupRoleCheck group, 'super'
 
