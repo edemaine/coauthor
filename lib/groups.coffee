@@ -37,6 +37,10 @@ if Meteor.isServer
           {anonymous: 'read'}
           {name: $in: (unescapeGroup group for own group, roles of user.roles ? {} when 'read' in roles)}
         ]
+  @readableGroupNames = (userId) ->
+    names = []
+    readableGroups(userId).forEach (group) -> names.push group.name
+    names
 
   Meteor.publish 'groups', ->
     @autorun ->
