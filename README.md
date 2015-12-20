@@ -72,7 +72,8 @@ WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
 * post: create new messages, replies, etc. in the group
 * edit: modify other people's messages
 * super: somewhat dangerous "super" operations like history-destroying
-  superdelete and history-creating import
+  superdelete, history-creating import, and the ability to see other users'
+  deleted messages
 * admin: administer over other users, in particular setting permissions
 
 ## MathJax ##
