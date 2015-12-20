@@ -9,24 +9,18 @@ FEATURES
 
 * Image embedding, and conversion of 6890 URLs into image blobs
 
-* Reparenting (moving messages around): within same root, across roots?
-
 * Import users (with email addresses, but probably no passwords)
   when importing messages [PHASE 3]
 
-* Related: Moving messages between groups
-
 * Tags (already imported) [PHASE 3]
 
-* Email notifications [PHASE 2]
+* Moving messages between groups?
 
 * Dropbox plugin
 
 * MIT certificates
 
 * \label/\ref
-
-* Folding
 
 * Search
 
