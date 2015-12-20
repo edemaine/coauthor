@@ -1,6 +1,11 @@
 template(name="message")
   if group
     +submessage
+    if orphanCount
+      .orphans
+        h3 #{orphanCount}:
+        each orphans
+          +submessage
   else
     +badMessage
 

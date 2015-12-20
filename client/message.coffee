@@ -1,6 +1,27 @@
 Template.badMessage.helpers
   'message': -> Iron.controller().getParams().message
 
+orphans = (message) ->
+  descendants = []
+  Messages.find
+    $or: [
+      root: message
+    , _id: message
+    ]
+  .forEach (descendant) ->
+    descendants.push descendant.children...
+  Messages.find
+    root: message
+    _id: $nin: descendants
+
+Template.message.helpers
+  orphans: ->
+    orphans @_id
+  orphanCount: ->
+    count = orphans(@_id).count()
+    if count
+      pluralize orphans(@_id).count(), 'orphaned subthread'
+
 Template.message.onRendered ->
   ## Give focus to first Title input, if there is one.
   titles = $('input.title')
