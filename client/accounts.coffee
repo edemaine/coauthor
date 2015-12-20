@@ -9,3 +9,14 @@ Template._loginButtonsLoggedOutAllServices.helpers
     name: 'password'
   ]
   hasOtherServices: false
+
+Template._loginButtonsAdditionalLoggedInDropdownActions.helpers
+  unverified: ->
+    for email in Meteor.user().emails
+      unless email.verified
+        return true
+    false
+
+Template._loginButtonsAdditionalLoggedInDropdownActions.events
+  'click #login-buttons-resend-verification': (e) ->
+    Meteor.call 'resendVerificationEmail'

@@ -16,6 +16,7 @@ Accounts.emailTemplates.verifyEmail.text = (user) -> """
 Accounts.config
   sendVerificationEmail: true
 
+
 #Email.send
 #  from: 'coauthor@coauthor.csail.mit.edu'
 #  to: 'edemaine@mit.edu'
