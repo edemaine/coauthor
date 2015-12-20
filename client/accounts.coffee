@@ -3,10 +3,7 @@ Accounts.ui.config
 
 Template._loginButtonsAdditionalLoggedInDropdownActions.helpers
   unverified: ->
-    for email in Meteor.user().emails
-      unless email.verified
-        return true
-    false
+    _.some Meteor.user().emails, (user) -> not user.verified
 
 Template._loginButtonsAdditionalLoggedInDropdownActions.events
   'click #login-buttons-resend-verification': (e) ->
