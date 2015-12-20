@@ -18,9 +18,14 @@ template(name="submessage")
       .space-between
         .unit
           unless editingRV
-            //if history
-            //  span.title.tex2jax= historyTitle
-            //else
+            button.btn.btn-xs.btn-info.foldButton(aria-label="Fold")
+              if folded
+                span.glyphicon.glyphicon-plus(aria-hidden="true")
+              else
+                span.glyphicon.glyphicon-minus(aria-hidden="true")
+            button.btn.btn-xs.btn-info.focusButton(aria-label="Focus")
+              span.glyphicon.glyphicon-share-alt(aria-hidden="true")
+            span.space
             span.title.tex2jax= title
             span.space
           if deleted
@@ -47,13 +52,14 @@ template(name="submessage")
                     a(href="#",data-keyboard="emacs") Emacs
               +formatSelector
             else
-              button.btn.btn-default.historyButton History
-              if canEdit
-                unless isFile
-                  button.btn.btn-default.editButton Edit
-                else
-                  // In future, support basic image editing.  For now, just:
-                  +messageReplace
+              unless folded
+                button.btn.btn-default.historyButton History
+                if canEdit
+                  unless isFile
+                    button.btn.btn-default.editButton Edit
+                  else
+                    // In future, support basic image editing.  For now, just:
+                    +messageReplace
             if deleted
               if canUndelete
                 button.btn.btn-success.deleteButton Undelete
@@ -68,30 +74,31 @@ template(name="submessage")
                   button.btn.btn-success.publishButton Publish
               if canDelete
                 button.btn.btn-danger.deleteButton Delete
-    if history
-      +messageHistory forHistory
-    else
-      with nothing
-        if editingRV
-          //+sharejsAce docid=editingRV
-          +sharejsAce docid=editingNR onRender=config
-    .panel-body(class=tex2jax) !{body}
-    table.message-footer
-      tr
-        td
-          if canReply
-            button.btn.btn-default.replyButton Reply
-          if canAttach
-            +messageAttach
-        td.author
-          if published
-            | (posed by
-          else
-            | (created by
-          | #{creator} {{formatDate created}}#{authors})
-    .children
-      each children
-        +submessage
+    unless folded
+      if history
+        +messageHistory forHistory
+      else
+        with nothing
+          if editingRV
+            //+sharejsAce docid=editingRV
+            +sharejsAce docid=editingNR onRender=config
+      .panel-body(class=tex2jax) !{body}
+      table.message-footer
+        tr
+          td
+            if canReply
+              button.btn.btn-default.replyButton Reply
+            if canAttach
+              +messageAttach
+          td.author
+            if published
+              | (posed by
+            else
+              | (created by
+            | #{creator} {{formatDate created}}#{authors})
+      .children
+        each children
+          +submessage
 
 template(name="formatSelector")
   .btn-group

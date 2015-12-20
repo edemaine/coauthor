@@ -29,13 +29,21 @@ with proper execution of MathJax for LaTeX math.  Easy to add other formats.
 Emacs style.  (You may recall problem sessions where I needed to use Vim to
 do rectangular selection... now it's built in!)
 
-* Create new problem/discussion thread (currently not distinguished at all,
-ignore those button labels -- should they be?); reply to message
-(appending as last child).
+* Threaded message organization, with arbitrary tree structure (root messages,
+replies with arbitrary depth).  You can focus on the subthread rooted at any
+message, or fold away the contents of a subthread to focus on the rest.
+(Currently the folds are not preserved across sessions / rerenders.)
 
-* Messages can be switched to Unpublished or Deleted, which hides them from
-non-authors.  Default published state is initially true (so everyone sees
-the new message immediately), but can vary by user.
+* Files (another type of message) can be attached to other messages, as
+another type of reply.  Files can be replaced, and image files (including
+PNG, JPG, SVG) are displayed inline.  (In the future, they and other visual
+file types such as PDF will be rendered by some kind of thumbnails.)
+
+* Messages can start Unpublished, or after publishication, Deleted; in either
+state, the message is hiden from non-authors.  The default published state is
+initially true (so everyone sees the new message and live updates immediately),
+but can vary by user (e.g., if they are "shy" and only want to post finished
+thoughts).
 
 * Time travel!  You can drag through history and see past versions.
 In general, there should be good, automatic history tracking of everything,

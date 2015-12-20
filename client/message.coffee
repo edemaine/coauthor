@@ -16,6 +16,7 @@ Template.submessage.onCreated ->
   @keyboard = new ReactiveVar 'ace'
   @editing = new ReactiveVar null
   @history = new ReactiveVar null
+  @folded = new ReactiveVar false
   @autorun =>
     return unless Template.currentData()?
     #@myid = Template.currentData()._id
@@ -107,7 +108,19 @@ Template.submessage.helpers
     _id: @_id
     history: Template.instance().history
 
+  folded: -> Template.instance().folded.get()
+
 Template.submessage.events
+  'click .focusButton': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    Router.go 'message', {group: t.data.group, message: t.data._id}
+
+  'click .foldButton': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    t.folded.set not t.folded.get()
+
   'click .editButton': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
