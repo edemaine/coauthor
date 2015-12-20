@@ -1,0 +1,5 @@
+/* Prevent direct login via Dropbox (and all external services).
+ * This prevents creating an account without a username; also, the
+ * Dropbox login is not particularly nice, so not sure it would really help.
+ */
+.login-button.btn-Dropbox, #login-dropdown-list .or { display: none; }
