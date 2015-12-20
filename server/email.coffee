@@ -3,7 +3,7 @@ Accounts.emailTemplates.from = 'coauthor@coauthor.csail.mit.edu'
 Accounts.emailTemplates.verifyEmail.subject = (user) ->
   "Email confirmation for Coauthor"
 Accounts.emailTemplates.verifyEmail.text = (user) -> """
-  Welcome to Coauthor, #{user.email}!
+  Welcome to Coauthor, #{user.emails[0].address}!
 
   You (or someone claiming to be you) just registered an account with username
   "#{user.username}" on the Coauthor collaboration website,
