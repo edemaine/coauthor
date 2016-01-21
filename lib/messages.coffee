@@ -32,7 +32,6 @@ if Meteor.isServer
             deleted: false
       else
         @ready()
-    null
 
   Meteor.publish 'messages.diff', (message) ->
     check message, String
@@ -42,7 +41,6 @@ if Meteor.isServer
           id: message
       else
         @ready()
-    null
 
   ## Remove all editors on server start, so that we can restart listeners.
   Messages.find().forEach (message) ->

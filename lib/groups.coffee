@@ -45,7 +45,6 @@ if Meteor.isServer
   Meteor.publish 'groups', ->
     @autorun ->
       readableGroups @userId
-    null
 
 Meteor.methods
   setRole: (group, user, role, yesno) ->

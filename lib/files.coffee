@@ -26,7 +26,6 @@ if Meteor.isServer
     ## See: https://stackoverflow.com/questions/24445404/how-to-prevent-a-client-reactive-race-between-meteor-userid-and-a-subscription/24460877#24460877
     if @userId is userId
       @autorun => readableFiles @userId
-      null
     else
       @ready()
 

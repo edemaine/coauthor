@@ -16,7 +16,6 @@ if Meteor.isServer
           roles: 1
       else
         @ready()
-    null
 
   Meteor.publish 'userData', ->
     @autorun ->
@@ -28,6 +27,5 @@ if Meteor.isServer
             'services.dropbox.id': 1
       else
         @ready()
-    null
 else  ## client
   Meteor.subscribe 'userData'
