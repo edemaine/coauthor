@@ -8,6 +8,9 @@
 
 @defaultNotificationDelays =
   batched:
+    batch:
+      amount: 4
+      unit: 'hour'
   settled:
     settle:
       amount: 30

@@ -7,11 +7,39 @@ bodymap = (body) ->
   ## Turn $$ into $ to convert to new MathJax format.
   body.replace /\$\$/g, '$'
 
+ext2type =
+  '.jpg': 'image/jpeg'
+  '.jpeg': 'image/jpeg'
+  '.png': 'image/png'
+  '.pdf': 'application/pdf'
+
+upfile_url = ///http://6...\.csail\.mit\.edu/[^/\s"=]*/upfiles/([^/\s"=]*)///g
+
 @importFiles = (group, files) ->
   for file in files
     reader = new FileReader
     reader.onload = (e) ->
       zip = new JSZip e.target.result
+
+      files = {}
+      for filename, content of zip.files
+        if filename[...8] == 'upfiles/'
+          filename = filename[8..]
+          continue unless filename.length > 0
+          continue if filename == 'README'  ## extra file
+          dot = filename.lastIndexOf '.'
+          if dot >= 0
+            ext = filename[dot..].toLowerCase()
+          else
+            ext = ''
+          if ext not of ext2type
+            console.error "Unrecognized extension '#{ext}' in imported file '#{filename}'"
+            return  ## don't do a partial import
+          content.type = ext2type[ext]
+          files[filename] = content
+          #blob = new Blob [content],
+          #  type: ext2type[ext]
+          #console.log filename, content.date, content.asArrayBuffer()
 
       users = parseXML zip.files['users.xml']
       usermap = {}
@@ -78,6 +106,19 @@ bodymap = (body) ->
           ## parent), score (useless), marked (?), wiki (useless),
           ## extraRef, extraData, extraCount (always empty)
           format: 'markdown'
+
+        usedFiles = {}
+        for revision in revisions
+          matches = revision.body.match upfile_url
+          continue unless matches?
+          for match in matches
+            filename = match[match.lastIndexOf('/')+1..]
+            if filename not of files
+              console.warn "Missing file #{filename} in #{revision.body}!"
+            else
+              usedFiles[filename] = true  ## remove duplicates
+        usedFiles = (filename for filename of usedFiles)
+
         revisions[0].format = message.format
         ## Message body is actually the rendered HTML.  To get markdown format,
         ## use last revision:
@@ -92,8 +133,12 @@ bodymap = (body) ->
         for revision in revisions
           for author in revision.updators[0]
             message.authors[revision.updators[0]] = revision.updated
-        await Meteor.call 'messageImport', group, parent, message, revisions, defer error, idmap[id]
-        throw error if error
+        if true
+          await Meteor.call 'messageImport', group, parent, message, revisions, defer error, idmap[id]
+          throw error if error
+        else
+          idmap[id] = 'test'
         count += 1
         #return if count == 5
+
     reader.readAsArrayBuffer file
