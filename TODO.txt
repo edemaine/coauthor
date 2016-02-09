@@ -7,8 +7,6 @@ FEATURES
 * Should messages have types?
   (e.g. problem, discussion, question, idea, paper, figure...)
 
-* Image embedding, and conversion of 6890 URLs into image blobs
-
 * Import users (with email addresses, but probably no passwords)
   when importing messages [PHASE 3]
 
