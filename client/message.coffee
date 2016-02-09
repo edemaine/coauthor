@@ -23,6 +23,8 @@ Template.message.helpers
       pluralize orphans(@_id).count(), 'orphaned subthread'
 
 Template.message.onRendered ->
+  $('[data-toggle="tooltip"]').tooltip()
+
   ## Give focus to first Title input, if there is one.
   titles = $('input.title')
   if titles.length
