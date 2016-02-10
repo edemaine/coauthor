@@ -53,9 +53,9 @@ preprocessMathjaxBlocks = (text, replacer) ->
     file = findFile body
     if file?
       if file.contentType[...6] == 'image/'
-        body = "<img src='#{Files.baseURL}/id/#{file._id}'/>"
+        body = "<img src='#{urlToFile file}'/>"
       else
-        body = "<i><a href='#{Files.baseURL}/id/#{file._id}'>&lt;#{file.length}-byte #{file.contentType} file&gt;</a></i>"
+        body = "<i><a href='#{urlToFile file}'>&lt;#{file.length}-byte #{file.contentType} file&gt;</a></i>"
     else
       body = "<i>&lt;unknown file with ID #{body}&gt;</i>"
   markdown: (body) ->

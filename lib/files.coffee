@@ -8,6 +8,10 @@
       _id: params._id
   ]
 
+@urlToFile = (id) ->
+  id = id._id if id._id?
+  "#{Files.baseURL}/id/#{id}"
+
 @findFile = (id) ->
   Files.findOne new Meteor.Collection.ObjectID id
 @deleteFile = (id) ->
@@ -75,6 +79,8 @@ else
     updateUploading -> @[file.uniqueIdentifier].progress = Math.floor 100*file.progress()
   Files.resumable.on 'fileSuccess', (file) ->
     updateUploading -> delete @[file.uniqueIdentifier]
+    if _.keys(Session.get 'uploading').length == 0
+      window.dispatchEvent new Event 'filesDone'
     file.file.callback?(file)
   Files.resumable.on 'fileError', (file) ->
     console.error "Error uploading", file.uniqueIdentifier

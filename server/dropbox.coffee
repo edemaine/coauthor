@@ -60,6 +60,7 @@ class Dropbox
           {}
 
 Meteor.startup ->
+  return  ## temporary
   Meteor.users.find
     'services.dropbox.accessToken': $exists: 1
   .forEach (user) ->

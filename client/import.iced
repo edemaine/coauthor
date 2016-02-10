@@ -35,11 +35,13 @@ upfile_url = ///http://6...\.csail\.mit\.edu/[^/\s"=]*/upfiles/([^/\s"=]*)///g
           if ext not of ext2type
             console.error "Unrecognized extension '#{ext}' in imported file '#{filename}'"
             return  ## don't do a partial import
-          content.type = ext2type[ext]
-          files[filename] = content
-          #blob = new Blob [content],
-          #  type: ext2type[ext]
-          #console.log filename, content.date, content.asArrayBuffer()
+          #content.type = ext2type[ext]
+          #files[filename] = content
+          do (filename, content, type = ext2type[ext]) ->
+            files[filename] = ->
+              new File [content.asBinary()], filename,
+                type: type
+                lastModified: content.date
 
       users = parseXML zip.files['users.xml']
       usermap = {}
@@ -117,11 +119,31 @@ upfile_url = ///http://6...\.csail\.mit\.edu/[^/\s"=]*/upfiles/([^/\s"=]*)///g
               console.warn "Missing file #{filename} in #{revision.body}!"
             else
               usedFiles[filename] = true  ## remove duplicates
-        usedFiles = (filename for filename of usedFiles)
+        await
+          for filename of usedFiles
+            if typeof files[filename] == 'function'
+              file = files[filename]()
+              file.group = group
+              do (d = defer files[filename]) ->
+                file.callback = (file2) -> d file2.uniqueIdentifier
+                  ## xxx should be messageImport
+                  #Meteor.call 'messageNew', group, null, null,
+                  #  format: 'file'
+                  #  title: file2.fileName
+                  #  body: file2.uniqueIdentifier
+                  #, d
+              Files.resumable.addFile file
+
+        for revision in revisions
+          revision.body = revision.body.replace upfile_url, (match, p1) ->
+            if p1 of files
+              urlToFile files[p1]
+            else
+              match
 
         revisions[0].format = message.format
-        ## Message body is actually the rendered HTML.  To get markdown format,
-        ## use last revision:
+        ## message.body is actually the rendered HTML.  To get markdown format
+        ## (as well as file substitutions done above), use last revision:
         message.body = revisions[revisions.length-1].body
         if id of deleted
           message.deleted = true
@@ -133,11 +155,8 @@ upfile_url = ///http://6...\.csail\.mit\.edu/[^/\s"=]*/upfiles/([^/\s"=]*)///g
         for revision in revisions
           for author in revision.updators[0]
             message.authors[revision.updators[0]] = revision.updated
-        if true
-          await Meteor.call 'messageImport', group, parent, message, revisions, defer error, idmap[id]
-          throw error if error
-        else
-          idmap[id] = 'test'
+        await Meteor.call 'messageImport', group, parent, message, revisions, defer error, idmap[id]
+        throw error if error
         count += 1
         #return if count == 5
 
