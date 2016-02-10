@@ -326,7 +326,6 @@ Meteor.methods
       deleted: Match.Optional Boolean
       creator: Match.Optional String
       created: Match.Optional Date
-      authors: Match.Any
     check diffs, [
       title: Match.Optional String
       body: Match.Optional String
@@ -335,7 +334,7 @@ Meteor.methods
       deleted: Match.Optional Boolean
       updated: Match.Optional Date
       updators: Match.Optional [String]
-      published: Match.Optional Date
+      published: Match.Optional Match.OneOf Date, Boolean
     ]
     if canImport group
       now = new Date
@@ -346,6 +345,11 @@ Meteor.methods
       message.children = []
       message.importer = me
       message.imported = now
+      ## Automatically set 'authors' to have the latest update for each author.
+      message.authors = {}
+      for diff in diffs
+        for author in diff.updators
+          message.authors[author] = diff.updated
       if parent?
         pmsg = Messages.findOne parent
         message.root = pmsg.root ? parent

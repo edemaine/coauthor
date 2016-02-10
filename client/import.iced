@@ -35,11 +35,12 @@ upfile_url = ///http://6...\.csail\.mit\.edu/[^/\s"=]*/upfiles/([^/\s"=]*)///g
           if ext not of ext2type
             console.error "Unrecognized extension '#{ext}' in imported file '#{filename}'"
             return  ## don't do a partial import
+          ## JSZip's ZipObjects don't seem to behave enough like a File.
           #content.type = ext2type[ext]
           #files[filename] = content
           do (filename, content, type = ext2type[ext]) ->
             files[filename] = ->
-              new File [content.asBinary()], filename,
+              new File [content.asArrayBuffer()], filename,
                 type: type
                 lastModified: content.date
 
@@ -117,21 +118,24 @@ upfile_url = ///http://6...\.csail\.mit\.edu/[^/\s"=]*/upfiles/([^/\s"=]*)///g
             filename = match[match.lastIndexOf('/')+1..]
             if filename not of files
               console.warn "Missing file #{filename} in #{revision.body}!"
-            else
-              usedFiles[filename] = true  ## remove duplicates
+            else if filename not of usedFiles  ## take first occurrence
+              usedFiles[filename] = revision
+
+        attachFiles = []
         await
-          for filename of usedFiles
+          for filename, revision of usedFiles
             if typeof files[filename] == 'function'
               file = files[filename]()
+              ## Assume file created by same person and roughly same time
+              ## as the first post that contains them.  OSQA doesn't seem to
+              ## keep any record of files, so that's the best we can do.
+              file.creator = revision.updators[0]
+              file.created = revision.updated
               file.group = group
               do (d = defer files[filename]) ->
-                file.callback = (file2) -> d file2.uniqueIdentifier
-                  ## xxx should be messageImport
-                  #Meteor.call 'messageNew', group, null, null,
-                  #  format: 'file'
-                  #  title: file2.fileName
-                  #  body: file2.uniqueIdentifier
-                  #, d
+                file.callback = (file2) ->
+                  attachFiles.push file2
+                  d file2.uniqueIdentifier
               Files.resumable.addFile file
 
         for revision in revisions
@@ -151,13 +155,32 @@ upfile_url = ///http://6...\.csail\.mit\.edu/[^/\s"=]*/upfiles/([^/\s"=]*)///g
         else
           message.deleted = false
         message.published = revisions[0].published = message.created
-        message.authors = {}
-        for revision in revisions
-          for author in revision.updators[0]
-            message.authors[revision.updators[0]] = revision.updated
         await Meteor.call 'messageImport', group, parent, message, revisions, defer error, idmap[id]
         throw error if error
         count += 1
         #return if count == 5
+
+        await
+          for file2 in attachFiles
+            ## Last modified date of the physical file (as preserved in ZIP)
+            ## is generally earlier than the time of the post using the file,
+            ## so is more accurate.  Just in case, take the min of the two.
+            if file2.file.created.getTime() < file2.file.lastModifiedDate.getTime()
+              #console.log file2.file.created, file2.file.lastModifiedDate
+              creation = file2.file.created
+            else
+              creation = file2.file.lastModifiedDate
+            filerev =
+              format: 'file'
+              title: file2.fileName
+              body: file2.uniqueIdentifier
+              published: creation
+            filemsg = _.clone filerev
+            filemsg.creator = file2.file.creator
+            filemsg.created = creation
+            filerev.updators = [file2.file.creator]
+            filerev.updated = creation
+            Meteor.call 'messageImport', group, idmap[id], filemsg, [filerev],
+              defer()  ## ignoring error
 
     reader.readAsArrayBuffer file
