@@ -8,28 +8,29 @@
 
 @defaultNotificationDelays =
   batched:
-    batch:
-      amount: 4
-      unit: 'hour'
+    every: 4
+    offset: 4
+    unit: 'hour'
   settled:
-    settle:
-      amount: 30
-      unit: 'minute'
-    maximum:
-      amount: 60
-      unit: 'minute'
+    settle: 30
+    maximum: 60
+    unit: 'minute'
   instant:
-    settle:
-      amount: 0
-      unit: 'second'
-    maximum:
-      amount: 0
-      unit: 'second'
+    settle: 5
+    maximum: 5
+    unit: 'second'
+  #OR: 'instant' has no delays, but 'settled' also applies
 
-## notification can consist of
-##   - level: one of notificationLevels
-##   - message: ID of relevant message
-##   - updates: list of changed, title, body, ... from message
+## Notification consists of
+##   - target: username to notify
+##   - level: one of notificationLevels ('batched', 'settled', or 'instant')
+##   - first: Date of first update
+##   - last: Date of last update
+##   - type: 'message'
+##     - message: ID of relevant message
+##     - diffs: list of IDs of MessageDiffs, starting with null if creation
+##   - possible future types: 'import', 'superdelete', 'users', 'settings'
+##   - seen: true/false (whether notification has been delivered/deleted)
 
 if Meteor.isServer
   Meteor.publish 'notifications', () ->
@@ -41,7 +42,7 @@ if Meteor.isServer
           seen: false
       else
         @ready()
-  Meteor.publish 'notifications.old', () ->
+  Meteor.publish 'notifications.all', () ->
     @autorun ->
       user = findUser @userId
       if user?
@@ -57,13 +58,12 @@ if Meteor.isServer
     console.log 'Scheduling notification', note
 
   @notificationInsert = (notification) ->
-    notification.when = new Date unless notification.when?
     notification.seen = false
     Notifications.insert notification
     xxx notificationTime notification
 
 @notificationTime = (notification) ->
-  notification.when
-  user = findUsername notification.username
-  delays = user.profile?.notifications?[notification.level]
+  user = findUsername notification.target
+  delays = user.profile?.notifications?[notification.level] ?
+           defaultNotificationDelays[notification.level]
   
