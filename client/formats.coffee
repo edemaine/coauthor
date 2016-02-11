@@ -48,6 +48,34 @@ preprocessMathjaxBlocks = (text, replacer) ->
   else
     text
 
+marked.InlineLexer.rules.gfm.url =
+  ///^((coauthor:/?/?|https?://)[^\s<]+[^<.,:;"')\]\s])///
+
+postprocessCoauthorLinks = (text) ->
+  ## xxx Not reactive, but should be.  E.g. won't update if image replaced.
+  ## xxx More critically, won't load anything outside current subscription...
+  text.replace ///(<img\s[^<>]*src\s*=\s*['"])coauthor:/?/?([a-zA-Z0-9]+)///ig,
+    (match, p1, p2) ->
+      msg = Messages.findOne p2
+      if msg? and msg.format == 'file'
+        p1 + urlToFile msg.body
+      else
+        if msg?
+          console.warn "Couldn't detect image in message #{p2} -- must be text?"
+        else
+          console.warn "Couldn't find group for message #{p2} (likely subscription issue)", msg
+        match
+  .replace ///(<a\s[^<>]*href\s*=\s*['"])coauthor:/?/?([a-zA-Z0-9]+)///ig,
+    (match, p1, p2) ->
+      msg = Messages.findOne p2
+      if msg?
+        p1 + pathFor 'message',
+          group: msg.group
+          message: msg._id
+      else
+        console.warn "Couldn't find group for message #{p2} (likely subscription issue)"
+        match
+
 @formats =
   file: (body) ->
     file = findFile body
@@ -75,4 +103,4 @@ preprocessMathjaxBlocks = (text, replacer) ->
     body = formats[format] body
   else
     console.warn "Unrecognized format '#{format}'"
-  body
+  postprocessCoauthorLinks body
