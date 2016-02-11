@@ -39,7 +39,10 @@ Template.submessage.onCreated ->
   @keyboard = new ReactiveVar 'ace'
   @editing = new ReactiveVar null
   @history = new ReactiveVar null
-  @folded = new ReactiveVar false
+  ## @folded is normally true or false, but we use a special (falsey) null
+  ## value to indicate that it could still be automatically folded if it's
+  ## detected that that would be a better default.
+  @folded = new ReactiveVar null
   @autorun =>
     return unless Template.currentData()?
     #@myid = Template.currentData()._id
@@ -49,6 +52,38 @@ Template.submessage.onCreated ->
       @editing.set null
     #console.log 'automathjax'
     automathjax()
+
+#Session.setDefault 'images', {}
+images = {}
+
+Template.submessage.onRendered ->
+  #@$.children('.panel').children('.panel-body').find('a[href|="/gridfs/fs/"]')
+  #console.log @$ 'a[href|="/gridfs/fs/"]'
+  template = @
+  attachment = @data.format == 'file'
+  #images = Session.get 'images'
+  subimages = @images = []
+  $(@firstNode).children('.panel-body').find('img[src^="/gridfs/fs/"]')
+  .each ->
+    id = url2file @.getAttribute('src')
+    subimages.push id
+    if id not of images
+      images[id] =
+        attachment: null
+        count: 0
+    if attachment
+      images[id].attachment = template
+    else
+      images[id].count += 1
+    if images[id].count > 0 and images[id].attachment? and images[id].attachment.folded.get() == null
+      images[id].attachment.folded.set true
+    #console.log images
+  #Session.set 'images', images
+
+Template.submessage.onDestroyed ->
+  for id in @subimages
+    if id of images
+      images[id].count -= 1
 
 historify = (x) -> () ->
   history = Template.instance().history.get()

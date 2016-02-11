@@ -8,9 +8,15 @@
       _id: params._id
   ]
 
+fileUrlPrefix = "#{Files.baseURL}/id/"
 @urlToFile = (id) ->
   id = id._id if id._id?
-  "#{Files.baseURL}/id/#{id}"
+  "#{fileUrlPrefix}#{id}"
+@url2file = (url) ->
+  if url[...fileUrlPrefix.length] == fileUrlPrefix
+    url[fileUrlPrefix.length..]
+  else
+    throw "Bad file URL #{url}"
 
 @findFile = (id) ->
   Files.findOne new Meteor.Collection.ObjectID id
