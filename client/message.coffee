@@ -290,6 +290,8 @@ Template.messageHistory.onRendered ->
   @autorun =>
     diffs = MessagesDiff.find
         id: @data._id
+      ,
+        sort: ['updated']
       .fetch()
     return if diffs.length < 2  ## don't show a zero-length slider
     ## Accumulate diffs
