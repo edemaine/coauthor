@@ -199,6 +199,25 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
       doc.updated = new Date
     MessagesParent.insert doc
 
+if Meteor.isServer
+  editorTimers = {}
+
+  editor2messageUpdate = (id) ->
+    Meteor.clearTimeout editorTimers[id]
+    doc = Meteor.wrapAsync(ShareJS.model.getSnapshot) id
+    #console.log id, 'changed to', doc.snapshot
+    msg = Messages.findOne id
+    unless msg.body == doc.snapshot
+      _messageUpdate id,
+        body: doc.snapshot
+      , msg.editing, msg
+
+  delayedEditor2messageUpdate = (id) ->
+    Meteor.clearTimeout editorTimers[id]
+    editorTimers[id] = Meteor.setTimeout ->
+      editor2messageUpdate id
+    , idle
+
 Meteor.methods
   messageUpdate: (id, message) -> _messageUpdate id, message
 
@@ -276,23 +295,7 @@ Meteor.methods
           ShareJS.initializeDoc id, old.body ? ''
           timer = null
           listener = Meteor.bindEnvironment (opData) ->
-            Meteor.clearTimeout timer
-            timer = Meteor.setTimeout ->
-              doc = Meteor.wrapAsync(ShareJS.model.getSnapshot) id
-              #console.log id, 'changed to', doc.snapshot
-              msg = Messages.findOne id
-              unless msg.body == doc.snapshot
-                _messageUpdate id,
-                  body: doc.snapshot
-                , msg.editing, msg
-              #Messages.update id,
-              #  $set: body: doc.snapshot
-              #MessagesDiff.insert
-              #  id: id
-              #  updators: msg.editing
-              #  updated: new Date
-              #  body: doc.snapshot
-            , idle
+            delayedEditor2messageUpdate id
           ShareJS.model.listen id, listener
       Messages.update id,
         $addToSet: editing: Meteor.user().username
@@ -309,6 +312,7 @@ Meteor.methods
     #if Meteor.isServer and (after.editing ? []).length == 0
     if Meteor.isServer
       unless Messages.findOne(id).editing?.length
+        editor2messageUpdate id
         ShareJS.model.delete id
 
   messageImport: (group, parent, message, diffs) ->
