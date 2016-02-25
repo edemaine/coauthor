@@ -105,6 +105,12 @@ template(name="submessage")
       .children
         each children
           +submessage
+      if children
+        .panel-body.panel-secondbody
+          if canReply
+            button.btn.btn-default.replyButton Reply
+          if canAttach
+            +messageAttach
 
 template(name="formatSelector")
   .btn-group

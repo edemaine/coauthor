@@ -16,3 +16,5 @@ img { max-width: 100% }
 
 .historySlider { margin-left: 5em; margin-right: 5em; }
 .slider.slider-horizontal { width: 100%; }
+
+.panel-secondbody { padding-top: 0px; }
