@@ -83,7 +83,11 @@ if Meteor.isServer
 @canUnpublish = (message) ->
   canSuper message2group message
 
-@canSuper = (group) ->
+@canSuper = (group, client = Meteor.isClient) ->
+  ## If client is true, we use the session variable 'super' to fake whether
+  ## superuser mode is viewed as on (from the client perspective).
+  ## This lets someone with superuser permissions pretend to be normal.
+  (not client or Session.get 'super') and
   groupRoleCheck group, 'super'
 
 @canImport = (group) -> canSuper group

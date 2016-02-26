@@ -13,6 +13,10 @@ Template.layout.helpers
     canAdmin routeGroup()
   inUsers: ->
     Router.current().route.getName() == 'users'
+  couldSuper: ->
+    canSuper (routeGroup() ? wildGroup), false
+  super: ->
+    Session.get 'super'
 
 Template.layout.events
   'click .usersButton': (e) ->
@@ -24,3 +28,8 @@ Template.layout.events
     e.preventDefault()
     e.stopPropagation()
     Router.go 'settings', group: @group ? wildGroupRoute
+
+  'click .superButton': (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+    Session.set 'super', not Session.get 'super'

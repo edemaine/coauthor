@@ -48,6 +48,11 @@ template(name="layout")
         ul.nav.navbar-nav.navbar-right
           +loginButtons
         ul.nav.navbar-nav.navbar-right.navbar-btn
+          if couldSuper
+            if super
+              button.superButton.btn.btn-normal Leave Superuser
+            else
+              button.superButton.btn.btn-danger Become Superuser
           if showUsers
             button.usersButton.btn.btn-warning Users
           if currentUser
