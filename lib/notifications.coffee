@@ -77,4 +77,10 @@ if Meteor.isServer
   user = findUsername notification.target
   delays = user.profile?.notifications?[notification.level] ?
            defaultNotificationDelays[notification.level]
-  
+  xxx batched
+  settleTime = timeOffset notification.lastUpdate, delays.settle, delays.unit
+  maximumTime = timeOffset notification.firstUpdate, delays.maximum, delays.unit
+  if settleTime.getTime() < maximumTime.getTime()
+    settleTime
+  else
+    maximumTime
