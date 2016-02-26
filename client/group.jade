@@ -14,8 +14,9 @@ template(name="postButtons")
 template(name="messageList")
   div.list-group
     each topMessages
-      a.list-group-item(href=messageLink)
-        +messageShort
+      if canSee
+        a.list-group-item(href=messageLink)
+          +messageShort
   i.panel-heading #{topMessageCount}
 
 template(name="importButton")

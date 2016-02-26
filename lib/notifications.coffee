@@ -9,17 +9,28 @@
 @defaultNotificationDelays =
   batched:
     every: 4
-    offset: 4
-    unit: 'hour'
+    unit: 'hour'  ## 'hour' or 'day'
+    start: 4  ## hour of day to start batches, or hour to do one report if unit == 'day'
   settled:
     settle: 30
     maximum: 60
-    unit: 'minute'
+    unit: 'minute'  ## 'second' or 'minute' or 'hour' or 'day'
   instant:
-    settle: 5
-    maximum: 5
+    settle: 30
+    maximum: 30
     unit: 'second'
   #OR: 'instant' has no delays, but 'settled' also applies
+
+timeOffset = (date, amount, unit) ->
+  switch unit
+    when 'second'
+      date.setUTCSeconds date.getUTCSeconds()
+    when 'minute'
+      date.setUTCMinutes date.getUTCMinutes()
+    when 'hour'
+      date.setUTCHours date.getUTCHours()
+    when 'day'
+      date.setUTCDay date.getUTCDay()
 
 ## Notification consists of
 ##   - target: username to notify

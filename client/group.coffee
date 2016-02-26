@@ -23,6 +23,8 @@ Template.registerHelper 'admin', -> canAdmin @group
 
 Template.registerHelper 'canImport', -> canImport @group
 
+Template.registerHelper 'canSee', -> canSee @
+
 Template.postButtons.helpers
   disableClass: ->
     if canPost @group

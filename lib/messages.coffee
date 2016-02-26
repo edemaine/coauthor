@@ -24,7 +24,7 @@ if Meteor.isServer
                 deleted: false
               , "authors.#{escapeUser user.username}": $exists: true
               ]
-            ]
+            ]  ## if you change this, change message.coffee's children helper
         else
           Messages.find
             group: group
@@ -36,7 +36,7 @@ if Meteor.isServer
   Meteor.publish 'messages.diff', (message) ->
     check message, String
     @autorun ->
-      if canSee message, findUser @userId
+      if canSee message, false, findUser @userId
         MessagesDiff.find
           id: message
       else
@@ -48,19 +48,20 @@ if Meteor.isServer
       Messages.update message._id,
         $unset: editing: ''
 
-@canSee = (message, user = Meteor.user()) ->
+@canSee = (message, client = Meteor.isClient, user = Meteor.user()) ->
   ## Visibility of a message is implied by its existence in the Meteor.publish
   ## above, so we don't need to check this in the client.  But this function
-  ## is still needed in the server for messages.diff subscription above.
-  group = message2group message
-  if groupRoleCheck group, 'super', user
+  ## is still needed in the server for messages.diff subscription above,
+  ## and when simulating non-superuser mode in client/message.coffee.
+  message = Messages.findOne message unless message._id?
+  group = message.group #message2group message
+  if canSuper group, client, user #groupRoleCheck group, 'super', user
     ## Super-user can see all messages, even unpublished/deleted messages.
     true
   else if groupRoleCheck group, 'read', user
     ## Regular users can see all messages they authored, plus
     ## published undeleted messages by others.
-    msg = Messages.findOne message
-    msg.published and not msg.deleted
+    message.published and not message.deleted
   else
     false
 
@@ -83,12 +84,12 @@ if Meteor.isServer
 @canUnpublish = (message) ->
   canSuper message2group message
 
-@canSuper = (group, client = Meteor.isClient) ->
+@canSuper = (group, client = Meteor.isClient, user = Meteor.user()) ->
   ## If client is true, we use the session variable 'super' to fake whether
   ## superuser mode is viewed as on (from the client perspective).
   ## This lets someone with superuser permissions pretend to be normal.
   (not client or Session.get 'super') and
-  groupRoleCheck group, 'super'
+  groupRoleCheck group, 'super', user
 
 @canImport = (group) -> canSuper group
 @canSuperdelete = (message) ->

@@ -81,7 +81,7 @@ Template.submessage.onRendered ->
   #Session.set 'images', images
 
 Template.submessage.onDestroyed ->
-  for id in @subimages
+  for id in @images
     if id of images
       images[id].count -= 1
 
@@ -100,8 +100,11 @@ Template.submessage.helpers
   #editing: -> editing @
   children: ->
     if @children
-      Messages.find _id: $in: @children
-        .fetch()
+      children = Messages.find _id: $in: @children
+                   .fetch()
+      ## Use canSee to properly fake non-superuser mode.
+      children = (child for child in children when canSee child)
+      children
   config: ->
     ti = Tracker.nonreactive -> Template.instance()
     (editor) ->
