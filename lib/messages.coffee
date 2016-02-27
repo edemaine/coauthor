@@ -61,7 +61,8 @@ if Meteor.isServer
   else if groupRoleCheck group, 'read', user
     ## Regular users can see all messages they authored, plus
     ## published undeleted messages by others.
-    message.published and not message.deleted
+    (message.published and not message.deleted) or
+    user.username of (message.authors ? {})
   else
     false
 
