@@ -23,7 +23,9 @@ window.MathJax =
     ignoreClass: 'nojax'
     processClass: 'tex2jax'
   skipStartupTypeset: true
-  root: '/mathjax'
+  ## This is a workaround until https://github.com/mathjax/MathJax/issues/1403
+  ## gets solved (see https://github.com/mathjax/MathJax/issues/1399)
+  AuthorInit: -> MathJax.Ajax.config.root = '/mathjax'
 
 Meteor.startup ->
   $('body').addClass 'nojax'
