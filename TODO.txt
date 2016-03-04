@@ -20,8 +20,6 @@ FEATURES
 
 * \label/\ref
 
-* Search
-
 * Thumbnail generation, especially for PDF, following
   https://github.com/vsivsi/meteor-file-job-sample-app/blob/master/sample.coffee
 
