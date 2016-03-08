@@ -94,7 +94,7 @@ if Meteor.isServer
         ## if they regard the same message and haven't yet been seen by user.
         notification = Notifications.findOne
           type: 'messageUpdate'
-          to: to
+          to: to.username
           message: diff.id
           seen: false
         if notification?
@@ -104,7 +104,7 @@ if Meteor.isServer
         else
           notificationInsert
             type: 'messageUpdate'
-            to: to
+            to: to.username
             message: diff.id
             dates: [diff.updated]
             diffs: [diff._id]
