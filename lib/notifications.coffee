@@ -34,7 +34,7 @@
       date.setUTCDay amount + date.getUTCDay()
   date
 
-@defaultNotificationsOn = true
+@defaultNotificationsOn = false
 
 @notificationsDefault = ->
   not Meteor.user().profile.notifications?.on?
