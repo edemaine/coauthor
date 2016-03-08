@@ -193,7 +193,7 @@ if Meteor.isServer
         html += '\n\n'
         text += '\n\n'
         if diffs.length > 1
-          dates = "Changes occurred between #{diffs[0].updated} and #{diffs[diffs.length-1].update}"
+          dates = "Changes occurred between #{diffs[0].updated} and #{diffs[diffs.length-1].updated}"
         else
           dates = "Change occurred on #{diffs[0].updated}"
         html += "<P><I>#{dates}</I></P>\n"
