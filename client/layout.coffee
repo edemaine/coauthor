@@ -22,12 +22,12 @@ Template.layout.events
   'click .usersButton': (e) ->
     e.preventDefault()
     e.stopPropagation()
-    Router.go 'users', group: @group ? wildGroupRoute
+    Router.go 'users', group: routeGroupRoute() ? wildGroupRoute
 
   'click .settingsButton': (e) ->
     e.preventDefault()
     e.stopPropagation()
-    Router.go 'settings', group: @group ? wildGroupRoute
+    Router.go 'settings', group: routeGroupRoute() ? wildGroupRoute
 
   'click .superButton': (e) ->
     e.preventDefault()

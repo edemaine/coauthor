@@ -1,5 +1,8 @@
+@routeGroupRoute = ->
+  Iron.controller().getParams().group
+
 @routeGroup = ->
-  group = Iron.controller().getParams().group
+  group = routeGroupRoute()
   if group == wildGroupRoute
     wildGroup
   else
