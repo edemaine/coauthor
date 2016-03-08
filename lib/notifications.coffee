@@ -99,8 +99,9 @@ if Meteor.isServer
           seen: false
         if notification?
           notificationUpdate notification,
-            $push: dates: diff.updated
-            $push: diffs: diff._id
+            $push:
+              dates: diff.updated
+              diffs: diff._id
         else
           notificationInsert
             type: 'messageUpdate'
