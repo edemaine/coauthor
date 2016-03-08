@@ -116,6 +116,11 @@ idle = 1000   ## one second
     else
       throw "Message #{message} has #{parents.length} parents! #{parents}"
 
+@messageEmpty = (message) ->
+  message = Messages.findOne message unless message._id?
+  message.title.trim().length == 0 and
+  message.body.trim().length == 0
+
 ## The following should be called directly only on the server;
 ## clients should use the corresponding method.
 @_messageUpdate = (id, message, authors = null, old = null) ->

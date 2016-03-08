@@ -88,6 +88,9 @@ if Meteor.isServer
 
   @notifyMessageUpdate = (diff) ->
     msg = Messages.findOne diff.id
+    ## Don't notify about empty messages (e.g. initial creation) --
+    ## wait for content.  xxx should only do this if diff is version 1!
+    return if messageEmpty msg
     for to in messageListeners msg
       if canSee msg, false, to  ## xxx what should behavior be for superuser?
         ## Coallesce past notification (if it exists) into this notification,
