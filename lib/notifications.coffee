@@ -88,12 +88,13 @@ if Meteor.isServer
 
   @notifyMessageUpdate = (diff) ->
     msg = Messages.findOne diff.id
-    for listener in messageListeners msg
+    for to in messageListeners msg
       if canSee msg, false, listener  ## xxx what should behavior be for superuser?
         ## Coallesce past notification (if it exists) into this notification,
         ## if they regard the same message and haven't yet been seen by user.
         notification = Notifications.findOne
           type: 'messageUpdate'
+          to: to
           message: diff.id
           seen: false
         if notification?
@@ -103,6 +104,7 @@ if Meteor.isServer
         else
           notificationInsert
             type: 'messageUpdate'
+            to: to
             message: diff.id
             dates: [diff.updated]
             diffs: [diff._id]
