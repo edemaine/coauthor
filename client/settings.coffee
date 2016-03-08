@@ -1,6 +1,8 @@
 Template.settings.helpers
   profile: -> Meteor.user().profile
   autopublish: autopublish
+  notificationsOn: notificationsOn
+  notificationsDefault: notificationsDefault
   dropbox: ->
     'dropbox' of (Meteor.user().services ? {})
 
@@ -16,6 +18,12 @@ Template.settings.events
     e.stopPropagation()
     Meteor.users.update Meteor.userId(),
       $set: "profile.autopublish": not autopublish()
+
+  'click .notificationsButton': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    Meteor.users.update Meteor.userId(),
+      $set: "profile.notifications.on": not notificationsOn()
 
   'click .linkDropbox': (e, t) ->
     e.preventDefault()

@@ -20,6 +20,24 @@ template(name="settings")
               button.btn.btn-warning.autopublishButton(type="button", data-toggle="button", autocomplete="off") No
         tr
           th
+            label Email notifications:
+          td
+            div
+              +_loginButtonsAdditionalLoggedInDropdownActions
+            if notificationsOn
+              button.btn.btn-success.notificationsButton(type="button", data-toggle="button", autocomplete="off")
+                if notificationsDefault
+                  | Default (Yes)
+                else
+                  | Yes
+            else
+              button.btn.btn-warning.notificationsButton(type="button", data-toggle="button", autocomplete="off")
+                if notificationsDefault
+                  | Default (No)
+                else
+                  | No
+        tr
+          th
             label Dropbox account linking:
           td
             if dropbox

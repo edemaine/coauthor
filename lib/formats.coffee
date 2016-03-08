@@ -1,11 +1,12 @@
 @availableFormats = ['html', 'markdown']  ## 'file' not an option for user
 @mathjaxFormats = availableFormats  ## Don't do tex2jax for files
 
-Template.registerHelper 'formats', ->
-  for format in availableFormats
-    format: format
-    active: if Template.currentData()?.format == format then 'active' else ''
-    capitalized: capitalize format
+if Meteor.isClient
+  Template.registerHelper 'formats', ->
+    for format in availableFormats
+      format: format
+      active: if Template.currentData()?.format == format then 'active' else ''
+      capitalized: capitalize format
 
 ## Finds all $...$ and $$...$$ blocks, where ... properly deals with balancing
 ## braces (e.g. $\hbox{$x$}$) and escaped dollar signs (\$ doesn't count as $),
@@ -104,3 +105,9 @@ postprocessCoauthorLinks = (text) ->
   else
     console.warn "Unrecognized format '#{format}'"
   postprocessCoauthorLinks body
+
+@stripHTMLTags = (html) ->
+  html.replace /<[^>]*>/gm, ''
+
+@indentLines = (text, indent) ->
+  text.replace /^/gm, indent

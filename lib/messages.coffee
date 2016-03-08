@@ -159,8 +159,10 @@ idle = 1000   ## one second
   message.updators = authors
   message.updated = now
   message.id = id
-  MessagesDiff.insert message
-  id
+  diffid = MessagesDiff.insert message
+  message._id = diffid
+  notifyMessageUpdate message
+  diffid
 
 _messageParent = (child, parent, position = null, oldParent = true, importing = false) ->
   ## oldParent is an internal option for server only; true means "search for/
@@ -320,6 +322,8 @@ Meteor.methods
       unless Messages.findOne(id).editing?.length
         editor2messageUpdate id
         ShareJS.model.delete id
+    ## xxx should add to last MessagesDiff (possibly just made) that
+    ## Meteor.user().username just committed this version.
 
   messageImport: (group, parent, message, diffs) ->
     check Meteor.userId(), String  ## should be done by 'canImport'

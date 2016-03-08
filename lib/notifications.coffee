@@ -12,7 +12,7 @@
     unit: 'hour'  ## 'hour' or 'day'
     start: 4  ## hour of day to start batches, or hour to do one report if unit == 'day'
   settled:
-    settle: 30
+    settle: 10
     maximum: 60
     unit: 'minute'  ## 'second' or 'minute' or 'hour' or 'day'
   instant:
@@ -21,25 +21,47 @@
     unit: 'second'
   #OR: 'instant' has no delays, but 'settled' also applies
 
-timeOffset = (date, amount, unit) ->
+@timeOffset = (date, amount, unit) ->
+  date = new Date date  ## copy to avoid in-place modification
   switch unit
     when 'second'
-      date.setUTCSeconds date.getUTCSeconds()
+      date.setUTCSeconds amount + date.getUTCSeconds()
     when 'minute'
-      date.setUTCMinutes date.getUTCMinutes()
+      date.setUTCMinutes amount + date.getUTCMinutes()
     when 'hour'
-      date.setUTCHours date.getUTCHours()
+      date.setUTCHours amount + date.getUTCHours()
     when 'day'
-      date.setUTCDay date.getUTCDay()
+      date.setUTCDay amount + date.getUTCDay()
+  date
+
+@defaultNotificationsOn = true
+
+@notificationsDefault = ->
+  not Meteor.user().profile.notifications?.on?
+
+@notificationsOn = ->
+  if notificationsDefault()
+    defaultNotificationsOn
+  else
+    Meteor.user().profile.notifications.on
+
+@notificationTime = (notification) ->
+  user = findUsername notification.to
+  notification.level = 'settled'
+  delays = user.profile?.notifications?[notification.level] ?
+           defaultNotificationDelays[notification.level]
+  #xxx batched
+  settleTime = timeOffset dateMax(notification.dates...), delays.settle, delays.unit
+  maximumTime = timeOffset dateMin(notification.dates...), delays.maximum, delays.unit
+  dateMin settleTime, maximumTime
 
 ## Notification consists of
-##   - target: username to notify
+##   - to: username to notify
 ##   - level: one of notificationLevels ('batched', 'settled', or 'instant')
-##   - first: Date of first update
-##   - last: Date of last update
-##   - type: 'message'
+##   - dates: list of Dates of updates
+##   - type: 'messageUpdate'
 ##     - message: ID of relevant message
-##     - diffs: list of IDs of MessageDiffs, starting with null if creation
+##     - diffs: list of IDs of MessagesDiff (in bijection with dates list)
 ##   - possible future types: 'import', 'superdelete', 'users', 'settings'
 ##   - seen: true/false (whether notification has been delivered/deleted)
 
@@ -62,25 +84,132 @@ if Meteor.isServer
       else
         @ready()
 
-  Notifications.find
-    seen: false
-  .forEach (note) ->
-    ## xxx schedule
-    console.log 'Scheduling notification', note
+  notifiers = {}
 
-  @notificationInsert = (notification) ->
+  @notifyMessageUpdate = (diff) ->
+    msg = Messages.findOne diff.id
+    for listener in messageListeners msg
+      if canSee msg, false, listener  ## xxx what should behavior be for superuser?
+        ## Coallesce past notification (if it exists) into this notification,
+        ## if they regard the same message and haven't yet been seen by user.
+        notification = Notifications.findOne
+          type: 'messageUpdate'
+          message: diff.id
+          seen: false
+        if notification?
+          notificationUpdate notification,
+            $push: dates: diff.updated
+            $push: diffs: diff._id
+        else
+          notificationInsert
+            type: 'messageUpdate'
+            message: diff.id
+            dates: [diff.updated]
+            diffs: [diff._id]
+
+  messageListeners = (msg) ->
+    if msg.root?
+      root = Messages.findOne msg.root
+    else
+      root = msg
+    ## xxx root message should have a field with listen/don't listen flags
+    if defaultNotificationsOn
+      Meteor.users.find
+        'profile.notifications.on': $ne: false
+      .fetch()
+    else
+      Meteor.users.find
+        'profile.notifications.on': true
+      .fetch()
+
+  notificationInsert = (notification) ->
     notification.seen = false
-    Notifications.insert notification
-    xxx notificationTime notification
+    notification._id = Notifications.insert notification
+    notificationSchedule notification
 
-@notificationTime = (notification) ->
-  user = findUsername notification.target
-  delays = user.profile?.notifications?[notification.level] ?
-           defaultNotificationDelays[notification.level]
-  xxx batched
-  settleTime = timeOffset notification.lastUpdate, delays.settle, delays.unit
-  maximumTime = timeOffset notification.firstUpdate, delays.maximum, delays.unit
-  if settleTime.getTime() < maximumTime.getTime()
-    settleTime
-  else
-    maximumTime
+  notificationUpdate = (old, update) ->
+    Meteor.clearTimeout notifiers[old._id]
+    Notifications.update old._id, update
+    notificationSchedule old._id
+
+  notificationSchedule = (notification) ->
+    notification = Notifications.findOne notification unless notification._id?
+    time = notificationTime notification
+    now = new Date()
+    if time.getTime() > now.getTime()
+      #console.log notification, '@', time.getTime() - now.getTime()
+      notifiers[notification._id] = Meteor.setTimeout ->
+        notificationDo notification._id
+      , time.getTime() - now.getTime()
+    else
+      notificationDo notification, false
+
+  notificationDo = (notification, check = true) ->
+    notification = Notifications.findOne notification unless notification._id?
+    if not check or notificationTime(notification).getTime() >= new Date().getTime()
+      notificationEmail notification
+      Notifications.update notification._id,
+        seen: true
+    else
+      notificationSchedule notification
+
+  linkToMessage = (msg, html) ->
+    url = Meteor.absoluteUrl "#{msg.group}/m/#{msg._id}"
+    if html
+      "'<A HREF=\"#{url}\">#{msg.title or '(untitled)'}</A>'"
+    else
+      "'#{msg.title}' [#{url}]"
+
+  notificationEmail = (notification) ->
+    user = findUsername notification.to
+    emails = (email.address for email in user.emails when email.verified)
+    ## If no verified email address, don't send, but still mark notification
+    ## read.  (Otherwise, upon verifying, you'd get a ton of email.)
+    return unless emails.length > 0
+    switch notification.type
+      when 'messageUpdate'
+        msg = Messages.findOne notification.message
+        diffs = (MessagesDiff.findOne diff for diff in notification.diffs)
+        authors = {}
+        for diff in diffs
+          for author in diff.updators
+            authors[author] = (authors[author] ? 0) + 1
+        authors = _.keys(authors).sort().join ', '
+        subject = "#{authors} updated '#{msg.title}'"
+        if msg.root?
+          root = Messages.findOne msg.root
+          html = "<P><B>#{authors}</B> changed message #{linkToMessage msg, true} in the thread #{linkToMessage root, true}"
+          text = "#{authors} changed message #{linkToMessage msg, false} in the thread #{linkToMessage root, false}"
+        else
+          html = "<P><B>#{authors}</B> changed root message in the thread #{linkToMessage msg, true}"
+          text = "#{authors} changed root message in the thread #{linkToMessage msg, false}"
+        html += '\n\n'
+        text += '\n\n'
+        body = formatBody msg.format, msg.body
+        html += "<BLOCKQUOTE>\n#{body}\n</BLOCKQUOTE>"
+        text += indentLines(stripHTMLTags(body), '    ')
+        html += '\n\n'
+        text += '\n\n'
+        if diffs.length > 1
+          dates = "Changes occurred between #{diffs[0].updated} and #{diffs[diffs.length-1].update}"
+        else
+          dates = "Change occurred on #{diffs[0].updated}"
+        html += "<P><I>#{dates}</I></P>\n"
+        text += "#{dates}\n"
+
+    Email.send
+      from: Accounts.emailTemplates.from
+      to: emails
+      subject: '[Coauthor] ' + subject
+      html: html
+      text: text
+
+  ## Reschedule any leftover notifications from last server run.
+  Meteor.startup ->
+    Notifications.find
+      seen: false
+    .forEach (notification) ->
+      try
+        notificationSchedule notification
+      catch e
+        console.warn 'Could not schedule', notification, ':', e
