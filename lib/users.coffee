@@ -6,7 +6,7 @@
 
 @findUsername = (username) ->
   Meteor.users.findOne
-    name: username
+    username: username
 
 ## Need to escape dots in usernames.
 @escapeUser = escapeGroup
