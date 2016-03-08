@@ -149,7 +149,7 @@ if Meteor.isServer
     if not check or notificationTime(notification).getTime() >= new Date().getTime()
       notificationEmail notification
       Notifications.update notification._id,
-        seen: true
+        $set: seen: true
     else
       notificationSchedule notification
 
