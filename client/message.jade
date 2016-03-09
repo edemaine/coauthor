@@ -17,70 +17,68 @@ template(name="badMessage")
 
 template(name="submessage")
   .panel.panel-primary.message
-    .panel-heading
+    .panel-heading.clearfix
       unless history
         if editingRV
           input.form-control.title(type="text", placeholder="Title", value="{{title}}", style="width: 100%")
-      .space-between
-        .unit
-          unless editingRV
-            .btn-group
-              button.btn.btn-xs.btn-info.foldButton(aria-label="Fold")
-                if folded
-                  span.glyphicon.glyphicon-plus(aria-hidden="true")
-                else
-                  span.glyphicon.glyphicon-minus(aria-hidden="true")
-              a(href="{{pathFor 'message' group=group message=_id}}").btn.btn-xs.btn-info.focusButton(aria-label="Focus")
-                span.glyphicon.glyphicon-zoom-in(aria-hidden="true")
-            span.space
-            span.title.tex2jax= title
-            span.space
+      unless editingRV
+        .message-left-buttons.btn-group.btn-group-xs
+          button.btn.btn-info.foldButton(aria-label="Fold")
+            if folded
+              span.glyphicon.glyphicon-plus(aria-hidden="true")
+            else
+              span.glyphicon.glyphicon-minus(aria-hidden="true")
+          a(href="{{pathFor 'message' group=group message=_id}}").btn.btn-info.focusButton(aria-label="Focus")
+            span.glyphicon.glyphicon-zoom-in(aria-hidden="true")
+        span.space
+        span.title.panel-title.tex2jax= title
+        span.space
+      if deleted
+        span.label.label-danger Deleted
+      else
+        unless published
+          span.label.label-warning Unpublished
+      .message-right-buttons.btn-group.pull-right
+        if history
+          button.btn.btn-default.historyButton Stop History
+        else
           if deleted
-            span.label.label-danger Deleted
+            if canUndelete
+              button.btn.btn-success.deleteButton Undelete
+            if canSuperdelete
+              button.btn.btn-danger.superdeleteButton Superdelete
           else
-            unless published
-              span.label.label-warning Unpublished
-        .unit.btn-group
-          if history
-            button.btn.btn-default.historyButton Stop History
+            if published
+              if canUnpublish
+                button.btn.btn-danger.publishButton Unpublish
+            else
+              if canPublish
+                button.btn.btn-success.publishButton Publish
+            if canDelete
+              button.btn.btn-danger.deleteButton Delete
+          if editingRV
+            .btn-group
+              button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
+                | #{keyboard}
+                span.caret
+              ul.dropdown-menu(role="menu")
+                li.editorKeyboard(class="{{activeKeyboard 'ace'}}")
+                  a(href="#",data-keyboard="ace") Ace
+                li.editorKeyboard(class="{{activeKeyboard 'vim'}}")
+                  a(href="#",data-keyboard="vim") Vim
+                li.editorKeyboard(class="{{activeKeyboard 'emacs'}}")
+                  a(href="#",data-keyboard="emacs") Emacs
+            +formatSelector
+            button.btn.btn-info.editButton Stop Editing
           else
-            if deleted
-              if canUndelete
-                button.btn.btn-success.deleteButton Undelete
-              if canSuperdelete
-                button.btn.btn-danger.superdeleteButton Superdelete
-            else
-              if published
-                if canUnpublish
-                  button.btn.btn-danger.publishButton Unpublish
-              else
-                if canPublish
-                  button.btn.btn-success.publishButton Publish
-              if canDelete
-                button.btn.btn-danger.deleteButton Delete
-            if editingRV
-              .btn-group
-                button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
-                  | #{keyboard}
-                  span.caret
-                ul.dropdown-menu(role="menu")
-                  li.editorKeyboard(class="{{activeKeyboard 'ace'}}")
-                    a(href="#",data-keyboard="ace") Ace
-                  li.editorKeyboard(class="{{activeKeyboard 'vim'}}")
-                    a(href="#",data-keyboard="vim") Vim
-                  li.editorKeyboard(class="{{activeKeyboard 'emacs'}}")
-                    a(href="#",data-keyboard="emacs") Emacs
-              +formatSelector
-              button.btn.btn-info.editButton Stop Editing
-            else
-              unless folded
-                button.btn.btn-default.historyButton History
-                if canEdit
-                  unless isFile
-                    button.btn.btn-info.editButton Edit
-                  else
-                    // In future, support basic image editing.  For now, just:
-                    +messageReplace
+            unless folded
+              button.btn.btn-default.historyButton History
+              if canEdit
+                unless isFile
+                  button.btn.btn-info.editButton Edit
+                else
+                  // In future, support basic image editing.  For now, just:
+                  +messageReplace
     unless folded
       if history
         +messageHistory forHistory

@@ -1,12 +1,12 @@
 .space { padding-left: 0.5em; }
-.space-between { display: flex; justify-content: space-between; align-items: center }
-.unit { width: auto; }
 
-.title { font-weight: bold; }
+.title { font-weight: bold; vertical-align: middle; }
 .author { font-style: italic; }
 .message .author { text-align: right; margin-right: 1em; }
 .message-footer { width: 100%; }
 .message-footer td { padding: 0ex 1em; }
+
+.message-right-buttons { margin: -5px -10px; } /* cf. panel-heading's padding of 10px 15px */
 
 .ace_editor { width: 100%; height: 20em; }
 
