@@ -39,33 +39,10 @@ template(name="submessage")
           else
             unless published
               span.label.label-warning Unpublished
-        .unit
+        .unit.btn-group
           if history
             button.btn.btn-default.historyButton Stop History
           else
-            if editingRV
-              button.btn.btn-default.editButton Stop Editing
-              .btn-group
-                button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
-                  | #{keyboard}
-                  span.caret
-                ul.dropdown-menu(role="menu")
-                  li.editorKeyboard(class="{{activeKeyboard 'ace'}}")
-                    a(href="#",data-keyboard="ace") Ace
-                  li.editorKeyboard(class="{{activeKeyboard 'vim'}}")
-                    a(href="#",data-keyboard="vim") Vim
-                  li.editorKeyboard(class="{{activeKeyboard 'emacs'}}")
-                    a(href="#",data-keyboard="emacs") Emacs
-              +formatSelector
-            else
-              unless folded
-                button.btn.btn-default.historyButton History
-                if canEdit
-                  unless isFile
-                    button.btn.btn-default.editButton Edit
-                  else
-                    // In future, support basic image editing.  For now, just:
-                    +messageReplace
             if deleted
               if canUndelete
                 button.btn.btn-success.deleteButton Undelete
@@ -80,6 +57,29 @@ template(name="submessage")
                   button.btn.btn-success.publishButton Publish
               if canDelete
                 button.btn.btn-danger.deleteButton Delete
+            if editingRV
+              .btn-group
+                button.btn.btn-normal.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
+                  | #{keyboard}
+                  span.caret
+                ul.dropdown-menu(role="menu")
+                  li.editorKeyboard(class="{{activeKeyboard 'ace'}}")
+                    a(href="#",data-keyboard="ace") Ace
+                  li.editorKeyboard(class="{{activeKeyboard 'vim'}}")
+                    a(href="#",data-keyboard="vim") Vim
+                  li.editorKeyboard(class="{{activeKeyboard 'emacs'}}")
+                    a(href="#",data-keyboard="emacs") Emacs
+              +formatSelector
+              button.btn.btn-info.editButton Stop Editing
+            else
+              unless folded
+                button.btn.btn-default.historyButton History
+                if canEdit
+                  unless isFile
+                    button.btn.btn-info.editButton Edit
+                  else
+                    // In future, support basic image editing.  For now, just:
+                    +messageReplace
     unless folded
       if history
         +messageHistory forHistory
