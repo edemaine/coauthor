@@ -24,13 +24,14 @@ template(name="submessage")
       .space-between
         .unit
           unless editingRV
-            button.btn.btn-xs.btn-info.foldButton(aria-label="Fold")
-              if folded
-                span.glyphicon.glyphicon-plus(aria-hidden="true")
-              else
-                span.glyphicon.glyphicon-minus(aria-hidden="true")
-            button.btn.btn-xs.btn-info.focusButton(aria-label="Focus")
-              span.glyphicon.glyphicon-new-window(aria-hidden="true")
+            .btn-group
+              button.btn.btn-xs.btn-info.foldButton(aria-label="Fold")
+                if folded
+                  span.glyphicon.glyphicon-plus(aria-hidden="true")
+                else
+                  span.glyphicon.glyphicon-minus(aria-hidden="true")
+              a(href="{{pathFor 'message' group=group message=_id}}").btn.btn-xs.btn-info.focusButton(aria-label="Focus")
+                span.glyphicon.glyphicon-zoom-in(aria-hidden="true")
             span.space
             span.title.tex2jax= title
             span.space

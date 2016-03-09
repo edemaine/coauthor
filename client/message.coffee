@@ -172,11 +172,6 @@ Template.submessage.helpers
   folded: -> Template.instance().folded.get()
 
 Template.submessage.events
-  'click .focusButton': (e, t) ->
-    e.preventDefault()
-    e.stopPropagation()
-    Router.go 'message', {group: t.data.group, message: t.data._id}
-
   'click .foldButton': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
