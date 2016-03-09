@@ -6,6 +6,7 @@ input.title { width: 100%; }
 .message .author { text-align: right; margin-right: 1em; }
 .message-footer { width: 100%; }
 .message-footer td { padding: 0ex 1em; }
+.message-deleted > .message-body, .message-unpublished > .message-body { opacity: 0.6; }
 
 .message-right-buttons { margin: -5px -10px; } /* cf. panel-heading's padding of 10px 15px */
 input.title ~ .message-right-buttons { margin: 0px; }

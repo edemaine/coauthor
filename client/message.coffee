@@ -171,6 +171,14 @@ Template.submessage.helpers
 
   folded: -> Template.instance().folded.get()
 
+  panelClass: ->
+    if @deleted
+      'panel-danger message-deleted'
+    else if @published
+      'panel-primary message-published'
+    else
+      'panel-warning message-unpublished'
+
 Template.submessage.events
   'click .foldButton': (e, t) ->
     e.preventDefault()

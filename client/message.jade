@@ -16,7 +16,7 @@ template(name="badMessage")
     p You probably need to log in.
 
 template(name="submessage")
-  .panel.panel-primary.message
+  .panel.message(class=panelClass)
     .panel-heading.clearfix
       unless history
         if editingRV
@@ -87,7 +87,7 @@ template(name="submessage")
           if editingRV
             //+sharejsAce docid=editingRV
             +sharejsAce docid=editingNR onRender=config
-      .panel-body(class=tex2jax) !{body}
+      .panel-body.message-body(class=tex2jax) !{body}
       table.message-footer
         tr
           td
@@ -97,7 +97,7 @@ template(name="submessage")
               +messageAttach
           td.author
             if published
-              | (posed by
+              | (posted by
             else
               | (created by
             | #{creator} {{formatDate created}}#{authors})
