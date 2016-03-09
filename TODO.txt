@@ -4,9 +4,6 @@ PHASE 3 = switch entirely over to coauthor
 
 FEATURES
 
-* Should add integer version numbers to MessageDiffs, to guarantee sort order
-  and enable asking for next/previous version
-
 * Should messages have types?
   (e.g. problem, discussion, question, idea, paper, figure...)
 
