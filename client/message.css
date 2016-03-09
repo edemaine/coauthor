@@ -1,12 +1,14 @@
 .space { padding-left: 0.5em; }
 
 .title { font-weight: bold; vertical-align: middle; }
+input.title { width: 100%; }
 .author { font-style: italic; }
 .message .author { text-align: right; margin-right: 1em; }
 .message-footer { width: 100%; }
 .message-footer td { padding: 0ex 1em; }
 
 .message-right-buttons { margin: -5px -10px; } /* cf. panel-heading's padding of 10px 15px */
+input.title ~ .message-right-buttons { margin: 0px; }
 
 .ace_editor { width: 100%; height: 20em; }
 
