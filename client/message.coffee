@@ -57,6 +57,8 @@ Template.submessage.onCreated ->
 images = {}
 
 Template.submessage.onRendered ->
+  ## Fold deleted messages by default on initial load.
+  @folded.set true if @data.deleted
   #@$.children('.panel').children('.panel-body').find('a[href|="/gridfs/fs/"]')
   #console.log @$ 'a[href|="/gridfs/fs/"]'
   template = @
