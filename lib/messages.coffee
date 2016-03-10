@@ -166,7 +166,7 @@ idle = 1000   ## one second
   message.id = id
   diffid = MessagesDiff.insert message
   message._id = diffid
-  notifyMessageUpdate message unless Meteor.isSimulation
+  notifyMessageUpdate message unless @isSimulation
   diffid
 
 _messageParent = (child, parent, position = null, oldParent = true, importing = false) ->
