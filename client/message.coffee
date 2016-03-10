@@ -55,6 +55,8 @@ Template.submessage.onCreated ->
 
 #Session.setDefault 'images', {}
 images = {}
+id2template = {}
+scrollToLater = null
 
 Template.submessage.onRendered ->
   ## Fold deleted messages by default on initial load.
@@ -62,6 +64,8 @@ Template.submessage.onRendered ->
   #@$.children('.panel').children('.panel-body').find('a[href|="/gridfs/fs/"]')
   #console.log @$ 'a[href|="/gridfs/fs/"]'
   template = @
+  id2template[@data._id] = template
+  scrollToMessage @data._id if scrollToLater == @data._id
   attachment = @data.format == 'file'
   #images = Session.get 'images'
   subimages = @images = []
@@ -81,6 +85,18 @@ Template.submessage.onRendered ->
       images[id].attachment.folded.set true
     #console.log images
   #Session.set 'images', images
+
+scrollDelay = 750
+
+@scrollToMessage = (id) ->
+  if id of id2template
+    template = id2template[id]
+    $.scrollTo template.firstNode, scrollDelay,
+      easing: 'swing'
+      onAfter: ->
+        $(template.find 'input.title').focus()
+  else
+    scrollToLater = id
 
 Template.submessage.onDestroyed ->
   for id in @images
@@ -249,6 +265,7 @@ Template.submessage.events
           console.error error
         else if result
           Meteor.call 'messageEditStart', result
+          scrollToMessage result
           #Router.go 'message', {group: group, message: result}
         else
           console.error "messageNew did not return problem -- not authorized?"

@@ -16,7 +16,7 @@ template(name="badMessage")
     p You probably need to log in.
 
 template(name="submessage")
-  .panel.message(class=panelClass)
+  .panel.message(class=panelClass, data-message=_id)
     .panel-heading.clearfix
       unless history
         if editingRV

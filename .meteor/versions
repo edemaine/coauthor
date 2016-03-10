@@ -73,6 +73,7 @@ mongo-id@1.0.1
 mongo-livedata@1.0.9
 mquandalle:jade@0.4.9
 mquandalle:jade-compiler@0.4.5
+natestrauser:jquery-scrollto@1.4.7
 npm-bcrypt@0.7.8_2
 npm-mongo@1.4.39_1
 oauth@1.1.6
