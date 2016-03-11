@@ -48,6 +48,9 @@ if Meteor.isServer
       Messages.update message._id,
         $unset: editing: ''
 
+  onExit ->
+    console.log 'EXITING'
+
 @canSee = (message, client = Meteor.isClient, user = Meteor.user()) ->
   ## Visibility of a message is implied by its existence in the Meteor.publish
   ## above, so we don't need to check this in the client.  But this function
