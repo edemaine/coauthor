@@ -1,3 +1,21 @@
+@untitledMessage = '<untitled>'
+
+Template.registerHelper 'titleOrUntitled', ->
+  if @title.trim().length == 0
+    untitledMessage
+  else
+    @title
+
+Template.registerHelper 'children', ->
+  if @children
+    children = Messages.find _id: $in: @children
+                 .fetch()
+    ## Use canSee to properly fake non-superuser mode.
+    children = (child for child in children when canSee child)
+    for child in children
+      child.depth = (@depth ? 0) + 1
+    children
+
 Template.badMessage.helpers
   'message': -> Iron.controller().getParams().message
 
@@ -23,6 +41,8 @@ Template.message.helpers
       pluralize orphans(@_id).count(), 'orphaned subthread'
 
 Template.message.onRendered ->
+  $('body').scrollspy
+    target: 'nav.contents'
   $('[data-toggle="tooltip"]').tooltip()
 
   ## Give focus to first Title input, if there is one.
@@ -34,6 +54,15 @@ editing = (self) ->
   Meteor.user()? and Meteor.user().username in (self.editing ? [])
 
 idle = 1000   ## one second
+
+Template.tableOfContents.helpers
+  deletedClass: ->
+    if @deleted
+      'deleted'
+    else if @published
+      'published'
+    else
+      'unpublished'
 
 Template.submessage.onCreated ->
   @keyboard = new ReactiveVar 'ace'
@@ -116,13 +145,6 @@ Template.submessage.helpers
   editingNR: -> Tracker.nonreactive -> Template.instance().editing.get()
   #myid: -> Tracker.nonreactive -> Template.instance().myid
   #editing: -> editing @
-  children: ->
-    if @children
-      children = Messages.find _id: $in: @children
-                   .fetch()
-      ## Use canSee to properly fake non-superuser mode.
-      children = (child for child in children when canSee child)
-      children
   config: ->
     ti = Tracker.nonreactive -> Template.instance()
     (editor) ->

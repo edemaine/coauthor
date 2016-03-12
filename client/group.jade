@@ -40,7 +40,7 @@ template(name="superdeleteImport")
 
 template(name="messageShort")
   .messageShort
-    span.title.tex2jax= title
+    span.title.tex2jax= titleOrUntitled
     span.space
     if published
       span.author (posed by #{creator} {{formatDate published}})

@@ -126,10 +126,5 @@ Template.messageList.helpers
 
 Template.messageShort.onRendered mathjax
 Template.messageShort.helpers
-  title: ->
-    if @title.trim().length == 0
-      '<untitled>'
-    else
-      @title
   commentCount: ->
     pluralize @comments, 'comment'
