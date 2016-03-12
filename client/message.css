@@ -22,7 +22,8 @@ img { max-width: 100% }
 
 .panel-secondbody { padding-top: 0px; }
 
-.contents > li > a { padding: 5px 0px; }
+nav.contents { width: 100%; }
+.contents > li > a { padding: 5px 5px; }
 .subcontents > li > a { font-size: small; padding: 5px 10px; }
 /* Purples based on #563d7c from Bootstrap docs */
 .subcontents { border-left: solid 2px #8465b3; padding-left: 3px; }

@@ -23,7 +23,8 @@ template(name="tableOfContents")
     ul.nav.subcontents
       each children
         li
-          a(href="#{{_id}}", class=deletedClass).tex2jax= titleOrUntitled
+          a(href="#{{_id}}", class=deletedClass).tex2jax
+            | #{titleOrUntitled} [#{creator}]
           +tableOfContents
 
 template(name="badMessage")
