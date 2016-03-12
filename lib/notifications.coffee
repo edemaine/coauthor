@@ -92,26 +92,30 @@ if Meteor.isServer
     ## wait for content.  xxx should only do this if diff is version 1!
     return if messageEmpty msg
     for to in messageListeners msg
-      if canSee msg, false, to  ## xxx what should behavior be for superuser?
-        ## Coallesce past notification (if it exists) into this notification,
-        ## if they regard the same message and haven't yet been seen by user.
-        notification = Notifications.findOne
+      ## Don't send notifications to myself.  xxx make this an option?
+      continue if diff.updators.length == 1 and diff.updators[0] == to.username
+      ## Only notify people who can read the message!
+      ## xxx what should behavior be for superuser?  Currently they see all...
+      continue unless canSee msg, false, to
+      ## Coallesce past notification (if it exists) into this notification,
+      ## if they regard the same message and haven't yet been seen by user.
+      notification = Notifications.findOne
+        type: 'messageUpdate'
+        to: to.username
+        message: diff.id
+        seen: false
+      if notification?
+        notificationUpdate notification,
+          $push:
+            dates: diff.updated
+            diffs: diff._id
+      else
+        notificationInsert
           type: 'messageUpdate'
           to: to.username
           message: diff.id
-          seen: false
-        if notification?
-          notificationUpdate notification,
-            $push:
-              dates: diff.updated
-              diffs: diff._id
-        else
-          notificationInsert
-            type: 'messageUpdate'
-            to: to.username
-            message: diff.id
-            dates: [diff.updated]
-            diffs: [diff._id]
+          dates: [diff.updated]
+          diffs: [diff._id]
 
   messageListeners = (msg) ->
     if msg.root?
