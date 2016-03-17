@@ -89,7 +89,7 @@ template(name="messageShort")
           //span.author (created by #{creator} {{formatDate created}})
     td
       a(href=messageLink)
-        span.badge= submessageCount
+        span.badge(class=zeroClass)= submessageCount
 
 template(name="badGroup")
   .alert.alert-danger(role="alert") The group &ldquo;<b>#{group}</b>&rdquo; either does not exist or you do not have permission to access it.

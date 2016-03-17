@@ -8,3 +8,5 @@
 
 .table > tbody > tr.deleted > td > a { color: #a94442; font-size: small; padding: 2px 8px; }
 .table > tbody > tr.unpublished > td > a { color: #8a6d3b; font-size: small; padding: 2px 8px; }
+
+.badge-zero { background-color: #a94442; }

@@ -211,3 +211,11 @@ Template.messageShort.helpers
     Messages.find
       root: @_id
     .count()
+  zeroClass: ->
+    if 0 == Messages.find(
+              root: @_id
+            ).count()
+      'badge-zero'
+    else
+      ''
+
