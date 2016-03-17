@@ -22,7 +22,7 @@ Template.registerHelper 'children', ->
     children
 
 Template.badMessage.helpers
-  'message': -> Iron.controller().getParams().message
+  'message': -> Router.current().params.message
 
 orphans = (message) ->
   descendants = []

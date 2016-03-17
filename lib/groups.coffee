@@ -9,6 +9,8 @@
 @validGroup = (group) ->
   group and group.charAt(0) not in ['*', '$'] and group.indexOf(DOT) < 0
 
+@sortKeys = ['published', 'title', 'creator']
+
 @Groups = new Mongo.Collection 'groups'
 
 @groupAnonymousRoles = (group) ->
@@ -75,3 +77,14 @@ Meteor.methods
           Meteor.users.update
             username: user
           , $pull: op
+
+  groupDefaultSort: (group, sortBy) ->
+    check group, String
+    check sortBy,
+      key: Match.Where (key) -> key in sortKeys
+      reverse: Boolean
+    if groupRoleCheck group, 'super'
+      Groups.update
+         name: group
+       ,
+         $set: defaultSort: sortBy

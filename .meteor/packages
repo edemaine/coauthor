@@ -47,3 +47,4 @@ gcampax:dropbox-oauth
 http
 force-ssl
 natestrauser:jquery-scrollto
+underscorestring:underscore.string

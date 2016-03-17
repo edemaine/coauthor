@@ -1,5 +1,5 @@
 @routeGroupRoute = ->
-  Iron.controller().getParams().group
+  Router.current().params.group
 
 @routeGroup = ->
   group = routeGroupRoute()
@@ -8,13 +8,67 @@
   else
     group
 
+@routeGroupOrWild = ->
+  routeGroup() ? wildGroup
+
 Template.registerHelper 'routeGroup', routeGroup
 
 Template.registerHelper 'wildGroup', ->
   routeGroup() == wildGroup
 
-Template.registerHelper 'groupData', ->
-  Groups.findOne {name: routeGroup()}
+@groupData = ->
+  Groups.findOne
+    name: routeGroup()
+
+Template.registerHelper 'groupData', groupData
+
+@defaultSort =
+  key: 'published'
+  reverse: true
+
+@sortBy = ->
+  if Router.current().params.sortBy in sortKeys
+    key: Router.current().params.sortBy
+    reverse: Router.current().route.getName()[-7..] == 'reverse'
+  else if groupData().defaultSort?
+    groupData().defaultSort
+  else
+    defaultSort
+
+Template.postButtons.helpers
+  'sortBy': ->
+    sortBy().key
+  'sortReverse': ->
+    sortBy().reverse
+  'activeSort': ->
+    if sortBy().key == @key
+      'active'
+    else
+      ''
+  'sortKeys': ->
+    key: key for key in sortKeys
+  'linkToSort': ->
+    if sortBy().reverse
+      route = 'group.sorted.reverse'
+    else
+      route = 'group.sorted.forward'
+    pathFor route,
+      group: routeGroup()
+      sortBy: @key
+  'linkToReverse': ->
+    unless sortBy().reverse
+      route = 'group.sorted.reverse'
+    else
+      route = 'group.sorted.forward'
+    pathFor route,
+      group: routeGroup()
+      sortBy: sortBy().key
+
+Template.postButtons.events
+  'click .sortSetDefault': (e) ->
+    e.stopPropagation()
+    console.log "Setting default sort for #{routeGroup()} to #{if sortBy().reverse then '-' else '+'}#{sortBy().key}"
+    Meteor.call 'groupDefaultSort', routeGroup(), sortBy()
 
 Template.registerHelper 'groups', ->
   Groups.find()
@@ -110,14 +164,32 @@ Template.superdeleteImport.events
     e.stopPropagation()
     Modal.hide()
 
+titleDigits = 10
+titleSort = (title) ->
+  title = title.title if title.title?
+  title.toLowerCase().replace /\d+/, (n) -> s.lpad n, titleDigits, '0'
+
 Template.messageList.onRendered mathjax
 Template.messageList.helpers
   topMessages: ->
-    Messages.find
+    query =
       group: @group
       root: null
-    , sort:
-      published: -1
+    sort = sortBy()
+    sortdict = {}
+    sortdict[sort.key] = if sort.reverse then -1 else 1
+    msgs = Messages.find query, sort: sortdict
+    if sort.key == 'title'
+      msgs = msgs.fetch()
+      msgs.sort (x, y) ->
+        if titleSort(x.title) < titleSort(y.title)
+          -1
+        else if titleSort(x.title) > titleSort(y.title)
+          1
+        else
+          0
+      msgs.reverse() if sort.reverse
+    msgs
   topMessageCount: ->
     pluralize(Messages.find
       group: @group

@@ -41,6 +41,24 @@ Router.route '/:group',
   data: ->
     group: @params.group
 
+Router.route '/:group/+:sortBy?',
+  name: 'group.sorted.forward'
+  template: 'group'
+  subscriptions: -> [
+    Meteor.subscribe 'messages', @params.group
+  ]
+  data: ->
+    group: @params.group
+
+Router.route '/:group/-:sortBy?',
+  name: 'group.sorted.reverse'
+  template: 'group'
+  subscriptions: -> [
+    Meteor.subscribe 'messages', @params.group
+  ]
+  data: ->
+    group: @params.group
+
 @wildGroupRoute = 'GLOBAL'
 
 Router.route '/:group/users',

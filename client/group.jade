@@ -10,6 +10,21 @@ template(name="postButtons")
   //button.btn.btn-default.postButton(class=disablePost,name="problem") Pose New Problem
   //button.btn.btn-default.postButton(class=disablePost,name="discussion") Start Discussion Thread
   button.btn.btn-default.postButton(class=disableClass, data-original-title=disableTitle, data-toggle='tooltip') New Problem/Discussion
+  .btn-group.pull-right
+    if super
+      button.btn.btn-warning.sortSetDefault Set Group Default
+    a.btn.btn-default.sortReverse(href=linkToReverse)
+      if sortReverse
+        span.glyphicon.glyphicon-sort-by-alphabet-alt(aria-hidden="true")
+      else
+        span.glyphicon.glyphicon-sort-by-alphabet(aria-hidden="true")
+    button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
+      | #{sortBy}
+      span.caret
+    ul.dropdown-menu(role="menu")
+      each sortKeys
+        li.sortKey(class="{{activeSort}}")
+          a(href=linkToSort)= key
 
 template(name="messageList")
   div.list-group
