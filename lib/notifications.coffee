@@ -166,9 +166,9 @@ if Meteor.isServer
   linkToMessage = (msg, html) ->
     url = Meteor.absoluteUrl "#{msg.group}/m/#{msg._id}"
     if html
-      "'<A HREF=\"#{url}\">#{msg.title or '(untitled)'}</A>'"
+      "'<A HREF=\"#{url}\">#{titleOrUntitled msg.title}</A>'"
     else
-      "'#{msg.title}' [#{url}]"
+      "'#{titleOrUntitled msg.title}' [#{url}]"
 
   notificationEmail = (notification) ->
     user = findUsername notification.to
@@ -185,7 +185,7 @@ if Meteor.isServer
           for author in diff.updators
             authors[author] = (authors[author] ? 0) + 1
         authors = _.keys(authors).sort().join ', '
-        subject = "#{authors} updated '#{msg.title}'"
+        subject = "#{authors} updated '#{titleOrUntitled msg.title}'"
         if msg.root?
           root = Messages.findOne msg.root
           html = "<P><B>#{authors}</B> changed message #{linkToMessage msg, true} in the thread #{linkToMessage root, true}"

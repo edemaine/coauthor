@@ -1,3 +1,13 @@
+@untitledMessage = '<untitled>'
+
+@titleOrUntitled = (title) ->
+  unless title?
+    '???'
+  else if title.trim().length == 0
+    untitledMessage
+  else
+    title
+
 @Messages = new Mongo.Collection 'messages'
 @MessagesDiff = new Mongo.Collection 'messages.diff'
 @MessagesParent = new Mongo.Collection 'messages.parents'

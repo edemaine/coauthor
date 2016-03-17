@@ -1,13 +1,3 @@
-@untitledMessage = '<untitled>'
-
-titleOrUntitled = (title) ->
-  unless title?
-    '???'
-  else if title.trim().length == 0
-    untitledMessage
-  else
-    title
-
 Template.registerHelper 'titleOrUntitled', ->
   titleOrUntitled @.title
 
