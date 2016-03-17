@@ -1,10 +1,15 @@
 @untitledMessage = '<untitled>'
 
-Template.registerHelper 'titleOrUntitled', ->
-  if @title.trim().length == 0
+titleOrUntitled = (title) ->
+  unless title?
+    '???'
+  else if title.trim().length == 0
     untitledMessage
   else
-    @title
+    title
+
+Template.registerHelper 'titleOrUntitled', ->
+  titleOrUntitled @.title
 
 Template.registerHelper 'children', ->
   if @children
@@ -39,6 +44,10 @@ Template.message.helpers
     count = orphans(@_id).count()
     if count
       pluralize orphans(@_id).count(), 'orphaned subthread'
+
+Template.message.onCreated ->
+  @autorun ->
+    setTitle titleOrUntitled Template.currentData()?.title
 
 Template.message.onRendered ->
   $('body').scrollspy

@@ -28,6 +28,10 @@ Template.registerHelper 'canImport', -> canImport @group
 
 Template.registerHelper 'canSee', -> canSee @
 
+Template.group.onCreated ->
+  @autorun ->
+    setTitle()
+
 Template.postButtons.helpers
   disableClass: ->
     if canPost @group

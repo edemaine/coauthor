@@ -29,6 +29,10 @@ anonRole = (role, group) ->
     local = "<button class='roleButton btn btn-#{btnclass}'>#{local}</button>"
   local
 
+Template.users.onCreated ->
+  @autorun ->
+    setTitle 'Users'
+
 Template.users.helpers
   users: ->
     Meteor.users.find()

@@ -1,3 +1,7 @@
+Template.settings.onCreated ->
+  @autorun ->
+    setTitle 'Settings'
+
 Template.settings.helpers
   profile: -> Meteor.user().profile
   autopublish: autopublish
