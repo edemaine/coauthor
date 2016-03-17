@@ -1,4 +1,4 @@
-@formatDate = (date, prefix = 'on ') ->
+@formatDate = (date, prefix = '') ->
   return '???' unless date?
   return "?#{date}?" unless date instanceof Date  ## have seen this briefly, not sure when
   now = new Date()
@@ -23,5 +23,5 @@
     options.year = 'numeric'
     "#{prefix}#{date.toLocaleDateString 'en-US', options} at #{time}"
 
-Template.registerHelper 'formatDate', (date, prefix = 'on ') ->
+Template.registerHelper 'formatDate', (date, prefix = '') ->
   formatDate date, prefix

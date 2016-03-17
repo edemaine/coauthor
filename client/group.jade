@@ -76,10 +76,10 @@ template(name="messageShort")
     td
       a(href=messageLink)
         if published
-          | {{formatDate published ''}}
+          | {{formatDate published}}
           //span.author (posed by #{creator} {{formatDate published}})
         else
-          | {{formatDate created ''}}
+          | {{formatDate created}}
           //span.author (created by #{creator} {{formatDate created}})
     //span.badge= comments
 
