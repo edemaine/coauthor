@@ -195,12 +195,12 @@ Template.messageList.helpers
       group: @group
       root: null
     .count(), 'root message')
+
+Template.messageShort.onRendered mathjax
+Template.messageShort.helpers
   messageLink: ->
     pathFor 'message',
       group: @group
       message: @_id
-
-Template.messageShort.onRendered mathjax
-Template.messageShort.helpers
   commentCount: ->
     pluralize @comments, 'comment'

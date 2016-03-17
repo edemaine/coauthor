@@ -23,5 +23,5 @@
     options.year = 'numeric'
     "#{prefix}#{date.toLocaleDateString 'en-US', options} at #{time}"
 
-Template.registerHelper 'formatDate', (date) ->
-  formatDate date
+Template.registerHelper 'formatDate', (date, prefix = 'on ') ->
+  formatDate date, prefix

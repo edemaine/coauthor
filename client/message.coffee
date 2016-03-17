@@ -64,14 +64,13 @@ editing = (self) ->
 
 idle = 1000   ## one second
 
-Template.tableOfContents.helpers
-  deletedClass: ->
-    if @deleted
-      'deleted'
-    else if @published
-      'published'
-    else
-      'unpublished'
+Template.registerHelper 'deletedClass', ->
+  if @deleted
+    'deleted'
+  else if @published
+    'published'
+  else
+    'unpublished'
 
 Template.submessage.onCreated ->
   @keyboard = new ReactiveVar 'ace'

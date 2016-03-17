@@ -1,3 +1,10 @@
 .disabled {
   pointer-events: all !important;
 }
+
+.table > tbody > tr.messageShort > td { padding: 0px; } /* override 8px */
+.table > tbody > tr.messageShort > td > a { display: block; color: black; padding: 6px 8px; }
+.table > tbody > tr.messageShort:hover > td > a { text-decoration: underline; background-color: #5cb85c; color: white; }
+
+.table > tbody > tr.deleted > td > a { color: #a94442; font-size: small; padding: 2px 8px; }
+.table > tbody > tr.unpublished > td > a { color: #8a6d3b; font-size: small; padding: 2px 8px; }
