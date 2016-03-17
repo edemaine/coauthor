@@ -198,7 +198,7 @@ Template.submessage.helpers
 
   authors: ->
     a = for own author, date of @authors when author != @creator or date.getTime() != @created.getTime()
-          "#{unescapeUser author} #{formatDate date}"
+          "#{unescapeUser author} #{formatDate date, 'on '}"
     if a.length > 0
       ', edited by ' + a.join ", "
 
@@ -366,7 +366,7 @@ Template.messageHistory.onRendered ->
       tooltip_position: 'bottom'
       formatter: (i) ->
         if i of diffs
-          formatDate(diffs[i].updated, '') + '\n' + diffs[i].updators.join ', '
+          formatDate(diffs[i].updated) + '\n' + diffs[i].updators.join ', '
         else
           i
     @slider.setValue diffs.length-1

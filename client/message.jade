@@ -117,7 +117,7 @@ template(name="submessage")
               | (posted by
             else
               | (created by
-            | #{creator} {{formatDate created 'on '}}#{authors})
+            | #{creator} {{formatDate created prefix='on '}}#{authors})
       .children
         each children
           +submessage
