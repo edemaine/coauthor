@@ -169,7 +169,10 @@ titleSort = (title) ->
   title = title.title if title.title?
   title.toLowerCase().replace /\d+/, (n) -> s.lpad n, titleDigits, '0'
 
-Template.messageList.onRendered mathjax
+Template.messageList.onRendered ->
+  mathjax()
+  $('[data-toggle="tooltip"]').tooltip()
+
 Template.messageList.helpers
   topMessages: ->
     query =
@@ -196,11 +199,15 @@ Template.messageList.helpers
       root: null
     .count(), 'root message')
 
-Template.messageShort.onRendered mathjax
+Template.messageShort.onRendered ->
+  mathjax()
+
 Template.messageShort.helpers
   messageLink: ->
     pathFor 'message',
       group: @group
       message: @_id
-  commentCount: ->
-    pluralize @comments, 'comment'
+  submessageCount: ->
+    Messages.find
+      root: @_id
+    .count()

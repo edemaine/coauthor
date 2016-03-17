@@ -34,7 +34,13 @@ template(name="postButtons")
 
 template(name="messageList")
   //div.list-group
-  table.table.table-striped.table-hover
+  table.table.table-striped
+    thead
+      tr
+        th Title
+        th Creator
+        th Creation date
+        th(data-toggle="tooltip", title="Number of submessages in thread") Posts
     tbody
       each topMessages
         if canSee
@@ -81,7 +87,9 @@ template(name="messageShort")
         else
           | {{formatDate created}}
           //span.author (created by #{creator} {{formatDate created}})
-    //span.badge= comments
+    td
+      a(href=messageLink)
+        span.badge= submessageCount
 
 template(name="badGroup")
   .alert.alert-danger(role="alert") The group &ldquo;<b>#{group}</b>&rdquo; either does not exist or you do not have permission to access it.
