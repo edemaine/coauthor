@@ -1,6 +1,6 @@
 template(name="users")
   table.table.table-striped.table-hover.users
-    tbody
+    thead
       tr
         th Username
         th
@@ -13,6 +13,7 @@ template(name="users")
           span(data-toggle="tooltip", title="Permission to perform dangerous operations: history-destroying superdelete and XML import") Super
         th
           span(data-toggle="tooltip", title="Permission to administer other users in the group, i.e., to change their permissions") Admin
+    tbody
       each users
         tr(data-username=username)
           th #{username}
@@ -30,5 +31,20 @@ template(name="users")
           td(data-role="edit") !{anonEditRole}
           td(data-role="super") !{anonSuperRole}
           td(data-role="admin") !{anonAdminRole}
-  if wildLink
-    button.globalUsersButton.btn.btn-warning Edit Global User Permissions
+      if wildLink
+        tr
+          td(colspan='6')
+            button.globalUsersButton.btn.btn-warning Edit Global User Permissions
+      if showInvitations
+        tr
+          td(colspan='6')
+            input(type='text', size='40', rows='3')#invitationInput
+            button.invitationButton.btn.btn-warning Invite Users via Email
+        each invitations
+          tr(data-email=email)
+            th #{email}
+            td(data-role="read") !{readRole}
+            td(data-role="post") !{postRole}
+            td(data-role="edit") !{editRole}
+            td(data-role="super") !{superRole}
+            td(data-role="admin") !{adminRole}

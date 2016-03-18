@@ -38,6 +38,12 @@ Template.users.helpers
     Meteor.users.find()
   showAnonymous: ->
     @group != wildGroup
+  showInvitations: ->
+    @group != wildGroup and false ## xxx disabled for now
+  invitations: ->
+    Groups.findOne
+      name: @group
+    ?.invitations ? []
 
   readRole: -> haveRole 'read', @roles
   postRole: -> haveRole 'post', @roles
@@ -73,6 +79,10 @@ Template.users.events
       Meteor.call 'setRole', t.data.group, username, role, false
     else if 0 <= old.indexOf 'NO'
       Meteor.call 'setRole', t.data.group, username, role, true
+
+  'click .invitationButton': (e, t) ->
+    console.log t.find('#invitationInput').value
+    ## xxx Meteor.call ...
 
 Template.users.onRendered ->
   $('[data-toggle="tooltip"]').tooltip()
