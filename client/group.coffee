@@ -64,12 +64,6 @@ Template.postButtons.helpers
       group: routeGroup()
       sortBy: sortBy().key
 
-Template.postButtons.events
-  'click .sortSetDefault': (e) ->
-    e.stopPropagation()
-    console.log "Setting default sort for #{routeGroup()} to #{if sortBy().reverse then '-' else '+'}#{sortBy().key}"
-    Meteor.call 'groupDefaultSort', routeGroup(), sortBy()
-
 Template.registerHelper 'groups', ->
   Groups.find()
 
@@ -85,6 +79,13 @@ Template.registerHelper 'canSee', -> canSee @
 Template.group.onCreated ->
   @autorun ->
     setTitle()
+
+Template.group.helpers
+  topMessageCount: ->
+    pluralize(Messages.find
+      group: @group
+      root: null
+    .count(), 'root message')
 
 Template.postButtons.helpers
   disableClass: ->
@@ -104,6 +105,11 @@ Template.postButtons.onRendered ->
   $('[data-toggle="tooltip"]').tooltip()
 
 Template.postButtons.events
+  'click .sortSetDefault': (e) ->
+    e.stopPropagation()
+    console.log "Setting default sort for #{routeGroup()} to #{if sortBy().reverse then '-' else '+'}#{sortBy().key}"
+    Meteor.call 'groupDefaultSort', routeGroup(), sortBy()
+
   'click .postButton': (e) ->
     e.preventDefault()
     e.stopPropagation()
@@ -121,13 +127,13 @@ Template.postButtons.events
         else
           console.error "messageNew did not return problem -- not authorized?"
 
-Template.importButton.events
+Template.importButtons.events
   'click .importButton': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
-    t.find('.importInput').click()
+    t.find(".importInput[data-format='#{e.target.getAttribute('data-format')}']").click()
   'change .importInput': (e, t) ->
-    importFiles t.data.group, e.target.files
+    importFiles e.target.getAttribute('data-format'), t.data.group, e.target.files
     e.target.value = ''
   'dragenter .importButton': (e) ->
     e.preventDefault()
@@ -138,7 +144,7 @@ Template.importButton.events
   'drop .importButton': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
-    importFiles t.data.group, e.originalEvent.dataTransfer.files
+    importFiles e.target.getAttribute('data-format'), t.data.group, e.originalEvent.dataTransfer.files
 
   'click .superdeleteImportButton': (e, t) ->
     e.preventDefault()
@@ -193,11 +199,6 @@ Template.messageList.helpers
           0
       msgs.reverse() if sort.reverse
     msgs
-  topMessageCount: ->
-    pluralize(Messages.find
-      group: @group
-      root: null
-    .count(), 'root message')
 
 Template.messageShort.onRendered ->
   mathjax()
