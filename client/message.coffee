@@ -66,6 +66,7 @@ Template.submessage.onCreated ->
   @keyboard = new ReactiveVar 'ace'
   @editing = new ReactiveVar null
   @history = new ReactiveVar null
+  @raw = new ReactiveVar false
   ## @folded is normally true or false, but we use a special (falsey) null
   ## value to indicate that it could still be automatically folded if it's
   ## detected that that would be a better default.
@@ -180,18 +181,24 @@ Template.submessage.helpers
     history = Template.instance().history.get() ? @
     title = history.title
     return title unless title
-    title = formatTitle history.format, title
-    sanitized = sanitizeHtml title
-    console.warn "Sanitized '#{title}' -> '#{sanitized}'" if sanitized != title
-    sanitized
+    if Template.instance().raw.get()
+      "<CODE CLASS='raw'>#{_.escape title}</CODE>"
+    else
+      title = formatTitle history.format, title
+      sanitized = sanitizeHtml title
+      console.warn "Sanitized '#{title}' -> '#{sanitized}'" if sanitized != title
+      sanitized
   body: ->
     history = Template.instance().history.get() ? @
     body = history.body
     return body unless body
-    body = formatBody history.format, body
-    sanitized = sanitizeHtml body
-    console.warn "Sanitized '#{body}' -> '#{sanitized}'" if sanitized != body
-    sanitized
+    if Template.instance().raw.get()
+      "<PRE CLASS='raw'>#{_.escape body}</PRE>"
+    else
+      body = formatBody history.format, body
+      sanitized = sanitizeHtml body
+      console.warn "Sanitized '#{body}' -> '#{sanitized}'" if sanitized != body
+      sanitized
 
   authors: ->
     a = for own author, date of @authors when author != @creator or date.getTime() != @created.getTime()
@@ -215,6 +222,7 @@ Template.submessage.helpers
     history: Template.instance().history
 
   folded: -> Template.instance().folded.get()
+  raw: -> Template.instance().raw.get()
 
   panelClass: ->
     if @deleted
@@ -229,6 +237,11 @@ Template.submessage.events
     e.preventDefault()
     e.stopPropagation()
     t.folded.set not t.folded.get()
+
+  'click .rawButton': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    t.raw.set not t.raw.get()
 
   'click .editButton': (e, t) ->
     e.preventDefault()

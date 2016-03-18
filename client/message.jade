@@ -56,6 +56,10 @@ template(name="submessage")
         unless published
           span.label.label-warning Unpublished
       .message-right-buttons.btn-group.pull-right
+        if raw
+          button.btn.btn-warning.rawButton Formatted
+        else
+          button.btn.btn-warning.rawButton Raw
         if history
           button.btn.btn-default.historyButton Exit History
         else
