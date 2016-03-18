@@ -15,7 +15,11 @@ template(name="postButtons")
   //button.btn.btn-default.postButton(class=disablePost,name="problem") Pose New Problem
   //button.btn.btn-default.postButton(class=disablePost,name="discussion") Start Discussion Thread
   .pull-right
+    if super
+      button.btn.btn-warning.sortSetDefault Set Group Default Sort
+      span.space
     button.btn.btn-info.postButton(class=disableClass, data-original-title=disableTitle, data-toggle='tooltip') New Problem/Discussion
+  //---replaced by clicking columns to trigger sort
     span.space
     .btn-group
       if super
