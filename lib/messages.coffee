@@ -2,7 +2,7 @@
 
 @titleOrUntitled = (title) ->
   unless title?
-    '???'
+    title #'???'
   else if title.trim().length == 0
     untitledMessage
   else
