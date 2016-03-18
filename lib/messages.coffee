@@ -309,7 +309,7 @@ Meteor.methods
   messageParent: (child, parent, position = null) ->
     ## Notably, disabling oldParent search and importing options are not
     ## allowed from client, only internal to server.
-    _messageParent id, parent, position
+    _messageParent child, parent, position
 
   messageEditStart: (id) ->
     check Meteor.userId(), String
