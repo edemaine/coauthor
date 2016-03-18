@@ -166,7 +166,6 @@ Template.submessage.helpers
     else
       ''
 
-  title: historify 'title'
   deleted: historify 'deleted'
   published: historify 'published'
 
@@ -176,14 +175,22 @@ Template.submessage.helpers
       'tex2jax'
     else
       ''
+  title: historify 'title'
+  formatTitle: ->
+    history = Template.instance().history.get() ? @
+    title = history.title
+    return title unless title
+    title = formatTitle history.format, title
+    sanitized = sanitizeHtml title
+    console.warn "Sanitized '#{title}' -> '#{sanitized}'" if sanitized != title
+    sanitized
   body: ->
     history = Template.instance().history.get() ? @
     body = history.body
     return body unless body
     body = formatBody history.format, body
     sanitized = sanitizeHtml body
-    if sanitized != body
-      console.warn "Sanitized '#{body}' -> '#{sanitized}'"
+    console.warn "Sanitized '#{body}' -> '#{sanitized}'" if sanitized != body
     sanitized
 
   authors: ->

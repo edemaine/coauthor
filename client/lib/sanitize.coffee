@@ -4,3 +4,6 @@
 sanitizeHtml.defaults.allowedTags.push 'img'
 sanitizeHtml.defaults.allowedAttributes.img.push 'alt', 'title', 'width', 'height'
 sanitizeHtml.defaults.allowedAttributes.a.push 'title'
+
+sanitizeHtml.defaults.allowedTags.push 'span'
+sanitizeHtml.defaults.allowedAttributes.span = ['style']

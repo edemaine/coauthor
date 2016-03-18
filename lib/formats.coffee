@@ -79,63 +79,79 @@ postprocessCoauthorLinks = (text) ->
 
 latex2html = (tex) ->
   tex = '<P>' + tex
-  .replace /^%.*$\n?/mg, '<B>$1</B>'
+  .replace /%.*$\n?/mg, ''
+  .replace /\\(BY|YEAR)\s*{([^{}]*)}/g, '<SPAN STYLE="border: solid; margin-left: 0.5em; padding: 0px 4px; font-variant:small-caps">$2</SPAN>'
   .replace /\\textbf{([^{}]*)}/g, '<B>$1</B>'
   .replace /\\textit{([^{}]*)}/g, '<I>$1</I>'
   .replace /\\emph{([^{}]*)}/g, '<EM>$1</EM>'
   .replace /\\textsc{([^{}]*)}/g, '<SPAN STYLE="font-variant:small-caps">$1</SPAN>'
   .replace /\\url{([^{}]*)}/g, '<A HREF="$1">$1</A>'
-  .replace /\\footnote\s*{([^{}]*)}/g, '[$1]'
   .replace /\\begin\s*{enumerate}/g, '<OL>'
   .replace /\\begin\s*{itemize}/g, '<UL>'
   .replace /\\item/g, '<LI>'
   .replace /\\end\s*{enumerate}/g, '</OL>'
   .replace /\\end\s*{itemize}/g, '</UL>'
-  .replace /\\begin\s*{(problem|theorem|conjecture|lemma)}/g, (m, p1) -> "<BLOCKQUOTE><B>#{s.capitalize p1}:</B> "
-  .replace /\\end\s*{(problem|theorem|conjecture|lemma)}/g, '</BLOCKQUOTE>'
+  .replace /\\footnote\s*{(?:([^{}]|{[^{}]*})*)}/g, '[$1]'
+  .replace /\\begin\s*{(problem|theorem|conjecture|lemma|corollary)}/g, (m, p1) -> "<BLOCKQUOTE><B>#{s.capitalize p1}:</B> "
+  .replace /\\end\s*{(problem|theorem|conjecture|lemma|corollary)}/g, '</BLOCKQUOTE>'
   .replace /``/g, '&ldquo;'
   .replace /''/g, '&rdquo;'
   #.replace /`/g, '&lsquo;'
   #.replace /'/g, '&rsquo;'
-  .replace /\"{(.)}/g, '&$1uml;'
-  .replace /\"(.)/g, '&$1uml;'
-  .replace /\'{(.)}/g, '&$1acute;'
-  .replace /\'(.)/g, '&$1acute;'
+  .replace /\\"{(.)}/g, '&$1uml;'
+  .replace /\\"(.)/g, '&$1uml;'
+  .replace /\\'{(.)}/g, '&$1acute;'
+  .replace /\\'(.)/g, '&$1acute;'
+  .replace /\\&/g, '&amp;'
   .replace /~/g, '&nbsp;'
   .replace /---/g, '&mdash;'
   .replace /--/g, '&ndash;'
   .replace /\n\n/g, '\n<P>\n'
 
 @formats =
-  file: (body) ->
-    file = findFile body
+  file: (text, title) ->
+    return text if title
+    file = findFile text
     if file?
       if file.contentType[...6] == 'image/'
-        body = "<img src='#{urlToFile file}'/>"
+        text = "<img src='#{urlToFile file}'/>"
       else
-        body = "<i><a href='#{urlToFile file}'>&lt;#{file.length}-byte #{file.contentType} file&gt;</a></i>"
+        text = "<i><a href='#{urlToFile file}'>&lt;#{file.length}-byte #{file.contentType} file&gt;</a></i>"
     else
-      body = "<i>&lt;unknown file with ID #{body}&gt;</i>"
-  markdown: (body) ->
+      text = "<i>&lt;unknown file with ID #{text}&gt;</i>"
+  markdown: (text, title) ->
     ## Escape all characters that can be (in particular, _s) that appear
     ## inside math mode, to prevent Marked from processing them.
     ## The Regex is exactly marked.js's inline.escape.
-    #console.log 'before', body
-    body = preprocessMathjaxBlocks body, (block) ->
+    text = preprocessMathjaxBlocks text, (block) ->
       block.replace /[\\`*{}\[\]()#+\-.!_]/g, '\\$&'
-    #console.log 'after', body
-    body = marked body
-  latex: (body) ->
-    latex2html body
-  html: (body) ->
-    body
+    #marked.Lexer.rules = {text: /^[^\n]+/} if title
+    if title  ## use "single-line" version of Markdown
+      text = marked.inlineLexer text, {}, marked.defaults
+    else
+      text = marked text
+  latex: (text, title) ->
+    latex2html text
+  html: (text, title) ->
+    text
 
 @formatBody = (format, body) ->
   if format of formats
-    body = formats[format] body
+    body = formats[format] body, false
   else
     console.warn "Unrecognized format '#{format}'"
   postprocessCoauthorLinks body
+
+@formatTitle = (format, title) ->
+  if format of formats
+    title = formats[format] title, true
+  else
+    console.warn "Unrecognized format '#{format}'"
+  ## Remove surrounding <P> block caused by Markdown and LaTeX formatters.
+  title = title
+  .replace /^\s*<P>\s*/i, ''
+  .replace /\s*<\/P>\s*$/i, ''
+  postprocessCoauthorLinks title
 
 @stripHTMLTags = (html) ->
   html.replace /<[^>]*>/gm, ''

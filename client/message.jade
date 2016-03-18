@@ -48,7 +48,7 @@ template(name="submessage")
           a.btn.btn-info.focusButton(aria-label="Focus", href="{{pathFor 'message' group=group message=_id}}")
             span.glyphicon.glyphicon-zoom-in(aria-hidden="true")
         span.space
-        span.title.panel-title.tex2jax= title
+        span.title.panel-title.tex2jax !{formatTitle}
         span.space
       if deleted
         span.label.label-danger Deleted
