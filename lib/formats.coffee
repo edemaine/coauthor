@@ -78,20 +78,29 @@ postprocessCoauthorLinks = (text) ->
         match
 
 latex2html = (tex) ->
+  defs = {}
+  tex = tex.replace /%.*$\n?/mg, ''
+  tex = tex.replace /\\def\s*\\([a-zA-Z]+)\s*{((?:[^{}]|{[^{}]*})*)}/g, (match, p1, p2) ->
+    defs[p1] = p2
+    ''
+  for def, val of defs
+    console.log def, val
+    tex = tex.replace new RegExp("\\\\#{def}\\s*", 'g'), val
   tex = '<P>' + tex
-  .replace /%.*$\n?/mg, ''
   .replace /\\(BY|YEAR)\s*{([^{}]*)}/g, '<SPAN STYLE="border: solid; margin-left: 0.5em; padding: 0px 4px; font-variant:small-caps">$2</SPAN>'
-  .replace /\\textbf{([^{}]*)}/g, '<B>$1</B>'
-  .replace /\\textit{([^{}]*)}/g, '<I>$1</I>'
-  .replace /\\emph{([^{}]*)}/g, '<EM>$1</EM>'
-  .replace /\\textsc{([^{}]*)}/g, '<SPAN STYLE="font-variant:small-caps">$1</SPAN>'
-  .replace /\\url{([^{}]*)}/g, '<A HREF="$1">$1</A>'
+  .replace /\\textbf\s*{([^{}]*)}/g, '<B>$1</B>'
+  .replace /\\textit\s*{([^{}]*)}/g, '<I>$1</I>'
+  .replace /\\textsf\s*{([^{}]*)}/g, '<SPAN STYLE="font-family: sans-serif">$1</I>'
+  .replace /\\emph\s*{([^{}]*)}/g, '<EM>$1</EM>'
+  .replace /\\textsc\s*{([^{}]*)}/g, '<SPAN STYLE="font-variant:small-caps">$1</SPAN>'
+  .replace /\\url\s*{([^{}]*)}/g, '<A HREF="$1">$1</A>'
+  .replace /\\href\s*{([^{}]*)}\s*{([^{}]*)}/g, '<A HREF="$1">$2</A>'
   .replace /\\begin\s*{enumerate}/g, '<OL>'
   .replace /\\begin\s*{itemize}/g, '<UL>'
   .replace /\\item/g, '<LI>'
   .replace /\\end\s*{enumerate}/g, '</OL>'
   .replace /\\end\s*{itemize}/g, '</UL>'
-  .replace /\\footnote\s*{(?:([^{}]|{[^{}]*})*)}/g, '[$1]'
+  .replace /\\footnote\s*{((?:[^{}]|{[^{}]*})*)}/g, '[$1]'
   .replace /\\begin\s*{(problem|theorem|conjecture|lemma|corollary)}/g, (m, p1) -> "<BLOCKQUOTE><B>#{s.capitalize p1}:</B> "
   .replace /\\end\s*{(problem|theorem|conjecture|lemma|corollary)}/g, '</BLOCKQUOTE>'
   .replace /``/g, '&ldquo;'
@@ -104,6 +113,7 @@ latex2html = (tex) ->
   .replace /\\'(.)/g, '&$1acute;'
   .replace /\\&/g, '&amp;'
   .replace /~/g, '&nbsp;'
+  .replace /\\\s/g, ' '
   .replace /---/g, '&mdash;'
   .replace /--/g, '&ndash;'
   .replace /\n\n/g, '\n<P>\n'

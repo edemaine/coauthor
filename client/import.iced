@@ -179,65 +179,115 @@ importOSQA = (group, zip) ->
         filerev.updated = creation
         Meteor.call 'messageImport', group, idmap[id], filemsg, [filerev],
           defer()  ## ignoring error
+
 importOSQA.readAs = 'ArrayBuffer'
 
-importLaTeX = (group, tex) ->
+lastName = (x) ->
+  x = x.replace /[{}]/g, ''
+  if ' ' in x
+    x[x.lastIndexOf(' ')+1..]
+  else
+    x
+
+importLaTeX = (group, zip) ->
   me = Meteor.user().username
-  ## Remove comments (to ignore \sections inside comments).
-  ## Also remove figures, as we're not handling that yet...
-  tex = tex
-  .replace /%.*$\n?/mg, ''
-  .replace /\\begin{figure}[^\0]*?\\end{figure}\s*/g, ''
-  .replace /\\begin{wrapfigure}[^\0]*?\\end{wrapfigure}\s*/g, ''
-  .replace /\\begin{wrapfigure}[^\0]*?\\end{wrapfigure}\s*/g, ''
-  ## xxx \ref, \cite
-  r = /\\(sub)*section\s*{((?:[^{}]|{[^{}]*})*)}|\\bibliography/g
-  depths = []
-  start = null
-  labels = {}
-  messages = []
-  while (match = r.exec tex)?
-    if start?
-      now = new Date
-      body = tex[start...match.index]
-      body = body.replace /\\label{([^{}]*)}/, (match, p1) ->
-        labels[p1] = title[...title.indexOf ' ']
-        ''
-      console.log "Importing '#{title}'"
-      messages.push
-        title: title
-        body: body
-        created: now
-        creator: me
-        published: now
-        format: 'latex'
+  zip = new JSZip zip
+  bibs = {}
+  for filename, content of zip.files
+    if filename[-4..] == '.bib'
+      bib = content.asText()
+      r = /@[\w\s]*{([^,]*),[^@]*?\burl\s*=\s*("[^"]*"|{[^{}]*})/ig
+      while (match = r.exec bib)?
+        author = /\bauthor\s*=\s*("(?:{[^{}]*}|[^"])*"|{(?:[^{}]|{[^{}]*})*})/i.exec match[0]
+        console.log match[0] unless author
+        author = author[1][1...-1].split /\s*\band\b\s*/i
+        author = for auth in author
+          if ',' in auth
+            auth[auth.indexOf(',')+1..].trim() + ' ' + auth[...auth.indexOf ','].trim()
+          else
+            auth
+        year = /\byear\s*=\s*("(?:{[^{}]*}|[^"])*"|{(?:[^{}]|{[^{}]*})*}|\d+)/i.exec match[0]
+        year = year[1].replace /["{}]/g, ''
+        if author.length <= 1
+          abbrev = /([^{}]|{[^{}]*}){1,3}/.exec(lastName author[0])[0].replace /[{}]/g, ''
+        else
+          abbrev = (lastName(auth)[0] for auth in author).join ''
+        abbrev += year[-2..]
+        console.log match[1], '=', abbrev, '=', author.join(' & '), year, '=', match[2][1...-1]
+        bibs[match[1]] =
+          author: author
+          year: year
+          abbrev: abbrev
+          url: match[2][1...-1]
+  for filename, content of zip.files
+    if filename[-4..] == '.tex'
+      tex = content.asText()
+      ## Remove comments (to ignore \sections inside comments).
+      ## Also remove figures, as we're not handling that yet...
+      tex = tex
+      .replace /%.*$\n?/mg, ''
+      .replace /\\begin\s*{figure}[^\0]*?\\end\s*{figure}\s*/g, ''
+      .replace /\\begin\s*{wrapfigure}[^\0]*?\\end\s*{wrapfigure}\s*/g, ''
+      .replace /\\begin\s*{wrapfigure}[^\0]*?\\end\s*{wrapfigure}\s*/g, ''
+      .replace /\\cite\s*(?:\[([^\[\]]*)\]\s*)?{([^{}]*)}/g, (match, p1, p2) ->
+        '[' + (
+          for cite in p2.split ','
+            cite = cite.trim()
+            bib = bibs[cite]
+            if bib?
+              "\\href{#{bib.url}}{#{bib.abbrev}}"
+            else
+              console.warn "Missing bib url for '#{cite}'" unless bib?
+              cite
+        ).join(', ') + (if p1? then ", #{p1}" else '') + ']'
+      depths = []
+      start = null
+      labels = {}
+      messages = []
+      r = /\\(sub)*section\s*{((?:[^{}]|{[^{}]*})*)}|\\bibliography/g
+      while (match = r.exec tex)?
+        if start?
+          now = new Date
+          body = tex[start...match.index]
+          body = body.replace /\\label{([^{}]*)}/, (match, p1) ->
+            labels[p1] = title[...title.indexOf ' ']
+            ''
+          console.log "Importing '#{title}'"
+          messages.push
+            title: title
+            body: body
+            created: now
+            creator: me
+            published: now
+            format: 'latex'
 
-    break if match[0] == '\\bibliography'
-    depth = Math.floor (match[1] ? '').length / 3
-    while depth < depths.length-1
-      depths.pop()
-    while depth > depths.length-1
-      depths.push 0
-    depths[depth] += 1
+        break if match[0] == '\\bibliography'
+        depth = Math.floor (match[1] ? '').length / 3
+        while depth < depths.length-1
+          depths.pop()
+        while depth > depths.length-1
+          depths.push 0
+        depths[depth] += 1
 
-    title = "#{depths.join('.')} #{match[2]}"
-    start = match.index + match[0].length
+        title = "#{depths.join('.')} #{match[2]}"
+        start = match.index + match[0].length
 
-  for message in messages
-    message.body = message.body
-    .replace /\\ref{([^{}]*)}/, (match, p1) ->
-      if p1 of labels
-        labels[p1]
-      else
-        match
-    revision = _.clone message
-    revision.updated = revision.created
-    delete revision.created
-    revision.updators = [revision.creator]
-    delete revision.creator
-    Meteor.call 'messageImport', group, null, message, [revision]
+      for message in messages
+        message.body = message.body
+        .replace /\\ref{([^{}]*)}/, (match, p1) ->
+          if p1 of labels
+            labels[p1]
+          else
+            match
+        revision = _.clone message
+        revision.updated = revision.created
+        delete revision.created
+        revision.updators = [revision.creator]
+        delete revision.creator
+        Meteor.call 'messageImport', group, null, message, [revision]
 
-importLaTeX.readAs = 'Text'
+#importLaTeX.readAs = 'Text'
+importLaTeX.readAs = 'ArrayBuffer'
 
 importers =
   'osqa': importOSQA
