@@ -189,9 +189,23 @@ lastName = (x) ->
   else
     x
 
+basename = (path) ->
+  if '/' in path
+    path[path.lastIndexOf('/')+1..]
+  else
+    path
+
+path2ext = (path) ->
+  if '.' in path
+    path[path.lastIndexOf('.')..]
+  else
+    ''
+
 importLaTeX = (group, zip) ->
   me = Meteor.user().username
   zip = new JSZip zip
+
+  ## Extract bib entries.
   bibs = {}
   for filename, content of zip.files
     if filename[-4..] == '.bib'
@@ -219,16 +233,48 @@ importLaTeX = (group, zip) ->
           year: year
           abbrev: abbrev
           url: match[2][1...-1]
+
+  ## Extract figures.
+  figures = {}
+  for filename, content of zip.files
+    if filename[-4..] == '.tex'
+      tex = content.asText()
+      tex = tex.replace /%.*$\n?/mg, ''
+      .replace /\\begin\s*{(wrap)?figure}([^\0]*?)\\end\s*{(wrap)?figure}\s*/g,
+        (match, p1, p2, p3) ->
+          graphics = []
+          gr = /\\includegraphics\s*(\[[^\[\]]*\]\s*)?{((?:[^{}]|{[^{}]*})*)}/g
+          while (match = gr.exec p2)?
+            filename = match[2]
+            for extension in ['', '.png', '.jpg', '.pdf']
+              if filename + extension of zip.files
+                filename += extension
+                break
+            if filename not of zip.files
+              console.warn "Missing file for \\includegraphics{#{graphics}}"
+            graphics.push filename
+          caption = /\\caption\s*{((?:[^{}]|{[^{}]*})*)}/.exec p2
+          caption = caption[1]
+          labels = []
+          lr = /\\label\s*{((?:[^{}]|{[^{}]*})*)}/g
+          while (match = lr.exec p2)?
+            labels.push match[1]
+          console.log "Figure #{labels.join ' / '} = #{graphics.join ' & '} = #{caption}"
+          figure =
+            graphics: graphics
+            caption: caption
+            labels: labels
+          for label in labels
+            figures[label] = figure
+
+  ## Extract sections.
   for filename, content of zip.files
     if filename[-4..] == '.tex'
       tex = content.asText()
       ## Remove comments (to ignore \sections inside comments).
-      ## Also remove figures, as we're not handling that yet...
       tex = tex
       .replace /%.*$\n?/mg, ''
-      .replace /\\begin\s*{figure}[^\0]*?\\end\s*{figure}\s*/g, ''
-      .replace /\\begin\s*{wrapfigure}[^\0]*?\\end\s*{wrapfigure}\s*/g, ''
-      .replace /\\begin\s*{wrapfigure}[^\0]*?\\end\s*{wrapfigure}\s*/g, ''
+      .replace /\\begin\s*{(wrap)?figure}[^\0]*?\\end\s*{(wrap)?figure}\s*/g, ''
       .replace /\\cite\s*(?:\[([^\[\]]*)\]\s*)?{([^{}]*)}/g, (match, p1, p2) ->
         '[' + (
           for cite in p2.split ','
@@ -244,6 +290,7 @@ importLaTeX = (group, zip) ->
       start = null
       labels = {}
       messages = []
+      figurecount = 0
       r = /\\(sub)*section\s*{((?:[^{}]|{[^{}]*})*)}|\\bibliography/g
       while (match = r.exec tex)?
         if start?
@@ -273,18 +320,74 @@ importLaTeX = (group, zip) ->
         start = match.index + match[0].length
 
       for message in messages
+        attach = []
         message.body = message.body
-        .replace /\\ref{([^{}]*)}/, (match, p1) ->
+        .replace /\\ref\s*{([^{}]*)}/, (match, p1) ->
           if p1 of labels
             labels[p1]
+          else if p1 of figures
+            attach.push figures[p1]
+            "``#{figures[p1].labels[figures[p1].labels.length-1]}''"
           else
+            console.warn "Unresolved #{match}"
             match
         revision = _.clone message
         revision.updated = revision.created
         delete revision.created
         revision.updators = [revision.creator]
         delete revision.creator
-        Meteor.call 'messageImport', group, null, message, [revision]
+        await Meteor.call 'messageImport', group, null, message, [revision], defer error, message._id
+
+        attach = _.unique attach  ## upload \ref'd figures only once each
+        for figure in attach
+          figure.message =
+            title: "Figure ``#{figure.labels[figure.labels.length-1]}''"
+            body: figure.caption
+            published: now
+            format: 'latex'
+          frevision = _.clone figure.message
+          figure.message.creator = me
+          figure.message.created = now
+          frevision.updators = [me]
+          frevision.updated = now
+          await Meteor.call 'messageImport', group, message._id, figure.message, [frevision], defer error, figure.message._id
+
+        await
+          for figure in attach
+            figuremsg =
+              title: "Figure #{figure.labels[figure.labels.length-1]}"
+              body: body
+
+            figure.files = []
+            for filename in figure.graphics
+              base = basename filename
+              file = new File [zip.files[filename].asArrayBuffer()],
+                       base,
+                       type: ext2type[path2ext base]
+                       lastModified: now
+              file.creator = me
+              file.created = now
+              file.group = group
+              figure.files.push file
+              do (d = defer file.file2id) ->
+                file.callback = (file2) ->
+                  d file2.uniqueIdentifier
+              Files.resumable.addFile file
+        await
+          for figure in attach
+            for file in figure.files
+              filerev =
+                format: 'file'
+                title: file.name
+                body: file.file2id
+                published: now
+              filemsg = _.clone filerev
+              filemsg.creator = me
+              filemsg.created = now
+              filerev.updators = [me]
+              filerev.updated = now
+              Meteor.call 'messageImport', group, figure.message._id, filemsg, [filerev],
+                defer()  ## ignoring error
 
 #importLaTeX.readAs = 'Text'
 importLaTeX.readAs = 'ArrayBuffer'
