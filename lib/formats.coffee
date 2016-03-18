@@ -1,4 +1,4 @@
-@availableFormats = ['html', 'markdown']  ## 'file' not an option for user
+@availableFormats = ['markdown', 'html', 'latex']  ## 'file' not an option for user
 @mathjaxFormats = availableFormats  ## Don't do tex2jax for files
 
 if Meteor.isClient
@@ -77,6 +77,35 @@ postprocessCoauthorLinks = (text) ->
         console.warn "Couldn't find group for message #{p2} (likely subscription issue)"
         match
 
+latex2html = (tex) ->
+  tex = '<P>' + tex
+  .replace /^%.*$\n?/mg, '<B>$1</B>'
+  .replace /\\textbf{([^{}]*)}/g, '<B>$1</B>'
+  .replace /\\textit{([^{}]*)}/g, '<I>$1</I>'
+  .replace /\\emph{([^{}]*)}/g, '<EM>$1</EM>'
+  .replace /\\textsc{([^{}]*)}/g, '<SPAN STYLE="font-variant:small-caps">$1</SPAN>'
+  .replace /\\url{([^{}]*)}/g, '<A HREF="$1">$1</A>'
+  .replace /\\footnote\s*{([^{}]*)}/g, '[$1]'
+  .replace /\\begin\s*{enumerate}/g, '<OL>'
+  .replace /\\begin\s*{itemize}/g, '<UL>'
+  .replace /\\item/g, '<LI>'
+  .replace /\\end\s*{enumerate}/g, '</OL>'
+  .replace /\\end\s*{itemize}/g, '</UL>'
+  .replace /\\begin\s*{(problem|theorem|conjecture|lemma)}/g, (m, p1) -> "<BLOCKQUOTE><B>#{s.capitalize p1}:</B> "
+  .replace /\\end\s*{(problem|theorem|conjecture|lemma)}/g, '</BLOCKQUOTE>'
+  .replace /``/g, '&ldquo;'
+  .replace /''/g, '&rdquo;'
+  #.replace /`/g, '&lsquo;'
+  #.replace /'/g, '&rsquo;'
+  .replace /\"{(.)}/g, '&$1uml;'
+  .replace /\"(.)/g, '&$1uml;'
+  .replace /\'{(.)}/g, '&$1acute;'
+  .replace /\'(.)/g, '&$1acute;'
+  .replace /~/g, '&nbsp;'
+  .replace /---/g, '&mdash;'
+  .replace /--/g, '&ndash;'
+  .replace /\n\n/g, '\n<P>\n'
+
 @formats =
   file: (body) ->
     file = findFile body
@@ -96,6 +125,8 @@ postprocessCoauthorLinks = (text) ->
       block.replace /[\\`*{}\[\]()#+\-.!_]/g, '\\$&'
     #console.log 'after', body
     body = marked body
+  latex: (body) ->
+    latex2html body
   html: (body) ->
     body
 
