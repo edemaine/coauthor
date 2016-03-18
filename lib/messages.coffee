@@ -193,9 +193,6 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
   pmsg = Messages.findOne parent
   if canEdit(child) and canPost pmsg.group, parent
     cmsg = Messages.findOne child
-    unless cmsg.root
-      throw "Attempt to reparent root message #{child}"
-      ## To support this case, we'd need to change the root of all descendants.
     if oldParent
       oldParent = findMessageParent child
       if oldParent?
@@ -211,6 +208,12 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
         $push: children: child
     Messages.update child,
       $set: root: pmsg.root ? parent
+    ## To reparent root message, change the root of all descendants.
+    unless cmsg.root
+      Messages.update
+        root: cmsg
+      , $set:
+          root: pmsg.root
     doc =
       child: child
       parent: parent
