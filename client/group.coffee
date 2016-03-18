@@ -35,36 +35,37 @@ Template.registerHelper 'groupData', groupData
   else
     defaultSort
 
+@linkToSort = (sort) ->
+  if sort.reverse
+    route = 'group.sorted.reverse'
+  else
+    route = 'group.sorted.forward'
+  pathFor route,
+    group: routeGroup()
+    sortBy: sort.key
+
 Template.postButtons.helpers
-  'sortBy': ->
+  sortBy: ->
     capitalize sortBy().key
-  'sortReverse': ->
+  sortReverse: ->
     sortBy().reverse
-  'activeSort': ->
+  activeSort: ->
     if sortBy().key == @key
       'active'
     else
       ''
-  'capitalizedKey': ->
+  capitalizedKey: ->
     capitalize @key
-  'sortKeys': ->
+  sortKeys: ->
     key: key for key in sortKeys
-  'linkToSort': ->
-    if sortBy().reverse
-      route = 'group.sorted.reverse'
-    else
-      route = 'group.sorted.forward'
-    pathFor route,
-      group: routeGroup()
-      sortBy: @key
-  'linkToReverse': ->
-    unless sortBy().reverse
-      route = 'group.sorted.reverse'
-    else
-      route = 'group.sorted.forward'
-    pathFor route,
-      group: routeGroup()
-      sortBy: sortBy().key
+  linkToSort: ->
+    linkToSort
+      key: @key
+      reverse: sortBy().reverse
+  linkToReverse: ->
+    linkToSort
+      key: sortBy().key
+      reverse: not sortBy().reverse
 
 Template.registerHelper 'groups', ->
   Groups.find()
@@ -182,6 +183,22 @@ Template.messageList.onRendered ->
   $('[data-toggle="tooltip"]').tooltip()
 
 Template.messageList.helpers
+  linkToSort: (key) ->
+    if key == sortBy().key
+      linkToSort
+        key: key
+        reverse: not sortBy().reverse
+    else
+      linkToSort
+        key: key
+        reverse: key in ['published', 'updated', 'posts']  ## default reverse
+  sortingBy: (key) ->
+    sortBy().key == key
+  sortingGlyph: ->
+    if sortBy().reverse
+      'glyphicon-sort-by-alphabet-alt'
+    else
+      'glyphicon-sort-by-alphabet'
   topMessages: ->
     query =
       group: @group
