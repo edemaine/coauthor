@@ -5,8 +5,9 @@ template(name="group")
         span.title.panel-title= group
         +postButtons
       +messageList
-      .panel-footer
-        +importButton
+      .panel-footer.clearfix
+        i= topMessageCount
+        +importButtons
   else
     +badGroup
 
@@ -46,13 +47,15 @@ template(name="messageList")
         if canSee
           //a.list-group-item(href=messageLink)
           +messageShort
-  i.panel-heading #{topMessageCount}
 
-template(name="importButton")
+template(name="importButtons")
   if canImport
-    input.importInput(type="file", style="display:none")
-    button.btn.btn-default.importButton Import
-    button.btn.btn-danger.superdeleteImportButton Superdelete Imported
+    .btn-group.pull-right
+      input.importInput(type="file", style="display:none", data-format="osqa", accept=".zip")
+      button.btn.btn-default.importButton(data-format="osqa") Import OSQA
+      input.importInput(type="file", style="display:none", data-format="latex", accept=".tex")
+      button.btn.btn-default.importButton(data-format="latex") Import LaTeX
+      button.btn.btn-danger.superdeleteImportButton Superdelete Imported
 
 template(name="superdeleteImport")
   .modal
