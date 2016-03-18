@@ -12,6 +12,7 @@ ext2type =
   '.jpeg': 'image/jpeg'
   '.png': 'image/png'
   '.pdf': 'application/pdf'
+  '.svg': 'image/svg+xml'
 
 upfile_url = ///http://6...\.csail\.mit\.edu/[^/\s"=]*/upfiles/([^/\s"=]*)///g
 
@@ -246,7 +247,7 @@ importLaTeX = (group, zip) ->
           gr = /\\includegraphics\s*(\[[^\[\]]*\]\s*)?{((?:[^{}]|{[^{}]*})*)}/g
           while (match = gr.exec p2)?
             filename = match[2]
-            for extension in ['', '.png', '.jpg', '.pdf']
+            for extension in ['', '.svg', '.png', '.jpg', '.pdf']
               if filename + extension of zip.files
                 filename += extension
                 break
