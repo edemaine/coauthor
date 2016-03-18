@@ -203,6 +203,19 @@ Template.messageList.helpers
 Template.messageShort.onRendered ->
   mathjax()
 
+@lastSubmessageUpdate = (message) ->
+  updated = null
+  for author, date of message.authors
+    if not updated? or updated.getTime() < date.getTime()
+      updated = date
+  Messages.find
+    root: message._id
+  .forEach (submessage) ->
+    for author, date of submessage.authors
+      if not updated? or updated.getTime() < date.getTime()
+        updated = date
+  updated
+
 Template.messageShort.helpers
   formatTitle: ->
     sanitizeHtml formatTitle @format, titleOrUntitled @title
@@ -221,4 +234,5 @@ Template.messageShort.helpers
       'badge-zero'
     else
       ''
-
+  lastSubmessageUpdate: ->
+    formatDate lastSubmessageUpdate @

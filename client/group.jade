@@ -40,7 +40,8 @@ template(name="messageList")
       tr
         th Title
         th Creator
-        th Creation date
+        th Created
+        th Updated
         th(data-toggle="tooltip", title="Number of submessages in thread") Posts
     tbody
       each topMessages
@@ -90,6 +91,8 @@ template(name="messageShort")
         else
           | {{formatDate created}}
           //span.author (created by #{creator} {{formatDate created}})
+    td
+      a(href=messageLink)= lastSubmessageUpdate
     td
       a(href=messageLink)
         span.badge(class=zeroClass)= submessageCount
