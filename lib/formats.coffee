@@ -87,7 +87,7 @@ latex2html = (tex) ->
     console.log def, val
     tex = tex.replace new RegExp("\\\\#{def}\\s*", 'g'), val
   tex = '<P>' + tex
-  .replace /\\(BY|YEAR)\s*{([^{}]*)}/g, '<SPAN STYLE="border: solid; margin-left: 0.5em; padding: 0px 4px; font-variant:small-caps">$2</SPAN>'
+  .replace /\\(BY|YEAR)\s*{([^{}]*)}/g, '<SPAN STYLE="border: thin solid; margin-left: 0.5em; padding: 0px 4px; font-variant:small-caps">$2</SPAN>'
   .replace /\\textbf\s*{([^{}]*)}/g, '<B>$1</B>'
   .replace /\\textit\s*{([^{}]*)}/g, '<I>$1</I>'
   .replace /\\textsf\s*{([^{}]*)}/g, '<SPAN STYLE="font-family: sans-serif">$1</I>'
