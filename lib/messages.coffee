@@ -373,6 +373,8 @@ Meteor.methods
       me = Meteor.user().username
       if message.published == true
         message.published = now
+      message.deleted = false unless message.deleted?
+      diffs[0].deleted = false unless diffs[0].deleted?
       message.group = group
       message.children = []
       message.importer = me
