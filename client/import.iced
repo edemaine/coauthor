@@ -194,23 +194,23 @@ importLaTeX = (group, tex) ->
   r = /\\(sub)*section\s*{((?:[^{}]|{[^{}]*})*)}|\\bibliography/g
   depths = []
   start = null
+  labels = {}
+  messages = []
   while (match = r.exec tex)?
     if start?
       now = new Date
       body = tex[start...match.index]
-      message =
+      body = body.replace /\\label{([^{}]*)}/, (match, p1) ->
+        labels[p1] = title[...title.indexOf ' ']
+        ''
+      console.log "Importing '#{title}'"
+      messages.push
         title: title
         body: body
         created: now
         creator: me
         published: now
         format: 'latex'
-      revision = _.clone message
-      revision.updated = revision.created
-      delete revision.created
-      revision.updators = [revision.creator]
-      delete revision.creator
-      Meteor.call 'messageImport', group, null, message, [revision]
 
     break if match[0] == '\\bibliography'
     depth = Math.floor (match[1] ? '').length / 3
@@ -222,6 +222,20 @@ importLaTeX = (group, tex) ->
 
     title = "#{depths.join('.')} #{match[2]}"
     start = match.index + match[0].length
+
+  for message in messages
+    message.body = message.body
+    .replace /\\ref{([^{}]*)}/, (match, p1) ->
+      if p1 of labels
+        labels[p1]
+      else
+        match
+    revision = _.clone message
+    revision.updated = revision.created
+    delete revision.created
+    revision.updators = [revision.creator]
+    delete revision.creator
+    Meteor.call 'messageImport', group, null, message, [revision]
 
 importLaTeX.readAs = 'Text'
 
