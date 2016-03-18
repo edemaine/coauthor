@@ -9,7 +9,7 @@
 @validGroup = (group) ->
   group and group.charAt(0) not in ['*', '$'] and group.indexOf(DOT) < 0
 
-@sortKeys = ['published', 'title', 'creator']
+@sortKeys = ['title', 'creator', 'published', 'updated', 'posts']
 
 @Groups = new Mongo.Collection 'groups'
 

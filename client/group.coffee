@@ -37,7 +37,7 @@ Template.registerHelper 'groupData', groupData
 
 Template.postButtons.helpers
   'sortBy': ->
-    sortBy().key
+    capitalize sortBy().key
   'sortReverse': ->
     sortBy().reverse
   'activeSort': ->
@@ -45,6 +45,8 @@ Template.postButtons.helpers
       'active'
     else
       ''
+  'capitalizedKey': ->
+    capitalize @key
   'sortKeys': ->
     key: key for key in sortKeys
   'linkToSort': ->
@@ -185,15 +187,22 @@ Template.messageList.helpers
       group: @group
       root: null
     sort = sortBy()
-    sortdict = {}
-    sortdict[sort.key] = if sort.reverse then -1 else 1
-    msgs = Messages.find query, sort: sortdict
-    if sort.key == 'title'
+    mongosort = [[sort.key, if sort.reverse then 'desc' else 'asc']]
+    msgs = Messages.find query, sort: mongosort
+    if sort.key in ['title', 'posts', 'updated']
       msgs = msgs.fetch()
+      for msg in msgs
+        switch sort.key
+          when 'title'
+            msg._key = titleSort msg.title
+          when 'posts'
+            msg._key = submessageCount msg
+          when 'updated'
+            msg._key = lastSubmessageUpdate(msg).getTime()
       msgs.sort (x, y) ->
-        if titleSort(x.title) < titleSort(y.title)
+        if x._key < y._key
           -1
-        else if titleSort(x.title) > titleSort(y.title)
+        else if x._key > y._key
           1
         else
           0
@@ -202,6 +211,11 @@ Template.messageList.helpers
 
 Template.messageShort.onRendered ->
   mathjax()
+
+@submessageCount = (message) ->
+  Messages.find
+    root: message._id
+  .count()
 
 @lastSubmessageUpdate = (message) ->
   updated = null
@@ -224,9 +238,7 @@ Template.messageShort.helpers
       group: @group
       message: @_id
   submessageCount: ->
-    Messages.find
-      root: @_id
-    .count()
+    submessageCount @
   zeroClass: ->
     if 0 == Messages.find(
               root: @_id

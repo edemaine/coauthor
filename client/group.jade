@@ -31,7 +31,7 @@ template(name="postButtons")
       ul.dropdown-menu(role="menu")
         each sortKeys
           li.sortKey(class="{{activeSort}}")
-            a(href=linkToSort)= key
+            a(href=linkToSort)= capitalizedKey
 
 template(name="messageList")
   //div.list-group
@@ -40,7 +40,7 @@ template(name="messageList")
       tr
         th Title
         th Creator
-        th Created
+        th Published
         th Updated
         th(data-toggle="tooltip", title="Number of submessages in thread") Posts
     tbody
