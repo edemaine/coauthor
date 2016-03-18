@@ -204,6 +204,8 @@ Template.messageShort.onRendered ->
   mathjax()
 
 Template.messageShort.helpers
+  formatTitle: ->
+    sanitizeHtml formatTitle @format, titleOrUntitled @title
   messageLink: ->
     pathFor 'message',
       group: @group

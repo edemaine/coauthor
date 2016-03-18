@@ -74,7 +74,7 @@ template(name="messageShort")
   tr.messageShort(class=deletedClass)
     td.title.tex2jax
       a(href=messageLink)
-        | {{titleOrUntitled}}
+        | !{formatTitle}
         if deleted
           span.label.label-danger Deleted
         else
