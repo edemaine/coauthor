@@ -1,0 +1,61 @@
+template(name='since')
+  if groupData
+    .panel.panel-primary
+      .panel-heading.clearfix
+        form.form-inline
+          span.title.panel-title= group
+          span.space
+          | since the past
+          span.space
+          input(type='text', size='3', value=since).form-control#sinceInput
+          .btn-group
+            button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
+              | {{unit}}s
+              span.caret
+            ul.dropdown-menu(role="menu")
+              li.unitSelect(class="{{activeUnit 'minute'}}")
+                a(href="#",data-unit="minute") minutes
+              li.unitSelect(class="{{activeUnit 'hour'}}")
+                a(href="#",data-unit="hour") hours
+              li.unitSelect(class="{{activeUnit 'day'}}")
+                a(href="#",data-unit="day") days
+      .panel-body
+        if valid
+          each messages
+            +readMessage
+        else
+          .alert.alert-danger(role="alert") Invalid amount or unit for since query.
+      if valid
+        .panel-footer.clearfix
+          i= messageCount
+          | messages in this time range
+  else
+    +badGroup
+
+template(name='readMessage')
+  .panel.message(class=messagePanelClass, data-message=_id, id=_id)
+    .panel-heading.clearfix
+      .message-left-buttons.btn-group.btn-group-xs
+        //button.btn.btn-info.foldButton(aria-label="Fold")
+          if folded
+            span.glyphicon.glyphicon-plus(aria-hidden="true")
+          else
+            span.glyphicon.glyphicon-minus(aria-hidden="true")
+        a.btn.btn-info.focusButton(aria-label="Focus", href="{{pathFor 'message' group=group message=_id}}")
+          span.glyphicon.glyphicon-zoom-in(aria-hidden="true")
+      span.space
+      span.title.panel-title.tex2jax !{formatTitle}
+      span.space
+      if deleted
+        span.label.label-danger Deleted
+      else
+        unless published
+          span.label.label-warning Unpublished
+    unless folded
+      .panel-body.message-body(class=tex2jax) !{body}
+      .author.pull-right
+        if published
+          | (posted by
+        else
+          | (created by
+        | #{creator} {{formatDate created prefix='on '}}#{formatAuthors})
