@@ -188,7 +188,7 @@ Template.submessage.helpers
       sanitized = sanitizeHtml title
       console.warn "Sanitized '#{title}' -> '#{sanitized}'" if sanitized != title
       sanitized
-  body: ->
+  formatBody: ->
     history = Template.instance().history.get() ? @
     body = history.body
     return body unless body
