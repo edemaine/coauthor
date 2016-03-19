@@ -2,6 +2,7 @@ template(name="message")
   if group
     .row
       .col-md-9(role="main")
+        +rootHeader
         +submessage
         if orphanCount
           .orphans
@@ -17,6 +18,17 @@ template(name="message")
           +tableOfContents
   else
     +badMessage
+
+template(name="rootHeader")
+  if root
+    with root
+      .panel.root(data-message=_id).panel-default
+        .panel-heading.title
+          .message-left-buttons.btn-group.btn-group-xs
+            a.btn.btn-info.focusButton(aria-label="Focus", href="{{pathFor 'message' group=group message=_id}}")
+              span.glyphicon.glyphicon-zoom-in(aria-hidden="true")
+          span.space
+          span.title.panel-title.tex2jax !{formatTitle}
 
 template(name="tableOfContents")
   if children

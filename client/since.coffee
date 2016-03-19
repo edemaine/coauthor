@@ -3,6 +3,8 @@ messagesSince = ->
   Messages.find
     group: @group
     updated: $gte: since
+    published: $ne: false
+    deleted: false
   ,
     sort: [['updated', 'desc']]
 

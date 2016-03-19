@@ -11,8 +11,15 @@ Template.registerHelper 'children', ->
       child.depth = (@depth ? 0) + 1
     children
 
+Template.rootHeader.helpers
+  root: ->
+    if @root
+      Messages.findOne @root
+  formatTitle: ->
+    sanitizeHtml formatTitle @format, @title
+
 Template.badMessage.helpers
-  'message': -> Router.current().params.message
+  message: -> Router.current().params.message
 
 orphans = (message) ->
   descendants = []
