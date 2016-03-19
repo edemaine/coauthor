@@ -15,7 +15,7 @@ input.title ~ .message-right-buttons { margin: 0px; }
 
 .children { margin-top: 1.5ex; margin-left: 1em; }
 
-img { max-width: 100% }
+img, video { max-width: 100% }
 
 .historySlider { margin-left: 5em; margin-right: 5em; }
 .slider.slider-horizontal { width: 100%; }

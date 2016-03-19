@@ -7,3 +7,9 @@ sanitizeHtml.defaults.allowedAttributes.a.push 'title'
 
 sanitizeHtml.defaults.allowedTags.push 'span'
 sanitizeHtml.defaults.allowedAttributes.span = ['style']
+
+sanitizeHtml.defaults.allowedTags.push 'video'
+sanitizeHtml.defaults.allowedAttributes.video = ['controls']
+sanitizeHtml.defaults.allowedTags.push 'source'
+sanitizeHtml.defaults.allowedAttributes.source = ['src']
+sanitizeHtml.defaults.selfClosing.push 'source'

@@ -128,6 +128,8 @@ latex2html = (tex) ->
     if file?
       if file.contentType[...6] == 'image/'
         text = "<img src='#{urlToFile file}'/>"
+      else if file.contentType in ['video/mp4', 'video/ogg', 'video/webm']
+        text = "<video controls><source src='#{urlToFile file}' type='#{file.contentType}'></video>"
       else
         text = "<i><a href='#{urlToFile file}'>&lt;#{file.length}-byte #{file.contentType} file&gt;</a></i>"
     else
