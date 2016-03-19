@@ -87,6 +87,7 @@ latex2html = (tex) ->
     console.log def, val
     tex = tex.replace new RegExp("\\\\#{def}\\s*", 'g'), val
   tex = '<P>' + tex
+  .replace /\\\\/g, '[DOUBLEBACKSLASH]'
   .replace /\\(BY|YEAR)\s*{([^{}]*)}/g, '<SPAN STYLE="border: thin solid; margin-left: 0.5em; padding: 0px 4px; font-variant:small-caps">$2</SPAN>'
   .replace /\\protect\s*/g, ''
   .replace /\\textbf\s*{([^{}]*)}/g, '<B>$1</B>'
@@ -118,6 +119,7 @@ latex2html = (tex) ->
   .replace /---/g, '&mdash;'
   .replace /--/g, '&ndash;'
   .replace /\n\n/g, '\n<P>\n'
+  .replace /\[DOUBLEBACKSLASH\]/g, '\\\\'
 
 @formats =
   file: (text, title) ->
