@@ -200,12 +200,6 @@ Template.submessage.helpers
       console.warn "Sanitized '#{body}' -> '#{sanitized}'" if sanitized != body
       sanitized
 
-  authors: ->
-    a = for own author, date of @authors when author != @creator or date.getTime() != @created.getTime()
-          "#{unescapeUser author} #{formatDate date, 'on '}"
-    if a.length > 0
-      ', edited by ' + a.join ", "
-
   isFile: -> @format == 'file'
   canEdit: -> canEdit @_id
   canDelete: -> canDelete @_id
@@ -224,13 +218,19 @@ Template.submessage.helpers
   folded: -> Template.instance().folded.get()
   raw: -> Template.instance().raw.get()
 
-  panelClass: ->
-    if @deleted
-      'panel-danger message-deleted'
-    else if @published
-      'panel-primary message-published'
-    else
-      'panel-warning message-unpublished'
+Template.registerHelper 'messagePanelClass', ->
+  if @deleted
+    'panel-danger message-deleted'
+  else if @published
+    'panel-primary message-published'
+  else
+    'panel-warning message-unpublished'
+
+Template.registerHelper 'formatAuthors', ->
+  a = for own author, date of @authors when author != @creator or date.getTime() != @created.getTime()
+        "#{unescapeUser author} #{formatDate date, 'on '}"
+  if a.length > 0
+    ', edited by ' + a.join ", "
 
 Template.submessage.events
   'click .foldButton': (e, t) ->

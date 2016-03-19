@@ -48,3 +48,4 @@ http
 force-ssl
 natestrauser:jquery-scrollto
 underscorestring:underscore.string
+momentjs:moment

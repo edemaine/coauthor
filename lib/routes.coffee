@@ -59,6 +59,38 @@ Router.route '/:group/-:sortBy?',
   data: ->
     group: @params.group
 
+Router.route '/:group/since',
+  name: 'since.default'
+  template: 'since'
+  subscriptions: -> [
+    Meteor.subscribe 'messages', @params.group
+  ]
+  data: ->
+    group: routeGroup()
+    since: '1'
+    unit: 'hour'
+
+Router.route '/:group/since/:unit',
+  name: 'since.unit'
+  template: 'since'
+  subscriptions: -> [
+    Meteor.subscribe 'messages', @params.group
+  ]
+  data: ->
+    group: routeGroup()
+    since: '1'
+    unit: @params.unit
+
+Router.route '/:group/since/:unit/:since',
+  name: 'since'
+  subscriptions: -> [
+    Meteor.subscribe 'messages', @params.group
+  ]
+  data: ->
+    group: routeGroup()
+    since: @params.since
+    unit: @params.unit
+
 @wildGroupRoute = 'GLOBAL'
 
 Router.route '/:group/users',

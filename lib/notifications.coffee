@@ -6,6 +6,8 @@
   'instant'
 ]
 
+@units = ['second', 'minute', 'hour', 'day']
+
 @defaultNotificationDelays =
   batched:
     every: 4

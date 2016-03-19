@@ -33,7 +33,7 @@ template(name="badMessage")
     p You probably need to log in.
 
 template(name="submessage")
-  .panel.message(class=panelClass, data-message=_id, id=_id)
+  .panel.message(class=messagePanelClass, data-message=_id, id=_id)
     .panel-heading.clearfix
       unless history
         if editingRV
@@ -121,7 +121,7 @@ template(name="submessage")
               | (posted by
             else
               | (created by
-            | #{creator} {{formatDate created prefix='on '}}#{authors})
+            | #{creator} {{formatDate created prefix='on '}}#{formatAuthors})
       .children
         each children
           +submessage
