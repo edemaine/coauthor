@@ -168,14 +168,14 @@ idle = 1000   ## one second
   now = new Date
   if message.published == true
     message.published = now
+  message.updated = now
+  message.updators = authors
   for author in authors
     message["authors." + escapeUser author] = now
   Messages.update id,
     $set: message
   for author in authors
     delete message["authors." + escapeUser author]
-  message.updators = authors
-  message.updated = now
   message.id = id
   diffid = MessagesDiff.insert message
   message._id = diffid
@@ -281,6 +281,8 @@ Meteor.methods
       message.format = Meteor.user()?.profile?.format or defaultFormat unless message.format?
       message.tags = [] unless message.tags?
       message.published = autopublish() unless message.published?
+      message.updators = [Meteor.user().username]
+      message.updated = now
       if message.published == true
         message.published = now
       message.deleted = false unless message.deleted?
@@ -295,8 +297,6 @@ Meteor.methods
       delete message.children
       delete message.root
       message.id = id
-      message.updators = [Meteor.user().username]
-      message.updated = now
       MessagesDiff.insert message
       if parent?
         _messageParent id, parent, position, null  ## there's no old parent
@@ -361,6 +361,7 @@ Meteor.methods
       deleted: Match.Optional Boolean
       creator: Match.Optional String
       created: Match.Optional Date
+      #updated and updators added automatically from last diff
     check diffs, [
       title: Match.Optional String
       body: Match.Optional String
@@ -380,6 +381,8 @@ Meteor.methods
       diffs[0].deleted = false unless diffs[0].deleted?
       message.group = group
       message.children = []
+      message.updated = diffs[diffs.length-1].updated
+      message.updators = diffs[diffs.length-1].updaors
       message.importer = me
       message.imported = now
       ## Automatically set 'authors' to have the latest update for each author.
@@ -453,13 +456,18 @@ Meteor.methods
     if canSuper wildGroup
       Messages.find({}).forEach (msg) ->
         authors = {}
+        updated = updators = null
         MessagesDiff.find
           id: msg._id
         .forEach (diff) ->
-          for updator in diff.updators
-            updated = diff.updated
+          updated = diff.updated
+          updators = diff.updators
+          for updator in updators
             escape = escapeUser updator
             if escape not of authors or authors[escape].getTime() < updated.getTime()
               authors[escape] = updated
         Messages.update msg._id,
-          $set: authors: authors
+          $set:
+            authors: authors
+            updated: updated    ## last one
+            updators: updators  ## last one
