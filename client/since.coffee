@@ -29,8 +29,12 @@ Template.since.events
       since: @since
       unit: e.target.getAttribute 'data-unit'
 
+Template.since.onRendered ->
+  mathjax()
+
 Template.readMessage.helpers
   formatTitle: ->
     sanitizeHtml formatTitle @format, @title
   formatBody: ->
     sanitizeHtml formatBody @format, @body
+
