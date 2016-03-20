@@ -174,7 +174,7 @@ Template.superdeleteImport.events
     Modal.hide()
 
 titleDigits = 10
-titleSort = (title) ->
+@titleSort = (title) ->
   title = title.title if title.title?
   title.toLowerCase().replace /\d+/, (n) -> s.lpad n, titleDigits, '0'
 

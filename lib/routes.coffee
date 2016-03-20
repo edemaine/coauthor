@@ -59,37 +59,14 @@ Router.route '/:group/-:sortBy?',
   data: ->
     group: @params.group
 
-Router.route '/:group/since',
-  name: 'since.default'
-  template: 'since'
-  subscriptions: -> [
-    Meteor.subscribe 'messages', @params.group
-  ]
-  data: ->
-    group: routeGroup()
-    since: '1'
-    unit: 'hour'
-
-Router.route '/:group/since/:unit',
-  name: 'since.unit'
-  template: 'since'
-  subscriptions: -> [
-    Meteor.subscribe 'messages', @params.group
-  ]
-  data: ->
-    group: routeGroup()
-    since: '1'
-    unit: @params.unit
-
-Router.route '/:group/since/:unit/:since',
+Router.route '/:group/since/:since',
   name: 'since'
   subscriptions: -> [
     Meteor.subscribe 'messages', @params.group
   ]
   data: ->
-    group: routeGroup()
+    group: @params.group
     since: @params.since
-    unit: @params.unit
 
 Router.route '/:group/live/:limit',
   name: 'live'
@@ -97,7 +74,7 @@ Router.route '/:group/live/:limit',
     Meteor.subscribe 'messages', @params.group
   ]
   data: ->
-    group: routeGroup()
+    group: @params.group
     limit: @params.limit
 
 Router.route '/:group/live',
@@ -107,7 +84,7 @@ Router.route '/:group/live',
     Meteor.subscribe 'messages', @params.group
   ]
   data: ->
-    group: routeGroup()
+    group: @params.group
     limit: 50
 
 @wildGroupRoute = 'GLOBAL'
