@@ -32,3 +32,5 @@ nav.contents { width: 100%; }
 .contents li > a.unpublished { color: #8a6d3b; font-size: x-small; padding: 2px 10px; }
 
 code.raw { color: #333; }  /* match <pre> */
+
+.root { margin-bottom: 0px; } /* glom onto message below */
