@@ -29,7 +29,7 @@ orphans = (message) ->
     , _id: message
     ]
   .forEach (descendant) ->
-    descendants.push descendant.children...
+    descendants.push descendant.children... if descendant.children?
   Messages.find
     root: message
     _id: $nin: descendants
@@ -38,9 +38,7 @@ Template.message.helpers
   orphans: ->
     orphans @_id
   orphanCount: ->
-    count = orphans(@_id).count()
-    if count
-      pluralize orphans(@_id).count(), 'orphaned subthread'
+    pluralize orphans(@_id).count(), 'orphaned subthread'
 
 Template.message.onCreated ->
   @autorun ->
