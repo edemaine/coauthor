@@ -33,10 +33,3 @@ Template.since.events
 
 Template.since.onRendered ->
   mathjax()
-
-Template.readMessage.helpers
-  formatTitle: ->
-    sanitizeHtml formatTitle @format, @title
-  formatBody: ->
-    sanitizeHtml formatBody @format, @body
-

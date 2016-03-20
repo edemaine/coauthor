@@ -1,0 +1,47 @@
+template(name='live')
+  if groupData
+    .panel.panel-primary
+      .panel-heading.clearfix
+        form.form-inline
+          span.title.panel-title= group
+          span.space
+          | live update: showing last
+          input(type='text', size='5', value=limit).form-control#limitInput
+          | messages
+      .panel-body
+        if valid
+          each messages
+            +readMessage
+        else
+          .alert.alert-danger(role="alert") Invalid number of last messages.
+  else
+    +badGroup
+
+template(name='readMessage')
+  +rootHeader
+  .panel.message(class=messagePanelClass, data-message=_id, id=_id)
+    .panel-heading.clearfix
+      .message-left-buttons.btn-group.btn-group-xs
+        //button.btn.btn-info.foldButton(aria-label="Fold")
+          if folded
+            span.glyphicon.glyphicon-plus(aria-hidden="true")
+          else
+            span.glyphicon.glyphicon-minus(aria-hidden="true")
+        a.btn.btn-info.focusButton(aria-label="Focus", href="{{pathFor 'message' group=group message=_id}}")
+          span.glyphicon.glyphicon-zoom-in(aria-hidden="true")
+      span.space
+      span.title.panel-title.tex2jax !{formatTitle}
+      span.space
+      if deleted
+        span.label.label-danger Deleted
+      else
+        unless published
+          span.label.label-warning Unpublished
+    unless folded
+      .panel-body.message-body(class=tex2jax) !{formatBody}
+      .author.pull-right
+        if published
+          | (posted by
+        else
+          | (created by
+        | #{creator} {{formatDate created prefix='on '}}#{formatAuthors})

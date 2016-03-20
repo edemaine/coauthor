@@ -91,6 +91,25 @@ Router.route '/:group/since/:unit/:since',
     since: @params.since
     unit: @params.unit
 
+Router.route '/:group/live/:limit',
+  name: 'live'
+  subscriptions: -> [
+    Meteor.subscribe 'messages', @params.group
+  ]
+  data: ->
+    group: routeGroup()
+    limit: @params.limit
+
+Router.route '/:group/live',
+  name: 'live.default'
+  template: 'live'
+  subscriptions: -> [
+    Meteor.subscribe 'messages', @params.group
+  ]
+  data: ->
+    group: routeGroup()
+    limit: 50
+
 @wildGroupRoute = 'GLOBAL'
 
 Router.route '/:group/users',

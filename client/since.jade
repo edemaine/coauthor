@@ -31,32 +31,3 @@ template(name='since')
           | messages in this time range
   else
     +badGroup
-
-template(name='readMessage')
-  +rootHeader
-  .panel.message(class=messagePanelClass, data-message=_id, id=_id)
-    .panel-heading.clearfix
-      .message-left-buttons.btn-group.btn-group-xs
-        //button.btn.btn-info.foldButton(aria-label="Fold")
-          if folded
-            span.glyphicon.glyphicon-plus(aria-hidden="true")
-          else
-            span.glyphicon.glyphicon-minus(aria-hidden="true")
-        a.btn.btn-info.focusButton(aria-label="Focus", href="{{pathFor 'message' group=group message=_id}}")
-          span.glyphicon.glyphicon-zoom-in(aria-hidden="true")
-      span.space
-      span.title.panel-title.tex2jax !{formatTitle}
-      span.space
-      if deleted
-        span.label.label-danger Deleted
-      else
-        unless published
-          span.label.label-warning Unpublished
-    unless folded
-      .panel-body.message-body(class=tex2jax) !{formatBody}
-      .author.pull-right
-        if published
-          | (posted by
-        else
-          | (created by
-        | #{creator} {{formatDate created prefix='on '}}#{formatAuthors})
