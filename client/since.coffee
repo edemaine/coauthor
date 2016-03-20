@@ -1,6 +1,6 @@
 parseSince = (since) ->
   try
-    match = /^\s*-\s*(\d+)\s*(\w+)\s*$/.exec since
+    match = /^\s*[+-]?\s*(\d+)\s*(\w+)\s*$/.exec since
     if match?
       moment().subtract(match[1], match[2]).toDate()
     else
