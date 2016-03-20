@@ -146,6 +146,9 @@ historify = (x) -> () ->
     @[x]
 
 Template.submessage.helpers
+  here: ->
+    Router.current().route.getName() == 'message' and
+    Router.current().params.message == @_id
   nothing: {}
   editingRV: -> Template.instance().editing.get()
   editingNR: -> Tracker.nonreactive -> Template.instance().editing.get()
