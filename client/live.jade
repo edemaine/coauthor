@@ -38,7 +38,7 @@ template(name='readMessage')
         unless published
           span.label.label-warning Unpublished
     unless folded
-      .panel-body.message-body(class=tex2jax) !{formatBody}
+      .panel-body.message-body.tex2jax !{formatBody}
       .author.pull-right
         if published
           | (posted by
