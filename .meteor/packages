@@ -49,3 +49,4 @@ force-ssl
 natestrauser:jquery-scrollto
 underscorestring:underscore.string
 momentjs:moment
+djedi:sanitize-html

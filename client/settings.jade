@@ -38,6 +38,16 @@ template(name="settings")
                   | No
         tr
           th
+            label Notifications for own messages:
+          td
+            if notifySelf
+              button.btn.btn-success.notifySelfButton(type="button", data-toggle="button", autocomplete="off")
+                | Yes
+            else
+              button.btn.btn-warning.notifySelfButton(type="button", data-toggle="button", autocomplete="off")
+                | No
+        tr
+          th
             label Dropbox account linking:
           td
             if dropbox
