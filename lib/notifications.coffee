@@ -23,19 +23,6 @@
     unit: 'second'
   #OR: 'instant' has no delays, but 'settled' also applies
 
-@timeOffset = (date, amount, unit) ->
-  date = new Date date  ## copy to avoid in-place modification
-  switch unit
-    when 'second'
-      date.setUTCSeconds amount + date.getUTCSeconds()
-    when 'minute'
-      date.setUTCMinutes amount + date.getUTCMinutes()
-    when 'hour'
-      date.setUTCHours amount + date.getUTCHours()
-    when 'day'
-      date.setUTCDay amount + date.getUTCDay()
-  date
-
 @defaultNotificationsOn = true
 
 @notificationsDefault = ->
@@ -53,8 +40,8 @@
   delays = user.profile?.notifications?[notification.level] ?
            defaultNotificationDelays[notification.level]
   #xxx batched
-  settleTime = timeOffset dateMax(notification.dates...), delays.settle, delays.unit
-  maximumTime = timeOffset dateMin(notification.dates...), delays.maximum, delays.unit
+  settleTime = moment(dateMax(notification.dates...)).add(delays.settle, delays.unit).toDate()
+  maximumTime = moment(dateMin(notification.dates...)).add(delays.maximum, delays.unit).toDate()
   dateMin settleTime, maximumTime
 
 ## Notification consists of
