@@ -1,3 +1,7 @@
+Template.since.onCreated ->
+  @autorun ->
+    setTitle "Since #{Template.currentData()?.since}"
+
 parseSince = (since) ->
   try
     match = /^\s*[+-]?\s*(\d+)\s*(\w+)\s*$/.exec since

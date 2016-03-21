@@ -1,3 +1,6 @@
+Template.live.onCreated ->
+  setTitle 'Live Feed'
+
 Template.live.helpers
   messages: ->
     Messages.find
