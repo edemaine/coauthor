@@ -321,6 +321,7 @@ Meteor.methods
         old = Messages.findOne id
         return unless old?
         unless old.editing?.length
+          ShareJS.model.delete id
           ShareJS.initializeDoc id, old.body ? ''
           timer = null
           listener = Meteor.bindEnvironment (opData) ->
