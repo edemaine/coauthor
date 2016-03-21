@@ -19,6 +19,7 @@ Router.route '/:group/m/:message',
   #  @render 'badGroup'
   #,
   name: 'message'
+  template: 'messageMaybe'
   subscriptions: -> [
     Meteor.subscribe 'messages', @params.group
   #  Meteor.subscribe 'comments', @params.message

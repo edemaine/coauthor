@@ -1,23 +1,26 @@
-template(name="message")
+template(name="messageMaybe")
   if group
-    .row
-      .col-md-9(role="main")
-        +rootHeader
-        +submessage
-        if orphanCount
-          .orphans
-            h3
-              span(data-toggle="tooltip", title="Orphan subthreads are caused by someone deleting a message that has (undeleted) children, which become orphans.  You can reparent these orphans to have a valid parent, or delete them, or ask the author or a superuser to undelete the original parent.") #{orphanCount}:
-            each orphans
-              +submessage
-      .col-md-3(role="complementary")
-        nav.hidden-print.hidden-xs.hidden-sm.affix.contents
-          ul.nav.contents
-            li
-              a(href="#{{_id}}").title.tex2jax= titleOrUntitled
-          +tableOfContents
+    +message
   else
     +badMessage
+
+template(name="message")
+  .row
+    .col-md-9(role="main")
+      +rootHeader
+      +submessage
+      if orphanCount
+        .orphans
+          h3
+            span(data-toggle="tooltip", title="Orphan subthreads are caused by someone deleting a message that has (undeleted) children, which become orphans.  You can reparent these orphans to have a valid parent, or delete them, or ask the author or a superuser to undelete the original parent.") #{orphanCount}:
+          each orphans
+            +submessage
+    .col-md-3(role="complementary").hidden-print.hidden-xs.hidden-sm
+      nav.contents
+        ul.nav.contents
+          li
+            a(href="#{{_id}}").title.tex2jax= titleOrUntitled
+        +tableOfContents
 
 template(name="rootHeader")
   if root
