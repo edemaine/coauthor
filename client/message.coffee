@@ -169,10 +169,10 @@ Template.submessage.helpers
   #editing: -> editing @
   config: ->
     ti = Tracker.nonreactive -> Template.instance()
-    (editor) ->
+    (editor) =>
       #console.log 'config', editor.getValue(), '.'
       ti.editor = editor
-      #editor.meteorData = this  ## currently not needed, also dunno if works
+      #editor.meteorData = @  ## currently not needed, also dunno if works
       editor.$blockScrolling = Infinity
       #editor.on 'change', onChange
       editor.setTheme 'ace/theme/monokai'
@@ -181,6 +181,8 @@ Template.submessage.helpers
       editor.setBehavioursEnabled true
       editor.setShowFoldWidgets true
       editor.getSession().setUseWrapMode true
+      #console.log "setting format to #{ti.data.format}"
+      editor.getSession().setMode "ace/mode/#{ti.data.format}"
 
   keyboard: ->
     capitalize Template.instance().keyboard.get()
@@ -306,8 +308,10 @@ Template.submessage.events
     e.preventDefault()
     e.stopPropagation()
     Meteor.call 'messageUpdate', t.data._id,
-      format: e.target.getAttribute 'data-format'
+      format: format = e.target.getAttribute 'data-format'
     $(e.target).parent().dropdown 'toggle'
+    #console.log "setting format to #{format}"
+    Template.instance().editor.getSession().setMode "ace/mode/#{format}"
 
   'keyup input.title': (e, t) ->
     e.stopPropagation()
