@@ -1,6 +1,9 @@
 Template.registerHelper 'titleOrUntitled', ->
   titleOrUntitled @.title
 
+Template.registerHelper 'isFile', ->
+  @.format == 'file'
+
 Template.registerHelper 'children', ->
   if @children
     children = Messages.find _id: $in: @children
@@ -15,8 +18,9 @@ Template.rootHeader.helpers
   root: ->
     if @root
       Messages.findOne @root
-  formatTitle: ->
-    sanitizeHtml formatTitle @format, @title
+
+Template.registerHelper 'formatTitle', ->
+  sanitizeHtml formatTitle @format, @title
 
 Template.badMessage.helpers
   message: -> Router.current().params.message

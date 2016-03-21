@@ -19,7 +19,7 @@ template(name="message")
       nav.contents
         ul.nav.contents
           li
-            a(href="#{{_id}}").title.tex2jax= titleOrUntitled
+            a(href="#{{_id}}").title.tex2jax !{formatTitle}
         +tableOfContents
 
 template(name="rootHeader")
@@ -37,9 +37,11 @@ template(name="tableOfContents")
   if children
     ul.nav.subcontents
       each children
-        li
+        li.btn-group-xs
           a(href="#{{_id}}", class=deletedClass).tex2jax
-            | #{titleOrUntitled} [#{creator}]
+            if isFile
+              span.glyphicon.glyphicon-paperclip
+            | !{formatTitle} [#{creator}]
           +tableOfContents
 
 template(name="badMessage")
