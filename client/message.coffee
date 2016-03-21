@@ -181,7 +181,6 @@ Template.submessage.helpers
     (editor) =>
       #console.log 'config', editor.getValue(), '.'
       ti.editor = editor
-      console.log editor.textInput, editor
       editor.textInput.getElement().setAttribute 'tabindex', 1 + 20 * ti.count + 19
       #editor.meteorData = @  ## currently not needed, also dunno if works
       editor.$blockScrolling = Infinity
