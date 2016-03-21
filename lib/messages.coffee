@@ -212,8 +212,10 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
     unless cmsg.root
       Messages.update
         root: cmsg
-      , $set:
-          root: pmsg.root
+      ,
+        $set: root: pmsg.root
+      ,
+        multi: true
     doc =
       child: child
       parent: parent
