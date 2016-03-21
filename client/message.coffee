@@ -82,7 +82,10 @@ Template.registerHelper 'deletedClass', ->
   else
     'unpublished'
 
+submessageCount = 0
+
 Template.submessage.onCreated ->
+  @count = submessageCount++
   @keyboard = new ReactiveVar 'ace'
   @editing = new ReactiveVar null
   @history = new ReactiveVar null
@@ -158,7 +161,13 @@ historify = (x) -> () ->
   else
     @[x]
 
+tabindex = (i) -> 
+  1 + 20 * Template.instance().count + parseInt(i ? 0)
+
 Template.submessage.helpers
+  tabindex: tabindex
+  tabindex7: -> tabindex 7
+  tabindex9: -> tabindex 9
   here: ->
     Router.current().route.getName() == 'message' and
     Router.current().params.message == @_id
@@ -172,6 +181,8 @@ Template.submessage.helpers
     (editor) =>
       #console.log 'config', editor.getValue(), '.'
       ti.editor = editor
+      console.log editor.textInput, editor
+      editor.textInput.getElement().setAttribute 'tabindex', 1 + 20 * ti.count + 19
       #editor.meteorData = @  ## currently not needed, also dunno if works
       editor.$blockScrolling = Infinity
       #editor.on 'change', onChange

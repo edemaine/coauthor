@@ -54,7 +54,7 @@ template(name="submessage")
     .panel-heading.clearfix
       unless history
         if editingRV
-          input.form-control.title(type="text", placeholder="Title", value=title)
+          input.form-control.title(type="text", placeholder="Title", value=title, tabindex="{{tabindex 18}}")
       unless editingRV
         .message-left-buttons.btn-group.btn-group-xs
           button.btn.btn-info.foldButton(aria-label="Fold")
@@ -75,29 +75,29 @@ template(name="submessage")
           span.label.label-warning Unpublished
       .message-right-buttons.btn-group.pull-right
         if raw
-          button.btn.btn-warning.rawButton Formatted
+          button.btn.btn-warning.rawButton(tabindex="{{tabindex 1}}") Formatted
         else
-          button.btn.btn-warning.rawButton Raw
+          button.btn.btn-warning.rawButton(tabindex="{{tabindex 1}}") Raw
         if history
-          button.btn.btn-default.historyButton Exit History
+          button.btn.btn-default.historyButton(tabindex="{{tabindex 6}}") Exit History
         else
           if deleted
             if canUndelete
-              button.btn.btn-success.deleteButton Undelete
+              button.btn.btn-success.deleteButton(tabindex="{{tabindex 3}}") Undelete
             if canSuperdelete
-              button.btn.btn-danger.superdeleteButton Superdelete
+              button.btn.btn-danger.superdeleteButton(tabindex="{{tabindex 4}}") Superdelete
           else
             if published
               if canUnpublish
-                button.btn.btn-danger.publishButton Unpublish
+                button.btn.btn-danger.publishButton(tabindex="{{tabindex 2}}") Unpublish
             else
               if canPublish
-                button.btn.btn-success.publishButton Publish
+                button.btn.btn-success.publishButton(tabindex="{{tabindex 2}}") Publish
             if canDelete
-              button.btn.btn-danger.deleteButton Delete
+              button.btn.btn-danger.deleteButton(tabindex="{{tabindex 3}}") Delete
           if editingRV
             .btn-group
-              button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
+              button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false", tabindex="{{tabindex 5}}")
                 | #{keyboard}
                 span.caret
               ul.dropdown-menu(role="menu")
@@ -107,17 +107,17 @@ template(name="submessage")
                   a(href="#",data-keyboard="vim") Vim
                 li.editorKeyboard(class="{{activeKeyboard 'emacs'}}")
                   a(href="#",data-keyboard="emacs") Emacs
-            +formatSelector
-            button.btn.btn-info.editButton Stop Editing
+            +formatSelector format=format tabindex=tabindex7
+            button.btn.btn-info.editButton(tabindex="{{tabindex 8}}") Stop Editing
           else
             unless folded
-              button.btn.btn-default.historyButton History
+              button.btn.btn-default.historyButton(tabindex="{{tabindex 6}}") History
               if canEdit
                 unless isFile
-                  button.btn.btn-info.editButton Edit
+                  button.btn.btn-info.editButton(tabindex="{{tabindex 8}}") Edit
                 else
                   // In future, support basic image editing.  For now, just:
-                  +messageReplace
+                  +messageReplace tabindex=tabindex9
     unless folded
       if history
         +messageHistory forHistory
@@ -152,7 +152,7 @@ template(name="submessage")
 
 template(name="formatSelector")
   .btn-group
-    button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
+    button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false", tabindex=tabindex)
       if format
         | {{capitalize format}}
       else
@@ -188,4 +188,4 @@ template(name="messageAttach")
 
 template(name="messageReplace")
   input.replaceInput(type="file", style="display:none")
-  button.btn.btn-default.replaceButton Replace
+  button.btn.btn-default.replaceButton(tabindex=tabindex) Replace
