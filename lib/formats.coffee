@@ -97,6 +97,7 @@ latex2html = (tex) ->
   .replace /\\textsc\s*{([^{}]*)}/g, '<SPAN STYLE="font-variant:small-caps">$1</SPAN>'
   .replace /\\url\s*{([^{}]*)}/g, '<A HREF="$1">$1</A>'
   .replace /\\href\s*{([^{}]*)}\s*{([^{}]*)}/g, '<A HREF="$1">$2</A>'
+  .replace /\\textcolor\s*{([^{}]*)}\s*{([^{}]*)}/g, '<SPAN STYLE="color: $1">$2</A>'
   .replace /\\begin\s*{enumerate}/g, '<OL>'
   .replace /\\begin\s*{itemize}/g, '<UL>'
   .replace /\\item/g, '<LI>'
