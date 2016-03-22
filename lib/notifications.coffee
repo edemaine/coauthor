@@ -217,6 +217,9 @@ if Meteor.isServer
     messageUpdates = (notification for notification in notifications when notification.type =='messageUpdate')
     for notification in messageUpdates
       notification.msg = Messages.findOne notification.message
+    ## Some messages may have been superdeleted by now; don't email about them.
+    messageUpdates = (notification for notification in notifications when notification.msg?)
+    return if messageUpdates.length == 0
     bygroup = _.groupBy messageUpdates, (notification) -> notification.msg.group
     if messageUpdates.length != 1
       subject = "#{messageUpdates.length} updates in #{_.keys(bygroup).sort().join ', '}"
