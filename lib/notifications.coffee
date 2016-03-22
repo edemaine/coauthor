@@ -11,7 +11,7 @@
 @defaultNotificationDelays =
   after:
     after: 1
-    unit: 'hour'
+    unit: 'minute'
   batched:
     every: 4
     unit: 'hour'  ## 'hour' or 'day'
@@ -40,6 +40,17 @@
 @notifySelf = (user = Meteor.user()) ->
   #user = findUser user if _.isString user
   user.profile.notifications?.self
+
+@autosubscribe = (user = Meteor.user()) ->
+  not user.profile.notifications? or user.profile.notifications?.autosubscribe != false
+
+@subscribedToMessage = (message, user = Meteor.user()) ->
+  if message in (user.profile.notifications?.subscribed ? [])
+    true
+  else if message in (user.profile.notifications?.unsubscribed ? [])
+    false
+  else
+    autosubscribe user
 
 @notificationTime = (notification) ->
   user = findUsername notification.to
@@ -115,19 +126,23 @@ if Meteor.isServer
           diffs: [diff._id]
 
   messageListeners = (msg) ->
-    if msg.root?
-      root = Messages.findOne msg.root
-    else
-      root = msg
-    ## xxx root message should have a field with listen/don't listen flags
-    if defaultNotificationsOn
-      Meteor.users.find
-        'profile.notifications.on': $ne: false
-      .fetch()
-    else
-      Meteor.users.find
-        'profile.notifications.on': true
-      .fetch()
+    root = msg.root ? msg._id
+    users = Meteor.users.find
+      'profile.notifications.on':
+        if defaultNotificationsOn
+          $ne: false
+        else
+          true
+      ## This query didn't work ($ne doesn't enter array elements?)
+      #$or: [
+      #  autosubscribe: $ne: false
+      #  unsubscribe: $ne: root
+      #,
+      #  autosubscribe: false
+      #  subscribe: root
+      #]
+    .fetch()
+    user for user in users when subscribedToMessage root, user
 
   notificationInsert = (notification) ->
     notification.seen = false
@@ -168,13 +183,19 @@ if Meteor.isServer
       seen: false
     .fetch()
     notificationEmail notifications
-    console.log 'UPDATING', (notification._id for notification in notifications)
     Notifications.update
       _id: $in: (notification._id for notification in notifications)
     ,
       $set: seen: true
     ,
       multi: true
+
+  linkToGroup = (group, html) ->
+    url = Meteor.absoluteUrl "#{group}"
+    if html
+      "<A HREF=\"#{url}\">#{group}</A>"
+    else
+      "#{group} [#{url}]"
 
   linkToMessage = (msg, html) ->
     url = Meteor.absoluteUrl "#{msg.group}/m/#{msg._id}"
@@ -197,19 +218,19 @@ if Meteor.isServer
     for notification in messageUpdates
       notification.msg = Messages.findOne notification.message
     bygroup = _.groupBy messageUpdates, (notification) -> notification.msg.group
-    bygroup = _.pairs(bygroup).sort()
     if messageUpdates.length != 1
       subject = "#{messageUpdates.length} updates in #{_.keys(bygroup).sort().join ', '}"
+    bygroup = _.pairs(bygroup).sort()
     for [group, groupUpdates] in bygroup
       bythread = _.groupBy groupUpdates,
         (notification) -> notification.msg.root ? notification.msg._id
       bythread = _.pairs(bythread).sort()
-      html += "<H1>#{group}: #{pluralize groupUpdates.length, 'update'} in #{pluralize bythread.length, 'thread'}</H1>\n\n"
+      html += "<H1>#{linkToGroup group, true}: #{pluralize groupUpdates.length, 'update'} in #{pluralize bythread.length, 'thread'}</H1>\n\n"
       text += "=== #{group}: #{pluralize groupUpdates.length, 'update'} in #{pluralize bythread.length, 'thread'} ===\n\n"
       for [root, rootUpdates] in bythread
         rootmsg = Messages.findOne root
-        html += "<H2>#{titleOrUntitled rootmsg.title}</H2>\n\n"
-        text += "--- #{titleOrUntitled rootmsg.title} ---\n\n"
+        html += "<H2>#{linkToMessage rootmsg, true}</H2>\n\n"
+        text += "--- #{linkToMessage rootmsg, false} ---\n\n"
         rootUpdates = _.sortBy rootUpdates, (notification) ->
           if notification.msg.root?
             dateMin(notification.dates...).getTime()

@@ -8,6 +8,7 @@ Template.settings.helpers
   notificationsOn: notificationsOn
   notificationsDefault: notificationsDefault
   notifySelf: notifySelf
+  autosubscribe: autosubscribe
   dropbox: ->
     'dropbox' of (Meteor.user().services ? {})
 
@@ -35,6 +36,12 @@ Template.settings.events
     e.stopPropagation()
     Meteor.users.update Meteor.userId(),
       $set: "profile.notifications.self": not notifySelf()
+
+  'click .autosubscribeButton': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    Meteor.users.update Meteor.userId(),
+      $set: "profile.notifications.autosubscribe": not autosubscribe()
 
   'click .linkDropbox': (e, t) ->
     e.preventDefault()

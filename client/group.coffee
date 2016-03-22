@@ -265,3 +265,18 @@ Template.messageShort.helpers
       ''
   lastSubmessageUpdate: ->
     formatDate lastSubmessageUpdate @
+  subscribed: ->
+    subscribedToMessage @_id
+
+Template.messageShort.events
+  'click button.subscribe': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    if subscribedToMessage @_id
+      Meteor.users.update Meteor.userId(),
+        $push: 'profile.notifications.unsubscribed': @_id
+        $pop: 'profile.notifications.subscribed': @_id
+    else
+      Meteor.users.update Meteor.userId(),
+        $push: 'profile.notifications.subscribed': @_id
+        $pop: 'profile.notifications.unsubscribed': @_id

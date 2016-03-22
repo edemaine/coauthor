@@ -2,57 +2,68 @@ template(name="settings")
   if currentUser
     h1 Settings
     with profile
-      table
-        tr
-          th
-            label Preferred message format: 
-            span.space
-          td
-            +formatSelector
-        tr
-          th
-            label Messages initially published:
-            span.space
-          td
-            if autopublish
-              button.btn.btn-success.autopublishButton(type="button", data-toggle="button", autocomplete="off") Yes
-            else
-              button.btn.btn-warning.autopublishButton(type="button", data-toggle="button", autocomplete="off") No
-        tr
-          th
-            label Email notifications:
-          td
-            div
-              +_loginButtonsAdditionalLoggedInDropdownActions
-            if notificationsOn
-              button.btn.btn-success.notificationsButton(type="button", data-toggle="button", autocomplete="off")
-                if notificationsDefault
-                  | Default (Yes)
-                else
+      table.table
+        tbody
+          tr
+            th
+              label Preferred message format: 
+              span.space
+            td
+              +formatSelector
+          tr
+            th
+              label Messages initially published:
+              span.space
+            td
+              if autopublish
+                button.btn.btn-success.autopublishButton(type="button", data-toggle="button", autocomplete="off") Yes
+              else
+                button.btn.btn-warning.autopublishButton(type="button", data-toggle="button", autocomplete="off") No
+          tr
+            th
+              label Email notifications:
+            td
+              div
+                +_loginButtonsAdditionalLoggedInDropdownActions
+              if notificationsOn
+                button.btn.btn-success.notificationsButton(type="button", data-toggle="button", autocomplete="off")
+                  if notificationsDefault
+                    | Default (Yes)
+                  else
+                    | Yes
+              else
+                button.btn.btn-warning.notificationsButton(type="button", data-toggle="button", autocomplete="off")
+                  if notificationsDefault
+                    | Default (No)
+                  else
+                    | No
+          tr
+            th
+              label Subscribe to messages by default:
+            td
+              if autosubscribe
+                button.btn.btn-success.autosubscribeButton(type="button", data-toggle="button", autocomplete="off")
                   | Yes
-            else
-              button.btn.btn-warning.notificationsButton(type="button", data-toggle="button", autocomplete="off")
-                if notificationsDefault
-                  | Default (No)
-                else
+              else
+                button.btn.btn-warning.autosubscribeButton(type="button", data-toggle="button", autocomplete="off")
                   | No
-        tr
-          th
-            label Notifications for own messages:
-          td
-            if notifySelf
-              button.btn.btn-success.notifySelfButton(type="button", data-toggle="button", autocomplete="off")
-                | Yes
-            else
-              button.btn.btn-warning.notifySelfButton(type="button", data-toggle="button", autocomplete="off")
-                | No
-        tr
-          th
-            label Dropbox account linking:
-          td
-            if dropbox
-              button.btn.btn-danger.unlinkDropbox Unlink Dropbox Account
-            else
-              button.btn.btn-default.linkDropbox Link Dropbox Account
+          tr
+            th
+              label Notifications for own messages:
+            td
+              if notifySelf
+                button.btn.btn-success.notifySelfButton(type="button", data-toggle="button", autocomplete="off")
+                  | Yes
+              else
+                button.btn.btn-warning.notifySelfButton(type="button", data-toggle="button", autocomplete="off")
+                  | No
+          tr
+            th
+              label Dropbox account linking:
+            td
+              if dropbox
+                button.btn.btn-danger.unlinkDropbox Unlink Dropbox Account
+              else
+                button.btn.btn-default.linkDropbox Link Dropbox Account
   else
     .alert.alert-danger(role="alert") Please <B>sign in</B> (in the upper-right corner) to change your settings.

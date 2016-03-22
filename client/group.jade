@@ -64,6 +64,10 @@ template(name="messageList")
           a(href="{{linkToSort 'posts'}}", data-toggle="tooltip", title="Number of submessages in thread") Posts
           if sortingBy 'posts'
             span.glyphicon(class=sortingGlyph)
+        th
+          a(href="{{linkToSort 'subscribe'}}", data-toggle="tooltip", title="Number of submessages in thread") Sub
+          if sortingBy 'subscribe'
+            span.glyphicon(class=sortingGlyph)
     tbody
       each topMessages
         if canSee
@@ -117,6 +121,13 @@ template(name="messageShort")
     td
       a(href=messageLink)
         span.badge(class=zeroClass)= submessageCount
+    td.subscribe
+      //a(href=messageLink)
+      button.btn.btn-default.btn-xs.subscribe
+        if subscribed
+          span.glyphicon.glyphicon-ok
+        else
+          span.glyphicon.glyphicon-remove
 
 template(name="badGroup")
   .alert.alert-danger(role="alert") The group &ldquo;<b>#{group}</b>&rdquo; either does not exist or you do not have permission to access it.
