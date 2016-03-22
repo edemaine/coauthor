@@ -117,7 +117,7 @@ template(name="submessage")
                   button.btn.btn-info.editButton(tabindex="{{tabindex 8}}") Edit
                 else
                   // In future, support basic image editing.  For now, just:
-                  +messageReplace tabindex=tabindex9
+                  +messageReplace _id=_id group=group tabindex=tabindex9
     unless folded
       if history
         +messageHistory forHistory
