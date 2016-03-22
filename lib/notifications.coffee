@@ -11,7 +11,7 @@
 @defaultNotificationDelays =
   after:
     after: 1
-    unit: 'minute'
+    unit: 'hour'
   batched:
     every: 4
     unit: 'hour'  ## 'hour' or 'day'
