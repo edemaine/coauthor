@@ -1,3 +1,6 @@
+#Meteor.startup ->
+#  ace.require 'ace/ext/spellcheck'
+
 Template.registerHelper 'titleOrUntitled', ->
   titleOrUntitled @.title
 
@@ -210,6 +213,7 @@ Template.submessage.helpers
       editor.getSession().setUseWrapMode true
       #console.log "setting format to #{ti.data.format}"
       editor.getSession().setMode "ace/mode/#{ti.data.format}"
+      #editor.setOption 'spellcheck', true
 
   keyboard: ->
     capitalize Template.instance().keyboard.get()
