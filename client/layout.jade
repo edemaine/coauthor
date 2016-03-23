@@ -63,13 +63,14 @@ template(name="layout")
   if uploading
     .alert.alert-success.footer
       +uploadProgress
-  .credits.btn-group-sm
+  .credits
     img(src="/favicon32.png")
     | <b>Coauthor</b> written by <a href="http://erikdemaine.org">Erik Demaine</a>, with help from many others.
     span.space
-    a.btn.btn-default(href="edemaine@mit.edu") Contact Erik
-    a.btn.btn-default(href="https://github.com/edemaine/coauthor/") Download Source
-    a.btn.btn-default(href="https://github.com/edemaine/coauthor/issues/") Report Issue
+    span.btn-group.btn-group-sm
+      a.btn.btn-default(href="edemaine@mit.edu") Contact Erik
+      a.btn.btn-default(href="https://github.com/edemaine/coauthor/") Download Source
+      a.btn.btn-default(href="https://github.com/edemaine/coauthor/issues/") Report Issue
 
 template(name="uploadProgress")
   each uploading
