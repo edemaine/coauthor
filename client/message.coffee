@@ -110,6 +110,18 @@ id2template = {}
 scrollToLater = null
 
 Template.submessage.onRendered ->
+  ## Drag and drop support.
+  id = @data._id
+  group = @data.group
+  focus = @$('.focusButton')
+  focus.attr 'draggable', true
+  focus.on 'dragstart', (e) ->
+    url = "coauthor:#{id}"  ## xxx actually ignored!
+    #url = pathFor 'message',
+    #  group: group
+    #  message: id
+    e.dataTransfer.setData 'text/plain', url
+
   ## Fold deleted messages by default on initial load.
   @folded.set true if @data.deleted
   #@$.children('.panel').children('.panel-body').find('a[href|="/gridfs/fs/"]')
