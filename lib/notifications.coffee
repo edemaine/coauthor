@@ -153,6 +153,13 @@ if Meteor.isServer
     Notifications.update old._id, update
     notificationSchedule old._id
 
+  ## Don't schedule anything sooner than one second from now.
+  ## This is useful when many things are trying to schedule for right now
+  ## (as in a server start with many expired messages), and we only want one
+  ## to succeed.  This one-second delay lets them all clobber each other
+  ## except the last one.  There Can Be Only One.
+  minSchedule = 1000
+
   notificationSchedule = (notification) ->
     notification = Notifications.findOne notification unless notification._id?
     time = notificationTime notification
@@ -160,9 +167,11 @@ if Meteor.isServer
     ## would be, then that will cover this notification, so we don't need to
     ## schedule anything new.  But if this notification is more urgent (this
     ## will happen when server starts with expired messages, for example),
-    ## we should reschedule.
+    ## we should reschedule.  Finally, if a notification is already running,
+    ## we also don't need to do anything, because at the end of running the
+    ## notifier will check for any new notifications to schedule.
     if notification.to of notifiers
-      if notifiers[notification.to].time.getTime() <= time.getTime()
+      if notifiers[notification.to].running or notifiers[notification.to].time.getTime() <= time.getTime()
         return
       else
         Meteor.clearTimeout notifiers[notification.to].timeout
@@ -173,11 +182,12 @@ if Meteor.isServer
       timeout:
         Meteor.setTimeout ->
           notificationDo notification.to
-        , Math.max(0, time.getTime() - now.getTime())
+        , Math.max(minSchedule, time.getTime() - now.getTime())
 
   notificationDo = (to) ->
+    ## During this callback, prevent other notifications from scheduling.
+    notifiers[to].running = true
     Meteor.clearTimeout notifiers[to].timeout
-    delete notifiers[to]
     notifications = Notifications.find
       to: to
       seen: false
@@ -189,6 +199,14 @@ if Meteor.isServer
       $set: seen: true
     ,
       multi: true
+    ## Now we relinquish the 'lock' set by notifiers[to].
+    delete notifiers[to]
+    ## In the meantime, new notifications may have appeared; schedule them.
+    Notifications.find
+      to: to
+      seen: false
+    .forEach (notification) ->
+      notificationSchedule notification
 
   linkToGroup = (group, html) ->
     url = Meteor.absoluteUrl "#{group}"
@@ -200,9 +218,9 @@ if Meteor.isServer
   linkToMessage = (msg, html) ->
     url = Meteor.absoluteUrl "#{msg.group}/m/#{msg._id}"
     if html
-      "'<A HREF=\"#{url}\">#{titleOrUntitled msg.title}</A>'"
+      "<A HREF=\"#{url}\">#{_.escape titleOrUntitled msg.title}</A>"
     else
-      "'#{titleOrUntitled msg.title}' [#{url}]"
+      "#{titleOrUntitled msg.title} [#{url}]"
 
   notificationEmail = (notifications) ->
     return unless notifications.length > 0
@@ -223,15 +241,18 @@ if Meteor.isServer
     bygroup = _.groupBy messageUpdates, (notification) -> notification.msg.group
     if messageUpdates.length != 1
       subject = "#{messageUpdates.length} updates in #{_.keys(bygroup).sort().join ', '}"
-    bygroup = _.pairs(bygroup).sort()
+    bygroup = _.pairs bygroup
+    bygroup = _.sortBy bygroup, (pair) -> pair[0]
     for [group, groupUpdates] in bygroup
       bythread = _.groupBy groupUpdates,
         (notification) -> notification.msg.root ? notification.msg._id
-      bythread = _.pairs(bythread).sort()
+      bythread = _.pairs bythread
+      for pair in bythread
+        pair.push Messages.findOne pair[0]  ## root id -> root msg
+      bythread = _.sortBy bythread, (triple) -> titleSort triple[2].title  ## root msg title
       html += "<H1>#{linkToGroup group, true}: #{pluralize groupUpdates.length, 'update'} in #{pluralize bythread.length, 'thread'}</H1>\n\n"
       text += "=== #{group}: #{pluralize groupUpdates.length, 'update'} in #{pluralize bythread.length, 'thread'} ===\n\n"
-      for [root, rootUpdates] in bythread
-        rootmsg = Messages.findOne root
+      for [root, rootUpdates, rootmsg] in bythread
         html += "<H2>#{linkToMessage rootmsg, true}</H2>\n\n"
         text += "--- #{linkToMessage rootmsg, false} ---\n\n"
         rootUpdates = _.sortBy rootUpdates, (notification) ->
@@ -254,8 +275,8 @@ if Meteor.isServer
           #else
           dates = "on #{diffs[diffs.length-1].updated}"
           if msg.root?
-            html += "<P><B>#{authors}</B> changed message #{linkToMessage msg, true} in the thread #{linkToMessage rootmsg, true} #{dates}"
-            text += "#{authors} changed message #{linkToMessage msg, false} in the thread #{linkToMessage rootmsg, false} #{dates}"
+            html += "<P><B>#{authors}</B> changed message '#{linkToMessage msg, true}' in the thread '#{linkToMessage rootmsg, true}' #{dates}"
+            text += "#{authors} changed message '#{linkToMessage msg, false}' in the thread '#{linkToMessage rootmsg, false}' #{dates}"
           else
             html += "<P><B>#{authors}</B> changed root message in the thread #{linkToMessage msg, true} #{dates}"
             text += "#{authors} changed root message in the thread #{linkToMessage msg, false} #{dates}"

@@ -11,6 +11,11 @@
 
 @sortKeys = ['title', 'creator', 'published', 'updated', 'posts']
 
+titleDigits = 10
+@titleSort = (title) ->
+  title = title.title if title.title?
+  title.toLowerCase().replace /\d+/, (n) -> s.lpad n, titleDigits, '0'
+
 @Groups = new Mongo.Collection 'groups'
 
 @groupAnonymousRoles = (group) ->
