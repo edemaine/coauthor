@@ -65,7 +65,7 @@ template(name="messageList")
           if sortingBy 'posts'
             span.glyphicon(class=sortingGlyph)
         th
-          a(href="{{linkToSort 'subscribe'}}", data-toggle="tooltip", title="Number of submessages in thread") Sub
+          a(href="{{linkToSort 'subscribe'}}", data-toggle="tooltip", title="Whether you subscribe to notifications about this thread (see Settings for default)") Sub
           if sortingBy 'subscribe'
             span.glyphicon(class=sortingGlyph)
     tbody

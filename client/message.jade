@@ -55,7 +55,8 @@ template(name="submessage")
       unless history
         if editingRV
           input.form-control.title(type="text", placeholder="Title", value=title, tabindex="{{tabindex 18}}")
-      unless editingRV
+      //unless editingRV
+      span(class=hideIfEditing)
         .message-left-buttons.btn-group.btn-group-xs
           button.btn.btn-info.foldButton(aria-label="Fold")
             if folded

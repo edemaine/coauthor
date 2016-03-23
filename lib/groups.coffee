@@ -9,7 +9,7 @@
 @validGroup = (group) ->
   group and group.charAt(0) not in ['*', '$'] and group.indexOf(DOT) < 0
 
-@sortKeys = ['title', 'creator', 'published', 'updated', 'posts']
+@sortKeys = ['title', 'creator', 'published', 'updated', 'posts', 'subscribe']
 
 titleDigits = 10
 @titleSort = (title) ->

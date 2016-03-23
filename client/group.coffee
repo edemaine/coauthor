@@ -186,7 +186,7 @@ Template.messageList.helpers
     else
       linkToSort
         key: key
-        reverse: key in ['published', 'updated', 'posts']  ## default reverse
+        reverse: key in ['published', 'updated', 'posts', 'subscribe']  ## default reverse
   sortingBy: (key) ->
     sortBy().key == key
   sortingGlyph: ->
@@ -201,23 +201,18 @@ Template.messageList.helpers
     sort = sortBy()
     mongosort = [[sort.key, if sort.reverse then 'desc' else 'asc']]
     msgs = Messages.find query, sort: mongosort
-    if sort.key in ['title', 'posts', 'updated']
+    if sort.key in ['title', 'posts', 'updated', 'subscribe']
+      switch sort.key
+        when 'title'
+          key = (msg) -> titleSort msg.title
+        when 'posts'
+          key = (msg) -> submessageCount msg
+        when 'updated'
+          key = (msg) -> lastSubmessageUpdate(msg).getTime()
+        when 'subscribe'
+          key = (msg) -> subscribedToMessage msg._id
       msgs = msgs.fetch()
-      for msg in msgs
-        switch sort.key
-          when 'title'
-            msg._key = titleSort msg.title
-          when 'posts'
-            msg._key = submessageCount msg
-          when 'updated'
-            msg._key = lastSubmessageUpdate(msg).getTime()
-      msgs.sort (x, y) ->
-        if x._key < y._key
-          -1
-        else if x._key > y._key
-          1
-        else
-          0
+      msgs = _.sortBy msgs, key
       msgs.reverse() if sort.reverse
     msgs
 
@@ -230,16 +225,11 @@ Template.messageShort.onRendered ->
   .count()
 
 @lastSubmessageUpdate = (message) ->
-  updated = null
-  for author, date of message.authors
-    if not updated? or updated.getTime() < date.getTime()
-      updated = date
+  updated = message.updated
   Messages.find
     root: message._id
   .forEach (submessage) ->
-    for author, date of submessage.authors
-      if not updated? or updated.getTime() < date.getTime()
-        updated = date
+    updated = dateMax updated, submessage.updated
   updated
 
 Template.messageShort.helpers

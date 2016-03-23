@@ -174,6 +174,11 @@ Template.submessage.helpers
   nothing: {}
   editingRV: -> Template.instance().editing.get()
   editingNR: -> Tracker.nonreactive -> Template.instance().editing.get()
+  hideIfEditing: ->
+    if Template.instance().editing.get()
+      'hidden'
+    else
+      ''
   #myid: -> Tracker.nonreactive -> Template.instance().myid
   #editing: -> editing @
   config: ->
