@@ -1,4 +1,4 @@
-@untitledMessage = '<untitled>'
+@untitledMessage = '(untitled)'
 
 @titleOrUntitled = (title) ->
   unless title?

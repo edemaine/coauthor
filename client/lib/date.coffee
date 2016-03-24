@@ -3,9 +3,11 @@
   return "?#{date}?" unless date instanceof Date  ## have seen this briefly, not sure when
   now = new Date()
   options =
-    weekday: 'long'
-    month: 'long'
+    weekday: 'short'
+    month: 'short'
     day: 'numeric'
+  #mdate = moment date
+  #time = mdate.format 'LT'
   time = date.getHours() + ':'
   if date.getMinutes() < 10
     time += '0'
