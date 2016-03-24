@@ -11,6 +11,7 @@ Template.registerHelper 'children', ->
   if @children
     children = Messages.find _id: $in: @children
                  .fetch()
+    children = _.sortBy children, (child) => @children.indexOf child
     ## Use canSee to properly fake non-superuser mode.
     children = (child for child in children when canSee child)
     for child in children
