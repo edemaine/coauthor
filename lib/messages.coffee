@@ -231,14 +231,11 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
       else
         Messages.update parent,
           $push: children: child
-    console.log child, parent, root, 'vs.', cmsg.root
     if root != cmsg.root
-      console.log 'setting root'
       Messages.update child,
         $set: root: root
       if cmsg.root?
         ## If we move a nonroot message to have new root, update descendants.
-        console.log 'a'
         descendants = descendantMessageIds child
         if descendants.length > 1
           Messages.update
@@ -249,7 +246,6 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
             multi: true
       else
         ## To reparent root message, change the root of all descendants.
-        console.log 'b', child, root
         Messages.update
           root: child
         ,
