@@ -8,4 +8,14 @@ Template.frontpage.helpers
 
 Template.frontpage.events
   'click .recomputeAuthorsButton': ->
-    Meteor.call 'recomputeAuthors' #, wildGroup
+    Meteor.call 'recomputeAuthors', (error, result) ->
+      if error
+        console.error 'recomputeAuthors:', error
+      else
+        console.log 'recomputeAuthors done!'
+  'click .recomputeRootsButton': ->
+    Meteor.call 'recomputeRoots', (error, result) ->
+      if error
+        console.error 'recomputeRoots:', error
+      else
+        console.log 'recomputeRoots done!'

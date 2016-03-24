@@ -12,6 +12,24 @@
 @MessagesDiff = new Mongo.Collection 'messages.diff'
 @MessagesParent = new Mongo.Collection 'messages.parents'
 
+@rootMessages = (group) ->
+  query =
+    root: null
+  if group?
+    query.group = group
+  Messages.find query
+
+## Works from nonroot messages via recursion.  Doesn't include message itself.
+@descendantMessageIds = (message) ->
+  descendants = []
+  recurse = (m) ->
+    m = Messages.findOne m if _.isString m
+    for child in m.children
+      descendants.push child
+      recurse child
+  recurse message
+  descendants
+
 if Meteor.isServer
   Meteor.publish 'messages', (group) ->
     check group, String
@@ -186,36 +204,54 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
   ## oldParent is an internal option for server only; true means "search for/
   ## deal with old parent", while null means we assert there is no old parent.
   check Meteor.userId(), String  ## should be done by 'canEdit'
-  check parent, String if parent?
+  check parent, String if parent != null
   check position, Number if position?
   #check oldParent, Boolean
   #check importing, Boolean
-  pmsg = Messages.findOne parent
-  if canEdit(child) and canPost pmsg.group, parent
+  if parent?
+    pmsg = Messages.findOne parent
+    group = pmsg.group
+    root = pmsg.root
+  else
+    group = child.group  ## xxx can't specify other group...
+    root = null
+  if canEdit(child) and canPost group, parent
     cmsg = Messages.findOne child
     if oldParent
       oldParent = findMessageParent child
       if oldParent?
         Messages.update oldParent,
           $pop: children: child
-    if position?
-      Messages.update parent,
-        $push: children:
-          $each: [child]
-          $position: position
-    else
-      Messages.update parent,
-        $push: children: child
-    Messages.update child,
-      $set: root: pmsg.root ? parent
-    ## To reparent root message, change the root of all descendants.
-    unless cmsg.root
-      Messages.update
-        root: cmsg
-      ,
-        $set: root: pmsg.root
-      ,
-        multi: true
+    if parent?
+      if position?
+        Messages.update parent,
+          $push: children:
+            $each: [child]
+            $position: position
+      else
+        Messages.update parent,
+          $push: children: child
+    if root != cmsg.root
+      Messages.update child,
+        $set: root: root
+      if cmsg.root?
+        ## If we move a nonroot message to have new root, update descendants.
+        descendants = descendantMessageIds child
+        if descendants.length > 1
+          Messages.update
+            _id: $in: descendants
+          ,
+            $set: root: root ? child
+          ,
+            multi: true
+      else
+        ## To reparent root message, change the root of all descendants.
+        Messages.update
+          root: child
+        ,
+          $set: root: root ? child  ## actually must be root
+        ,
+          multi: true
     doc =
       child: child
       parent: parent
@@ -474,3 +510,15 @@ Meteor.methods
             authors: authors
             updated: updated    ## last one
             updators: updators  ## last one
+
+  recomputeRoots: ->
+    if canSuper wildGroup
+      rootMessages().forEach (root) ->
+        descendants = descendantMessageIds root
+        if descendants.length > 0
+          Messages.update
+            _id: $in: descendants
+          ,
+            $set: root: root._id
+          ,
+            multi: true
