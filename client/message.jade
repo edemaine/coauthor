@@ -64,7 +64,7 @@ template(name="submessage")
             else
               span.glyphicon.glyphicon-minus(aria-hidden="true")
           unless here
-            a.btn.btn-info.focusButton(aria-label="Focus", href="{{pathFor 'message' group=group message=_id}}")
+            a.btn.btn-info.focusButton(aria-label="Focus", href="{{pathFor 'message' group=group message=_id}}", draggable="true")
               span.glyphicon.glyphicon-arrow-right(aria-hidden="true")
         span.space
         span.title.panel-title.tex2jax !{formatTitle}
