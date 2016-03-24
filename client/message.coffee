@@ -115,12 +115,16 @@ scrollToLater = null
 
 Template.submessage.onRendered ->
   ## Drag/drop support.
-  @$('.focusButton').on 'dragstart', (e) =>
+  if @find('.focusButton')?
     url = "coauthor:#{@data._id}"
-    #url = pathFor 'message',
-    #  group: group
-    #  message: id
-    e.originalEvent.dataTransfer.setData 'text/plain', url
+    @find('.focusButton').addEventListener 'dragstart', (e) =>
+      #url = pathFor 'message',
+      #  group: group
+      #  message: id
+      e.dataTransfer.setData 'text/plain', url
+      e.dataTransfer.setData 'application/coauthor', @data._id
+    #@find('.focusButton').addEventListener 'dragend', (e) =>
+    #  e.dataTransfer.setData 'text/plain', "<IMG SRC='#{url}'>"
 
   ## Fold deleted messages by default on initial load.
   @folded.set true if @data.deleted
@@ -198,6 +202,13 @@ Template.submessage.helpers
     (editor) =>
       #console.log 'config', editor.getValue(), '.'
       ti.editor = editor
+      #editor.container.addEventListener 'drop', (e) =>
+      #  e.preventDefault()
+      #  if id = e.dataTransfer.getData('application/coauthor')
+      #    #switch @format
+      #    #  when 'latex'
+      #    #    e.dataTransfer.setData('text/plain', "\\href{#{id}}{}")
+      #    e.dataTransfer.setData('text/plain', "<IMG SRC='coauthor:#{id}'>")
       editor.textInput.getElement().setAttribute 'tabindex', 1 + 20 * ti.count + 19
       #editor.meteorData = @  ## currently not needed, also dunno if works
       editor.$blockScrolling = Infinity
