@@ -150,9 +150,9 @@ latex2html = (tex) ->
       else if file.contentType in ['video/mp4', 'video/ogg', 'video/webm']
         text = "<video controls><source src='#{urlToFile file}' type='#{file.contentType}'></video>"
       else
-        text = "<i><a href='#{urlToFile file}'>&lt;#{file.length}-byte #{file.contentType} file&gt;</a></i>"
+        text = "<i class='odd-file'><a href='#{urlToFile file}'>&lt;#{file.length}-byte #{file.contentType} file&gt;</a></i>"
     else
-      text = "<i>&lt;unknown file with ID #{text}&gt;</i>"
+      text = "<i class='bad-file'>&lt;unknown file with ID #{text}&gt;</i>"
   markdown: (text, title) ->
     ## Escape all characters that can be (in particular, _s) that appear
     ## inside math mode, to prevent Marked from processing them.

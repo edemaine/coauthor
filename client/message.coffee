@@ -117,6 +117,11 @@ Template.submessage.onRendered ->
   ## Drag/drop support.
   if @find('.focusButton')?
     url = "coauthor:#{@data._id}"
+    if @data.format == 'file'
+      formatted = formatBody @data.format, @data.body
+      if "class='odd-file'" not in formatted and
+         "class='bad-file'" not in formatted
+        url = formatted
     @find('.focusButton').addEventListener 'dragstart', (e) =>
       #url = pathFor 'message',
       #  group: group
