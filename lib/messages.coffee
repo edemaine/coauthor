@@ -220,7 +220,7 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
     if oldParent
       oldParent = findMessageParent child
       if oldParent?
-        Messages.update oldParent,
+        Messages.update oldParent._id,
           $pop: children: child
     if parent?
       if position?
