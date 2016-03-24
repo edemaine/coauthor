@@ -113,21 +113,25 @@ images = {}
 id2template = {}
 scrollToLater = null
 
+onDragStart = (url, id) -> (e) ->
+  #url = pathFor 'message',
+  #  group: group
+  #  message: id
+  e.dataTransfer.setData 'text/plain', url
+  e.dataTransfer.setData 'application/coauthor', id
+
 Template.submessage.onRendered ->
   ## Drag/drop support.
-  if @find('.focusButton')?
+  if @find('.focusButton')? and @data._id?
     url = "coauthor:#{@data._id}"
     if @data.format == 'file'
       formatted = formatBody @data.format, @data.body
       if "class='odd-file'" not in formatted and
          "class='bad-file'" not in formatted
         url = formatted
-    @find('.focusButton').addEventListener 'dragstart', (e) =>
-      #url = pathFor 'message',
-      #  group: group
-      #  message: id
-      e.dataTransfer.setData 'text/plain', url
-      e.dataTransfer.setData 'application/coauthor', @data._id
+        $(@find('.panel-body')).find('img, video').each (i, elt) =>
+          elt.addEventListener 'dragstart', onDragStart url, @data._id
+    @find('.focusButton').addEventListener 'dragstart', onDragStart url, @data._id
     #@find('.focusButton').addEventListener 'dragend', (e) =>
     #  e.dataTransfer.setData 'text/plain', "<IMG SRC='#{url}'>"
 
