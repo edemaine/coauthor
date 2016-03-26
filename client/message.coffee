@@ -48,7 +48,7 @@ Template.message.helpers
   orphanCount: ->
     count = orphans(@_id).count()
     if count > 0
-      pluralize orphans(@_id).count(), 'orphaned subthread'
+      pluralize count, 'orphaned subthread'
 
 Template.message.onCreated ->
   @autorun ->
