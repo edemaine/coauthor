@@ -9,6 +9,7 @@ Template.settings.helpers
   notificationsDefault: notificationsDefault
   notifySelf: notifySelf
   autosubscribe: autosubscribe
+  theme: -> capitalize theme()
   dropbox: ->
     'dropbox' of (Meteor.user().services ? {})
 
@@ -42,6 +43,16 @@ Template.settings.events
     e.stopPropagation()
     Meteor.users.update Meteor.userId(),
       $set: "profile.notifications.autosubscribe": not autosubscribe()
+
+  'click .themeButton': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    Meteor.users.update Meteor.userId(),
+      $set: "profile.theme":
+        if theme() == 'dark'
+          'light'
+        else
+          'dark'
 
   'click .linkDropbox': (e, t) ->
     e.preventDefault()

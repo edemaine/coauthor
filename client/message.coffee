@@ -222,7 +222,14 @@ Template.submessage.helpers
       #editor.meteorData = @  ## currently not needed, also dunno if works
       editor.$blockScrolling = Infinity
       #editor.on 'change', onChange
-      editor.setTheme 'ace/theme/monokai'
+      editor.setTheme 'ace/theme/' +
+        switch theme()
+          when 'dark'
+            'vibrant_ink'
+          when 'light'
+            'chrome'
+          else
+            theme()
       editor.getSession().setMode 'ace/mode/html'
       editor.setShowPrintMargin false
       editor.setBehavioursEnabled true
