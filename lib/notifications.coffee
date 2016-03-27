@@ -45,6 +45,7 @@
   not user.profile.notifications? or user.profile.notifications?.autosubscribe != false
 
 @subscribedToMessage = (message, user = Meteor.user()) ->
+  canSee(message, false, user) and \
   if message in (user.profile.notifications?.subscribed ? [])
     true
   else if message in (user.profile.notifications?.unsubscribed ? [])
@@ -119,6 +120,7 @@ if Meteor.isServer
       ## Don't send notifications to myself, if so requested.
       continue if diff.updators.length == 1 and diff.updators[0] == to.username and not notifySelf to
       ## Only notify people who can read the message!
+      ## xxx this is already checked by messageSubscribers
       ## xxx what should behavior be for superuser?  Currently they see all...
       continue unless canSee msg, false, to
       ## Coallesce past notification (if it exists) into this notification,
