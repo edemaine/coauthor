@@ -43,6 +43,8 @@ orphans = (message) ->
     _id: $nin: descendants
 
 Template.message.helpers
+  subscribers: ->
+    (MessagesSubscribers.findOne(@_id)?.subscribers ? []).join ', '
   orphans: ->
     orphans @_id
   orphanCount: ->

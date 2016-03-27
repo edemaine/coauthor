@@ -22,7 +22,7 @@ Router.route '/:group/m/:message',
   template: 'messageMaybe'
   subscriptions: -> [
     Meteor.subscribe 'messages', @params.group
-  #  Meteor.subscribe 'comments', @params.message
+    Meteor.subscribe 'messages.subscribers', @params.message
   ]
   data: ->
     Messages.findOne @params.message

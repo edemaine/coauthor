@@ -73,6 +73,9 @@
 ##   - possible future types: 'import', 'superdelete', 'users', 'settings'
 ##   - seen: true/false (whether notification has been delivered/deleted)
 
+if Meteor.isClient
+  @MessagesSubscribers = new Mongo.Collection 'messages.subscribers'
+
 if Meteor.isServer
   Meteor.publish 'notifications', () ->
     @autorun ->
@@ -92,6 +95,19 @@ if Meteor.isServer
       else
         @ready()
 
+  Meteor.publish 'messages.subscribers', (root) ->
+    check root, String
+    if canSee root, false, findUser @userId
+      init = true
+      @autorun ->
+        subs = subscribers: (who.username for who in messageSubscribers root)
+        if init
+          @added 'messages.subscribers', root, subs
+        else
+          @changed 'messages.subscribers', root, subs
+      init = false
+    @ready()
+
   notifiers = {}
 
   @notifyMessageUpdate = (diff) ->
@@ -99,7 +115,7 @@ if Meteor.isServer
     ## Don't notify about empty messages (e.g. initial creation) --
     ## wait for content.  xxx should only do this if diff is version 1!
     return if messageEmpty msg
-    for to in messageListeners msg
+    for to in messageSubscribers msg
       ## Don't send notifications to myself, if so requested.
       continue if diff.updators.length == 1 and diff.updators[0] == to.username and not notifySelf to
       ## Only notify people who can read the message!
@@ -125,8 +141,11 @@ if Meteor.isServer
           dates: [diff.updated]
           diffs: [diff._id]
 
-  messageListeners = (msg) ->
-    root = msg.root ? msg._id
+  messageSubscribers = (msg) ->
+    if _.isString msg
+      root = msg
+    else
+      root = msg.root ? msg._id
     users = Meteor.users.find
       'profile.notifications.on':
         if defaultNotificationsOn
