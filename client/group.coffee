@@ -89,6 +89,10 @@ Template.group.helpers
       group: @group
       root: null
     .count(), 'root message')
+  members: ->
+    (GroupsMembers.findOne
+      group: @group
+    ?.members ? []).join(', ') or '(none)'
 
 Template.postButtons.helpers
   disableClass: ->

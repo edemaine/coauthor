@@ -53,6 +53,34 @@ if Meteor.isServer
     @autorun ->
       readableGroups @userId
 
+  @groupMembers = (group) ->
+    roles = {}
+    roles['roles.' + escapeGroup group] =
+      $exists: true
+      $ne: []
+    Meteor.users.find roles
+
+  Meteor.publish 'groups.members', (group) ->
+    check group, String
+    if groupRoleCheck group, 'read', findUser @userId
+      id = Groups.findOne
+        name: group
+      ._id
+      init = true
+      @autorun ->
+        members =
+          members: (user.username for user in groupMembers(group).fetch())
+        if init
+          members.group = group
+          @added 'groups.members', id, members
+        else
+          @changed 'groups.members', id, members
+      init = false
+    @ready()
+
+if Meteor.isClient
+  @GroupsMembers = new Mongo.Collection 'groups.members'
+
 Meteor.methods
   setRole: (group, user, role, yesno) ->
     check group, String

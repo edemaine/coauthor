@@ -38,6 +38,7 @@ Router.route '/:group',
   name: 'group'
   subscriptions: -> [
     Meteor.subscribe 'messages', @params.group
+    Meteor.subscribe 'groups.members', @params.group
   ]
   data: ->
     group: @params.group
@@ -47,6 +48,7 @@ Router.route '/:group/+:sortBy?',
   template: 'group'
   subscriptions: -> [
     Meteor.subscribe 'messages', @params.group
+    Meteor.subscribe 'groups.members', @params.group
   ]
   data: ->
     group: @params.group
@@ -56,6 +58,7 @@ Router.route '/:group/-:sortBy?',
   template: 'group'
   subscriptions: -> [
     Meteor.subscribe 'messages', @params.group
+    Meteor.subscribe 'groups.members', @params.group
   ]
   data: ->
     group: @params.group

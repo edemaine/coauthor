@@ -6,8 +6,13 @@ template(name="group")
         +postButtons
       +messageList
       .panel-footer.clearfix
-        i= topMessageCount
-        +importButtons
+        p
+          i= topMessageCount
+          +importButtons
+        .members.alert.alert-info
+          p
+            b Members of this group:
+          p {{members}}
   else
     +badGroup
 
