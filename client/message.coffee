@@ -44,7 +44,7 @@ orphans = (message) ->
 
 Template.message.helpers
   subscribers: ->
-    (MessagesSubscribers.findOne(@_id)?.subscribers ? []).join ', '
+    ((MessagesSubscribers.findOne(@_id)?.subscribers ? []).join ', ') or '(none)'
   orphans: ->
     orphans @_id
   orphanCount: ->

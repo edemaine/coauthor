@@ -100,7 +100,7 @@ if Meteor.isServer
     if canSee root, false, findUser @userId
       init = true
       @autorun ->
-        subs = subscribers: (who.username for who in messageSubscribers root)
+        subs = subscribers: (user.username for user in messageSubscribers root when _.some user.emails, (email) -> email.verified)
         if init
           @added 'messages.subscribers', root, subs
         else
