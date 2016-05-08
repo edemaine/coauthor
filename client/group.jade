@@ -135,8 +135,11 @@ template(name="messageShort")
           span.glyphicon.glyphicon-remove
 
 template(name="badGroup")
-  .alert.alert-danger(role="alert") The group &ldquo;<b>#{group}</b>&rdquo; either does not exist or you do not have permission to access it.
-    if currentUser
-      p Barring typos, you probably need to <B>talk to someone in charge</B> of the group.
-    else
-      p You probably need to <B>sign in</B> (in the upper-right corner).
+  if ready
+    .alert.alert-danger(role="alert") The group &ldquo;<b>#{group}</b>&rdquo; either does not exist or you do not have permission to access it.
+      if currentUser
+        p Barring typos, you probably need to <B>talk to someone in charge</B> of the group.
+      else
+        p You probably need to <B>sign in</B> (in the upper-right corner).
+  else
+    .alert.alert-warning Loading group &ldquo;<b>#{group}</b>&rdquo;...

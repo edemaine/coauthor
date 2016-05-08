@@ -50,9 +50,12 @@ template(name="tableOfContents")
           +tableOfContents
 
 template(name="badMessage")
-  p The message &ldquo;<b>#{message}</b>&rdquo; does not exist or you do not have permission to access it.
-  unless currentUser
-    p You probably need to log in.
+  if ready
+    .alert.alert-danger The message &ldquo;<b>#{message}</b>&rdquo; does not exist or you do not have permission to access it.
+    unless currentUser
+      p You probably need to log in.
+  else
+    .alert.alert-warning Loading message &ldquo;<b>#{message}</b>&rdquo;...
 
 template(name="submessage")
   .panel.message(class=messagePanelClass, data-message=_id, id=_id)
