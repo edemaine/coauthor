@@ -3,13 +3,17 @@ template(name="frontpage")
   if currentUser
     if groupcount
       .alert.alert-success(role="alert") Choose a <B>group</B> below to get started.
-    else
+    else if ready
       .alert.alert-danger(role="alert") You do not appear to have access to any groups.  You probably need to <B>talk to someone in charge</B>.
+    else
+      .alert.alert-warning(role="alert") Loading...
   else
     if groupcount
       .alert.alert-warning(role="alert") Choose a <B>public group</B> below, or <B>sign in</B> (in the upper-right corner) to gain more access.
-    else
+    else if ready
       .alert.alert-danger(role="alert") Please <B>sign in</B> (in the upper-right corner) to get started.
+    else
+      .alert.alert-warning(role="alert") Loading...
   .list-group
     each groups
       a.list-group-item(href="{{pathFor 'group' group=name}}")= name
