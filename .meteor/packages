@@ -13,7 +13,6 @@ ian:accounts-ui-bootstrap-3
 accounts-password
 sacha:spin
 
-standard-minifiers
 meteor-base
 mobile-experience
 mongo
@@ -28,7 +27,7 @@ ejson
 spacebars
 check
 mizzao:sharejs
-mizzao:sharejs-ace@=1.1.9
+mizzao:sharejs-ace
 djedi:sanitize-html-client
 reactive-var
 silentcicero:jszip
@@ -50,3 +49,5 @@ natestrauser:jquery-scrollto
 underscorestring:underscore.string
 momentjs:moment
 djedi:sanitize-html
+standard-minifier-css
+standard-minifier-js
