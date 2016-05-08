@@ -56,7 +56,8 @@ if Meteor.isServer
 else
   Tracker.autorun ->
     Meteor.subscribe 'files', Meteor.userId()
-    $.cookie 'X-Auth-Token', Accounts._storedLoginToken()
+    $.cookie 'X-Auth-Token', Accounts._storedLoginToken(),
+      path: '/'
 
   Session.set 'uploading', {}
   updateUploading = (changer) =>
