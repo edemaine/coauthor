@@ -123,6 +123,12 @@ onDragStart = (url, id) -> (e) ->
   e.dataTransfer.setData 'application/coauthor', id
 
 Template.submessage.onRendered ->
+  ## Random message background color (to show nesting).
+  #@firstNode.style.backgroundColor = '#' +
+  #  Math.floor(Math.random() * 25 + 255 - 25).toString(16) +
+  #  Math.floor(Math.random() * 25 + 255 - 25).toString(16) +
+  #  Math.floor(Math.random() * 25 + 255 - 25).toString(16)
+
   ## Drag/drop support.
   if @find('.focusButton')? and @data._id?
     url = "coauthor:#{@data._id}"
