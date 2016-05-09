@@ -1,6 +1,3 @@
-#Meteor.startup ->
-#  ace.require 'ace/ext/spellcheck'
-
 Template.registerHelper 'titleOrUntitled', ->
   titleOrUntitled @.title
 
@@ -94,7 +91,7 @@ messageRaw = new ReactiveDict
 messageFolded = new ReactiveDict
 messageHistory = new ReactiveDict
 messageKeyboard = new ReactiveDict
-defaultKeyboard = 'ace'
+defaultKeyboard = 'normal'
 
 Template.submessage.onCreated ->
   @count = submessageCount++
@@ -365,7 +362,7 @@ Template.submessage.events
     e.preventDefault()
     e.stopPropagation()
     messageKeyboard.set @_id, kb = e.target.getAttribute 'data-keyboard'
-    t.editor.setKeyboardHandler if kb == 'ace' then '' else 'ace/keyboard/' + kb
+    t.editor.setKeyboardHandler if kb == 'normal' then '' else 'ace/keyboard/' + kb
     $(e.target).parent().dropdown 'toggle'
 
   'click .editorFormat': (e, t) ->
