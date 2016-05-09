@@ -90,16 +90,15 @@ Template.registerHelper 'deletedClass', ->
 
 submessageCount = 0
 
+messageRaw = new ReactiveDict
+messageFolded = new ReactiveDict
+messageHistory = new ReactiveDict
+messageKeyboard = new ReactiveDict
+defaultKeyboard = 'ace'
+
 Template.submessage.onCreated ->
   @count = submessageCount++
-  @keyboard = new ReactiveVar 'ace'
   @editing = new ReactiveVar null
-  @history = new ReactiveVar null
-  @raw = new ReactiveVar false
-  ## @folded is normally true or false, but we use a special (falsey) null
-  ## value to indicate that it could still be automatically folded if it's
-  ## detected that that would be a better default.
-  @folded = new ReactiveVar null
   @autorun =>
     return unless Template.currentData()?
     #@myid = Template.currentData()._id
@@ -138,11 +137,13 @@ Template.submessage.onRendered ->
     #  e.dataTransfer.setData 'text/plain', "<IMG SRC='#{url}'>"
 
   ## Fold deleted messages by default on initial load.
-  @folded.set true if @data.deleted
+  messageFolded.set @data._id, true if @data.deleted
+
+  ## Fold referenced attached files by default on initial load.
   #@$.children('.panel').children('.panel-body').find('a[href|="/gridfs/fs/"]')
   #console.log @$ 'a[href|="/gridfs/fs/"]'
-  template = @
-  id2template[@data._id] = template
+  tid = @data._id
+  id2template[@data._id] = @
   scrollToMessage @data._id if scrollToLater == @data._id
   attachment = @data.format == 'file'
   #images = Session.get 'images'
@@ -156,11 +157,11 @@ Template.submessage.onRendered ->
         attachment: null
         count: 0
     if attachment
-      images[id].attachment = template
+      images[id].attachment = tid
     else
       images[id].count += 1
-    if images[id].count > 0 and images[id].attachment? and images[id].attachment.folded.get() == null
-      images[id].attachment.folded.set true
+    if images[id].count > 0 and images[id].attachment? and not messageFolded.get(images[id].attachment)?
+      messageFolded.set images[id].attachment, true
     #console.log images
   #Session.set 'images', images
 
@@ -182,7 +183,7 @@ Template.submessage.onDestroyed ->
       images[id].count -= 1
 
 historify = (x) -> () ->
-  history = Template.instance().history.get()
+  history = messageHistory.get @_id
   if history?
     history[x]
   else
@@ -242,9 +243,9 @@ Template.submessage.helpers
       #editor.setOption 'spellcheck', true
 
   keyboard: ->
-    capitalize Template.instance().keyboard.get()
+    capitalize messageKeyboard.get(@_id) ? defaultKeyboard
   activeKeyboard: (match) ->
-    if Template.instance().keyboard.get() == match
+    if (messageKeyboard.get(@_id) ? defaultKeyboard) == match
       'active'
     else
       ''
@@ -253,17 +254,17 @@ Template.submessage.helpers
   published: historify 'published'
 
   tex2jax: ->
-    history = Template.instance().history.get() ? @
+    history = messageHistory.get(@_id) ? @
     if history.format in mathjaxFormats
       'tex2jax'
     else
       ''
   title: historify 'title'
   formatTitle: ->
-    history = Template.instance().history.get() ? @
+    history = messageHistory.get(@_id) ? @
     title = history.title
     return title unless title
-    if Template.instance().raw.get()
+    if messageRaw.get @_id
       "<CODE CLASS='raw'>#{_.escape title}</CODE>"
     else
       title = formatTitle history.format, title
@@ -271,10 +272,10 @@ Template.submessage.helpers
       console.warn "Sanitized '#{title}' -> '#{sanitized}'" if sanitized != title
       sanitized
   formatBody: ->
-    history = Template.instance().history.get() ? @
+    history = messageHistory.get(@_id) ? @
     body = history.body
     return body unless body
-    if Template.instance().raw.get()
+    if messageRaw.get @_id
       "<PRE CLASS='raw'>#{_.escape body}</PRE>"
     else
       body = formatBody history.format, body
@@ -292,13 +293,13 @@ Template.submessage.helpers
   canReply: -> canPost @group, @_id
   canAttach: -> canPost @group, @_id
 
-  history: -> Template.instance().history.get()?
+  history: -> messageHistory.get(@_id)?
   forHistory: ->
     _id: @_id
-    history: Template.instance().history
+    history: messageHistory.get @_id
 
-  folded: -> Template.instance().folded.get()
-  raw: -> Template.instance().raw.get()
+  folded: -> messageFolded.get @_id
+  raw: -> messageRaw.get @_id
 
 Template.registerHelper 'messagePanelClass', ->
   if @deleted
@@ -318,12 +319,12 @@ Template.submessage.events
   'click .foldButton': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
-    t.folded.set not t.folded.get()
+    messageFolded.set @_id, not messageFolded.get @_id
 
   'click .rawButton': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
-    t.raw.set not t.raw.get()
+    messageRaw.set @_id, not messageRaw.get @_id
 
   'click .editButton': (e, t) ->
     e.preventDefault()
@@ -357,7 +358,7 @@ Template.submessage.events
   'click .editorKeyboard': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
-    t.keyboard.set kb = e.target.getAttribute 'data-keyboard'
+    messageKeyboard.set @_id, kb = e.target.getAttribute 'data-keyboard'
     t.editor.setKeyboardHandler if kb == 'ace' then '' else 'ace/keyboard/' + kb
     $(e.target).parent().dropdown 'toggle'
 
@@ -397,10 +398,10 @@ Template.submessage.events
   'click .historyButton': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
-    if t.history.get()?
-      t.history.set null
+    if messageHistory.get(@_id)?
+      messageHistory.set @_id, null
     else
-      t.history.set _.clone @
+      messageHistory.set @_id, _.clone @
 
   'click .superdeleteButton': (e) ->
     e.preventDefault()
@@ -466,8 +467,8 @@ Template.messageHistory.onRendered ->
     @slider.setValue diffs.length-1
     #@slider.off 'change'
     @slider.on 'change', (e) =>
-      @data.history.set diffs[e.newValue]
-    @data.history.set diffs[diffs.length-1]
+      messageHistory.set @data._id, diffs[e.newValue]
+    messageHistory.set @data._id, diffs[diffs.length-1]
 
 uploader = (template, button, input, callback) ->
   Template[template].events {
