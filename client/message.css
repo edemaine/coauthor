@@ -3,13 +3,12 @@
 .title { font-weight: bold; vertical-align: middle; }
 input.title { width: 100%; }
 .author { font-style: italic; }
-.message .author { text-align: right; margin-right: 1em; }
-.message-footer { width: 100%; }
-.message-footer td { padding: 0ex 1em; }
+.message-footer { width: 100%; padding: 0ex 1em; margin-top: -15px; }
 .message-deleted > .message-body, .message-unpublished > .message-body { opacity: 0.6; }
 
-.message-right-buttons { margin: -5px -10px; } /* cf. panel-heading's padding of 10px 15px */
+.message-right-buttons { margin: -5px -10px -5px 5px; } /* cf. panel-heading's padding of 10px 15px */
 input.title ~ .message-right-buttons { margin: 0px; }
+.message-reply-buttons { margin-right: 1em; }
 
 .ace_editor { width: 100%; height: 20em; }
 
