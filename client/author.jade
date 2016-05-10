@@ -1,0 +1,17 @@
+template(name='author')
+  if groupData
+    .panel.panel-primary
+      .panel-heading
+        span.title.panel-title= author
+      .panel-body
+        each messages
+          +readMessage
+      .panel-footer
+        i= messageCount
+        | messages by #{author} in group #{group}
+        span.space
+        //xxx can't search global yet -- would need to load all messages in all groups!
+        //if wildLink
+        //  a.btn.btn-warning(href=wildLink) Search All Groups
+  else
+    +badGroup

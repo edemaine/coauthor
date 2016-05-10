@@ -90,9 +90,13 @@ Template.group.helpers
       root: null
     .count(), 'root message')
   members: ->
-    (GroupsMembers.findOne
-      group: @group
-    ?.members ? []).join(', ') or '(none)'
+    members =
+      for member in groupMembers @group
+        linkToAuthor @group, member
+    if members.length > 0
+      members.join(', ')
+    else
+      '(none)'
 
 Template.postButtons.helpers
   disableClass: ->

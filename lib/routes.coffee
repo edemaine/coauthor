@@ -91,6 +91,15 @@ Router.route '/:group/live',
     group: @params.group
     limit: 50
 
+Router.route '/:group/author/:author',
+  name: 'author'
+  subscriptions: -> [
+    Meteor.subscribe 'messages', @params.group
+  ]
+  data: ->
+    group: @params.group
+    author: @params.author
+
 @wildGroupRoute = 'GLOBAL'
 
 Router.route '/:group/users',

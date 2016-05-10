@@ -13,7 +13,7 @@ template(name="message")
         .subscribers.alert.alert-info
           p
             b Users subscribed to notifications about this thread:
-          p {{subscribers}}
+          p !{subscribers}
       if orphanCount
         .orphans.alert.alert-warning
           b
@@ -142,12 +142,7 @@ template(name="submessage")
             button.btn.btn-default.replyButton Reply
           if canAttach
             +messageAttach
-        .author.text-right
-          if published
-            | (posted by
-          else
-            | (created by
-          | #{creator} {{formatDate created prefix='on '}}#{formatAuthors})
+        +messageAuthor
       .children
         each children
           +submessage
@@ -157,6 +152,14 @@ template(name="submessage")
             button.btn.btn-default.replyButton Reply
           if canAttach
             +messageAttach
+
+template(name="messageAuthor")
+  .author.text-right
+    if published
+      | (posted by
+    else
+      | (created by
+    | !{formatCreator} {{formatDate created prefix='on '}}!{formatAuthors})
 
 template(name="formatSelector")
   .btn-group

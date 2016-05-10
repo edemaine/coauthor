@@ -77,6 +77,11 @@
 if Meteor.isClient
   @MessagesSubscribers = new Mongo.Collection 'messages.subscribers'
 
+  @messageSubscribers = (msg) ->
+    unless _.isString msg
+      msg = msg._id
+    MessagesSubscribers.findOne(msg)?.subscribers ? []
+
 if Meteor.isServer
   Meteor.publish 'notifications', () ->
     @autorun ->

@@ -43,7 +43,13 @@ orphans = (message) ->
 
 Template.message.helpers
   subscribers: ->
-    ((MessagesSubscribers.findOne(@_id)?.subscribers ? []).join ', ') or '(none)'
+    subscribers =
+      for subscriber in messageSubscribers @_id
+        linkToAuthor @group, subscriber
+    if subscribers.length > 0
+      subscribers.join(', ')
+    else
+      '(none)'
   orphans: ->
     orphans @_id
   orphanCount: ->
@@ -334,9 +340,18 @@ Template.registerHelper 'messagePanelClass', ->
   else
     'panel-warning message-unpublished'
 
+@linkToAuthor = (group, user) ->
+  link = pathFor 'author',
+    group: group
+    author: user
+  "<a href='#{link}'>#{user}</a>"
+
+Template.registerHelper 'formatCreator', ->
+  linkToAuthor @group, @creator
+
 Template.registerHelper 'formatAuthors', ->
   a = for own author, date of @authors when author != @creator or date.getTime() != @created.getTime()
-        "#{unescapeUser author} #{formatDate date, 'on '}"
+        "#{linkToAuthor @group, unescapeUser author} #{formatDate date, 'on '}"
   if a.length > 0
     ', edited by ' + a.join ", "
 
@@ -550,3 +565,7 @@ replaceFiles = (files, e, t) ->
     Files.resumable.addFile file, e
 
 uploader 'messageReplace', 'replaceButton', 'replaceInput', replaceFiles
+
+Template.messageAuthor.helpers
+  creator: ->
+    "!" + @creator

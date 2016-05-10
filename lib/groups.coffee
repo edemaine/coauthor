@@ -81,6 +81,11 @@ if Meteor.isServer
 if Meteor.isClient
   @GroupsMembers = new Mongo.Collection 'groups.members'
 
+  @groupMembers = (group) ->
+    GroupsMembers.findOne
+      group: group
+    ?.members ? []
+
 Meteor.methods
   setRole: (group, user, role, yesno) ->
     check group, String

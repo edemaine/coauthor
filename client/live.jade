@@ -39,10 +39,5 @@ template(name='readMessage')
           span.label.label-warning Unpublished
     unless folded
       .panel-body.message-body.tex2jax !{formatBody}
-      .message-footer.clearfix
-        .author.pull-right
-          if published
-            | (posted by
-          else
-            | (created by
-          | #{creator} {{formatDate created prefix='on '}}#{formatAuthors})
+      .message-footer
+        +messageAuthor
