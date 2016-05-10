@@ -69,6 +69,7 @@ minimongo@1.0.16
 mizzao:bootstrap-3@3.3.1_1
 mizzao:sharejs@0.8.0
 mizzao:sharejs-ace@1.3.0
+mizzao:sharejs-codemirror@4.12.1
 mnmtanish:iced@1.1.0
 mobile-experience@1.0.4
 mobile-status-bar@1.0.12

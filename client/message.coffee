@@ -1,3 +1,5 @@
+sharejsEditor = 'ace'  ## 'ace' or 'cm'; also change template used in message.jade
+
 Template.registerHelper 'titleOrUntitled', ->
   titleOrUntitled @.title
 
@@ -224,26 +226,46 @@ Template.submessage.helpers
       #    #  when 'latex'
       #    #    e.dataTransfer.setData('text/plain', "\\href{#{id}}{}")
       #    e.dataTransfer.setData('text/plain', "<IMG SRC='coauthor:#{id}'>")
-      editor.textInput.getElement().setAttribute 'tabindex', 1 + 20 * ti.count + 19
-      #editor.meteorData = @  ## currently not needed, also dunno if works
-      editor.$blockScrolling = Infinity
-      #editor.on 'change', onChange
-      editor.setTheme 'ace/theme/' +
-        switch theme()
-          when 'dark'
-            'vibrant_ink'
-          when 'light'
-            'chrome'
-          else
-            theme()
-      editor.getSession().setMode 'ace/mode/html'
-      editor.setShowPrintMargin false
-      editor.setBehavioursEnabled true
-      editor.setShowFoldWidgets true
-      editor.getSession().setUseWrapMode true
-      #console.log "setting format to #{ti.data.format}"
-      editor.getSession().setMode "ace/mode/#{ti.data.format}"
-      #editor.setOption 'spellcheck', true
+      switch sharejsEditor
+        when 'cm'
+          editor.getInputField().setAttribute 'tabindex', 1 + 20 * ti.count + 19
+          #editor.meteorData = @  ## currently not needed, also dunno if works
+          #editor.on 'change', onChange
+          editor.setOption 'styleActiveLine', true
+          editor.setOption 'matchBrackets', true
+          editor.setOption 'lineWrapping', true
+          editor.setOption 'lineNumbers', true
+          editor.setOption 'theme',
+            switch theme()
+              when 'dark'
+                'blackboard'
+              when 'light'
+                'default'
+              else
+                theme()
+          #editor.setShowFoldWidgets true
+          editor.setOption 'mode', ti.data.format
+        when 'ace'
+          editor.textInput.getElement().setAttribute 'tabindex', 1 + 20 * ti.count + 19
+          #editor.meteorData = @  ## currently not needed, also dunno if works
+          editor.$blockScrolling = Infinity
+          #editor.on 'change', onChange
+          editor.setTheme 'ace/theme/' +
+            switch theme()
+              when 'dark'
+                'vibrant_ink'
+              when 'light'
+                'chrome'
+              else
+                theme()
+          editor.getSession().setMode 'ace/mode/html'
+          editor.setShowPrintMargin false
+          editor.setBehavioursEnabled true
+          editor.setShowFoldWidgets true
+          editor.getSession().setUseWrapMode true
+          #console.log "setting format to #{ti.data.format}"
+          editor.getSession().setMode "ace/mode/#{ti.data.format}"
+          #editor.setOption 'spellcheck', true
 
   keyboard: ->
     capitalize messageKeyboard.get(@_id) ? defaultKeyboard
@@ -372,7 +394,11 @@ Template.submessage.events
       format: format = e.target.getAttribute 'data-format'
     $(e.target).parent().dropdown 'toggle'
     #console.log "setting format to #{format}"
-    Template.instance().editor.getSession().setMode "ace/mode/#{format}"
+    switch sharejsEditor
+      when 'cm'
+        Template.instance().editor.setOption 'mode', format
+      when 'ace'
+        Template.instance().editor.getSession().setMode "ace/mode/#{format}"
 
   'keyup input.title': (e, t) ->
     e.stopPropagation()

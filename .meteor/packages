@@ -27,7 +27,6 @@ ejson
 spacebars
 check
 mizzao:sharejs
-mizzao:sharejs-ace
 djedi:sanitize-html-client
 reactive-var
 silentcicero:jszip
@@ -53,3 +52,5 @@ standard-minifier-js
 reactive-dict
 ecmascript
 edemaine:bootstrap-slider
+mizzao:sharejs-codemirror
+mizzao:sharejs-ace
