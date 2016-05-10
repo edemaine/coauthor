@@ -237,7 +237,7 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
       if cmsg.root?
         ## If we move a nonroot message to have new root, update descendants.
         descendants = descendantMessageIds child
-        if descendants.length > 1
+        if descendants.length > 0
           Messages.update
             _id: $in: descendants
           ,
