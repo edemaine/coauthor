@@ -16,7 +16,9 @@ template(name="users")
     tbody
       each users
         tr(data-username=username)
-          th #{username}
+          th
+            div.username #{username}
+            div.createdAt created {{formatDate createdAt}}
           td(data-role="read") !{readRole}
           td(data-role="post") !{postRole}
           td(data-role="edit") !{editRole}

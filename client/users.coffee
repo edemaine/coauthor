@@ -35,7 +35,8 @@ Template.users.onCreated ->
 
 Template.users.helpers
   users: ->
-    Meteor.users.find()
+    Meteor.users.find {},
+      sort: [['createdAt', 'asc']]
   showAnonymous: ->
     @group != wildGroup
   showInvitations: ->
