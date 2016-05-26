@@ -82,7 +82,7 @@ template(name="submessage")
       else
         unless published
           span.label.label-warning Unpublished
-      .message-right-buttons.btn-group.pull-right
+      .message-right-buttons.btn-group.pull-right.hidden-print
         if raw
           button.btn.btn-warning.rawButton(tabindex="{{tabindex 1}}") Formatted
         else
@@ -137,7 +137,7 @@ template(name="submessage")
             +sharejsAce docid=editingNR onRender=config
       .panel-body.message-body(class=tex2jax) !{formatBody}
       .message-footer.clearfix
-        .message-reply-buttons.btn-group.pull-left
+        .message-reply-buttons.btn-group.pull-left.hidden-print
           if canReply
             button.btn.btn-default.replyButton Reply
           if canAttach
@@ -147,7 +147,7 @@ template(name="submessage")
         each children
           +submessage
       if children
-        .panel-body.panel-secondbody.btn-group
+        .panel-body.panel-secondbody.btn-group.hidden-print
           if canReply
             button.btn.btn-default.replyButton Reply
           if canAttach

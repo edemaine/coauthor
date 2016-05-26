@@ -34,3 +34,8 @@ nav.contents { overflow-y: scroll; padding-bottom: 5px; }
 code.raw { color: #333; }  /* match <pre> */
 
 .root { margin-bottom: 0px; } /* glom onto message below */
+
+@media print {
+  a[href].btn:after { content: ""; } /* override Bootstrap default */
+  a[href].author:after { content: ""; } /* override Bootstrap default */
+}

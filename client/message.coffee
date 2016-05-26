@@ -344,7 +344,7 @@ Template.registerHelper 'messagePanelClass', ->
   link = pathFor 'author',
     group: group
     author: user
-  "<a href='#{link}'>#{user}</a>"
+  "<a class='author' href='#{link}'>#{user}</a>"
 
 Template.registerHelper 'formatCreator', ->
   linkToAuthor @group, @creator
