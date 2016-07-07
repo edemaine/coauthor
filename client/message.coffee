@@ -1,4 +1,4 @@
-sharejsEditor = 'ace'  ## 'ace' or 'cm'; also change template used in message.jade
+sharejsEditor = 'cm'  ## 'ace' or 'cm'; also change template used in message.jade
 
 Template.registerHelper 'titleOrUntitled', ->
   titleOrUntitled @.title
