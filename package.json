@@ -16,5 +16,8 @@
     "url": "https://github.com/edemaine/coauthor/issues"
   },
   "homepage": "https://github.com/edemaine/coauthor#readme",
-  "dependencies": {}
+  "dependencies": {
+    "meteor-node-stubs": "^0.2.3",
+    "sanitize-html": "^1.12.0"
+  }
 }

@@ -27,7 +27,6 @@ ejson
 spacebars
 check
 mizzao:sharejs
-djedi:sanitize-html-client
 reactive-var
 silentcicero:jszip
 
@@ -46,7 +45,6 @@ force-ssl
 natestrauser:jquery-scrollto
 underscorestring:underscore.string
 momentjs:moment
-djedi:sanitize-html
 standard-minifier-css
 standard-minifier-js
 reactive-dict
