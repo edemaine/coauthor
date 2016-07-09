@@ -269,6 +269,8 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
 if Meteor.isServer
   editorTimers = {}
 
+  `import {ShareJS} from 'meteor/mizzao:sharejs'`
+
   editor2messageUpdate = (id) ->
     Meteor.clearTimeout editorTimers[id]
     doc = Meteor.wrapAsync(ShareJS.model.getSnapshot) id
