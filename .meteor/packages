@@ -7,10 +7,10 @@ mquandalle:jade
 iron:router
 email@1.1.18
 mizzao:bootstrap-3
-coffeescript@1.11.1_2
+coffeescript@1.11.1_3
 underscore@1.0.10
 ian:accounts-ui-bootstrap-3
-accounts-password@1.3.1
+accounts-password@1.3.2
 sacha:spin
 
 meteor-base@1.0.4
@@ -52,4 +52,4 @@ ecmascript@0.5.9
 edemaine:bootstrap-slider
 mizzao:sharejs-codemirror
 mizzao:sharejs-ace
-shell-server
+shell-server@0.2.1
