@@ -7,10 +7,10 @@ mquandalle:jade
 iron:router
 email@1.1.18
 mizzao:bootstrap-3
-coffeescript@1.11.1_3
+coffeescript@1.11.1_4
 underscore@1.0.10
 ian:accounts-ui-bootstrap-3
-accounts-password@1.3.2
+accounts-password@1.3.3
 sacha:spin
 
 meteor-base@1.0.4
@@ -48,7 +48,7 @@ momentjs:moment
 standard-minifier-css@1.3.2
 standard-minifier-js@1.2.1
 reactive-dict@1.1.8
-ecmascript@0.5.9
+ecmascript@0.6.1
 edemaine:bootstrap-slider
 mizzao:sharejs-codemirror
 mizzao:sharejs-ace
