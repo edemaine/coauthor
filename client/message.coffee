@@ -413,8 +413,8 @@ Template.submessage.events
         if kb == 'normal'
           t.editor.setOption 'keyMap', ''
         else
-          require 'codemirror/keymap/vim'
-          require 'codemirror/keymap/emacs'
+          #require 'codemirror/keymap/vim'
+          #require 'codemirror/keymap/emacs'
           t.editor.setOption 'keyMap', kb
       when 'ace'
         t.editor.setKeyboardHandler if kb == 'normal' then '' else 'ace/keyboard/' + kb
