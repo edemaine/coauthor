@@ -251,6 +251,8 @@ Template.submessage.helpers
                 theme()
           #editor.setShowFoldWidgets true
           editor.setOption 'mode', ti.data.format
+          #editor.setOption 'mode', 'javascript'
+          #require 'codemirror/mode/javascript/javascript'
         when 'ace'
           editor.textInput.getElement().setAttribute 'tabindex', 1 + 20 * ti.count + 19
           #editor.meteorData = @  ## currently not needed, also dunno if works
@@ -399,7 +401,16 @@ Template.submessage.events
     e.preventDefault()
     e.stopPropagation()
     messageKeyboard.set @_id, kb = e.target.getAttribute 'data-keyboard'
-    t.editor.setKeyboardHandler if kb == 'normal' then '' else 'ace/keyboard/' + kb
+    switch sharejsEditor
+      when 'cm'
+        if kb == 'normal'
+          t.editor.setOption 'keyMap', ''
+        else
+          require 'codemirror/keymap/vim'
+          require 'codemirror/keymap/emacs'
+          t.editor.setOption 'keyMap', kb
+      when 'ace'
+        t.editor.setKeyboardHandler if kb == 'normal' then '' else 'ace/keyboard/' + kb
     $(e.target).parent().dropdown 'toggle'
 
   'click .editorFormat': (e, t) ->
