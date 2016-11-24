@@ -66,6 +66,10 @@ Template.postButtons.helpers
     linkToSort
       key: sortBy().key
       reverse: not sortBy().reverse
+  linkToMyPosts: ->
+    pathFor 'author',
+      group: routeGroup()
+      author: Meteor.user().username
 
 Template.registerHelper 'groups', ->
   Groups.find()
