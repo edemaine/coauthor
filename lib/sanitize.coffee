@@ -15,3 +15,4 @@ sanitizeHtml.defaults.allowedAttributes.video = ['controls']
 sanitizeHtml.defaults.allowedTags.push 'source'
 sanitizeHtml.defaults.allowedAttributes.source = ['src']
 sanitizeHtml.defaults.selfClosing.push 'source'
+sanitizeHtml.defaults.allowedTags.push 'del'  ## for Markdown ~~strikethrough~~

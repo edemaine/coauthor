@@ -133,8 +133,8 @@ template(name="submessage")
       else
         with nothing
           if editingRV
-            +sharejsCM docid=editingNR onRender=config
-            //+sharejsAce docid=editingNR onRender=config
+            //+sharejsCM docid=editingNR onRender=config
+            +sharejsAce docid=editingNR onRender=config
       .panel-body.message-body(class=tex2jax) !{formatBody}
       .message-footer.clearfix
         .message-reply-buttons.btn-group.pull-left.hidden-print

@@ -1,3 +1,0 @@
-glob:.meteor/local
-glob:*.swp
-glob:.backup/latest

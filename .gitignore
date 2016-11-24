@@ -1,0 +1,4 @@
+.meteor/local
+*.swp
+.backup/coauthor-backup
+node_modules
