@@ -39,3 +39,11 @@ code.raw { color: #333; }  /* match <pre> */
   a[href].btn:after { content: ""; } /* override Bootstrap default */
   a[href].author:after { content: ""; } /* override Bootstrap default */
 }
+
+/* Based on Github's .markdown-body styling e.g.
+ * https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet#tables
+ */
+.message-body table { margin-bottom: 16px }
+.message-body table td, .message-body table th { padding: 6px 13px; border: 1px solid #ddd }
+.message-body table tr { background-color: #ffffff; }
+.message-body table tr:nth-child(2n) { background-color: #f8f8f8; }
