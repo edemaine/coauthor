@@ -4,7 +4,8 @@ MathJax-grunt-cleaner
 A grunt file to reduce the footprint of a MathJax installation
 
 ERIK'S NOTE: Before using, copy MathJax installation here, and then
-npm install grunt grunt-contrib-clean grunt-regex-replace
+        npm install grunt grunt-contrib-clean grunt-regex-replace
+and finally rm -r node_modules
 
 Latest version at https://github.com/pkra/MathJax-grunt-cleaner
 
@@ -449,9 +450,9 @@ module.exports = function(grunt) {
     "clean:mathmlInput",
     //"clean:texInput",
     //       Output
-    "clean:htmlCssOutput",
-    //"clean:mathmlOutput",
-    //"clean:svgOutput",
+    //"clean:htmlCssOutput",
+    "clean:mathmlOutput",
+    "clean:svgOutput",
     // Extensions. You probably want to leave the set matching your choices.
     "clean:extensionsAsciimath",
     "clean:extensionsMathml",
