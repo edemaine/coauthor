@@ -250,7 +250,14 @@ Template.submessage.helpers
               else
                 theme()
           #editor.setShowFoldWidgets true
-          editor.setOption 'mode', ti.data.format
+          editor.setOption 'mode',
+            switch ti.data.format
+              when 'markdown'
+                'gfm'  ## Git-flavored Markdown
+              when 'html'
+                'text/html'
+              else
+                ti.data.format
           #editor.setOption 'mode', 'javascript'
           #require 'codemirror/mode/javascript/javascript'
         when 'ace'
