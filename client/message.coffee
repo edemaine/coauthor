@@ -273,12 +273,12 @@ Template.submessage.helpers
                 'chrome'
               else
                 theme()
-          editor.getSession().setMode 'ace/mode/html'
           editor.setShowPrintMargin false
           editor.setBehavioursEnabled true
           editor.setShowFoldWidgets true
           editor.getSession().setUseWrapMode true
           #console.log "setting format to #{ti.data.format}"
+          #editor.getSession().setMode 'ace/mode/html'
           editor.getSession().setMode "ace/mode/#{ti.data.format}"
           #editor.setOption 'spellcheck', true
 
