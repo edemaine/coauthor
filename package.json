@@ -10,12 +10,16 @@
     "type": "git",
     "url": "git+https://github.com/edemaine/coauthor.git"
   },
-  "author": "Erik Demaine",
+  "author": {
+    "name": "Erik Demaine",
+    "email": "edemaine@mit.edu",
+    "url": "http://erikdemaine.org/"
+  },
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/edemaine/coauthor/issues"
   },
-  "homepage": "https://github.com/edemaine/coauthor#readme",
+  "homepage": "https://github.com/edemaine/coauthor",
   "dependencies": {
     "babel-runtime": "^6.18.0",
     "bcrypt": "^0.8.7",
