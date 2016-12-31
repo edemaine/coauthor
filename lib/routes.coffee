@@ -1,8 +1,10 @@
+@Subscribe = new SubsManager
+
 Router.configure
   layoutTemplate: 'layout'
   loadingTemplate: 'loading'
   subscriptions: -> [
-    Meteor.subscribe 'groups'
+    Subscribe.subscribe 'groups'
   ]
 
 Router.route '/:group/m/:message',
@@ -21,8 +23,8 @@ Router.route '/:group/m/:message',
   name: 'message'
   template: 'messageMaybe'
   subscriptions: -> [
-    Meteor.subscribe 'messages', @params.group
-    Meteor.subscribe 'messages.subscribers', @params.message
+    Subscribe.subscribe 'messages', @params.group
+    Subscribe.subscribe 'messages.subscribers', @params.message
   ]
   data: ->
     Messages.findOne @params.message
@@ -37,8 +39,8 @@ Router.route '/:group',
   #,
   name: 'group'
   subscriptions: -> [
-    Meteor.subscribe 'messages', @params.group
-    Meteor.subscribe 'groups.members', @params.group
+    Subscribe.subscribe 'messages', @params.group
+    Subscribe.subscribe 'groups.members', @params.group
   ]
   data: ->
     group: @params.group
@@ -47,8 +49,8 @@ Router.route '/:group/+:sortBy?',
   name: 'group.sorted.forward'
   template: 'group'
   subscriptions: -> [
-    Meteor.subscribe 'messages', @params.group
-    Meteor.subscribe 'groups.members', @params.group
+    Subscribe.subscribe 'messages', @params.group
+    Subscribe.subscribe 'groups.members', @params.group
   ]
   data: ->
     group: @params.group
@@ -57,8 +59,8 @@ Router.route '/:group/-:sortBy?',
   name: 'group.sorted.reverse'
   template: 'group'
   subscriptions: -> [
-    Meteor.subscribe 'messages', @params.group
-    Meteor.subscribe 'groups.members', @params.group
+    Subscribe.subscribe 'messages', @params.group
+    Subscribe.subscribe 'groups.members', @params.group
   ]
   data: ->
     group: @params.group
@@ -66,7 +68,7 @@ Router.route '/:group/-:sortBy?',
 Router.route '/:group/since/:since',
   name: 'since'
   subscriptions: -> [
-    Meteor.subscribe 'messages', @params.group
+    Subscribe.subscribe 'messages', @params.group
   ]
   data: ->
     group: @params.group
@@ -75,7 +77,7 @@ Router.route '/:group/since/:since',
 Router.route '/:group/live/:limit',
   name: 'live'
   subscriptions: -> [
-    Meteor.subscribe 'messages', @params.group
+    Subscribe.subscribe 'messages', @params.group
   ]
   data: ->
     group: @params.group
@@ -85,7 +87,7 @@ Router.route '/:group/live',
   name: 'live.default'
   template: 'live'
   subscriptions: -> [
-    Meteor.subscribe 'messages', @params.group
+    Subscribe.subscribe 'messages', @params.group
   ]
   data: ->
     group: @params.group
@@ -94,7 +96,7 @@ Router.route '/:group/live',
 Router.route '/:group/author/:author',
   name: 'author'
   subscriptions: -> [
-    Meteor.subscribe 'messages', @params.group
+    Subscribe.subscribe 'messages', @params.group
   ]
   data: ->
     group: @params.group
@@ -105,7 +107,7 @@ Router.route '/:group/author/:author',
 Router.route '/:group/users',
   name: 'users'
   subscriptions: -> [
-    Meteor.subscribe 'users'
+    Subscribe.subscribe 'users'
   ]
   data: ->
     group: routeGroup()
