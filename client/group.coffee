@@ -44,33 +44,6 @@ Template.registerHelper 'groupData', groupData
     group: routeGroup()
     sortBy: sort.key
 
-Template.postButtons.helpers
-  sortBy: ->
-    capitalize sortBy().key
-  sortReverse: ->
-    sortBy().reverse
-  activeSort: ->
-    if sortBy().key == @key
-      'active'
-    else
-      ''
-  capitalizedKey: ->
-    capitalize @key
-  sortKeys: ->
-    key: key for key in sortKeys
-  linkToSort: ->
-    linkToSort
-      key: @key
-      reverse: sortBy().reverse
-  linkToReverse: ->
-    linkToSort
-      key: sortBy().key
-      reverse: not sortBy().reverse
-  linkToMyPosts: ->
-    pathFor 'author',
-      group: routeGroup()
-      author: Meteor.user().username
-
 Template.registerHelper 'groups', ->
   Groups.find()
 
@@ -103,6 +76,39 @@ Template.group.helpers
       '(none)'
 
 Template.postButtons.helpers
+  sortBy: ->
+    capitalize sortBy().key
+  sortReverse: ->
+    sortBy().reverse
+  activeSort: ->
+    if sortBy().key == @key
+      'active'
+    else
+      ''
+  capitalizedKey: ->
+    capitalize @key
+  sortKeys: ->
+    key: key for key in sortKeys
+  linkToSort: ->
+    linkToSort
+      key: @key
+      reverse: sortBy().reverse
+  linkToReverse: ->
+    linkToSort
+      key: sortBy().key
+      reverse: not sortBy().reverse
+
+  disableMyPosts: ->
+    if Meteor.userId()?
+      ''
+    else
+      'disabled'
+  linkToMyPosts: ->
+    return null unless Meteor.userId()?
+    pathFor 'author',
+      group: routeGroup()
+      author: Meteor.user().username
+
   disableClass: ->
     if canPost @group
       ''
@@ -218,9 +224,9 @@ Template.messageList.helpers
         when 'title'
           key = (msg) -> titleSort msg.title
         when 'posts'
-          key = (msg) -> submessageCount msg
+          key = (msg) -> msg.submessageCount
         when 'updated'
-          key = (msg) -> lastSubmessageUpdate(msg).getTime()
+          key = (msg) -> msg.submessageLastUpdate.getTime()
         when 'subscribe'
           key = (msg) -> subscribedToMessage msg._id
       msgs = msgs.fetch()
@@ -231,19 +237,6 @@ Template.messageList.helpers
 Template.messageShort.onRendered ->
   mathjax()
 
-@submessageCount = (message) ->
-  Messages.find
-    root: message._id
-  .count()
-
-@lastSubmessageUpdate = (message) ->
-  updated = message.updated
-  Messages.find
-    root: message._id
-  .forEach (submessage) ->
-    updated = dateMax updated, submessage.updated
-  updated
-
 Template.messageShort.helpers
   formatTitle: ->
     sanitizeHtml formatTitle @format, titleOrUntitled @title
@@ -251,17 +244,13 @@ Template.messageShort.helpers
     pathFor 'message',
       group: @group
       message: @_id
-  submessageCount: ->
-    submessageCount @
   zeroClass: ->
-    if 0 == Messages.find(
-              root: @_id
-            ).count()
+    if 0 == @submessageCount
       'badge-zero'
     else
       ''
-  lastSubmessageUpdate: ->
-    formatDate lastSubmessageUpdate @
+  submessageLastUpdate: ->
+    formatDate @submessageLastUpdate
   subscribed: ->
     subscribedToMessage @_id
 

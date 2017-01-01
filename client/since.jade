@@ -7,15 +7,16 @@ template(name='since')
           span.space
           | since
           input(type='text', size='10', value=since).form-control#sinceInput
+          | = #{parseSince}
       .panel-body
         if valid
           each messages
             +readMessage
         else
-          .alert.alert-danger(role="alert") Invalid since query.  Examples: "-5 days" or "2016-01-01 15:30" or "0:00".
+          .alert.alert-danger(role="alert") Invalid &ldquo;since&rdquo; query.  Examples: &ldquo;5 days&rdquo; or &ldquo;2016-01-01 15:30&rdquo; or &ldquo;0:00&rdquo;.
       if valid
         .panel-footer.clearfix
           i= messageCount
-          | messages in this time range
+          | since #{parseSince}
   else
     +badGroup

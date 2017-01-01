@@ -1,3 +1,4 @@
+#@Subscribe = Meteor
 @Subscribe = new SubsManager
 
 Router.configure
@@ -23,7 +24,7 @@ Router.route '/:group/m/:message',
   name: 'message'
   template: 'messageMaybe'
   subscriptions: -> [
-    Subscribe.subscribe 'messages', @params.group
+    Subscribe.subscribe 'messages.submessages', @params.message
     Subscribe.subscribe 'messages.subscribers', @params.message
   ]
   data: ->
@@ -39,7 +40,7 @@ Router.route '/:group',
   #,
   name: 'group'
   subscriptions: -> [
-    Subscribe.subscribe 'messages', @params.group
+    Subscribe.subscribe 'messages.root', @params.group
     Subscribe.subscribe 'groups.members', @params.group
   ]
   data: ->
@@ -49,7 +50,7 @@ Router.route '/:group/+:sortBy?',
   name: 'group.sorted.forward'
   template: 'group'
   subscriptions: -> [
-    Subscribe.subscribe 'messages', @params.group
+    Subscribe.subscribe 'messages.root', @params.group
     Subscribe.subscribe 'groups.members', @params.group
   ]
   data: ->
@@ -59,7 +60,7 @@ Router.route '/:group/-:sortBy?',
   name: 'group.sorted.reverse'
   template: 'group'
   subscriptions: -> [
-    Subscribe.subscribe 'messages', @params.group
+    Subscribe.subscribe 'messages.root', @params.group
     Subscribe.subscribe 'groups.members', @params.group
   ]
   data: ->
@@ -68,7 +69,7 @@ Router.route '/:group/-:sortBy?',
 Router.route '/:group/since/:since',
   name: 'since'
   subscriptions: -> [
-    Subscribe.subscribe 'messages', @params.group
+    Subscribe.subscribe 'messages.since', @params.group, @params.since
   ]
   data: ->
     group: @params.group
@@ -77,26 +78,28 @@ Router.route '/:group/since/:since',
 Router.route '/:group/live/:limit',
   name: 'live'
   subscriptions: -> [
-    Subscribe.subscribe 'messages', @params.group
+    Subscribe.subscribe 'messages.live', @params.group, @params.limit
   ]
   data: ->
     group: @params.group
     limit: @params.limit
 
+defaultLiveLimit = 50
+
 Router.route '/:group/live',
   name: 'live.default'
   template: 'live'
   subscriptions: -> [
-    Subscribe.subscribe 'messages', @params.group
+    Subscribe.subscribe 'messages.live', @params.group, defaultLiveLimit
   ]
   data: ->
     group: @params.group
-    limit: 50
+    limit: defaultLiveLimit
 
 Router.route '/:group/author/:author',
   name: 'author'
   subscriptions: -> [
-    Subscribe.subscribe 'messages', @params.group
+    Subscribe.subscribe 'messages.author', @params.group, @params.author
   ]
   data: ->
     group: @params.group

@@ -19,6 +19,26 @@
     query.group = group
   Messages.find query
 
+_submessageCount = (root) ->
+  root = root._id if root._id?
+  Messages.find
+    root: root
+    published: $ne: false    ## published is false or Date
+    deleted: false
+  .count()
+
+_submessageLastUpdate = (root) ->
+  root = Messages.findOne root unless root._id?
+  return null unless root?
+  updated = root.updated
+  Messages.find
+    root: root._id
+    published: $ne: false    ## published is false or Date
+    deleted: false
+  .forEach (submessage) ->
+    updated = dateMax updated, submessage.updated
+  updated
+
 ## Works from nonroot messages via recursion.  Doesn't include message itself.
 @descendantMessageIds = (message) ->
   descendants = []
@@ -31,36 +51,124 @@
   descendants
 
 if Meteor.isServer
-  Meteor.publish 'messages', (group) ->
-    check group, String
-    @autorun ->
-      user = findUser @userId
-      ## Mimic logic of `canSee` below.
-      if groupRoleCheck group, 'super', user
-        ## Super-user can see all messages, even unpublished/deleted messages.
-        Messages.find
+  accessibleMessagesQuery = (group, user = Meteor.user()) ->
+    ## Mimic logic of `canSee` below.
+    if groupRoleCheck group, 'super', user
+      ## Super-user can see all messages, even unpublished/deleted messages.
+      group: group
+    else if groupRoleCheck group, 'read', user
+      ## Regular users can see all messages they authored, plus
+      ## published undeleted messages by others.
+      if user?.username
+        $and: [
           group: group
-      else if groupRoleCheck group, 'read', user
-        ## Regular users can see all messages they authored, plus
-        ## published undeleted messages by others.
-        if user?.username
-          Messages.find
-            $and: [
-              group: group
-            , $or: [
-                published: $ne: false    ## published is false or Date
-                deleted: false
-              , "authors.#{escapeUser user.username}": $exists: true
-              ]
-            ]  ## if you change this, change message.coffee's children helper
-        else
-          Messages.find
-            group: group
+        , $or: [
             published: $ne: false    ## published is false or Date
             deleted: false
+          , "authors.#{escapeUser user.username}": $exists: true
+          ]
+        ]  ## if you change this, change message.coffee's children helper
       else
-        @ready()
+        group: group
+        published: $ne: false    ## published is false or Date
+        deleted: false
+    else
+      null
 
+  Meteor.publish 'messages.all', (group) ->
+    check group, String
+    @autorun ->
+      query = accessibleMessagesQuery group, findUser @userId
+      return @ready() unless query?
+      Messages.find query
+
+  Meteor.publish 'messages.root', (group) ->
+    check group, String
+    @autorun ->
+      query = accessibleMessagesQuery group, findUser @userId
+      return @ready() unless query?
+      query.root = null
+      Messages.find query
+
+  Meteor.publish 'messages.submessages', (msgId) ->
+    check msgId, String
+    @autorun ->
+      message = Messages.findOne msgId
+      return @ready() unless message?.group?
+      query = accessibleMessagesQuery message.group, findUser @userId
+      return @ready() unless query?
+      root = message.root ? msgId
+      Messages.find
+        $and: [query,
+          $or: [
+            _id: root
+          , root: root
+          ]
+        ]
+
+  Meteor.publish 'messages.author', (group, author) ->
+    check group, String
+    check author, String
+    @autorun ->
+      query = accessibleMessagesQuery group, findUser @userId
+      return @ready() unless query?
+      ## Mimicking author.coffee's messagesBy
+      query["authors.#{escapeUser author}"] = $exists: true
+      query.published = $ne: false
+      query.deleted = false
+      Messages.find query
+
+@liveMessagesLimit = (limit) ->
+  sort: [['updated', 'desc']]
+  limit: parseInt limit
+
+if Meteor.isServer
+  Meteor.publish 'messages.live', (group, limit) ->
+    check group, String
+    limit = parseInt limit
+    check limit, Number
+    @autorun ->
+      query = accessibleMessagesQuery group, findUser @userId
+      return @ready() unless query?
+      ## Mimicking Template.live.helpers' messages
+      query.published = $ne: false
+      query.deleted = false
+      Messages.find query,
+        liveMessagesLimit limit
+
+@parseSince = (since) ->
+  try
+    match = /^\s*[+-]?\s*(\d+)\s*(\w+)\s*$/.exec since
+    if match?
+      moment().subtract(match[1], match[2]).toDate()
+    else
+      match = /^\s*(\d+)\s*:\s*(\d+)\s*$/.exec since
+      if match?
+        d = moment().hour(match[1]).minute(match[2])
+        if moment().diff(d) < 0
+          d = d.subtract(1, 'day')
+        d.toDate()
+      else
+        d = moment(since)
+        return null unless d.isValid()
+        d.toDate()
+  catch
+    null
+
+if Meteor.isServer
+  Meteor.publish 'messages.since', (group, since) ->
+    check group, String
+    check since, String
+    @autorun ->
+      query = accessibleMessagesQuery group, findUser @userId
+      return @ready() unless query?
+      pSince = parseSince since
+      return @ready() unless pSince?
+      ## Mimicking since.coffee's messagesSince
+      query.updated = $gte: pSince
+      Messages.find query
+
+if Meteor.isServer
   Meteor.publish 'messages.diff', (message) ->
     check message, String
     @autorun ->
@@ -70,6 +178,33 @@ if Meteor.isServer
       else
         @ready()
 
+#if Meteor.isServer
+#  Meteor.publish 'messages.summary', (group) ->
+#    check group, String
+#    roots = {}
+#    @autorun =>
+#      if groupRoleCheck group, 'read', findUser @userId
+#        rootMessages(group).forEach (root) =>
+#          summary =
+#            count: _submessageCount root
+#            updated: _submessageLastUpdate root
+#          id = root._id
+#          if id of roots
+#            @changed 'messages.summary', id, summary
+#          else
+#            summary.root = id
+#            @added 'messages.summary', id, summary
+#            roots[id] = true
+#    @ready()
+#
+#if Meteor.isClient
+#  @MessagesSummary = new Mongo.Collection 'messages.summary'
+#
+#  @messageSummary = (root) ->
+#    root = root._id if root._id?
+#    MessagesSummary.findOne root
+
+if Meteor.isServer
   ## Remove all editors on server start, so that we can restart listeners.
   Messages.find().forEach (message) ->
     if message.editing?.length
@@ -85,6 +220,7 @@ if Meteor.isServer
   ## is still needed in the server for messages.diff subscription above,
   ## and when simulating non-superuser mode in client/message.coffee.
   message = Messages.findOne message unless message._id?
+  return false unless message?
   group = message.group #message2group message
   if canSuper group, client, user #groupRoleCheck group, 'super', user
     ## Super-user can see all messages, even unpublished/deleted messages.
@@ -152,6 +288,16 @@ idle = 1000   ## one second
   message.title.trim().length == 0 and
   message.body.trim().length == 0
 
+_submessagesChanged = (root) ->
+  return unless root?
+  Messages.update root,
+    $set:
+      submessageCount: _submessageCount root
+      submessageLastUpdate: _submessageLastUpdate root
+
+if Meteor.isServer
+  rootMessages().forEach _submessagesChanged
+
 ## The following should be called directly only on the server;
 ## clients should use the corresponding method.
 @_messageUpdate = (id, message, authors = null, old = null) ->
@@ -197,6 +343,7 @@ idle = 1000   ## one second
   message.id = id
   diffid = MessagesDiff.insert message
   message._id = diffid
+  _submessagesChanged old.root ? id
   notifyMessageUpdate message if Meteor.isServer  ## client in simulation
   diffid
 
@@ -210,6 +357,9 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
   #check importing, Boolean
   if parent?
     pmsg = Messages.findOne parent
+    unless pmsg
+      console.log 'Missing parent', parent, 'for child', child
+      return  ## This should only happen in client simulation
     group = pmsg.group
     root = pmsg.root ? parent
   else
@@ -252,6 +402,8 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
           $set: root: root ? child  ## actually must be root
         ,
           multi: true
+      _submessagesChanged cmsg.root     ## old root
+      _submessagesChanged root ? child  ## new root
     doc =
       child: child
       parent: parent
@@ -326,7 +478,7 @@ Meteor.methods
       if message.published == true
         message.published = now
       message.deleted = false unless message.deleted?
-      ## Now handles by _messageParent
+      ## Now handled by _messageParent
       #if parent?
       #  pmsg = Messages.findOne parent
       #  message.root = pmsg.root ? parent
@@ -341,6 +493,8 @@ Meteor.methods
       MessagesDiff.insert message
       if parent?
         _messageParent id, parent, position, null  ## there's no old parent
+      else
+        _submessagesChanged message
       id
 
     ## Initial URL (short name) is the Mongo-provided ID.  User can edit later.
@@ -432,9 +586,9 @@ Meteor.methods
       for diff in diffs
         for author in diff.updators
           message.authors[author] = diff.updated
-      if parent?
-        pmsg = Messages.findOne parent
-        message.root = pmsg.root ? parent
+      #if parent?
+      #  pmsg = Messages.findOne parent
+      #  message.root = pmsg.root ? parent
       id = Messages.insert message
       for diff in diffs
         diff.id = id
@@ -444,6 +598,8 @@ Meteor.methods
         MessagesDiff.insert diff
       if parent?
         _messageParent id, parent, null, null, true
+      else
+        _submessagesChanged message
       id
 
   messageSuperdelete: (message) ->
@@ -463,7 +619,8 @@ Meteor.methods
           $push: children:
             $each: children
             $position: parent.children.indexOf message
-        ## children roots remain the same
+        ## children roots remain the same in this case
+        _submessagesChanged msg.root
         for child, i in children
           MessagesParent.insert
             child: child
@@ -472,9 +629,12 @@ Meteor.methods
             updator: user
             updated: now
       else
+        #_submessagesChanged message  ## unnecessary now that it's deleted
         for child in children
           Messages.update child,
             $unset: root: ''
+          _submessagesChanged child
+      
       ## Delete all associated files.
       MessagesDiff.find
         id: message

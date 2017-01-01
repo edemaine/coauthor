@@ -2,23 +2,6 @@ Template.since.onCreated ->
   @autorun ->
     setTitle "Since #{Template.currentData()?.since}"
 
-parseSince = (since) ->
-  try
-    match = /^\s*[+-]?\s*(\d+)\s*(\w+)\s*$/.exec since
-    if match?
-      moment().subtract(match[1], match[2]).toDate()
-    else
-      match = /^\s*(\d+)\s*:\s*(\d+)\s*$/.exec since
-      if match?
-        d = moment().hour(match[1]).minute(match[2])
-        if moment().diff(d) < 0
-          d = d.subtract(1, 'day')
-        d.toDate()
-      else
-        moment(since).toDate()
-  catch
-    null
-
 messagesSince = (group, since) ->
   #console.log parseSince since
   msgs = Messages.find
@@ -43,9 +26,11 @@ Template.since.helpers
   messages: ->
     messagesSince @group, @since
   messageCount: ->
-    messagesSince(@group, @since).length
+    pluralize messagesSince(@group, @since).length, 'message'
   valid: ->
     parseSince(@since)?
+  parseSince: ->
+    formatDate parseSince @since
 
 Template.since.events
   'change #sinceInput': (e, t) ->

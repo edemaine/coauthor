@@ -14,7 +14,7 @@ Template.author.helpers
   messages: ->
     messagesBy @group, @author
   messageCount: ->
-    messagesBy(@group, @author).fetch().length
+    pluralize messagesBy(@group, @author).fetch().length, 'message'
   wildLink: ->
     if @group != wildGroup
       pathFor 'author',

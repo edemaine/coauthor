@@ -7,9 +7,7 @@ Template.live.helpers
       group: @group
       published: $ne: false
       deleted: false
-    ,
-      sort: [['updated', 'desc']]
-      limit: parseInt(@limit)
+    , liveMessagesLimit @limit
   valid: ->
     parseInt(@limit) >= 0
 
