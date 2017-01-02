@@ -373,13 +373,21 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
     root = null
   if canEdit(child) and canPost group, parent
     cmsg = Messages.findOne child
-    oldIndex = null
+    oldPosition = null
     if oldParent
-      oldParent = findMessageParent child
-      if oldParent?
-        oldIndex = oldParent.children.indexOf child
-        Messages.update oldParent._id,
-          $pop: children: child
+      oldParentMsg = findMessageParent child
+      if oldParentMsg?
+        oldParent = oldParentMsg._id
+        oldPosition = oldParentMsg.children.indexOf child
+        return if parent == oldParent and (
+          (position? and position == oldPosition) or
+          (not position? and oldPosition == oldParentMsg.children.length-1)
+        )  ## no-op
+        Messages.update oldParent,
+          $pull: children: child
+      else
+        oldParent = null
+    return if parent == oldParent == null  ## no-op, root case
     if parent?
       if position?
         Messages.update parent,
@@ -418,7 +426,7 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
       parent: parent
       position: position
       oldParent: oldParent
-      oldIndex: oldIndex
+      oldPosition: oldPosition
     if importing
       #cmsg = Messages.findOne child
       doc.updator = cmsg.creator
