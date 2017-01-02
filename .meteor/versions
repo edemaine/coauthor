@@ -18,7 +18,6 @@ caching-compiler@1.1.9
 caching-html-compiler@1.0.7
 callback-hook@1.0.10
 check@1.2.4
-chuangbo:cookie@1.1.0
 chuangbo:marked@0.3.5_1
 coffeescript@1.11.1_4
 ddp@1.2.5
@@ -60,10 +59,6 @@ localstorage@1.0.12
 logging@1.1.16
 meteor@1.6.0
 meteor-base@1.0.4
-meteorhacks:fast-render@2.16.0
-meteorhacks:inject-data@2.0.0
-meteorhacks:meteorx@1.4.1
-meteorhacks:picker@1.0.3
 meteorhacks:subs-manager@1.6.4
 minifier-css@1.2.15
 minifier-js@1.2.15
