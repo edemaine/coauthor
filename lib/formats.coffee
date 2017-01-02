@@ -49,9 +49,6 @@ preprocessMathjaxBlocks = (text, replacer) ->
   else
     text
 
-marked.InlineLexer.rules.gfm.url =
-  ///^((coauthor:/?/?|https?://)[^\s<]+[^<.,:;"')\]\s])///
-
 postprocessCoauthorLinks = (text) ->
   ## xxx Not reactive, but should be.  E.g. won't update if image replaced.
   ## xxx More critically, won't load anything outside current subscription...
@@ -169,12 +166,16 @@ latex2html = (tex) ->
   html: (text, title) ->
     text
 
+postprocess = (html) ->
+  #ketex.renderToString
+  postprocessCoauthorLinks html
+
 @formatBody = (format, body) ->
   if format of formats
     body = formats[format] body, false
   else
     console.warn "Unrecognized format '#{format}'"
-  postprocessCoauthorLinks body
+  postprocess body
 
 @formatTitle = (format, title) ->
   if format of formats
@@ -185,7 +186,7 @@ latex2html = (tex) ->
   title = title
   .replace /^\s*<P>\s*/i, ''
   .replace /\s*<\/P>\s*$/i, ''
-  postprocessCoauthorLinks title
+  postprocess title
 
 @stripHTMLTags = (html) ->
   html.replace /<[^>]*>/gm, ''
