@@ -30,6 +30,7 @@ Router.route '/:group/m/:message',
   data: ->
     Messages.findOne @params.message
   #dataNotFoundTemplate: 'NotFound'
+  fastRender: true
 
 Router.route '/:group',
   #Session.set 'group', Groups.findOne {name: @params.group}
@@ -45,6 +46,7 @@ Router.route '/:group',
   ]
   data: ->
     group: @params.group
+  fastRender: true
 
 Router.route '/:group/+:sortBy?',
   name: 'group.sorted.forward'
@@ -55,6 +57,7 @@ Router.route '/:group/+:sortBy?',
   ]
   data: ->
     group: @params.group
+  fastRender: true
 
 Router.route '/:group/-:sortBy?',
   name: 'group.sorted.reverse'
@@ -65,6 +68,7 @@ Router.route '/:group/-:sortBy?',
   ]
   data: ->
     group: @params.group
+  fastRender: true
 
 Router.route '/:group/since/:since',
   name: 'since'
@@ -74,6 +78,7 @@ Router.route '/:group/since/:since',
   data: ->
     group: @params.group
     since: @params.since
+  fastRender: true
 
 Router.route '/:group/live/:limit',
   name: 'live'
@@ -83,6 +88,7 @@ Router.route '/:group/live/:limit',
   data: ->
     group: @params.group
     limit: @params.limit
+  fastRender: true
 
 defaultLiveLimit = 50
 
@@ -95,6 +101,7 @@ Router.route '/:group/live',
   data: ->
     group: @params.group
     limit: defaultLiveLimit
+  fastRender: true
 
 Router.route '/:group/author/:author',
   name: 'author'
@@ -104,6 +111,7 @@ Router.route '/:group/author/:author',
   data: ->
     group: @params.group
     author: @params.author
+  fastRender: true
 
 @wildGroupRoute = 'GLOBAL'
 
@@ -114,9 +122,12 @@ Router.route '/:group/users',
   ]
   data: ->
     group: routeGroup()
+  fastRender: true
 
 Router.route '/:group/settings',
   name: 'settings'
+  fastRender: true
 
 Router.route '/',
   name: 'frontpage'
+  fastRender: true
