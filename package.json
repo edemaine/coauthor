@@ -4,7 +4,7 @@
   "description": "Coauthor collaboration/discussion forum",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "postinstall": "node node_modules/grunt/bin/grunt --gruntfile .Gruntfile.coffee"
   },
   "repository": {
     "type": "git",
@@ -23,7 +23,13 @@
   "dependencies": {
     "babel-runtime": "^6.18.0",
     "bcrypt": "^0.8.7",
+    "katex": "^0.6.0",
     "meteor-node-stubs": "^0.2.3",
     "sanitize-html": "^1.13.0"
+  },
+  "devDependencies": {
+    "grunt": "^1.0.1",
+    "grunt-contrib-copy": "^1.0.0",
+    "grunt-replace": "^1.0.1"
   }
 }

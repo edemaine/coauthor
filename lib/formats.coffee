@@ -11,7 +11,7 @@ if Meteor.isClient
 ## Finds all $...$ and $$...$$ blocks, where ... properly deals with balancing
 ## braces (e.g. $\hbox{$x$}$) and escaped dollar signs (\$ doesn't count as $),
 ## and replaces them with the output of the given replacer function.
-preprocessMathjaxBlocks = (text, replacer) ->
+replaceMathBlocks = (text, replacer) ->
   blocks = []
   re = /[${}]|\\./g
   start = null
@@ -48,31 +48,6 @@ preprocessMathjaxBlocks = (text, replacer) ->
     out
   else
     text
-
-postprocessCoauthorLinks = (text) ->
-  ## xxx Not reactive, but should be.  E.g. won't update if image replaced.
-  ## xxx More critically, won't load anything outside current subscription...
-  text.replace ///(<img\s[^<>]*src\s*=\s*['"])coauthor:/?/?([a-zA-Z0-9]+)///ig,
-    (match, p1, p2) ->
-      msg = Messages.findOne p2
-      if msg? and msg.format == 'file'
-        p1 + urlToFile msg.body
-      else
-        if msg?
-          console.warn "Couldn't detect image in message #{p2} -- must be text?"
-        else
-          console.warn "Couldn't find group for message #{p2} (likely subscription issue)", msg
-        match
-  .replace ///(<a\s[^<>]*href\s*=\s*['"])coauthor:/?/?([a-zA-Z0-9]+)///ig,
-    (match, p1, p2) ->
-      msg = Messages.findOne p2
-      if msg?
-        p1 + pathFor 'message',
-          group: msg.group
-          message: msg._id
-      else
-        console.warn "Couldn't find group for message #{p2} (likely subscription issue)"
-        match
 
 latex2html = (tex) ->
   defs = {}
@@ -154,7 +129,7 @@ latex2html = (tex) ->
     ## Escape all characters that can be (in particular, _s) that appear
     ## inside math mode, to prevent Marked from processing them.
     ## The Regex is exactly marked.js's inline.escape.
-    text = preprocessMathjaxBlocks text, (block) ->
+    text = replaceMathBlocks text, (block) ->
       block.replace /[\\`*{}\[\]()#+\-.!_]/g, '\\$&'
     #marked.Lexer.rules = {text: /^[^\n]+/} if title
     if title  ## use "single-line" version of Markdown
@@ -166,9 +141,60 @@ latex2html = (tex) ->
   html: (text, title) ->
     text
 
-postprocess = (html) ->
-  #ketex.renderToString
-  postprocessCoauthorLinks html
+postprocessCoauthorLinks = (text) ->
+  ## xxx Not reactive, but should be.  E.g. won't update if image replaced.
+  ## xxx More critically, won't load anything outside current subscription...
+  text.replace ///(<img\s[^<>]*src\s*=\s*['"])coauthor:/?/?([a-zA-Z0-9]+)///ig,
+    (match, p1, p2) ->
+      msg = Messages.findOne p2
+      if msg? and msg.format == 'file'
+        p1 + urlToFile msg.body
+      else
+        if msg?
+          console.warn "Couldn't detect image in message #{p2} -- must be text?"
+        else
+          console.warn "Couldn't find group for message #{p2} (likely subscription issue)", msg
+        match
+  .replace ///(<a\s[^<>]*href\s*=\s*['"])coauthor:/?/?([a-zA-Z0-9]+)///ig,
+    (match, p1, p2) ->
+      msg = Messages.findOne p2
+      if msg?
+        p1 + pathFor 'message',
+          group: msg.group
+          message: msg._id
+      else
+        console.warn "Couldn't find group for message #{p2} (likely subscription issue)"
+        match
+
+katex = require 'katex'
+
+postprocessKatex = (text) ->
+  replaceMathBlocks text, (block) ->
+    start$ = /^\$+/.exec block
+    end$ = /\$+$/.exec block
+    display = start$[0].length >= 2
+    block = block[start$[0].length...end$.index]
+    .replace /&lt;/g, '<'
+    .replace /&gt;/g, '>'  ## remove Marked bad quoting of < and >
+    try
+      katex.renderToString block,
+        displayMode: display
+        throwOnError: false
+      .replace /<math>.*<\/math>/, ''  ## remove MathML
+    catch e
+      throw e unless e instanceof katex.ParseError
+      #console.warn "KaTeX failed to parse $#{block}$: #{e}"
+      title = e.toString()
+      .replace /&/g, '&amp;'
+      .replace /'/g, '&#39;'
+      latex = block
+      .replace /&/g, '&amp;'
+      .replace /</g, '&lt;'
+      .replace />/g, '&gt;'
+      "<SPAN CLASS='katex-error' TITLE='#{title}'>#{latex}</SPAN>"
+
+postprocess = (text) ->
+  postprocessCoauthorLinks postprocessKatex text
 
 @formatBody = (format, body) ->
   if format of formats

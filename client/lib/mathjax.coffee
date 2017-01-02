@@ -1,3 +1,7 @@
+## Disable MathJax for now -- using KaTeX instead
+@automathjax = @mathjax = ->
+return
+
 ## http://docs.mathjax.org/en/latest/options/tex2jax.html
 
 window.MathJax =

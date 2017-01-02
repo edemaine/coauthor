@@ -2,3 +2,5 @@
 *.swp
 .backup/coauthor-backup
 node_modules
+client/katex.min.css
+public/fonts
