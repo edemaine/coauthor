@@ -288,6 +288,12 @@ idle = 1000   ## one second
   message.title.trim().length == 0 and
   message.body.trim().length == 0
 
+_noLongerRoot = (message) ->
+  Messages.update message,
+    $unset:
+      submessageCount: ''
+      submessageLastUpdate: ''
+
 _submessagesChanged = (root) ->
   return unless root?
   Messages.update root,
@@ -367,9 +373,11 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
     root = null
   if canEdit(child) and canPost group, parent
     cmsg = Messages.findOne child
+    oldIndex = null
     if oldParent
       oldParent = findMessageParent child
       if oldParent?
+        oldIndex = oldParent.children.indexOf child
         Messages.update oldParent._id,
           $pop: children: child
     if parent?
@@ -402,6 +410,7 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
           $set: root: root ? child  ## actually must be root
         ,
           multi: true
+        _noLongerRoot child if root?
       _submessagesChanged cmsg.root     ## old root
       _submessagesChanged root ? child  ## new root
     doc =
@@ -409,6 +418,7 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
       parent: parent
       position: position
       oldParent: oldParent
+      oldIndex: oldIndex
     if importing
       #cmsg = Messages.findOne child
       doc.updator = cmsg.creator
