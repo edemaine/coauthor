@@ -175,7 +175,9 @@ postprocessKatex = (text) ->
     display = start$[0].length >= 2
     block = block[start$[0].length...end$.index]
     .replace /&lt;/g, '<'
-    .replace /&gt;/g, '>'  ## remove Marked bad quoting of < and >
+    .replace /&gt;/g, '>'
+    .replace /’/g, "'"
+    .replace /‘/g, "`"  ## remove bad Marked automatic behavior
     try
       katex.renderToString block,
         displayMode: display
