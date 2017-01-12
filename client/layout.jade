@@ -10,24 +10,31 @@ template(name="layout")
           span.icon-bar
           span.icon-bar
           span.icon-bar
-        if routeGroup
-          if wildGroup
-            a.navbar-brand(href="{{pathFor 'frontpage'}}") Coauthor
+        a.navbar-brand(href="{{pathFor 'frontpage'}}") Coauthor
+        //- Old Coauthor link was to current group, if any:
+          if routeGroup
+            if wildGroup
+              a.navbar-brand(href="{{pathFor 'frontpage'}}") Coauthor
+            else
+              a.navbar-brand(href="{{pathFor 'group' group=routeGroup}}") Coauthor
           else
-            a.navbar-brand(href="{{pathFor 'group' group=routeGroup}}") Coauthor
-        else
-          a.navbar-brand(href="{{pathFor 'frontpage'}}") Coauthor
+            a.navbar-brand(href="{{pathFor 'frontpage'}}") Coauthor
       .collapse.navbar-collapse#navbar
         ul.nav.navbar-nav
-          li.dropdown
-            a.dropdown-toggle(href="#", data-toggle="dropdown", role="button", aria-expanded="false")
-              if groupData
-                | #{routeGroup}
-              else if routeGroup
-                | #{routeGroup}?
-              else
+          li.dropdown.halflink
+            //- Repetition is necessary to avoid space between links
+            if groupData
+              a.link(href="{{pathFor 'group' group=routeGroup}}") #{routeGroup}
+              a.dropdown-toggle(href="#", data-toggle="dropdown", role="button", aria-expanded="false")
+                span.caret
+            else if routeGroup
+              a.link(href="{{pathFor 'group' group=routeGroup}}") #{routeGroup}?
+              a.dropdown-toggle(href="#", data-toggle="dropdown", role="button", aria-expanded="false")
+                span.caret
+            else
+              a.dropdown-toggle(href="#", data-toggle="dropdown", role="button", aria-expanded="false")
                 i Select Group
-              span.caret
+                span.caret
             ul.dropdown-menu(role="menu")
               if groupcount
                 each groups

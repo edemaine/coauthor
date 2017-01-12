@@ -2,3 +2,9 @@ body { font-family: 'Merriweather', serif; }
 
 .footer { position: fixed; bottom: 0px; right: 0px; width: 50%; margin: 1ex }
 .credits { font-style: italic; font-size: small; margin-top: 1.5ex; padding: 6px }
+
+/* For our half-link half-caret dropdown, we need to change <a> to render
+ * as inline-block instead of block, so that two <a>'s can join horizontally.
+ */
+li.dropdown.halflink > a { display: inline-block }
+li.dropdown.halflink > a.link:first-child { padding-right: 0px; }
