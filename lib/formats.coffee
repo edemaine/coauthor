@@ -182,7 +182,9 @@ postprocessKatex = (text) ->
       katex.renderToString block,
         displayMode: display
         throwOnError: false
-      .replace /<math>.*<\/math>/, ''  ## remove MathML
+        macros:
+          '\\dots': '\\ldots'
+      #.replace /<math>.*<\/math>/, ''  ## remove MathML
     catch e
       throw e unless e instanceof katex.ParseError
       #console.warn "KaTeX failed to parse $#{block}$: #{e}"
