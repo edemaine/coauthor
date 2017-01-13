@@ -82,7 +82,7 @@ template(name="submessage")
         span.tag.label.label-default
           | #{key}
           if editingRV
-            span.remove.glyphicon.glyphicon-remove-sign(aria-label="Remove")
+            span.tagRemove.glyphicon.glyphicon-remove-sign(aria-label="Remove",data-tag=key)
         |  
       if editingRV
         .btn-group

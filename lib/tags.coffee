@@ -15,9 +15,9 @@
       return false
   true
 
-@listToTags = (tags) ->
+@listToTags = (tagsList) ->
   tags = {}
-  for tag in tags
+  for tag in tagsList
     tags[tag] = true
   tags
 
@@ -35,5 +35,5 @@ if Meteor.isServer
   .forEach (msg) ->
     tags = listToTags msg.tags
     #console.log msg._id, tags
-    Messages.update msg._id,
+    MessagesDiff.update msg._id,
       $set: tags: tags

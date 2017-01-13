@@ -196,12 +196,17 @@ Template.submessage.onDestroyed ->
     if id of images
       images[id].count -= 1
 
-historify = (x) -> () ->
+historify = (x, post) -> () ->
   history = messageHistory.get @_id
-  if history?
-    history[x]
-  else
-    @[x]
+  value =
+    if history?
+      console.log history
+      history[x]
+    else
+      @[x]
+  if post?
+    value = post value
+  value
 
 tabindex = (i) -> 
   1 + 20 * Template.instance().count + parseInt(i ? 0)
@@ -293,6 +298,7 @@ Template.submessage.helpers
     else
       ''
 
+  tags: historify 'tags', sortTags
   deleted: historify 'deleted'
   published: historify 'published'
 
@@ -368,6 +374,17 @@ Template.registerHelper 'formatAuthors', ->
     ', edited by ' + a.join ", "
 
 Template.submessage.events
+  'click .tagRemove': (e, t) ->
+    message = t.data._id
+    tag = e.target.getAttribute 'data-tag'
+    tags = t.data.tags
+    if tag of tags
+      delete tags[tag]
+      Meteor.call 'messageUpdate', message,
+        tags: tags
+    else
+      console.warn "Attempt to delete nonexistant tag '#{tag}' from message #{message}"
+
   'click .foldButton': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
