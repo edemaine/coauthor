@@ -3,6 +3,7 @@
 .title { font-weight: bold; vertical-align: middle; }
 input.title { width: 100%; }
 .author { font-style: italic; }
+.message-body { text-align: justify; }
 .message-footer { width: 100%; padding: 0ex 1em; margin-top: -15px; }
 .message-deleted > .message-body, .message-unpublished > .message-body { opacity: 0.6; }
 
