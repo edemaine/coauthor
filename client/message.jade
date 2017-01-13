@@ -63,7 +63,7 @@ template(name="submessage")
       unless history
         if editingRV
           input.form-control.title(type="text", placeholder="Title", value=title, tabindex="{{tabindex 18}}")
-      //unless editingRV
+      //-unless editingRV
       span(class=hideIfEditing)
         .message-left-buttons.btn-group.btn-group-xs
           button.btn.btn-info.foldButton(aria-label="Fold")
@@ -77,6 +77,27 @@ template(name="submessage")
         span.space
         span.title.panel-title.tex2jax !{formatTitle}
         span.space
+      //- http://stackoverflow.com/questions/22390272/how-to-create-a-label-with-close-icon-in-bootstrap
+      each tags
+        span.tag.label.label-default
+          | #{key}
+          if editingRV
+            span.remove.glyphicon.glyphicon-remove-sign(aria-label="Remove")
+        |  
+      if editingRV
+        .btn-group
+          button.btn.btn-default.label.label-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
+            span.glyphicon.glyphicon-plus
+            | Tag
+          ul.dropdown-menu(role="menu")
+            li
+              a(href="#") Tag 1
+            li
+              a(href="#") Tag 2
+            li.divider(role="separator")
+            li
+              a
+                input.form-control(type="text", placeholder="New Tag...")
       if deleted
         span.label.label-danger Deleted
       else
@@ -125,7 +146,7 @@ template(name="submessage")
                 unless isFile
                   button.btn.btn-info.editButton(tabindex="{{tabindex 8}}") Edit
                 else
-                  // In future, support basic image editing.  For now, just:
+                  //- In future, support basic image editing.  For now, just:
                   +messageReplace _id=_id group=group tabindex=tabindex9
     unless folded
       if history
@@ -133,7 +154,7 @@ template(name="submessage")
       else
         with nothing
           if editingRV
-            //+sharejsCM docid=editingNR onRender=config
+            //- +sharejsCM docid=editingNR onRender=config
             +sharejsAce docid=editingNR onRender=config
       .panel-body.message-body(class=tex2jax) !{formatBody}
       .message-footer.clearfix
@@ -189,7 +210,7 @@ template(name="superdelete")
           button.btn.btn-success.cancelButton.fullwidth Cancel
 
 template(name="messageHistory")
-  //.tex2jax !{body}
+  //-.tex2jax !{body}
   .historySlider
     input(type="text", style="display: none")
 

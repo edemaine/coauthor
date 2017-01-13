@@ -14,6 +14,9 @@ input.title ~ .message-right-buttons { margin: 0px; }
 
 .children { margin-top: 1.5ex; margin-left: 1em; }
 
+.tag .remove { opacity: 0.7; }
+.tag .remove:hover { opacity: 1; cursor: pointer; }
+
 img, video { max-width: 100% }
 
 .historySlider { margin-left: 5em; margin-right: 5em; }

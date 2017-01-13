@@ -17,6 +17,9 @@ Template.registerHelper 'children', ->
       child.depth = (@depth ? 0) + 1
     children
 
+Template.registerHelper 'tags', ->
+  sortTags @tags
+
 Template.rootHeader.helpers
   root: ->
     if @root

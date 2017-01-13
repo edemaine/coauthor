@@ -318,7 +318,7 @@ if Meteor.isServer
     title: Match.Optional String
     body: Match.Optional String
     format: Match.Optional String
-    tags: Match.Optional [String]
+    tags: Match.Optional Match.Where validTags
     #children: Match.Optional [String]  ## must be set via messageParent
     #parent: Match.Optional String      ## use children, not parent
     published: Match.Optional Boolean
@@ -469,7 +469,7 @@ Meteor.methods
       title: Match.Optional String
       body: Match.Optional String
       format: Match.Optional String
-      tags: Match.Optional [String]
+      tags: Match.Optional Match.Where validTags
       #children: Match.Optional [String]  ## must be set via messageParent
       #parent: Match.Optional String      ## use children, not parent
       published: Match.Optional Boolean
@@ -489,7 +489,7 @@ Meteor.methods
       message.title = "" unless message.title?
       message.body = "" unless message.body?
       message.format = Meteor.user()?.profile?.format or defaultFormat unless message.format?
-      message.tags = [] unless message.tags?
+      message.tags = {} unless message.tags?
       message.published = autopublish() unless message.published?
       message.updators = [Meteor.user().username]
       message.updated = now
@@ -568,7 +568,7 @@ Meteor.methods
       title: Match.Optional String
       body: Match.Optional String
       format: Match.Optional String
-      tags: Match.Optional [String]
+      tags: Match.Optional Match.Where validTags
       #children: Match.Optional [String]  ## must be set via messageParent
       #parent: Match.Optional String      ## use children, not parent
       published: Match.Optional Match.OneOf Date, Boolean
@@ -580,7 +580,7 @@ Meteor.methods
       title: Match.Optional String
       body: Match.Optional String
       format: Match.Optional String
-      tags: Match.Optional [String]
+      tags: Match.Optional Match.Where validTags
       deleted: Match.Optional Boolean
       updated: Match.Optional Date
       updators: Match.Optional [String]

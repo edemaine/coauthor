@@ -88,13 +88,17 @@ importOSQA = (group, zip) ->
         break
     else
       parent = null
+    tags = listToTags(
+      for tag in revision.children('tags').children('tag')
+        $(tag).text()
+    )
     revisions = for revision in node.children('revisions').children('revision')
       revision = $(revision)
       updated: new Date revision.children('date').text()
       updators: [mapauthor revision.children('author').text()]
       title: revision.children('title').text()
       body: bodymap revision.children('body').text()
-      tags: $(tag).text() for tag in revision.children('tags').children('tag')
+      tags: tags
       ## ignoring number (always sequential), summary (blank change log)
     message =
       #type: node.children('type').text()  ## no real use; implied by tree
@@ -102,7 +106,7 @@ importOSQA = (group, zip) ->
       creator: mapauthor node.children('author').text()
       title: node.children('title').text()
       body: bodymap node.children('body').text()
-      tags: $(tag).text() for tag in node.children('tags').children('tag')
+      tags: tags
       ## ignoring lastactivity (summary field), absparent (always same as
       ## parent), score (useless), marked (?), wiki (useless),
       ## extraRef, extraData, extraCount (always empty)
