@@ -26,6 +26,7 @@ Router.route '/:group/m/:message',
   subscriptions: -> [
     Subscribe.subscribe 'messages.submessages', @params.message
     Subscribe.subscribe 'messages.subscribers', @params.message
+    Subscribe.subscribe 'tags', @params.group
   ]
   data: ->
     Messages.findOne @params.message

@@ -210,6 +210,15 @@ historify = (x, post) -> () ->
 tabindex = (i) -> 
   1 + 20 * Template.instance().count + parseInt(i ? 0)
 
+absentTags = ->
+  data = Template.currentData()
+  Tags.find
+    group: data.group
+    key: $nin: _.keys data.tags
+    deleted: false
+  ,
+    sort: ['key']
+
 Template.submessage.helpers
   tabindex: tabindex
   tabindex7: -> tabindex 7
@@ -349,6 +358,10 @@ Template.submessage.helpers
   folded: -> messageFolded.get @_id
   raw: -> messageRaw.get @_id
 
+  absentTags: absentTags
+  absentTagsCount: ->
+    absentTags().count()
+
 Template.registerHelper 'messagePanelClass', ->
   if @deleted
     'panel-danger message-deleted'
@@ -378,9 +391,11 @@ Template.submessage.events
     tags = t.data.tags
     tag = e.target.getAttribute 'data-tag'
     if tag of tags
-      delete tags[tag]
+      delete tags[escapeTag tag]
       Meteor.call 'messageUpdate', message,
         tags: tags
+      console.log 'removing', tag
+      Meteor.call 'tagDelete', t.data.group, tag, true
     else
       console.warn "Attempt to delete nonexistant tag '#{tag}' from message #{message}"
 
@@ -391,11 +406,13 @@ Template.submessage.events
     if tag of tags
       console.warn "Attempt to add duplicate tag '#{tag}' to message #{message}"
     else
-      tags[tag] = true
+      tags[escapeTag tag] = true
       Meteor.call 'messageUpdate', message,
         tags: tags
 
   'click .tagAddNew': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
     message = t.data._id
     tags = t.data.tags
     textTag = $(e.target).parents('form').first().find('.tagAddText')[0]
@@ -405,7 +422,8 @@ Template.submessage.events
       if tag of tags
         console.warn "Attempt to add duplicate tag '#{tag}' to message #{message}"
       else
-        tags[tag] = true
+        Meteor.call 'tagNew', t.data.group, tag, 'boolean'
+        tags[escapeTag tag] = true
         Meteor.call 'messageUpdate', message,
           tags: tags
     $(e.target).parents('.dropdown-menu').first().parent().find('.dropdown-toggle').dropdown 'toggle'

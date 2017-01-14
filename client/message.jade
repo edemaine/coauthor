@@ -90,11 +90,11 @@ template(name="submessage")
             span.glyphicon.glyphicon-plus
             | Tag
           ul.dropdown-menu(role="menu").custom
-            li
-              a.tagAdd(href="#",data-tag="Tag 1") Tag 1
-            li
-              a.tagAdd(href="#",data-tag="Tag 2") Tag 2
-            li.divider(role="separator")
+            each absentTags
+              li
+                a.tagAdd(href="#",data-tag=key) #{key}
+            if absentTagsCount
+              li.divider(role="separator")
             li.disabled
               a
                 form.input-group

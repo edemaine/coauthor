@@ -1,17 +1,21 @@
 @Tags = new Mongo.Collection 'tags'
 
+@escapeTag = escapeKey
+@unescapeTag = unescapeKey
+@validTag = validKey
+
 @sortTags = (tags) ->
-  keys = (key for key of tags)
+  keys = _.keys tags
   keys.sort()
   for key in keys
-    key: key
+    key: unescapeTag key
     value: tags[key]
 
 ## Currently, tags just map keys to "true".
 ## In the future, there will be other values, checked here.  (See #86.)
 @validTags = (tags) ->
   for key, value of tags
-    if value != true
+    unless validTag(key) and value == true
       return false
   true
 
@@ -37,3 +41,95 @@ if Meteor.isServer
     #console.log msg._id, tags
     MessagesDiff.update msg._id,
       $set: tags: tags
+
+if Meteor.isServer
+  Meteor.publish 'tags', (group) ->
+    check group, String
+    @autorun ->
+      unless groupRoleCheck group, 'read', findUser @userId
+        return @ready()
+      Tags.find
+        group: group
+        deleted: false
+
+  Meteor.publish 'tags.all', (group) ->
+    check group, String
+    @autorun ->
+      unless groupRoleCheck group, 'read', findUser @userId
+        return @ready()
+      Tags.find
+        group: group
+
+Meteor.methods
+  tagNew: (group, key, type) ->
+    check Meteor.userId(), String  ## should be done by 'canPost'
+    check group, String
+    check key, String
+    check type, "boolean"  ## only type supported for now
+    if canPost group, null
+      ## Forbid only-whitespace tag
+      if key.trim() and validKey key
+        ## Only add if it doesn't exist already.
+        old = Tags.findOne
+          group: group
+          key: key
+        if old?
+          if old.deleted
+            Tags.update old._id,
+              $set:
+                deleted: false
+                updator: Meteor.user().username
+                updated: new Date
+        else
+          Tags.insert
+            group: group
+            key: key
+            type: type
+            deleted: false
+            creator: Meteor.user().username
+            created: new Date
+
+  tagDelete: (group, key, maybe = false) ->
+    check Meteor.userId(), String  ## should be done by 'canPost'
+    check group, String
+    check key, String
+    if canPost group, null
+      any = Messages.findOne
+        group: group
+        tags: "#{escapeTag key}": $exists: true
+      if any
+        if maybe
+          return
+        else
+          throw "tagDelete: Message #{any._id} still uses tag '#{key}'!"
+      old = Tags.findOne
+        group: group
+        key: key
+      if old? and not old.deleted
+        Tags.update old._id,
+          $set:
+            deleted: true
+            updator: Meteor.user().username
+            updated: new Date
+
+## Find used but missing tags (for inheriting old databases).
+if Meteor.isServer
+  Messages.find
+    deleted: false
+  .forEach (message) ->
+    return unless message.tags
+    seeking = _.keys message.tags
+    missing = listToTags seeking
+    tags = Tags.find
+      group: message.group
+      key: $in: seeking
+    .forEach (tag) ->
+      delete missing[tag.key]
+    for tag of missing
+      console.log 'Adding missing tag', tag, 'in group', message.group
+      Tags.insert
+        group: message.group
+        key: tag
+        type: 'boolean'
+        deleted: false
+        created: new Date
