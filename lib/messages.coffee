@@ -441,6 +441,14 @@ if Meteor.isServer
 
   `import {ShareJS} from 'meteor/mizzao:sharejs'`
 
+  ## If we're using a persistent store for sharejs, we need to cleanup
+  ## leftover documents from last time.  This should only be for local
+  ## testing, but deleting them at startup prevents more catastrophic
+  ## failure when creating a duplicate ID.
+  docs = new Mongo.Collection 'docs'
+  docs.find().forEach (doc) ->
+    ShareJS.model.delete doc._id
+
   editor2messageUpdate = (id) ->
     Meteor.clearTimeout editorTimers[id]
     doc = Meteor.wrapAsync(ShareJS.model.getSnapshot) id
