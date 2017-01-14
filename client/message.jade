@@ -89,15 +89,19 @@ template(name="submessage")
           button.btn.btn-default.label.label-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
             span.glyphicon.glyphicon-plus
             | Tag
-          ul.dropdown-menu(role="menu")
+          ul.dropdown-menu(role="menu").custom
             li
-              a(href="#") Tag 1
+              a.tagAdd(href="#",data-tag="Tag 1") Tag 1
             li
-              a(href="#") Tag 2
+              a.tagAdd(href="#",data-tag="Tag 2") Tag 2
             li.divider(role="separator")
-            li
+            li.disabled
               a
-                input.form-control(type="text", placeholder="New Tag...")
+                form.input-group
+                  input.tagAddText.form-control(type="text", placeholder="New Tag...")
+                  .input-group-btn
+                    button.btn.btn-default.tagAddNew(type="submit")
+                      span.glyphicon.glyphicon-plus
       if deleted
         span.label.label-danger Deleted
       else
