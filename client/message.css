@@ -18,9 +18,9 @@ input.title ~ .message-right-buttons { margin: 0px; }
 /* Magic to get the entire tag to highlight when hovering over child:
  * http://stackoverflow.com/questions/8114657/how-to-style-the-parent-element-when-hovering-a-child-element#30104683
  */
-.tag { pointer-events: none; }
+.tagWithRemove { pointer-events: none; }
 .tagRemove { opacity: 0.7; pointer-events: auto; }
-.tag:hover { opacity: 1; cursor: pointer;
+.tagWithRemove:hover, .tagLink span:hover { opacity: 1; cursor: pointer;
   color: #333; background: #e6e6e6; } /* matching .btn-default:hover */
 
 .dropdown-menu.tagMenu { width: 250px; }

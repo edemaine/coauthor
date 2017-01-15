@@ -79,10 +79,14 @@ template(name="submessage")
         span.space
       //- http://stackoverflow.com/questions/22390272/how-to-create-a-label-with-close-icon-in-bootstrap
       each tags
-        span.tag.label.label-default
-          | #{key}
-          if editingRV
-            span.tagRemove.glyphicon.glyphicon-remove-sign(aria-label="Remove",data-tag=key)
+        if editingRV
+          span.label.label-default.tag.tagWithRemove
+            | #{key}
+            if editingRV
+              span.tagRemove.glyphicon.glyphicon-remove-sign(aria-label="Remove",data-tag=key)
+        else
+          a(href=linkToTag).tag
+            span.tag.label.label-default= key
         |  
       if editingRV
         .btn-group

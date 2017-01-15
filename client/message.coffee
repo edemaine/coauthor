@@ -20,6 +20,11 @@ Template.registerHelper 'children', ->
 Template.registerHelper 'tags', ->
   sortTags @tags
 
+Template.registerHelper 'linkToTag', ->
+  pathFor 'tag',
+    group: Template.parentData().group
+    tag: @key
+
 Template.rootHeader.helpers
   root: ->
     if @root

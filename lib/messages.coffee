@@ -118,6 +118,18 @@ if Meteor.isServer
       query.deleted = false
       Messages.find query
 
+  Meteor.publish 'messages.tag', (group, tag) ->
+    check group, String
+    check tag, String
+    @autorun ->
+      query = accessibleMessagesQuery group, findUser @userId
+      return @ready() unless query?
+      ## Mimicking tag.coffee's messagesTagged
+      query["tags.#{escapeTag tag}"] = $exists: true
+      query.published = $ne: false
+      query.deleted = false
+      Messages.find query
+
 @liveMessagesLimit = (limit) ->
   sort: [['updated', 'desc']]
   limit: parseInt limit
