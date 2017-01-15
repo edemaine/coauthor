@@ -1,13 +1,10 @@
 @wildGroup = '*'
 @anonymousUser = '*'
 
-@DOT = '[DOT]'
-@escapeGroup = (group) ->
-  group.replace /\./g, DOT
-@unescapeGroup = (group) ->
-  group.replace /\[DOT\]/g, '.'
-@validGroup = (group) ->
-  group and group.charAt(0) not in ['*', '$'] and group.indexOf(DOT) < 0
+escapeGroup = escapeKey
+unescapeGroup = unescapeKey
+validGroup = (group) ->
+  validKey(group) and group.charAt(0) != '*'
 
 @sortKeys = ['title', 'creator', 'published', 'updated', 'posts', 'subscribe']
 

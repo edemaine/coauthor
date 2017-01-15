@@ -107,6 +107,9 @@ template(name="messageShort")
     td.title.tex2jax
       a(href=messageLink)
         | !{formatTitle}
+        each tags
+          span.label.label-default #{key}
+          |  
         if deleted
           span.label.label-danger Deleted
         else

@@ -17,6 +17,9 @@ Template.registerHelper 'children', ->
       child.depth = (@depth ? 0) + 1
     children
 
+Template.registerHelper 'tags', ->
+  sortTags @tags
+
 Template.rootHeader.helpers
   root: ->
     if @root
@@ -193,15 +196,28 @@ Template.submessage.onDestroyed ->
     if id of images
       images[id].count -= 1
 
-historify = (x) -> () ->
+historify = (x, post) -> () ->
   history = messageHistory.get @_id
-  if history?
-    history[x]
-  else
-    @[x]
+  value =
+    if history?
+      history[x]
+    else
+      @[x]
+  if post?
+    value = post value
+  value
 
 tabindex = (i) -> 
   1 + 20 * Template.instance().count + parseInt(i ? 0)
+
+absentTags = ->
+  data = Template.currentData()
+  Tags.find
+    group: data.group
+    key: $nin: _.keys data.tags
+    deleted: false
+  ,
+    sort: ['key']
 
 Template.submessage.helpers
   tabindex: tabindex
@@ -290,6 +306,7 @@ Template.submessage.helpers
     else
       ''
 
+  tags: historify 'tags', sortTags
   deleted: historify 'deleted'
   published: historify 'published'
 
@@ -341,6 +358,10 @@ Template.submessage.helpers
   folded: -> messageFolded.get @_id
   raw: -> messageRaw.get @_id
 
+  absentTags: absentTags
+  absentTagsCount: ->
+    absentTags().count()
+
 Template.registerHelper 'messagePanelClass', ->
   if @deleted
     'panel-danger message-deleted'
@@ -365,6 +386,49 @@ Template.registerHelper 'formatAuthors', ->
     ', edited by ' + a.join ", "
 
 Template.submessage.events
+  'click .tagRemove': (e, t) ->
+    message = t.data._id
+    tags = t.data.tags
+    tag = e.target.getAttribute 'data-tag'
+    if tag of tags
+      delete tags[escapeTag tag]
+      Meteor.call 'messageUpdate', message,
+        tags: tags
+      console.log 'removing', tag
+      Meteor.call 'tagDelete', t.data.group, tag, true
+    else
+      console.warn "Attempt to delete nonexistant tag '#{tag}' from message #{message}"
+
+  'click .tagAdd': (e, t) ->
+    message = t.data._id
+    tags = t.data.tags
+    tag = e.target.getAttribute 'data-tag'
+    if tag of tags
+      console.warn "Attempt to add duplicate tag '#{tag}' to message #{message}"
+    else
+      tags[escapeTag tag] = true
+      Meteor.call 'messageUpdate', message,
+        tags: tags
+
+  'click .tagAddNew': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    message = t.data._id
+    tags = t.data.tags
+    textTag = $(e.target).parents('form').first().find('.tagAddText')[0]
+    tag = textTag.value.trim()
+    textTag.value = ''  ## reset custom tag
+    if tag
+      if tag of tags
+        console.warn "Attempt to add duplicate tag '#{tag}' to message #{message}"
+      else
+        Meteor.call 'tagNew', t.data.group, tag, 'boolean'
+        tags[escapeTag tag] = true
+        Meteor.call 'messageUpdate', message,
+          tags: tags
+    $(e.target).parents('.dropdown-menu').first().parent().find('.dropdown-toggle').dropdown 'toggle'
+    false  ## prevent form from submitting
+
   'click .foldButton': (e, t) ->
     e.preventDefault()
     e.stopPropagation()

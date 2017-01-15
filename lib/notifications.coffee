@@ -290,9 +290,12 @@ if Meteor.isServer
           msg = notification.msg
           diffs = (MessagesDiff.findOne diff for diff in notification.diffs)
           authors = {}
+          changed = {}
           for diff in diffs
             for author in diff.updators
               authors[author] = (authors[author] ? 0) + 1
+            for key of diff
+              changed[key] = true
           authors = _.keys(authors).sort().join ', '
           if messageUpdates.length == 1
             subject = "#{authors} updated '#{titleOrUntitled msg.title}' in #{msg.group}"
@@ -308,11 +311,33 @@ if Meteor.isServer
             text += "#{authors} changed root message in the thread #{linkToMessage msg, false} #{dates}"
           html += '\n\n'
           text += '\n\n'
-          body = sanitizeHtml formatBody msg.format, msg.body
-          html += "<BLOCKQUOTE>\n#{body}\n</BLOCKQUOTE>"
-          text += indentLines(stripHTMLTags(body), '    ')
-          html += '\n\n'
-          text += '\n\n'
+          ## xxx currently no notification of title changed
+          ## xxx also could use diff on body
+          if changed.body
+            body = sanitizeHtml formatBody msg.format, msg.body
+            html += "<BLOCKQUOTE>\n#{body}\n</BLOCKQUOTE>"
+            text += indentLines(stripHTMLTags(body), '    ')
+            html += '\n'
+            text += '\n'
+          if changed.deleted or changed.format or changed.tags
+            html += "<UL>\n"
+          if changed.deleted
+            if msg.deleted
+              text += "  * DELETED\n"
+              html += "<LI>DELETED\n"
+            else
+              text += "  * UNDELETED\n"
+              html += "<LI>UNDELETED\n"
+          if changed.format
+            text += "  * Format: #{msg.format}\n"
+            html += "<LI>Format: #{msg.format}\n"
+          if changed.tags
+            text += "  * Tags: #{_.keys(sortTags msg.tags).join ", "}\n"
+            html += "<LI>Tags: #{_.keys(sortTags msg.tags).join ", "}\n"
+          if changed.format or changed.tags
+            html += "</UL>\n"
+          html += '\n'
+          text += '\n'
 
     Email.send
       from: Accounts.emailTemplates.from

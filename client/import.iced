@@ -73,6 +73,17 @@ importOSQA = (group, zip) ->
           updated: new Date action.children('date').text()
           updators: [mapauthor action.children('user').text()]
 
+  ## OSQA uses <tags><tag>tag1</tag><tag>tag2</tag></tags> format for messages,
+  ## but <tags>tag1, tag2</tags> for revisions.  Support both in both places.
+  importTags = (tagsNode) ->
+    tags =
+      for tag in tagsNode.children 'tag'
+        $(tag).text()
+    unless tags.length
+      if tagsNode.text()  ## avoid blank string which splits into ['']
+        tags = tagsNode.text().split /\s*,\s*/
+    listToTags tags
+
   nodes = parseXML zip.files['nodes.xml']
   idmap = {}
   count = 0
@@ -94,7 +105,7 @@ importOSQA = (group, zip) ->
       updators: [mapauthor revision.children('author').text()]
       title: revision.children('title').text()
       body: bodymap revision.children('body').text()
-      tags: $(tag).text() for tag in revision.children('tags').children('tag')
+      tags: importTags revision.children('tags')
       ## ignoring number (always sequential), summary (blank change log)
     message =
       #type: node.children('type').text()  ## no real use; implied by tree
@@ -102,7 +113,7 @@ importOSQA = (group, zip) ->
       creator: mapauthor node.children('author').text()
       title: node.children('title').text()
       body: bodymap node.children('body').text()
-      tags: $(tag).text() for tag in node.children('tags').children('tag')
+      tags: importTags node.children('tags')
       ## ignoring lastactivity (summary field), absparent (always same as
       ## parent), score (useless), marked (?), wiki (useless),
       ## extraRef, extraData, extraCount (always empty)

@@ -318,7 +318,7 @@ if Meteor.isServer
     title: Match.Optional String
     body: Match.Optional String
     format: Match.Optional String
-    tags: Match.Optional [String]
+    tags: Match.Optional Match.Where validTags
     #children: Match.Optional [String]  ## must be set via messageParent
     #parent: Match.Optional String      ## use children, not parent
     published: Match.Optional Boolean
@@ -441,6 +441,14 @@ if Meteor.isServer
 
   `import {ShareJS} from 'meteor/mizzao:sharejs'`
 
+  ## If we're using a persistent store for sharejs, we need to cleanup
+  ## leftover documents from last time.  This should only be for local
+  ## testing, but deleting them at startup prevents more catastrophic
+  ## failure when creating a duplicate ID.
+  docs = new Mongo.Collection 'docs'
+  docs.find().forEach (doc) ->
+    ShareJS.model.delete doc._id
+
   editor2messageUpdate = (id) ->
     Meteor.clearTimeout editorTimers[id]
     doc = Meteor.wrapAsync(ShareJS.model.getSnapshot) id
@@ -469,7 +477,7 @@ Meteor.methods
       title: Match.Optional String
       body: Match.Optional String
       format: Match.Optional String
-      tags: Match.Optional [String]
+      tags: Match.Optional Match.Where validTags
       #children: Match.Optional [String]  ## must be set via messageParent
       #parent: Match.Optional String      ## use children, not parent
       published: Match.Optional Boolean
@@ -489,7 +497,7 @@ Meteor.methods
       message.title = "" unless message.title?
       message.body = "" unless message.body?
       message.format = Meteor.user()?.profile?.format or defaultFormat unless message.format?
-      message.tags = [] unless message.tags?
+      message.tags = {} unless message.tags?
       message.published = autopublish() unless message.published?
       message.updators = [Meteor.user().username]
       message.updated = now
@@ -568,7 +576,7 @@ Meteor.methods
       title: Match.Optional String
       body: Match.Optional String
       format: Match.Optional String
-      tags: Match.Optional [String]
+      tags: Match.Optional Match.Where validTags
       #children: Match.Optional [String]  ## must be set via messageParent
       #parent: Match.Optional String      ## use children, not parent
       published: Match.Optional Match.OneOf Date, Boolean
@@ -580,7 +588,7 @@ Meteor.methods
       title: Match.Optional String
       body: Match.Optional String
       format: Match.Optional String
-      tags: Match.Optional [String]
+      tags: Match.Optional Match.Where validTags
       deleted: Match.Optional Boolean
       updated: Match.Optional Date
       updators: Match.Optional [String]

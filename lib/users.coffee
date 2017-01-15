@@ -9,8 +9,8 @@
     username: username
 
 ## Need to escape dots in usernames.
-@escapeUser = escapeGroup
-@unescapeUser = unescapeGroup
+@escapeUser = escapeKey
+@unescapeUser = unescapeKey
 
 if Meteor.isServer
   Meteor.publish 'users', (group) ->
