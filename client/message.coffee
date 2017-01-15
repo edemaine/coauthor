@@ -142,16 +142,18 @@ Template.submessage.onRendered ->
   #  Math.floor(Math.random() * 25 + 255 - 25).toString(16)
 
   ## Drag/drop support.
-  if @find('.focusButton')? and @data._id?
+  focusButton = $(@find '.message-left-buttons').find('.focusButton')[0]
+  if focusButton? and @data._id?
     url = "coauthor:#{@data._id}"
     if @data.format == 'file'
-      formatted = formatBody @data.format, @data.body
-      if "class='odd-file'" not in formatted and
-         "class='bad-file'" not in formatted
-        url = formatted
-        $(@find('.panel-body')).find('img, video').each (i, elt) =>
-          elt.addEventListener 'dragstart', onDragStart url, @data._id
-    @find('.focusButton').addEventListener 'dragstart', onDragStart url, @data._id
+      #formatted = formatBody @data.format, @data.body
+      #if "class='odd-file'" not in formatted and
+      #   "class='bad-file'" not in formatted
+      #  url = formatted
+      url = "<img src='#{url}'/>"  ## xxx incorrect for video
+      $(@find '.panel-body').find('img, video').each (i, elt) =>
+        elt.addEventListener 'dragstart', onDragStart url, @data._id
+    focusButton.addEventListener 'dragstart', onDragStart url, @data._id
     #@find('.focusButton').addEventListener 'dragend', (e) =>
     #  e.dataTransfer.setData 'text/plain', "<IMG SRC='#{url}'>"
 
