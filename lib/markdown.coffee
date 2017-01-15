@@ -12,9 +12,11 @@ switch markdownMode
     @markdownInline = (text) -> marked.inlineLexer text, {}, marked.defaults
 
   when 'markdown-it'
-    md = require('markdown-it')
+    @markdownIt = require('markdown-it')
       html: true
       linkify: true
       typographer: true
-    @markdown = (text) -> md.render text
-    @markdownInline = (text) -> md.renderInline text
+    markdownIt.linkify
+    .add 'coauthor:', validate: ///^#{coauthorLinkBodyRe}///
+    @markdown = (text) -> markdownIt.render text
+    @markdownInline = (text) -> markdownIt.renderInline text

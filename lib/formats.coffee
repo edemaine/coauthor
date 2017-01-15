@@ -141,10 +141,13 @@ latex2html = (tex) ->
   html: (text, title) ->
     text
 
+@coauthorLinkBodyRe = "/?/?([a-zA-Z0-9]+)"
+@coauthorLinkRe = "coauthor:#{coauthorLinkBodyRe}"
+
 postprocessCoauthorLinks = (text) ->
   ## xxx Not reactive, but should be.  E.g. won't update if image replaced.
   ## xxx More critically, won't load anything outside current subscription...
-  text.replace ///(<img\s[^<>]*src\s*=\s*['"])coauthor:/?/?([a-zA-Z0-9]+)///ig,
+  text.replace ///(<img\s[^<>]*src\s*=\s*['"])#{coauthorLinkRe}///ig,
     (match, p1, p2) ->
       msg = Messages.findOne p2
       if msg? and msg.format == 'file'
@@ -155,7 +158,7 @@ postprocessCoauthorLinks = (text) ->
         else
           console.warn "Couldn't find group for message #{p2} (likely subscription issue)", msg
         match
-  .replace ///(<a\s[^<>]*href\s*=\s*['"])coauthor:/?/?([a-zA-Z0-9]+)///ig,
+  .replace ///(<a\s[^<>]*href\s*=\s*['"])#{coauthorLinkRe}///ig,
     (match, p1, p2) ->
       msg = Messages.findOne p2
       if msg?
