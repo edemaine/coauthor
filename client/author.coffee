@@ -1,3 +1,6 @@
+Template.author.onCreated ->
+  setTitle "Author #{Template.currentData()?.author}"
+
 messagesBy = (group, author) ->
   query =
     group: group
