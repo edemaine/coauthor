@@ -133,9 +133,9 @@ latex2html = (tex) ->
       block.replace /[\\`*{}\[\]()#+\-.!_]/g, '\\$&'
     #marked.Lexer.rules = {text: /^[^\n]+/} if title
     if title  ## use "single-line" version of Markdown
-      text = marked.inlineLexer text, {}, marked.defaults
+      text = markdownInline text
     else
-      text = marked text
+      text = markdown text
   latex: (text, title) ->
     latex2html text
   html: (text, title) ->
