@@ -23,9 +23,10 @@ input.title ~ .message-right-buttons { margin: 0px; }
 .tag:hover { opacity: 1; cursor: pointer;
   color: #333; background: #e6e6e6; } /* matching .btn-default:hover */
 
-.dropdown-menu.custom { width: 250px; }
-.dropdown-menu.custom > li.disabled > a {
+.dropdown-menu.tagMenu { width: 250px; }
+.dropdown-menu.tagMenu > li.disabled > a {
   cursor: auto; padding: 0px 5px; } /* normally 3px 20px */
+.dropdown-menu.tagMenu > li > a { font-size: 75%; } /* matches label */
 
 img, video { max-width: 100% }
 

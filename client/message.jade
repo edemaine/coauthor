@@ -89,7 +89,7 @@ template(name="submessage")
           button.btn.btn-default.label.label-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
             span.glyphicon.glyphicon-plus
             | Tag
-          ul.dropdown-menu(role="menu").custom
+          ul.dropdown-menu(role="menu").tagMenu
             each absentTags
               li
                 a.tagAdd(href="#",data-tag=key) #{key}
@@ -97,7 +97,7 @@ template(name="submessage")
               li.divider(role="separator")
             li.disabled
               a
-                form.input-group
+                form.input-group.input-group-sm
                   input.tagAddText.form-control(type="text", placeholder="New Tag...")
                   .input-group-btn
                     button.btn.btn-default.tagAddNew(type="submit")
