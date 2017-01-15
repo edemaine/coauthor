@@ -18,6 +18,14 @@ sanitizeHtml.defaults.selfClosing.push 'source'
 sanitizeHtml.defaults.allowedTags.push 'del'  ## for Markdown ~~strikethrough~~
 
 ## KaTeX/MathML
-#sanitizeHtml.defaults.allowedTags.push 'math', 'semantics', 'menclose', 'mfrac', 'mi', 'mn', 'mo', 'mrow', 'msqrt', 'annotation'
-#sanitizeHtml.defaults.allowedAttributes.menclose = ['notation']
-#sanitizeHtml.defaults.allowedAttributes.annotation = ['encoding']
+## (tag list from https://developer.mozilla.org/en-US/docs/Web/MathML/Element)
+sanitizeHtml.defaults.allowedTags.push 'math', 'annotation', 'semantics',
+  'menclose', 'mfenced', 'mfrac', 'mglyph', 'mi', 'mlabeledtr',
+  'mmultiscripts', 'mn', 'mo', 'mover', 'mpadded', 'mphantom', 'mroot',
+  'mrow', 'mspace', 'msub', 'msup', 'msubsup', 'msqrt', 'mstyle', 'mtable',
+  'mtd', 'mtext', 'mtr', 'munder', 'munderover'
+sanitizeHtml.defaults.allowedAttributes.annotation = ['encoding']
+sanitizeHtml.defaults.allowedAttributes.menclose = ['notation']
+sanitizeHtml.defaults.allowedAttributes.mfrac = ['linethickness']
+sanitizeHtml.defaults.allowedAttributes.mi = ['mathvariant']
+sanitizeHtml.defaults.allowedAttributes.mo = ['fence', 'separator']

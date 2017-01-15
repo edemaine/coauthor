@@ -200,12 +200,30 @@ postprocessKatex = (text) ->
 postprocess = (text) ->
   postprocessCoauthorLinks postprocessKatex text
 
+jsdiff = require 'diff'
+
+@sanitize = (html) ->
+  sanitized = sanitizeHtml html
+  if Meteor.isClient and sanitized != html
+    context = ''
+    diffs =
+      for diff in jsdiff.diffChars html, sanitized
+        unless diff.added or diff.removed
+          context += diff.value
+        continue unless diff.removed
+        "...#{context.substr(-20)}!#{diff.value}"
+    console.warn "Sanitized", diffs.join '; '
+    #console.warn "Sanitized",
+    #  before: html
+    #  after: sanitized
+  sanitized
+
 @formatBody = (format, body) ->
   if format of formats
     body = formats[format] body, false
   else
     console.warn "Unrecognized format '#{format}'"
-  postprocess body
+  sanitize postprocess body
 
 @formatTitle = (format, title) ->
   if format of formats
@@ -216,7 +234,7 @@ postprocess = (text) ->
   title = title
   .replace /^\s*<P>\s*/i, ''
   .replace /\s*<\/P>\s*$/i, ''
-  postprocess title
+  sanitize postprocess title
 
 @stripHTMLTags = (html) ->
   html.replace /<[^>]*>/gm, ''

@@ -329,10 +329,7 @@ Template.submessage.helpers
     if messageRaw.get @_id
       "<CODE CLASS='raw'>#{_.escape title}</CODE>"
     else
-      title = formatTitle history.format, title
-      sanitized = sanitizeHtml title
-      console.warn "Sanitized '#{title}' -> '#{sanitized}'" if sanitized != title
-      sanitized
+      formatTitle history.format, title
   formatBody: ->
     history = messageHistory.get(@_id) ? @
     body = history.body
@@ -340,10 +337,7 @@ Template.submessage.helpers
     if messageRaw.get @_id
       "<PRE CLASS='raw'>#{_.escape body}</PRE>"
     else
-      body = formatBody history.format, body
-      sanitized = sanitizeHtml body
-      console.warn "Sanitized '#{body}' -> '#{sanitized}'" if sanitized != body
-      sanitized
+      formatBody history.format, body
 
   isFile: -> @format == 'file'
   canEdit: -> canEdit @_id
