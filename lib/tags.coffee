@@ -5,6 +5,7 @@
 @validTag = validKey
 
 @sortTags = (tags) ->
+  return [] unless tags
   keys = _.keys tags
   keys.sort()
   for key in keys
