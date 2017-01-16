@@ -290,7 +290,9 @@ Template.submessage.helpers
       switch sharejsEditor
         when 'cm'
           editor.getInputField().setAttribute 'tabindex', 1 + 20 * ti.count + 19
-          editor.setOption 'styleActiveLine', true
+          ## styleActiveLine is currently buggy on Android.
+          if 0 > navigator.userAgent.toLowerCase().indexOf 'android'
+            editor.setOption 'styleActiveLine', true
           editor.setOption 'matchBrackets', true
           editor.setOption 'lineWrapping', true
           editor.setOption 'lineNumbers', true
@@ -311,9 +313,6 @@ Template.submessage.helpers
                 theme()
           editor.setOption 'extraKeys',
             Enter: 'newlineAndIndentContinueMarkdownList'
-          #editor.setShowFoldWidgets true
-          #editor.setOption 'mode', 'javascript'
-          #require 'codemirror/mode/javascript/javascript'
         when 'ace'
           editor.textInput.getElement().setAttribute 'tabindex', 1 + 20 * ti.count + 19
           #editor.meteorData = @  ## currently not needed, also dunno if works
