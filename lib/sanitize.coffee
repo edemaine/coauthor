@@ -3,19 +3,25 @@
 
 @sanitizeHtml = require 'sanitize-html'
 
+sanitizeHtml.defaults.allowedAttributes['*'] = [
+  'style', 'class', 'title', 'aria-*'
+]
+
 sanitizeHtml.defaults.allowedTags.push 'img'
-sanitizeHtml.defaults.allowedAttributes.img.push 'alt', 'title', 'width', 'height'
+sanitizeHtml.defaults.allowedAttributes.img.push 'alt', 'width', 'height'
 sanitizeHtml.defaults.allowedAttributes.a.push 'title'
 
 sanitizeHtml.defaults.allowedTags.push 'span'
-sanitizeHtml.defaults.allowedAttributes.span = ['style', 'class', 'title', 'aria-hidden']
 
 sanitizeHtml.defaults.allowedTags.push 'video'
 sanitizeHtml.defaults.allowedAttributes.video = ['controls']
 sanitizeHtml.defaults.allowedTags.push 'source'
 sanitizeHtml.defaults.allowedAttributes.source = ['src']
 sanitizeHtml.defaults.selfClosing.push 'source'
-sanitizeHtml.defaults.allowedTags.push 'del'  ## for Markdown ~~strikethrough~~
+
+## Additional Markdown features
+sanitizeHtml.defaults.allowedTags.push 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'
+sanitizeHtml.defaults.allowedTags.push 'del'  ## ~~strikethrough~~
 
 ## KaTeX/MathML
 ## (tag list from https://developer.mozilla.org/en-US/docs/Web/MathML/Element)

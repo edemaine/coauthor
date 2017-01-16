@@ -58,27 +58,31 @@ latex2html = (tex) ->
   for def, val of defs
     console.log def, val
     tex = tex.replace new RegExp("\\\\#{def}\\s*", 'g'), val
-  tex = '<P>' + tex
+  tex = '<p>' + tex
   .replace /\\\\/g, '[DOUBLEBACKSLASH]'
-  .replace /\\(BY|YEAR)\s*{([^{}]*)}/g, '<SPAN STYLE="border: thin solid; margin-left: 0.5em; padding: 0px 4px; font-variant:small-caps">$2</SPAN>'
+  .replace /\\(BY|YEAR)\s*{([^{}]*)}/g, '<span style="border: thin solid; margin-left: 0.5em; padding: 0px 4px; font-variant:small-caps">$2</span>'
   .replace /\\protect\s*/g, ''
-  .replace /\\textbf\s*{([^{}]*)}/g, '<B>$1</B>'
-  .replace /\\textit\s*{([^{}]*)}/g, '<I>$1</I>'
-  .replace /\\textsf\s*{([^{}]*)}/g, '<SPAN STYLE="font-family: sans-serif">$1</I>'
-  .replace /\\emph\s*{([^{}]*)}/g, '<EM>$1</EM>'
-  .replace /\\textsc\s*{([^{}]*)}/g, '<SPAN STYLE="font-variant:small-caps">$1</SPAN>'
-  .replace /\\url\s*{([^{}]*)}/g, '<A HREF="$1">$1</A>'
-  .replace /\\href\s*{([^{}]*)}\s*{([^{}]*)}/g, '<A HREF="$1">$2</A>'
-  .replace /\\textcolor\s*{([^{}]*)}\s*{([^{}]*)}/g, '<SPAN STYLE="color: $1">$2</A>'
-  .replace /\\colorbox\s*{([^{}]*)}\s*{([^{}]*)}/g, '<SPAN STYLE="background-color: $1">$2</A>'
-  .replace /\\begin\s*{enumerate}/g, '<OL>'
-  .replace /\\begin\s*{itemize}/g, '<UL>'
-  .replace /\\item/g, '<LI>'
-  .replace /\\end\s*{enumerate}/g, '</OL>'
-  .replace /\\end\s*{itemize}/g, '</UL>'
+  .replace /\\textbf\s*{([^{}]*)}/g, '<b>$1</b>'
+  .replace /\\textit\s*{([^{}]*)}/g, '<i>$1</i>'
+  .replace /\\textsf\s*{([^{}]*)}/g, '<span style="font-family: sans-serif">$1</I>'
+  .replace /\\emph\s*{([^{}]*)}/g, '<em>$1</em>'
+  .replace /\\textsc\s*{([^{}]*)}/g, '<span style="font-variant:small-caps">$1</span>'
+  .replace /\\url\s*{([^{}]*)}/g, '<a href="$1">$1</a>'
+  .replace /\\href\s*{([^{}]*)}\s*{([^{}]*)}/g, '<a href="$1">$2</a>'
+  .replace /\\textcolor\s*{([^{}]*)}\s*{([^{}]*)}/g, '<span style="color: $1">$2</a>'
+  .replace /\\colorbox\s*{([^{}]*)}\s*{([^{}]*)}/g, '<span style="background-color: $1">$2</a>'
+  .replace /\\begin\s*{enumerate}/g, '<ol>'
+  .replace /\\begin\s*{itemize}/g, '<ul>'
+  .replace /\\item/g, '<li>'
+  .replace /\\end\s*{enumerate}/g, '</ol>'
+  .replace /\\end\s*{itemize}/g, '</ul>'
+  .replace /\\chapter\s*\*?\s*{([^{}]*)}/g, '<h1>$1</h1>'
+  .replace /\\section\s*\*?\s*{([^{}]*)}/g, '<h2>$1</h2>'
+  .replace /\\subsection\s*\*?\s*{([^{}]*)}/g, '<h3>$1</h3>'
+  .replace /\\subsubsection\s*\*?\s*{([^{}]*)}/g, '<h4>$1</h4>'
   .replace /\\footnote\s*{((?:[^{}]|{[^{}]*})*)}/g, '[$1]'
-  .replace /\\begin\s*{(problem|theorem|conjecture|lemma|corollary)}/g, (m, p1) -> "<BLOCKQUOTE><B>#{s.capitalize p1}:</B> "
-  .replace /\\end\s*{(problem|theorem|conjecture|lemma|corollary)}/g, '</BLOCKQUOTE>'
+  .replace /\\begin\s*{(problem|theorem|conjecture|lemma|corollary)}/g, (m, p1) -> "<blockquote><b>#{s.capitalize p1}:</b> "
+  .replace /\\end\s*{(problem|theorem|conjecture|lemma|corollary)}/g, '</blockquote>'
   .replace /``/g, '&ldquo;'
   .replace /''/g, '&rdquo;'
   #.replace /`/g, '&lsquo;'
@@ -109,7 +113,8 @@ latex2html = (tex) ->
   .replace /\\\s/g, ' '
   .replace /---/g, '&mdash;'
   .replace /--/g, '&ndash;'
-  .replace /\n\n/g, '\n<P>\n'
+  .replace /\n\n+/g, '\n<p>\n'
+  .replace /<p>\s*(<h[1-9]>)/g, '$1'
   .replace /\[DOUBLEBACKSLASH\]/g, '\\\\'
 
 @formats =
@@ -118,13 +123,13 @@ latex2html = (tex) ->
     file = findFile text
     if file?
       if file.contentType[...6] == 'image/'
-        text = "<img src='#{urlToFile file}'/>"
+        text = """<img src="#{urlToFile file}">"""
       else if file.contentType in ['video/mp4', 'video/ogg', 'video/webm']
-        text = "<video controls><source src='#{urlToFile file}' type='#{file.contentType}'></video>"
+        text = """<video controls><source src="#{urlToFile file}" type="#{file.contentType}"></video>"""
       else
-        text = "<i class='odd-file'><a href='#{urlToFile file}'>&lt;#{file.length}-byte #{file.contentType} file&gt;</a></i>"
+        text = """<i class="odd-file"><a href="#{urlToFile file}">&lt;#{file.length}-byte #{file.contentType} file&gt;</a></i>"""
     else
-      text = "<i class='bad-file'>&lt;unknown file with ID #{text}&gt;</i>"
+      text = """<i class="bad-file">&lt;unknown file with ID #{text}&gt;</i>"""
   markdown: (text, title) ->
     ## Escape all characters that can be (in particular, _s) that appear
     ## inside math mode, to prevent Marked from processing them.
@@ -211,11 +216,15 @@ jsdiff = require 'diff'
     context = ''
     diffs =
       for diff in jsdiff.diffChars html, sanitized
-        unless diff.added or diff.removed
-          context += diff.value
-        continue unless diff.removed
-        "...#{context.substr(-20)}!#{diff.value}"
-    console.warn "Sanitized", diffs.join '; '
+        if diff.removed
+          "?#{diff.value}?"
+        else if diff.added
+          "!#{diff.value}!"
+        else
+          if diff.value.length > 40
+            diff.value = diff.value[...20] + "..." + diff.value[diff.value.length-20..]
+          diff.value
+    console.warn "Sanitized", diffs.join ''
     #console.warn "Sanitized",
     #  before: html
     #  after: sanitized
