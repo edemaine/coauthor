@@ -296,6 +296,11 @@ Template.submessage.helpers
           editor.setOption 'lineNumbers', true
           editor.setOption 'showCursorWhenSelecting', true
           editor.setOption 'matchBrackets', true
+          editor.setOption 'foldGutter', true
+          editor.setOption 'gutters', [
+            'CodeMirror-linenumbers'
+            'CodeMirror-foldgutter'
+          ]
           editor.setOption 'theme',
             switch theme()
               when 'dark'
@@ -304,6 +309,8 @@ Template.submessage.helpers
                 'eclipse'
               else
                 theme()
+          editor.setOption 'extraKeys',
+            Enter: 'newlineAndIndentContinueMarkdownList'
           #editor.setShowFoldWidgets true
           #editor.setOption 'mode', 'javascript'
           #require 'codemirror/mode/javascript/javascript'

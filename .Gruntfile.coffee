@@ -13,6 +13,8 @@ module.exports = (grunt) ->
         src: [
           'node_modules/codemirror/theme/blackboard.css'
           'node_modules/codemirror/theme/eclipse.css'
+          'node_modules/codemirror/addon/dialog/dialog.css'
+          'node_modules/codemirror/addon/fold/foldgutter.css'
         ]
         dest: 'client/codemirror/'
     replace:
@@ -48,18 +50,23 @@ module.exports = (grunt) ->
           src: [
             'node_modules/codemirror/mode/markdown/markdown.js'
             'node_modules/codemirror/mode/gfm/gfm.js'
-            'node_modules/codemirror/addon/mode/overlay.js'
             'node_modules/codemirror/mode/xml/xml.js'
             'node_modules/codemirror/mode/meta.js'
             'node_modules/codemirror/mode/stex/stex.js'
-            'node_modules/codemirror/addon/selection/active-line.js'
-            'node_modules/codemirror/addon/edit/matchbrackets.js'
             'node_modules/codemirror/keymap/vim.js'
             'node_modules/codemirror/keymap/emacs.js'
-            'node_modules/codemirror/addon/search/searchcursor.js'
             'node_modules/codemirror/addon/dialog/dialog.js'
-            'node_modules/codemirror/addon/search/search.js'
+            'node_modules/codemirror/addon/edit/matchbrackets.js'
+            'node_modules/codemirror/addon/edit/continuelist.js'
+            'node_modules/codemirror/addon/fold/foldcode.js'
+            'node_modules/codemirror/addon/fold/foldgutter.js'
+            'node_modules/codemirror/addon/fold/markdown-fold.js'
+            'node_modules/codemirror/addon/fold/xml-fold.js'
+            'node_modules/codemirror/addon/mode/overlay.js'
             'node_modules/codemirror/addon/search/searchcursor.js'
+            'node_modules/codemirror/addon/search/search.js'
+            'node_modules/codemirror/addon/search/jump-to-line.js' # alt-G
+            'node_modules/codemirror/addon/selection/active-line.js'
           ]
           dest: 'client/codemirror/'
         ]
