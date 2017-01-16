@@ -25,8 +25,8 @@ template(name="postButtons")
       span.space
     button.btn.btn-info.postButton(class=disableClass, data-original-title=disableTitle, data-toggle='tooltip') Pose New Problem / Discussion
     a.btn.btn-default.myPostsButton(class=disableMyPosts,href=linkToMyPosts) My Posts
-    a.btn.btn-default.liveButton(href="{{pathFor 'live.default'}}") Live Feed
-    a.btn.btn-default.sinceButton(href="{{pathFor 'since' since='1 hour'}}") Catchup on Recent Posts
+    a.btn.btn-default.liveButton(href="{{pathFor 'live.default'}}", title="Show the last n messages, updating live", data-toggle="tooltip") Live Feed
+    a.btn.btn-default.sinceButton(href="{{pathFor 'since' since='1 hour'}}", title="Show all messages since a specified time in the past", data-toggle="tooltip") Catchup Since...
   //---replaced by clicking columns to trigger sort
     span.space
     .btn-group
