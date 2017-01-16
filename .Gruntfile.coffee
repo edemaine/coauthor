@@ -54,6 +54,12 @@ module.exports = (grunt) ->
             'node_modules/codemirror/mode/stex/stex.js'
             'node_modules/codemirror/addon/selection/active-line.js'
             'node_modules/codemirror/addon/edit/matchbrackets.js'
+            'node_modules/codemirror/keymap/vim.js'
+            'node_modules/codemirror/keymap/emacs.js'
+            'node_modules/codemirror/addon/search/searchcursor.js'
+            'node_modules/codemirror/addon/dialog/dialog.js'
+            'node_modules/codemirror/addon/search/search.js'
+            'node_modules/codemirror/addon/search/searchcursor.js'
           ]
           dest: 'client/codemirror/'
         ]

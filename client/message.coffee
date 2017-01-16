@@ -1,5 +1,37 @@
 sharejsEditor = 'cm'  ## 'ace' or 'cm'; also change template used in message.jade
 
+switch sharejsEditor
+  when 'cm'
+    editorMode = (editor, format) ->
+      editor.setOption 'mode',
+        switch format
+          when 'markdown'
+            'gfm'  ## Git-flavored Markdown
+          when 'html'
+            'text/html'
+          when 'latex'
+            'stex'
+          else
+            format
+    editorKeyboard = (editor, keyboard) ->
+      editor.setOption 'keyMap',
+        switch keyboard
+          when 'normal'
+            'default'
+          else
+            keyboard
+  when 'ace'
+    editorMode = (editor, format) ->
+      editor.getSession().setMode "ace/mode/#{format}"
+    editorKeyboard = (editor, keyboard) ->
+      editor.setKeyboardHandler(
+        switch keyboard
+          when 'normal'
+            ''
+          else
+            "ace/keyboard/#{keyboard}"
+      )
+
 Template.registerHelper 'titleOrUntitled', ->
   titleOrUntitled @.title
 
@@ -273,16 +305,6 @@ Template.submessage.helpers
               else
                 theme()
           #editor.setShowFoldWidgets true
-          editor.setOption 'mode',
-            switch ti.data.format
-              when 'markdown'
-                'gfm'  ## Git-flavored Markdown
-              when 'html'
-                'text/html'
-              when 'latex'
-                'stex'
-              else
-                ti.data.format
           #editor.setOption 'mode', 'javascript'
           #require 'codemirror/mode/javascript/javascript'
         when 'ace'
@@ -302,10 +324,8 @@ Template.submessage.helpers
           editor.setBehavioursEnabled true
           editor.setShowFoldWidgets true
           editor.getSession().setUseWrapMode true
-          #console.log "setting format to #{ti.data.format}"
-          #editor.getSession().setMode 'ace/mode/html'
-          editor.getSession().setMode "ace/mode/#{ti.data.format}"
           #editor.setOption 'spellcheck', true
+      editorMode editor, ti.data.format
 
   keyboard: ->
     capitalize messageKeyboard.get(@_id) ? defaultKeyboard
@@ -474,16 +494,7 @@ Template.submessage.events
     e.preventDefault()
     e.stopPropagation()
     messageKeyboard.set @_id, kb = e.target.getAttribute 'data-keyboard'
-    switch sharejsEditor
-      when 'cm'
-        if kb == 'normal'
-          t.editor.setOption 'keyMap', ''
-        else
-          #require 'codemirror/keymap/vim'
-          #require 'codemirror/keymap/emacs'
-          t.editor.setOption 'keyMap', kb
-      when 'ace'
-        t.editor.setKeyboardHandler if kb == 'normal' then '' else 'ace/keyboard/' + kb
+    editorKeyboard t.editor, kb
     $(e.target).parent().dropdown 'toggle'
 
   'click .editorFormat': (e, t) ->
@@ -492,12 +503,7 @@ Template.submessage.events
     Meteor.call 'messageUpdate', t.data._id,
       format: format = e.target.getAttribute 'data-format'
     $(e.target).parent().dropdown 'toggle'
-    #console.log "setting format to #{format}"
-    switch sharejsEditor
-      when 'cm'
-        Template.instance().editor.setOption 'mode', format
-      when 'ace'
-        Template.instance().editor.getSession().setMode "ace/mode/#{format}"
+    editorMode Template.instance().editor, format
 
   'keyup input.title': (e, t) ->
     e.stopPropagation()
