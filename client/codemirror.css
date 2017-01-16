@@ -1,0 +1,7 @@
+/* More visible cursor */
+div.CodeMirror-cursors > div.CodeMirror-cursor { border-left-width: 3px; }
+
+/* Highlight gutter */
+.cm-s-blackboard .CodeMirror-gutters { background: #181818; }
+.cm-s-blackboard .CodeMirror-activeline-gutter { background: #282828; }
+.cm-s-eclipse .CodeMirror-activeline-gutter { background: #D8e8f0; }

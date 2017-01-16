@@ -1,4 +1,4 @@
-sharejsEditor = 'ace'  ## 'ace' or 'cm'; also change template used in message.jade
+sharejsEditor = 'cm'  ## 'ace' or 'cm'; also change template used in message.jade
 
 Template.registerHelper 'titleOrUntitled', ->
   titleOrUntitled @.title
@@ -258,18 +258,18 @@ Template.submessage.helpers
       switch sharejsEditor
         when 'cm'
           editor.getInputField().setAttribute 'tabindex', 1 + 20 * ti.count + 19
-          #editor.meteorData = @  ## currently not needed, also dunno if works
-          #editor.on 'change', onChange
           editor.setOption 'styleActiveLine', true
           editor.setOption 'matchBrackets', true
           editor.setOption 'lineWrapping', true
           editor.setOption 'lineNumbers', true
+          editor.setOption 'showCursorWhenSelecting', true
+          editor.setOption 'matchBrackets', true
           editor.setOption 'theme',
             switch theme()
               when 'dark'
                 'blackboard'
               when 'light'
-                'default'
+                'eclipse'
               else
                 theme()
           #editor.setShowFoldWidgets true
@@ -279,6 +279,8 @@ Template.submessage.helpers
                 'gfm'  ## Git-flavored Markdown
               when 'html'
                 'text/html'
+              when 'latex'
+                'stex'
               else
                 ti.data.format
           #editor.setOption 'mode', 'javascript'
