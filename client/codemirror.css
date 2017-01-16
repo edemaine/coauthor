@@ -11,9 +11,9 @@ div.CodeMirror-cursors > div.CodeMirror-cursor { border-left-width: 3px; }
 .cm-s-eclipse .cm-math { color: #b00000 }
 
 /* Spell checking */
-.cm-s-blackboard .cm-spell-error:not(.cm-url):not(.cm-comment):not(.cm-tag):not(.cm-word) {
+.cm-s-blackboard .cm-spell-error:not(.cm-url):not(.cm-comment):not(.cm-tag):not(.cm-word):not(.cm-math) {
     background: rgba(255, 0, 0, .2);
 }
-.cm-s-eclipse .cm-spell-error:not(.cm-url):not(.cm-comment):not(.cm-tag):not(.cm-word) {
+.cm-s-eclipse .cm-spell-error:not(.cm-url):not(.cm-comment):not(.cm-tag):not(.cm-word):not(.cm-math) {
     background: rgba(255, 0, 0, .075);
 }
