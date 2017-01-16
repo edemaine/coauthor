@@ -29,9 +29,11 @@ in other fields too.
   All formats support LaTeX math (via `$...$` or `$$...$$`) via
   [KaTeX](https://khan.github.io/KaTeX/).  Easy to add additional formats.
 
-* [Ace editor](https://ace.c9.io/) supports "regular" keybindings as well as
-  Vim and (limited) Emacs keybindings.  (If you've ever needed rectangular
-  selection for e.g. ASCII art, that's built-in to this editor.)
+* [CodeMirror editor](http://codemirror.net/) supports syntax highlighting,
+  block folding, bracket matching, line numbering, light and dark themes,
+  [spell checking](https://github.com/NextStepWebs/codemirror-spell-checker),
+  "regular" keybindings as well as Vim and Emacs keybindings
+  (if you've ever needed rectangular selection for e.g. ASCII art).
 
 * Organization by **groups** (intended to correspond to groups of people who
   meet).  Users can have permission to see and/or post within each
