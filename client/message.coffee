@@ -3,7 +3,7 @@ sharejsEditor = 'cm'  ## 'ace' or 'cm'; also change template used in message.jad
 switch sharejsEditor
   when 'cm'
     editorMode = (editor, format) ->
-      editor.setOption 'mode',
+      editor.setOption 'backdrop',
         switch format
           when 'markdown'
             'gfm-math'  ## Git-flavored Markdown, plus our math extensions
@@ -13,6 +13,7 @@ switch sharejsEditor
             'stex'
           else
             format
+      editor.setOption 'mode', 'spell-checker'
     editorKeyboard = (editor, keyboard) ->
       editor.setOption 'keyMap',
         switch keyboard
