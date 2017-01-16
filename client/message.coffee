@@ -6,7 +6,7 @@ switch sharejsEditor
       editor.setOption 'mode',
         switch format
           when 'markdown'
-            'gfm'  ## Git-flavored Markdown
+            'gfm-math'  ## Git-flavored Markdown, plus our math extensions
           when 'html'
             'text/html'
           when 'latex'
