@@ -2,7 +2,6 @@ CodeMirror = require "meteor/mizzao:sharejs-codemirror/node_modules/codemirror/l
 
 mathMode =
   token: (stream, state) ->
-    console.log 'hi', stream.peek()
     if stream.eat '\\'
       stream.next()  ## escaped character
       null
