@@ -8,7 +8,7 @@ switch sharejsEditor
           when 'markdown'
             'gfm-math'  ## Git-flavored Markdown, plus our math extensions
           when 'html'
-            'text/html'
+            'html-math'
           when 'latex'
             'stex'
           else
