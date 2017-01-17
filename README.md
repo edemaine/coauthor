@@ -26,6 +26,7 @@ in other fields too.
     (default)
   * HTML (sanitized)
   * LaTeX (very limited)
+  
   All formats support LaTeX math (via `$...$` or `$$...$$`) via
   [KaTeX](https://khan.github.io/KaTeX/).  Easy to add additional formats.
 
