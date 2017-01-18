@@ -314,7 +314,7 @@ if Meteor.isServer
           ## xxx currently no notification of title changed
           ## xxx also could use diff on body
           if changed.body
-            body = sanitizeHtml formatBody msg.format, msg.body
+            body = formatBody msg.format, msg.body, true
             html += "<BLOCKQUOTE>\n#{body}\n</BLOCKQUOTE>"
             text += indentLines(stripHTMLTags(body), '    ')
             html += '\n'

@@ -205,8 +205,9 @@ postprocessKatex = (text) ->
       .replace />/g, '&gt;'
       "<SPAN CLASS='katex-error' TITLE='#{title}'>#{latex}</SPAN>"
 
-postprocess = (text) ->
-  postprocessCoauthorLinks postprocessKatex text
+postprocess = (text, keepTeX = false) ->
+  text = postprocessKatex text unless keepTeX
+  postprocessCoauthorLinks text
 
 jsdiff = require 'diff'
 
@@ -230,14 +231,14 @@ jsdiff = require 'diff'
     #  after: sanitized
   sanitized
 
-@formatBody = (format, body) ->
+@formatBody = (format, body, leaveTeX = false) ->
   if format of formats
     body = formats[format] body, false
   else
     console.warn "Unrecognized format '#{format}'"
-  sanitize postprocess body
+  sanitize postprocess body, leaveTeX
 
-@formatTitle = (format, title) ->
+@formatTitle = (format, title, leaveTeX = false) ->
   if format of formats
     title = formats[format] title, true
   else
@@ -246,7 +247,7 @@ jsdiff = require 'diff'
   title = title
   .replace /^\s*<P>\s*/i, ''
   .replace /\s*<\/P>\s*$/i, ''
-  sanitize postprocess title
+  sanitize postprocess title, leaveTeX
 
 @stripHTMLTags = (html) ->
   html.replace /<[^>]*>/gm, ''
