@@ -49,7 +49,7 @@ iron:dynamic-template@1.0.12
 iron:layout@1.0.12
 iron:location@1.0.11
 iron:middleware-stack@1.1.0
-iron:router@1.0.13
+iron:router@1.1.1
 iron:url@1.0.11
 jquery@1.11.10
 launch-screen@1.1.0
@@ -63,9 +63,9 @@ minifier-css@1.2.15
 minifier-js@1.2.15
 minifiers@1.1.7
 minimongo@1.0.19
-mizzao:sharejs@0.9.0
+mizzao:sharejs@0.10.0
 mizzao:sharejs-ace@1.4.1
-mizzao:sharejs-codemirror@5.14.2
+mizzao:sharejs-codemirror@5.22.0
 mnmtanish:iced@1.1.0
 mobile-experience@1.0.4
 mobile-status-bar@1.0.13
