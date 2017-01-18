@@ -2,11 +2,13 @@ DOT = '[DOT]'
 DOLLAR = '[DOLLAR]'
 
 @escapeKey = (key) ->
+  return key unless key
   key
   .replace /\./g, DOT
   .replace /\$/g, DOLLAR
 
 @unescapeKey = (key) ->
+  return key unless key
   key
   .replace /\[DOT\]/g, '.'
   .replace /\[DOLLAR\]/g, '.'
