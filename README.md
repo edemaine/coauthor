@@ -8,12 +8,14 @@ in other fields too.
 
 ## Features So Far ##
 
-* **Live updates**/redraw of everything, thanks to Meteor.  No more hitting
-  "reload".  If you're looking at a problem and someone posts/edits something,
+* **Live updates**/redraw of everything, thanks to
+  [Meteor](https://www.meteor.com/).  No more hitting "reload".
+  If you're looking at a problem and someone posts/edits something,
   you see it as quickly as they see their preview (roughly 1-second delay).
 
-* **Real-time editing** of messages in the style of EtherPad (OT), if people
-  feel like editing together (useful if e.g. working on a proof together).
+* **Real-time editing** of messages in the style of EtherPad (Operational
+  Transforms), if people feel like editing together
+  (useful if e.g. working on a proof together).
   When editing, you see near-instant updates from the other side(s).
   Keep track of authorship by who is in edit mode at the time.
   Also you get live previews with ~1-second delay, after the data has
@@ -102,11 +104,20 @@ in other fields too.
   * Superdelete (permanently destroying a message including its history)
   * Setting the default sort for a group
 
-## Permissions ##
+## Installation and Permissions ##
 
-To get started, you'll need to make a user who can grant privileges to other
-users.  First, create the user on the web.  Then run a command like this from
-`meteor mongo`:
+Here is how to get a local test server running:
+
+1. `curl https://install.meteor.com/ | sh` on UNIX, or use the
+   [Windows installer](https://www.meteor.com/install)
+2. `git clone https://github.com/edemaine/coauthor.git`
+3. `cd coauthor`
+4. `meteor npm install`
+5. `meteor`
+6. Open the website [http://localhost/3000/](http://localhost/3000/)
+7. Create an account
+8. `meteor mongo`
+9. Give your account permissions as follows:
 
 ```
 meteor:PRIMARY> db.users.update({username: 'edemaine'}, {$set: {'roles.*': ['read', 'post', 'edit', 'super', 'admin']}})
