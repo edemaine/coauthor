@@ -315,6 +315,8 @@ Template.submessage.helpers
                 theme()
           editor.setOption 'extraKeys',
             Enter: 'newlineAndIndentContinueMarkdownList'
+            End: 'goLineRight'
+            Home: 'goLineLeft'
         when 'ace'
           editor.textInput.getElement().setAttribute 'tabindex', 1 + 20 * ti.count + 19
           #editor.meteorData = @  ## currently not needed, also dunno if works
