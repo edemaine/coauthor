@@ -560,20 +560,18 @@ Meteor.methods
           listener = Meteor.bindEnvironment (opData) ->
             delayedEditor2messageUpdate id
           ShareJS.model.listen id, listener
-      Messages.update id,
-        $addToSet: editing: Meteor.user().username
+        ## We used to do the following update in client too, to do
+        ## speculatively, but it seems problematic for now.
+        Messages.update id,
+          $addToSet: editing: Meteor.user().username
 
   messageEditStop: (id) ->
     check Meteor.userId(), String
-    Messages.update id,
-      $pull: editing: Meteor.user().username
-    #after = Messages.findAndModify
-    #  query: id
-    #  update: update
-    #  new: true
-    #console.log after
-    #if Meteor.isServer and (after.editing ? []).length == 0
     if Meteor.isServer
+      ## We used to do the following update in client too, to do
+      ## speculatively, but it seems problematic for now.
+      Messages.update id,
+        $pull: editing: Meteor.user().username
       unless Messages.findOne(id).editing?.length
         editor2messageUpdate id
         ShareJS.model.delete id

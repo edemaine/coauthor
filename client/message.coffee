@@ -146,6 +146,7 @@ Template.submessage.onCreated ->
   @count = submessageCount++
   @editing = new ReactiveVar null
   @autorun =>
+    #console.log 'editing autorun', Template.currentData()?._id, editing Template.currentData()
     return unless Template.currentData()?
     #@myid = Template.currentData()._id
     if editing Template.currentData()
