@@ -232,7 +232,7 @@ scrollDelay = 750
     scrollToLater = id
 
 Template.submessage.onDestroyed ->
-  for id in @images
+  for id in @images ? []
     if id of images
       images[id].count -= 1
 
