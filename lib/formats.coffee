@@ -20,17 +20,19 @@ replaceMathBlocks = (text, replacer) ->
     #console.log match
     switch match[0]
       when '$'
-        if start?
+        if start?  ## already in $ block
           if match.index > start+1  ## not opening $$
-            if braces == 0
+            if braces == 0  ## ignore $ nested within braces e.g. \text{$x$}
               blocks.push
                 start: start
                 end: match.index
               start = null
-        else
+        else  ## not in $ block
           if blocks.length > 0 and blocks[blocks.length-1].end+1 == match.index
+            ## second $ terminator
             blocks[blocks.length-1].end = match.index  ## closing $$
-          else
+          else  ## starting $ block
+            braces = 0
             start = match.index
       when '{'
         braces += 1
