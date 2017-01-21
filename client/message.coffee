@@ -161,13 +161,6 @@ images = {}
 id2template = {}
 scrollToLater = null
 
-onDragStart = (url, id) -> (e) ->
-  #url = pathFor 'message',
-  #  group: group
-  #  message: id
-  e.dataTransfer.setData 'text/plain', url
-  e.dataTransfer.setData 'application/coauthor', id
-
 Template.submessage.onRendered ->
   ## Random message background color (to show nesting).
   #@firstNode.style.backgroundColor = '#' +
@@ -178,16 +171,28 @@ Template.submessage.onRendered ->
   ## Drag/drop support.
   focusButton = $(@find '.message-left-buttons').find('.focusButton')[0]
   if focusButton? and @data._id?
-    url = "coauthor:#{@data._id}"
+    onDragStart = (e) =>
+      #url = "coauthor:#{@data._id}"
+      url = urlFor 'message',
+        group: @data.group
+        message: @data._id
+      e.dataTransfer.effectAllowed = 'link'
+      e.dataTransfer.setData 'text/plain', url
+      e.dataTransfer.setData 'application/coauthor-id', @data._id
+      e.dataTransfer.setData 'application/coauthor-type', type
+    type = 'message'
     if @data.format == 'file'
-      #formatted = formatBody @data.format, @data.body
+      formatted = formatBody @data.format, @data.body
+      if formatted[...4] == '<img'
+        type = 'img'
+      else if formatted[...4] == '<video'
+        type = 'video'
       #if "class='odd-file'" not in formatted and
       #   "class='bad-file'" not in formatted
       #  url = formatted
-      url = "<img src='#{url}'/>"  ## xxx incorrect for video
-      $(@find '.panel-body').find('img, video').each (i, elt) =>
-        elt.addEventListener 'dragstart', onDragStart url, @data._id
-    focusButton.addEventListener 'dragstart', onDragStart url, @data._id
+      $(@find '.panel-body').find('img, video, a').each (i, elt) =>
+        elt.addEventListener 'dragstart', onDragStart
+    focusButton.addEventListener 'dragstart', onDragStart
     #@find('.focusButton').addEventListener 'dragend', (e) =>
     #  e.dataTransfer.setData 'text/plain', "<IMG SRC='#{url}'>"
 
@@ -282,13 +287,6 @@ Template.submessage.helpers
     (editor) =>
       #console.log 'config', editor.getValue(), '.'
       ti.editor = editor
-      #editor.container.addEventListener 'drop', (e) =>
-      #  e.preventDefault()
-      #  if id = e.dataTransfer.getData('application/coauthor')
-      #    #switch @format
-      #    #  when 'latex'
-      #    #    e.dataTransfer.setData('text/plain', "\\href{#{id}}{}")
-      #    e.dataTransfer.setData('text/plain', "<IMG SRC='coauthor:#{id}'>")
       switch sharejsEditor
         when 'cm'
           editor.getInputField().setAttribute 'tabindex', 1 + 20 * ti.count + 19
@@ -317,6 +315,34 @@ Template.submessage.helpers
             Enter: 'newlineAndIndentContinueMarkdownList'
             End: 'goLineRight'
             Home: 'goLineLeft'
+          cmDrop = editor.display.dragFunctions.drop
+          editor.setOption 'dragDrop', false
+          editor.display.dragFunctions.drop = (e) ->
+            #text = e.dataTransfer.getData 'text'
+            id = e.dataTransfer.getData 'application/coauthor-id'
+            if id
+              type = e.dataTransfer.getData 'application/coauthor-type'
+              e.preventDefault()
+              e = _.omit e, 'dataTransfer', 'preventDefault'
+              e.defaultPrevented = false
+              e.preventDefault = ->
+              e.dataTransfer =
+                getData: ->
+                  switch type
+                    when 'img'
+                      switch ti.data.format
+                        when 'markdown'
+                          "![](coauthor:#{id})"
+                        when 'latex'
+                          "\\includegraphics{coauthor:#{id}}"
+                        when 'html'
+                          """<img src="coauthor:#{id}">"""
+                    when 'video'
+                      """<video controls><source src="coauthor:#{id}"></video>"""
+                    else
+                      "coauthor:#{id}"
+            cmDrop e
+          editor.setOption 'dragDrop', true
         when 'ace'
           editor.textInput.getElement().setAttribute 'tabindex', 1 + 20 * ti.count + 19
           #editor.meteorData = @  ## currently not needed, also dunno if works
@@ -335,6 +361,13 @@ Template.submessage.helpers
           editor.setShowFoldWidgets true
           editor.getSession().setUseWrapMode true
           #editor.setOption 'spellcheck', true
+          #editor.container.addEventListener 'drop', (e) =>
+          #  e.preventDefault()
+          #  if id = e.dataTransfer.getData('application/coauthor')
+          #    #switch @format
+          #    #  when 'latex'
+          #    #    e.dataTransfer.setData('text/plain', "\\href{#{id}}{}")
+          #    e.dataTransfer.setData('text/plain', "<IMG SRC='coauthor:#{id}'>")
       editorMode editor, ti.data.format
 
   keyboard: ->
