@@ -721,7 +721,6 @@ Template.tableOfContents.helpers
 
 Template.tableOfContents.onRendered ->
   $(@find 'ul').children('li').children('a').each (i, elt) =>
-    console.log 'activating', elt
     messageDrag.call @, elt, false
 
 Template.tableOfContents.events
