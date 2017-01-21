@@ -1,4 +1,4 @@
-@availableFormats = ['markdown', 'html', 'latex']  ## 'file' not an option for user
+@availableFormats = ['markdown', 'latex', 'html']  ## 'file' not an option for user
 @mathjaxFormats = availableFormats  ## Don't do tex2jax for files
 
 if Meteor.isClient
