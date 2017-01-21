@@ -63,6 +63,12 @@ in other fields too.
   subthread to focus on the rest.
   (Currently the folds are not preserved across sessions / rerenders.)
 
+* **Dragging** messages to change the parentage/hierarchy, or move their
+  position within their parent.  Dragging directly onto a message makes
+  the dragged message the last child, while dragging onto the slot before
+  a message makes the dragged message the immediately preceding sibling.
+  Dialog confirms move.
+
 * **Tags**: attached an arbitrary set of strings to a message.  Find other
   messages with the same tag by clicking on a tag.
 
