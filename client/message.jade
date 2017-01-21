@@ -43,8 +43,8 @@ template(name="tableOfContents")
     ul.nav.subcontents
       each children
         li.btn-group-xs
-          div.messageDrop(data-id=_id, data-index=index)
-          a(href="#{{_id}}", class=deletedClass).tex2jax
+          div.beforeMessageDrop.messageDrop(data-parent=parentId, data-index=index)
+          a(href="#{{_id}}", data-=_id, class=deletedClass).tex2jax.onMessageDrop.messageDrop
             if isFile
               span.glyphicon.glyphicon-paperclip
             | !{formatTitle} [#{creator}]

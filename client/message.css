@@ -49,8 +49,10 @@ code.raw { color: #333; }  /* match <pre> */
 
 .root { margin-bottom: 0px; } /* glom onto message below */
 
-.messageDrop { position: absolute; left: 0px; top: -0.5ex; width: 100%; height: 1ex; }
-.messageDrop.dragover { border-top: 1ex solid; z-index: 1; }
+.beforeMessageDrop { position: absolute; left: 0px; top: -1ex; width: 100%; height: 2ex; }
+.beforeMessageDrop.dragover { z-index: 1;
+  background-image: linear-gradient(rgba(0,0,0,0), red, rgba(0,0,0,0)); }
+.onMessageDrop.dragover { background-image: linear-gradient(rgba(0,0,0,0), red, rgba(0,0,0,0)); }
 
 @media print {
   a[href].btn:after { content: ""; } /* override Bootstrap default */

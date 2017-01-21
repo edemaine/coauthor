@@ -324,7 +324,7 @@ Template.submessage.helpers
           editor.setOption 'dragDrop', false
           editor.display.dragFunctions.drop = (e) ->
             #text = e.dataTransfer.getData 'text'
-            id = e.dataTransfer.getData 'application/coauthor-id'
+            id = e.dataTransfer?.getData 'application/coauthor-id'
             if id
               type = e.dataTransfer.getData 'application/coauthor-type'
               e.preventDefault()
@@ -713,6 +713,10 @@ Template.messageAuthor.helpers
   creator: ->
     "!" + @creator
 
+Template.tableOfContents.helpers
+  parentId: ->
+    Template.parentData()._id
+
 Template.tableOfContents.events
   "dragenter .messageDrop": (e) ->
     e.preventDefault()
@@ -725,9 +729,27 @@ Template.tableOfContents.events
   "dragover .messageDrop": (e) ->
     e.preventDefault()
     e.stopPropagation()
-  "drop .messageDrop": (e, t) ->
+  "drop .beforeMessageDrop": (e, t) ->
     e.preventDefault()
     e.stopPropagation()
     $(e.target).removeClass 'dragover'
     console.log e.target.getAttribute('data-id'),
                 e.target.getAttribute('data-index')
+  "drop .onMessageDrop": (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    $(e.target).removeClass 'dragover'
+    dragId = e.originalEvent.dataTransfer?.getData 'application/coauthor-id'
+    dropId = e.target.getAttribute 'data-id'
+    if dragId and dropId
+      Meteor.call 'messageParent', dragId, dropId
+  "drop .beforeMessageDrop": (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    $(e.target).removeClass 'dragover'
+    dragId = e.originalEvent.dataTransfer?.getData 'application/coauthor-id'
+    dropId = e.target.getAttribute 'data-parent'
+    index = e.target.getAttribute 'data-index'
+    if dragId and dropId and index
+      index = parseInt index
+      Meteor.call 'messageParent', dragId, dropId, index
