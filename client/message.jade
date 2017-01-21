@@ -44,7 +44,7 @@ template(name="tableOfContents")
       each children
         li.btn-group-xs
           div.beforeMessageDrop.messageDrop(data-parent=parentId, data-index=index)
-          a(href="#{{_id}}", data-=_id, class=deletedClass).tex2jax.onMessageDrop.messageDrop
+          a(href="#{{_id}}", data-id=_id, class=deletedClass).tex2jax.onMessageDrop.messageDrop
             if isFile
               span.glyphicon.glyphicon-paperclip
             | !{formatTitle} [#{creator}]

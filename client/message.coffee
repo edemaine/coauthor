@@ -166,6 +166,32 @@ images = {}
 id2template = {}
 scrollToLater = null
 
+messageDrag = (target, bodyToo = true) ->
+  return unless target
+  onDragStart = (e) =>
+    #url = "coauthor:#{@data._id}"
+    url = urlFor 'message',
+      group: @data.group
+      message: @data._id
+    e.dataTransfer.effectAllowed = 'linkMove'
+    e.dataTransfer.setData 'text/plain', url
+    e.dataTransfer.setData 'application/coauthor-id', @data._id
+    e.dataTransfer.setData 'application/coauthor-type', type
+  type = 'message'
+  if @data.format == 'file'
+    formatted = formatBody @data.format, @data.body
+    if formatted[...4] == '<img'
+      type = 'img'
+    else if formatted[...4] == '<video'
+      type = 'video'
+    #if "class='odd-file'" not in formatted and
+    #   "class='bad-file'" not in formatted
+    #  url = formatted
+    if bodyToo
+      $(@find '.panel-body')?.find('img, video, a')?.each (i, elt) =>
+        elt.addEventListener 'dragstart', onDragStart
+  target.addEventListener 'dragstart', onDragStart
+
 Template.submessage.onRendered ->
   ## Random message background color (to show nesting).
   #@firstNode.style.backgroundColor = '#' +
@@ -175,31 +201,7 @@ Template.submessage.onRendered ->
 
   ## Drag/drop support.
   focusButton = $(@find '.message-left-buttons').find('.focusButton')[0]
-  if focusButton? and @data._id?
-    onDragStart = (e) =>
-      #url = "coauthor:#{@data._id}"
-      url = urlFor 'message',
-        group: @data.group
-        message: @data._id
-      e.dataTransfer.effectAllowed = 'link'
-      e.dataTransfer.setData 'text/plain', url
-      e.dataTransfer.setData 'application/coauthor-id', @data._id
-      e.dataTransfer.setData 'application/coauthor-type', type
-    type = 'message'
-    if @data.format == 'file'
-      formatted = formatBody @data.format, @data.body
-      if formatted[...4] == '<img'
-        type = 'img'
-      else if formatted[...4] == '<video'
-        type = 'video'
-      #if "class='odd-file'" not in formatted and
-      #   "class='bad-file'" not in formatted
-      #  url = formatted
-      $(@find '.panel-body').find('img, video, a').each (i, elt) =>
-        elt.addEventListener 'dragstart', onDragStart
-    focusButton.addEventListener 'dragstart', onDragStart
-    #@find('.focusButton').addEventListener 'dragend', (e) =>
-    #  e.dataTransfer.setData 'text/plain', "<IMG SRC='#{url}'>"
+  messageDrag.call @, focusButton
 
   ## Fold deleted messages by default on initial load.
   messageFolded.set @data._id, true if @data.deleted
@@ -717,6 +719,11 @@ Template.tableOfContents.helpers
   parentId: ->
     Template.parentData()._id
 
+Template.tableOfContents.onRendered ->
+  $(@find 'ul').children('li').children('a').each (i, elt) =>
+    console.log 'activating', elt
+    messageDrag.call @, elt, false
+
 Template.tableOfContents.events
   "dragenter .messageDrop": (e) ->
     e.preventDefault()
@@ -729,12 +736,6 @@ Template.tableOfContents.events
   "dragover .messageDrop": (e) ->
     e.preventDefault()
     e.stopPropagation()
-  "drop .beforeMessageDrop": (e, t) ->
-    e.preventDefault()
-    e.stopPropagation()
-    $(e.target).removeClass 'dragover'
-    console.log e.target.getAttribute('data-id'),
-                e.target.getAttribute('data-index')
   "drop .onMessageDrop": (e, t) ->
     e.preventDefault()
     e.stopPropagation()
@@ -742,6 +743,7 @@ Template.tableOfContents.events
     dragId = e.originalEvent.dataTransfer?.getData 'application/coauthor-id'
     dropId = e.target.getAttribute 'data-id'
     if dragId and dropId
+      #console.log 'messageParent', dragId, dropId
       Meteor.call 'messageParent', dragId, dropId
   "drop .beforeMessageDrop": (e, t) ->
     e.preventDefault()
@@ -752,4 +754,5 @@ Template.tableOfContents.events
     index = e.target.getAttribute 'data-index'
     if dragId and dropId and index
       index = parseInt index
+      #console.log 'messageParent', dragId, dropId, index
       Meteor.call 'messageParent', dragId, dropId, index
