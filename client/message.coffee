@@ -33,6 +33,10 @@ switch sharejsEditor
             "ace/keyboard/#{keyboard}"
       )
 
+dropdownToggle = (e) ->
+  #$(e.target).parent().dropdown 'toggle'
+  $(e.target).parents('.dropdown-menu').first().parent().find('.dropdown-toggle').dropdown 'toggle'
+
 Template.registerHelper 'titleOrUntitled', ->
   titleOrUntitled @.title
 
@@ -478,7 +482,7 @@ Template.submessage.events
       tags[escapeTag tag] = true
       Meteor.call 'messageUpdate', message,
         tags: tags
-    $(e.target).parents('.dropdown-menu').first().parent().find('.dropdown-toggle').dropdown 'toggle'
+    dropdownToggle e
 
   'click .tagAddNew': (e, t) ->
     e.preventDefault()
@@ -496,7 +500,7 @@ Template.submessage.events
         tags[escapeTag tag] = true
         Meteor.call 'messageUpdate', message,
           tags: tags
-    $(e.target).parents('.dropdown-menu').first().parent().find('.dropdown-toggle').dropdown 'toggle'
+    dropdownToggle e
     false  ## prevent form from submitting
 
   'click .foldButton': (e, t) ->
@@ -543,15 +547,15 @@ Template.submessage.events
     e.stopPropagation()
     messageKeyboard.set @_id, kb = e.target.getAttribute 'data-keyboard'
     editorKeyboard t.editor, kb
-    $(e.target).parent().dropdown 'toggle'
+    dropdownToggle e
 
   'click .editorFormat': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
     Meteor.call 'messageUpdate', t.data._id,
       format: format = e.target.getAttribute 'data-format'
-    $(e.target).parent().dropdown 'toggle'
     editorMode Template.instance().editor, format
+    dropdownToggle e
 
   'keyup input.title': (e, t) ->
     e.stopPropagation()
