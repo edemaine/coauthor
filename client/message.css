@@ -54,7 +54,7 @@ code.raw { color: #333; }  /* match <pre> */
   background-image: linear-gradient(rgba(0,0,0,0), red, rgba(0,0,0,0)); }
 .onMessageDrop.dragover { background-image: linear-gradient(rgba(0,0,0,0), red, rgba(0,0,0,0)); }
 
-.halfHeight { max-height: 35vh; overflow: auto; } 
+.halfHeight { max-height: 35vh; overflow: auto; }
 .parentArrow { text-align: center; }
 .parentArrow div { vertical-align: top; display: inline-block; }
 .parentArrow1 { border-left: red dotted 2px; border-bottom: red dotted 2px; height: 14px; width: 15%; }
