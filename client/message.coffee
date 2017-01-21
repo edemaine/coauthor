@@ -715,15 +715,14 @@ Template.messageAuthor.helpers
   creator: ->
     "!" + @creator
 
-Template.tableOfContents.helpers
+Template.tableOfContentsMessage.helpers
   parentId: ->
     Template.parentData()._id
 
-Template.tableOfContents.onRendered ->
-  $(@find 'ul').children('li').children('a').each (i, elt) =>
-    messageDrag.call @, elt, false
+Template.tableOfContentsMessage.onRendered ->
+  messageDrag.call @, @find('a'), false
 
-Template.tableOfContents.events
+Template.tableOfContentsMessage.events
   "dragenter .messageDrop": (e) ->
     e.preventDefault()
     e.stopPropagation()

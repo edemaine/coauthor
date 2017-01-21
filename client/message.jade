@@ -42,13 +42,16 @@ template(name="tableOfContents")
   if children
     ul.nav.subcontents
       each children
-        li.btn-group-xs
-          div.beforeMessageDrop.messageDrop(data-parent=parentId, data-index=index)
-          a(href="#{{_id}}", data-id=_id, class=deletedClass).tex2jax.onMessageDrop.messageDrop
-            if isFile
-              span.glyphicon.glyphicon-paperclip
-            | !{formatTitle} [#{creator}]
-          +tableOfContents
+        +tableOfContentsMessage
+
+template(name="tableOfContentsMessage")
+  li.btn-group-xs
+    div.beforeMessageDrop.messageDrop(data-parent=parentId, data-index=index)
+    a(href="#{{_id}}", data-id=_id, class=deletedClass).tex2jax.onMessageDrop.messageDrop
+      if isFile
+        span.glyphicon.glyphicon-paperclip
+      | !{formatTitle} [#{creator}]
+    +tableOfContents
 
 template(name="badMessage")
   if ready
