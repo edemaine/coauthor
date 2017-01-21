@@ -453,6 +453,8 @@ Template.registerHelper 'formatAuthors', ->
 
 Template.submessage.events
   'click .tagRemove': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
     message = t.data._id
     tags = t.data.tags
     tag = e.target.getAttribute 'data-tag'
@@ -465,6 +467,8 @@ Template.submessage.events
       console.warn "Attempt to delete nonexistant tag '#{tag}' from message #{message}"
 
   'click .tagAdd': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
     message = t.data._id
     tags = t.data.tags
     tag = e.target.getAttribute 'data-tag'
@@ -474,6 +478,7 @@ Template.submessage.events
       tags[escapeTag tag] = true
       Meteor.call 'messageUpdate', message,
         tags: tags
+    $(e.target).parents('.dropdown-menu').first().parent().find('.dropdown-toggle').dropdown 'toggle'
 
   'click .tagAddNew': (e, t) ->
     e.preventDefault()
