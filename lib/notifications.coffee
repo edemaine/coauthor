@@ -332,8 +332,8 @@ if Meteor.isServer
             text += "  * Format: #{msg.format}\n"
             html += "<LI>Format: #{msg.format}\n"
           if changed.tags
-            text += "  * Tags: #{_.keys(sortTags msg.tags).join ", "}\n"
-            html += "<LI>Tags: #{_.keys(sortTags msg.tags).join ", "}\n"
+            text += "  * Tags: #{(tag.key for tag in sortTags msg.tags).join ", "}\n"
+            html += "<LI>Tags: #{(tag.key for tag in sortTags msg.tags).join ", "}\n"
           if changed.format or changed.tags
             html += "</UL>\n"
           html += '\n'
