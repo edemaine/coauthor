@@ -284,6 +284,7 @@ idle = 1000   ## one second
   Messages.findOne(message).group
 
 @findMessageParent = (message) ->
+  message = message._id if message._id?
   parents = Messages.find
     children: message
   .fetch()
@@ -376,77 +377,89 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
   if parent?
     pmsg = Messages.findOne parent
     unless pmsg
-      console.log 'Missing parent', parent, 'for child', child
+      console.warn 'Missing parent', parent, 'for child', child
       return  ## This should only happen in client simulation
     group = pmsg.group
     root = pmsg.root ? parent
+
+    ## Check before creating a cycle in the parent pointers!
+    ancestor = pmsg
+    while ancestor?
+      if ancestor._id == child
+        throw new Meteor.Error 'messageParent.cycle',
+          "Attempt to make #{child} its own ancestor (via #{parent})"
+      ancestor = findMessageParent ancestor
   else
     group = child.group  ## xxx can't specify other group...
     root = null
-  if canEdit(child) and canPost group, parent
-    cmsg = Messages.findOne child
-    oldPosition = null
-    if oldParent
-      oldParentMsg = findMessageParent child
-      if oldParentMsg?
-        oldParent = oldParentMsg._id
-        oldPosition = oldParentMsg.children.indexOf child
-        return if parent == oldParent and (
-          (position? and position == oldPosition) or
-          (not position? and oldPosition == oldParentMsg.children.length-1)
-        )  ## no-op
-        Messages.update oldParent,
-          $pull: children: child
-      else
-        oldParent = null
-    return if parent == oldParent == null  ## no-op, root case
-    if parent?
-      if position?
-        Messages.update parent,
-          $push: children:
-            $each: [child]
-            $position: position
-      else
-        Messages.update parent,
-          $push: children: child
-    if root != cmsg.root
-      Messages.update child,
-        $set: root: root
-      if cmsg.root?
-        ## If we move a nonroot message to have new root, update descendants.
-        descendants = descendantMessageIds child
-        if descendants.length > 0
-          Messages.update
-            _id: $in: descendants
-          ,
-            $set: root: root ? child
-          ,
-            multi: true
-      else
-        ## To reparent root message, change the root of all descendants.
+
+  unless canEdit(child) and canPost group, parent
+    throw new Meteor.Error 'messageParent.unauthorized',
+      "Insufficient privileges to reparent message #{child} into #{parent}"
+
+  cmsg = Messages.findOne child
+  oldPosition = null
+  if oldParent
+    oldParentMsg = findMessageParent child
+    if oldParentMsg?
+      oldParent = oldParentMsg._id
+      oldPosition = oldParentMsg.children.indexOf child
+      return if parent == oldParent and (
+        (position? and position == oldPosition) or
+        (not position? and oldPosition == oldParentMsg.children.length-1)
+      )  ## no-op
+      Messages.update oldParent,
+        $pull: children: child
+    else
+      oldParent = null
+  return if parent == oldParent == null  ## no-op, root case
+  if parent?
+    if position?
+      Messages.update parent,
+        $push: children:
+          $each: [child]
+          $position: position
+    else
+      Messages.update parent,
+        $push: children: child
+  if root != cmsg.root
+    Messages.update child,
+      $set: root: root
+    if cmsg.root?
+      ## If we move a nonroot message to have new root, update descendants.
+      descendants = descendantMessageIds child
+      if descendants.length > 0
         Messages.update
-          root: child
+          _id: $in: descendants
         ,
-          $set: root: root ? child  ## actually must be root
+          $set: root: root ? child
         ,
           multi: true
-        _noLongerRoot child if root?
-      _submessagesChanged cmsg.root     ## old root
-      _submessagesChanged root ? child  ## new root
-    doc =
-      child: child
-      parent: parent
-      position: position
-      oldParent: oldParent
-      oldPosition: oldPosition
-    if importing
-      #cmsg = Messages.findOne child
-      doc.updator = cmsg.creator
-      doc.updated = cmsg.created
     else
-      doc.updator = Meteor.user().username
-      doc.updated = new Date
-    MessagesParent.insert doc
+      ## To reparent root message, change the root of all descendants.
+      Messages.update
+        root: child
+      ,
+        $set: root: root ? child  ## actually must be root
+      ,
+        multi: true
+      _noLongerRoot child if root?
+    _submessagesChanged cmsg.root     ## old root
+    _submessagesChanged root ? child  ## new root
+  doc =
+    child: child
+    parent: parent
+    position: position
+    oldParent: oldParent
+    oldPosition: oldPosition
+  if importing
+    #cmsg = Messages.findOne child
+    doc.updator = cmsg.creator
+    doc.updated = cmsg.created
+  else
+    doc.updator = Meteor.user().username
+    doc.updated = new Date
+  MessagesParent.insert doc
 
 if Meteor.isServer
   editorTimers = {}
