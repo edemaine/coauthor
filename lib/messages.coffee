@@ -399,6 +399,8 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
 
   cmsg = Messages.findOne child
   oldPosition = null
+  oldSiblingsBefore = null
+  oldSiblingsAfter = null
   if oldParent
     oldParentMsg = findMessageParent child
     if oldParentMsg?
@@ -408,6 +410,8 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
         (position? and position == oldPosition) or
         (not position? and oldPosition == oldParentMsg.children.length-1)
       )  ## no-op
+      oldSiblingsBefore = oldParentMsg.children[...oldPosition]
+      oldSiblingsAfter = oldParentMsg.children[oldPosition+1..]
       Messages.update oldParent,
         $pull: children: child
     else
@@ -446,12 +450,15 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
       _noLongerRoot child if root?
     _submessagesChanged cmsg.root     ## old root
     _submessagesChanged root ? child  ## new root
+
   doc =
     child: child
     parent: parent
     position: position
     oldParent: oldParent
     oldPosition: oldPosition
+    oldSiblingsBefore: oldSiblingsBefore
+    oldSiblingsAfter: oldSiblingsAfter
   if importing
     #cmsg = Messages.findOne child
     doc.updator = cmsg.creator
