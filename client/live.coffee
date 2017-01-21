@@ -20,12 +20,12 @@ Template.live.events
   'submit form': (e, t) ->
     e.preventDefault()
 
-Template.readMessage.onRendered ->
+Template.readMessageNoHeader.onRendered ->
   @autorun ->
     Template.currentData()
     mathjax()
 
-Template.readMessage.helpers
+Template.readMessageNoHeader.helpers
   formatTitle: ->
     sanitizeHtml formatTitle @format, @title
   formatBody: ->

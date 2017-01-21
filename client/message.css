@@ -54,6 +54,16 @@ code.raw { color: #333; }  /* match <pre> */
   background-image: linear-gradient(rgba(0,0,0,0), red, rgba(0,0,0,0)); }
 .onMessageDrop.dragover { background-image: linear-gradient(rgba(0,0,0,0), red, rgba(0,0,0,0)); }
 
+.halfHeight { max-height: 35vh; overflow: auto; } 
+.parentArrow { text-align: center; }
+.parentArrow div { vertical-align: top; display: inline-block; }
+.parentArrow1 { border-left: red dotted 2px; border-bottom: red dotted 2px; height: 14px; width: 15%; }
+.parentArrow2 { margin-top: 12px; border-top: red dotted 2px; height: 14px; width: 15%; }
+.parentArrow3 { margin-top: 12px; border-top: solid 2px; border-left: solid 2px; height: 14px; width: 15%; }
+.parentArrow4 { border-right: solid 2px; border-bottom: solid 2px; height: 14px; width: 15%; }
+.parentArrow .glyphicon { margin-top: 4px; }
+.parentArrow .glyphicon-remove { color: red; }
+
 @media print {
   a[href].btn:after { content: ""; } /* override Bootstrap default */
   a[href].author:after { content: ""; } /* override Bootstrap default */

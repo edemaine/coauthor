@@ -19,6 +19,9 @@ template(name='live')
 
 template(name='readMessage')
   +rootHeader
+  +readMessageNoHeader
+
+template(name='readMessageNoHeader')
   .panel.message(class=messagePanelClass, data-message=_id, id=_id)
     .panel-heading.clearfix
       .message-left-buttons.btn-group.btn-group-xs

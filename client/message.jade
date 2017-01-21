@@ -233,3 +233,33 @@ template(name="messageAttach")
 template(name="messageReplace")
   input.replaceInput(type="file", style="display:none")
   button.btn.btn-default.replaceButton(tabindex=tabindex) Replace
+
+template(name="messageParentConfirm")
+  .modal
+    .modal-dialog
+      .modal-content
+        .modal-header
+          h2 Confirm Message Reparenting
+        .modal-body
+          p Are you sure you want to reparent as follows?
+          .row
+            .col-xs-6.halfHeight
+              with oldParent
+                +readMessageNoHeader
+            .col-xs-6.halfHeight
+              with parent
+                +readMessageNoHeader
+          .row
+            .col-xs-12.parentArrow
+              .parentArrow1
+              span.glyphicon.glyphicon-remove
+              |<div class="parentArrow2"></div><div class="parentArrow3"></div>
+              span.glyphicon.glyphicon-ok
+              .parentArrow4
+          .row
+            .col-xs-12.halfHeight
+              with child
+                +readMessageNoHeader
+        .modal-footer
+          button.btn.btn-danger.messageParentButton Yes, reparent
+          button.btn.btn-success.cancelButton.fullwidth Cancel

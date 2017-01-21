@@ -741,8 +741,7 @@ Template.tableOfContentsMessage.events
     dragId = e.originalEvent.dataTransfer?.getData 'application/coauthor-id'
     dropId = e.target.getAttribute 'data-id'
     if dragId and dropId
-      #console.log 'messageParent', dragId, dropId
-      Meteor.call 'messageParent', dragId, dropId
+      messageParent dragId, dropId
   "drop .beforeMessageDrop": (e, t) ->
     e.preventDefault()
     e.stopPropagation()
@@ -752,5 +751,29 @@ Template.tableOfContentsMessage.events
     index = e.target.getAttribute 'data-index'
     if dragId and dropId and index
       index = parseInt index
-      #console.log 'messageParent', dragId, dropId, index
-      Meteor.call 'messageParent', dragId, dropId, index
+      messageParent dragId, dropId, index
+
+messageParent = (child, parent, index = null) ->
+  #console.log 'messageParent', child, parent, index
+  #Meteor.call 'messageParent', child, parent, index
+  return if child == parent  ## ignore trivial self-loop
+  childMsg = Messages.findOne child
+  parentMsg = Messages.findOne parent
+  oldParent = findMessageParent child
+  return if parentMsg?._id == oldParent?._id
+  Modal.show 'messageParentConfirm',
+    child: childMsg
+    parent: parentMsg
+    oldParent: oldParent
+    index: index
+
+Template.messageParentConfirm.events
+  "click .messageParentButton": (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    Modal.hide()
+    Meteor.call 'messageParent', t.data.child._id, t.data.parent._id, t.data.index
+  "click .cancelButton": (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+    Modal.hide()
