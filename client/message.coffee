@@ -760,12 +760,17 @@ messageParent = (child, parent, index = null) ->
   childMsg = Messages.findOne child
   parentMsg = Messages.findOne parent
   oldParent = findMessageParent child
-  return if parentMsg?._id == oldParent?._id
+  oldIndex = oldParent?.children.indexOf child
+  ## Ignore drag to same place
+  if parentMsg?._id == oldParent?._id
+    return if index == oldIndex or
+      (not index? and oldIndex == oldParent.children.length - 1)
   Modal.show 'messageParentConfirm',
     child: childMsg
     parent: parentMsg
     oldParent: oldParent
     index: index
+    oldIndex: oldIndex
 
 Template.messageParentConfirm.events
   "click .messageParentButton": (e, t) ->
