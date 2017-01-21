@@ -722,36 +722,50 @@ Template.tableOfContentsMessage.helpers
 Template.tableOfContentsMessage.onRendered ->
   messageDrag.call @, @find('a'), false
 
-Template.tableOfContentsMessage.events
-  "dragenter .messageDrop": (e) ->
-    e.preventDefault()
-    e.stopPropagation()
-    $(e.target).addClass 'dragover'
-  "dragleave .messageDrop": (e) ->
-    e.preventDefault()
-    e.stopPropagation()
-    $(e.target).removeClass 'dragover'
-  "dragover .messageDrop": (e) ->
-    e.preventDefault()
-    e.stopPropagation()
-  "drop .onMessageDrop": (e, t) ->
-    e.preventDefault()
-    e.stopPropagation()
-    $(e.target).removeClass 'dragover'
-    dragId = e.originalEvent.dataTransfer?.getData 'application/coauthor-id'
-    dropId = e.target.getAttribute 'data-id'
-    if dragId and dropId
-      messageParent dragId, dropId
-  "drop .beforeMessageDrop": (e, t) ->
-    e.preventDefault()
-    e.stopPropagation()
-    $(e.target).removeClass 'dragover'
-    dragId = e.originalEvent.dataTransfer?.getData 'application/coauthor-id'
-    dropId = e.target.getAttribute 'data-parent'
-    index = e.target.getAttribute 'data-index'
-    if dragId and dropId and index
-      index = parseInt index
-      messageParent dragId, dropId, index
+addDragOver = (e) ->
+  e.preventDefault()
+  e.stopPropagation()
+  $(e.target).addClass 'dragover'
+
+removeDragOver = (e) ->
+  e.preventDefault()
+  e.stopPropagation()
+  $(e.target).removeClass 'dragover'
+
+dragOver = (e) ->
+  e.preventDefault()
+  e.stopPropagation()
+
+dropOn = (e, t) ->
+  e.preventDefault()
+  e.stopPropagation()
+  $(e.target).removeClass 'dragover'
+  dragId = e.originalEvent.dataTransfer?.getData 'application/coauthor-id'
+  dropId = e.target.getAttribute 'data-id'
+  if dragId and dropId
+    messageParent dragId, dropId
+
+dropBefore = (e, t) ->
+  e.preventDefault()
+  e.stopPropagation()
+  $(e.target).removeClass 'dragover'
+  dragId = e.originalEvent.dataTransfer?.getData 'application/coauthor-id'
+  dropId = e.target.getAttribute 'data-parent'
+  index = e.target.getAttribute 'data-index'
+  if dragId and dropId and index
+    index = parseInt index
+    messageParent dragId, dropId, index
+
+for template in [Template.tableOfContentsRoot, Template.tableOfContentsMessage]
+  template.events
+    "dragenter .onMessageDrop": addDragOver
+    "dragleave .onMessageDrop": removeDragOver
+    "dragover .onMessageDrop": dragOver
+    "dragenter .beforeMessageDrop": addDragOver
+    "dragleave .beforeMessageDrop": removeDragOver
+    "dragover .beforeMessageDrop": dragOver
+    "drop .onMessageDrop": dropOn
+    "drop .beforeMessageDrop": dropBefore
 
 messageParent = (child, parent, index = null) ->
   #console.log 'messageParent', child, parent, index

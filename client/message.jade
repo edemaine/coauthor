@@ -21,11 +21,7 @@ template(name="message")
           each orphans
             +submessage
     .col-md-3(role="complementary").hidden-print.hidden-xs.hidden-sm
-      nav.contents
-        ul.nav.contents
-          li
-            a(href="#{{_id}}").title.tex2jax !{formatTitle} [#{creator}]
-        +tableOfContents
+      +tableOfContentsRoot
 
 template(name="rootHeader")
   if root
@@ -38,6 +34,13 @@ template(name="rootHeader")
           span.space
           span.title.panel-title.tex2jax !{formatTitle}
 
+template(name="tableOfContentsRoot")
+  nav.contents
+    ul.nav.contents
+      li
+        a(href="#{{_id}}", data-id=_id, class=deletedClass).title.tex2jax.onMessageDrop !{formatTitle} [#{creator}]
+    +tableOfContents
+
 template(name="tableOfContents")
   if children
     ul.nav.subcontents
@@ -46,8 +49,8 @@ template(name="tableOfContents")
 
 template(name="tableOfContentsMessage")
   li.btn-group-xs
-    div.beforeMessageDrop.messageDrop(data-parent=parentId, data-index=index)
-    a(href="#{{_id}}", data-id=_id, class=deletedClass).tex2jax.onMessageDrop.messageDrop
+    div.beforeMessageDrop(data-parent=parentId, data-index=index)
+    a(href="#{{_id}}", data-id=_id, class=deletedClass).tex2jax.onMessageDrop
       if isFile
         span.glyphicon.glyphicon-paperclip
       | !{formatTitle} [#{creator}]
