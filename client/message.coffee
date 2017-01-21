@@ -50,8 +50,9 @@ Template.registerHelper 'children', ->
     children = _.sortBy children, (child) => @children.indexOf child._id
     ## Use canSee to properly fake non-superuser mode.
     children = (child for child in children when canSee child)
-    for child in children
+    for child, index in children
       child.depth = (@depth ? 0) + 1
+      child.index = index
     children
 
 Template.registerHelper 'tags', ->
@@ -711,3 +712,22 @@ uploader 'messageReplace', 'replaceButton', 'replaceInput', replaceFiles
 Template.messageAuthor.helpers
   creator: ->
     "!" + @creator
+
+Template.tableOfContents.events
+  "dragenter .messageDrop": (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+    $(e.target).addClass 'dragover'
+  "dragleave .messageDrop": (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+    $(e.target).removeClass 'dragover'
+  "dragover .messageDrop": (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+  "drop .messageDrop": (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    $(e.target).removeClass 'dragover'
+    console.log e.target.getAttribute('data-id'),
+                e.target.getAttribute('data-index')
