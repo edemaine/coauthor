@@ -54,12 +54,12 @@ replaceMathBlocks = (text, replacer) ->
 latex2html = (tex) ->
   defs = {}
   tex = tex.replace /%.*$\n?/mg, ''
-  tex = tex.replace /\\def\s*\\([a-zA-Z]+)\s*{((?:[^{}]|{[^{}]*})*)}/g, (match, p1, p2) ->
+  tex = tex.replace /\\def\s*\\([a-zA-Z]+)\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, (match, p1, p2) ->
     defs[p1] = p2
     ''
   for def, val of defs
-    console.log def, val
-    tex = tex.replace new RegExp("\\\\#{def}\\s*", 'g'), val
+    #console.log "\\#{def} = #{val}"
+    tex = tex.replace ///\\#{def}\s*///g, val
   tex = '<p>' + tex
   .replace /\\\\/g, '[DOUBLEBACKSLASH]'
   .replace /\\(BY|YEAR)\s*{([^{}]*)}/g, '<span style="border: thin solid; margin-left: 0.5em; padding: 0px 4px; font-variant:small-caps">$2</span>'
@@ -189,9 +189,7 @@ preprocessKaTeX = (text) ->
   [text, math]
 
 postprocessKaTeX = (text, math) ->
-  #replaceMathBlocks text, (block) ->
-  text.replace /MATH(\d+)ENDMATH/g, (match, p1) ->
-    block = math[p1]
+  replacer = (block) ->
     start$ = /^\$+/.exec block
     end$ = /\$+$/.exec block
     display = start$[0].length >= 2
@@ -218,6 +216,11 @@ postprocessKaTeX = (text, math) ->
       .replace /</g, '&lt;'
       .replace />/g, '&gt;'
       "<SPAN CLASS='katex-error' TITLE='#{title}'>#{latex}</SPAN>"
+  if math?
+    text.replace /MATH(\d+)ENDMATH/g, (match, p1) ->
+      replacer math[p1]
+  else
+    replaceMathBlocks text, replacer
 
 jsdiff = require 'diff'
 
@@ -242,7 +245,7 @@ jsdiff = require 'diff'
   sanitized
 
 @formatBody = (format, body, leaveTeX = false) ->
-  [body, math] = preprocessKaTeX body unless leaveTeX
+  [body, math] = preprocessKaTeX body unless leaveTeX or format == 'latex'
   if format of formats
     body = formats[format] body, false
   else
