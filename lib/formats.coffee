@@ -137,8 +137,8 @@ latex2html = (tex) ->
     ## Escape all characters that can be (in particular, _s) that appear
     ## inside math mode, to prevent Marked from processing them.
     ## The Regex is exactly marked.js's inline.escape.
-    text = replaceMathBlocks text, (block) ->
-      block.replace /[\\`*{}\[\]()#+\-.!_]/g, '\\$&'
+    #text = replaceMathBlocks text, (block) ->
+    #  block.replace /[\\`*{}\[\]()#+\-.!_]/g, '\\$&'
     #marked.Lexer.rules = {text: /^[^\n]+/} if title
     if title  ## use "single-line" version of Markdown
       text = markdownInline text
@@ -179,16 +179,27 @@ postprocessCoauthorLinks = (text) ->
 
 katex = require 'katex'
 
-postprocessKatex = (text) ->
-  replaceMathBlocks text, (block) ->
+preprocessKaTeX = (text) ->
+  math = []
+  i = 0
+  text = replaceMathBlocks text, (block) ->
+    i += 1
+    math[i] = block
+    "MATH#{i}ENDMATH"
+  [text, math]
+
+postprocessKaTeX = (text, math) ->
+  #replaceMathBlocks text, (block) ->
+  text.replace /MATH(\d+)ENDMATH/g, (match, p1) ->
+    block = math[p1]
     start$ = /^\$+/.exec block
     end$ = /\$+$/.exec block
     display = start$[0].length >= 2
     block = block[start$[0].length...end$.index]
-    .replace /&lt;/g, '<'
-    .replace /&gt;/g, '>'
-    .replace /’/g, "'"
-    .replace /‘/g, "`"  ## remove bad Marked automatic behavior
+    #.replace /&lt;/g, '<'
+    #.replace /&gt;/g, '>'
+    #.replace /’/g, "'"
+    #.replace /‘/g, "`"  ## remove bad Marked automatic behavior
     try
       katex.renderToString block,
         displayMode: display
@@ -207,10 +218,6 @@ postprocessKatex = (text) ->
       .replace /</g, '&lt;'
       .replace />/g, '&gt;'
       "<SPAN CLASS='katex-error' TITLE='#{title}'>#{latex}</SPAN>"
-
-postprocess = (text, keepTeX = false) ->
-  text = postprocessKatex text unless keepTeX
-  postprocessCoauthorLinks text
 
 jsdiff = require 'diff'
 
@@ -235,13 +242,16 @@ jsdiff = require 'diff'
   sanitized
 
 @formatBody = (format, body, leaveTeX = false) ->
+  [body, math] = preprocessKaTeX body unless leaveTeX
   if format of formats
     body = formats[format] body, false
   else
     console.warn "Unrecognized format '#{format}'"
-  sanitize postprocess body, leaveTeX
+  body = postprocessKaTeX body, math unless leaveTeX
+  sanitize postprocessCoauthorLinks body
 
 @formatTitle = (format, title, leaveTeX = false) ->
+  [title, math] = preprocessKaTeX title unless leaveTeX
   if format of formats
     title = formats[format] title, true
   else
@@ -250,7 +260,8 @@ jsdiff = require 'diff'
   title = title
   .replace /^\s*<P>\s*/i, ''
   .replace /\s*<\/P>\s*$/i, ''
-  sanitize postprocess title, leaveTeX
+  title = postprocessKaTeX title, math unless leaveTeX
+  sanitize postprocessCoauthorLinks title
 
 @stripHTMLTags = (html) ->
   html.replace /<[^>]*>/gm, ''
