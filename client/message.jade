@@ -101,11 +101,6 @@ template(name="submessage")
             span.glyphicon.glyphicon-plus
             | Tag
           ul.dropdown-menu(role="menu").tagMenu
-            each absentTags
-              li
-                a.tagAdd(href="#",data-tag=key) #{key}
-            if absentTagsCount
-              li.divider(role="separator")
             li.disabled
               a
                 form.input-group.input-group-sm
@@ -113,6 +108,11 @@ template(name="submessage")
                   .input-group-btn
                     button.btn.btn-default.tagAddNew(type="submit")
                       span.glyphicon.glyphicon-plus
+            if absentTagsCount
+              li.divider(role="separator")
+            each absentTags
+              li
+                a.tagAdd(href="#",data-tag=key) #{key}
       if deleted
         span.label.label-danger Deleted
       else
