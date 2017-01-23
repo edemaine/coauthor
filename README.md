@@ -81,7 +81,8 @@ in other fields too.
   Drag messages (via their arrow icon) into other messages to make such links.
 
 * **Files** (another type of message) can be attached to other messages, as
-  another type of reply.  Files can be replaced, and image/video files
+  another type of reply.  File messages can have title and body too; title
+  defaults to the filename.  Files can be replaced.  Image/video files
   (including PNG, JPEG, SVG, MP4) are displayed inline.  (In the future,
   they and other visual file types such as PDF will be rendered by some
   kind of thumbnails.)
