@@ -180,9 +180,7 @@ importOSQA = (group, zip) ->
         else
           creation = file2.file.lastModifiedDate
         filerev =
-          format: 'file'
-          title: file2.fileName
-          body: file2.uniqueIdentifier
+          file: file2.uniqueIdentifier
           published: creation
         filemsg = _.clone filerev
         filemsg.creator = file2.file.creator
@@ -389,9 +387,7 @@ importLaTeX = (group, zip) ->
           for figure in attach
             for file in figure.files
               filerev =
-                format: 'file'
-                title: file.name
-                body: file.file2id
+                file: file.file2id
                 published: now
               filemsg = _.clone filerev
               filemsg.creator = me

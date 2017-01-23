@@ -3,7 +3,7 @@
 @autopublish = ->
   Meteor.user().profile.autopublish ? defaultAutopublish
 
-@defaultFormat = 'markdown'
+export defaultFormat = 'markdown'
 
 @defaultTheme = 'light'
 @theme = ->

@@ -239,7 +239,10 @@ Template.messageShort.onRendered ->
 
 Template.messageShort.helpers
   formatTitle: ->
-    sanitizeHtml formatTitle @format, titleOrUntitled @title
+    if @title
+      formatTitle @format, titleOrUntitled @title
+    else
+      formatFilename @, true
   messageLink: ->
     pathFor 'message',
       group: @group

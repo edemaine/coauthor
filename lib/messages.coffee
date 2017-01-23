@@ -1,3 +1,5 @@
+import { defaultFormat } from './settings.coffee'
+
 @untitledMessage = '(untitled)'
 
 @titleOrUntitled = (title) ->
@@ -331,6 +333,7 @@ if Meteor.isServer
     title: Match.Optional String
     body: Match.Optional String
     format: Match.Optional String
+    file: Match.Optional String
     tags: Match.Optional Match.Where validTags
     #children: Match.Optional [String]  ## must be set via messageParent
     #parent: Match.Optional String      ## use children, not parent
@@ -509,6 +512,7 @@ Meteor.methods
       title: Match.Optional String
       body: Match.Optional String
       format: Match.Optional String
+      file: Match.Optional String
       tags: Match.Optional Match.Where validTags
       #children: Match.Optional [String]  ## must be set via messageParent
       #parent: Match.Optional String      ## use children, not parent
@@ -606,6 +610,7 @@ Meteor.methods
       title: Match.Optional String
       body: Match.Optional String
       format: Match.Optional String
+      file: Match.Optional String
       tags: Match.Optional Match.Where validTags
       #children: Match.Optional [String]  ## must be set via messageParent
       #parent: Match.Optional String      ## use children, not parent
@@ -618,6 +623,7 @@ Meteor.methods
       title: Match.Optional String
       body: Match.Optional String
       format: Match.Optional String
+      file: Match.Optional String
       tags: Match.Optional Match.Where validTags
       deleted: Match.Optional Boolean
       updated: Match.Optional Date
@@ -695,8 +701,8 @@ Meteor.methods
       MessagesDiff.find
         id: message
       .forEach (diff) ->
-        if diff.format == 'file'
-          deleteFile diff.body
+        if diff.file
+          deleteFile diff.file
       ## Delete all diffs for this message.
       MessagesDiff.remove
         id: message
@@ -741,3 +747,25 @@ Meteor.methods
             $set: root: root._id
           ,
             multi: true
+
+## Upgrade from old file message format (format 'file', body = file pointer)
+## to new file message format (file = file pointer)
+if Meteor.isServer
+  Messages.find
+    format: 'file'
+  .forEach (msg) ->
+    Messages.update msg._id,
+      $set:
+        format: defaultFormat
+        title: ''
+        body: ''
+        file: msg.body
+  MessagesDiff.find
+    format: 'file'
+  .forEach (diff) ->
+    MessagesDiff.update diff._id,
+      $set:
+        format: defaultFormat
+        title: ''
+        body: ''
+        file: diff.body

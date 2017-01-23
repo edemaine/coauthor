@@ -24,9 +24,3 @@ Template.readMessageNoHeader.onRendered ->
   @autorun ->
     Template.currentData()
     mathjax()
-
-Template.readMessageNoHeader.helpers
-  formatTitle: ->
-    sanitizeHtml formatTitle @format, @title
-  formatBody: ->
-    sanitizeHtml formatBody @format, @body

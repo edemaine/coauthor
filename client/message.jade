@@ -51,7 +51,7 @@ template(name="tableOfContentsMessage")
   li.btn-group-xs
     div.beforeMessageDrop(data-parent=parentId, data-index=index)
     a(href="#{{_id}}", data-id=_id, class=deletedClass).tex2jax.onMessageDrop
-      if isFile
+      if file
         span.glyphicon.glyphicon-paperclip
       | !{formatTitle} [#{creator}]
     +tableOfContents
@@ -82,6 +82,8 @@ template(name="submessage")
             a.btn.btn-info.focusButton(aria-label="Focus", href="{{pathFor 'message' group=group message=_id}}", draggable="true")
               span.glyphicon.glyphicon-arrow-right(aria-hidden="true")
         span.space
+        if file
+          span.glyphicon.glyphicon-paperclip
         span.title.panel-title.tex2jax !{formatTitle}
         span.space
       //- http://stackoverflow.com/questions/22390272/how-to-create-a-label-with-close-icon-in-bootstrap
@@ -158,11 +160,10 @@ template(name="submessage")
             unless folded
               button.btn.btn-default.historyButton(tabindex="{{tabindex 6}}") History
               if canEdit
-                unless isFile
-                  button.btn.btn-info.editButton(tabindex="{{tabindex 8}}") Edit
-                else
+                if file
                   //- In future, support basic image editing.  For now, just:
                   +messageReplace _id=_id group=group tabindex=tabindex9
+                button.btn.btn-info.editButton(tabindex="{{tabindex 8}}") Edit
     unless folded
       if history
         +messageHistory forHistory
@@ -171,7 +172,10 @@ template(name="submessage")
           if editingRV
             +sharejsCM docid=editingNR onRender=config
             //- +sharejsAce docid=editingNR onRender=config
-      .panel-body.message-body(class=tex2jax) !{formatBody}
+      .panel-body
+        .message-body(class=tex2jax) !{formatBody}
+        if file
+          p.message-file !{formatFile}
       .message-footer.clearfix
         .message-reply-buttons.btn-group.pull-left.hidden-print
           if canReply

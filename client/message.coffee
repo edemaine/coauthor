@@ -37,11 +37,8 @@ dropdownToggle = (e) ->
   #$(e.target).parent().dropdown 'toggle'
   $(e.target).parents('.dropdown-menu').first().parent().find('.dropdown-toggle').dropdown 'toggle'
 
-Template.registerHelper 'titleOrUntitled', ->
-  titleOrUntitled @.title
-
-Template.registerHelper 'isFile', ->
-  @.format == 'file'
+#Template.registerHelper 'titleOrUntitled', ->
+#  titleOrUntitled @title
 
 Template.registerHelper 'children', ->
   if @children
@@ -69,7 +66,13 @@ Template.rootHeader.helpers
       Messages.findOne @root
 
 Template.registerHelper 'formatTitle', ->
-  sanitizeHtml formatTitle @format, @title
+  if @title
+    formatTitle @format, @title
+  else
+    formatFilename @
+
+Template.registerHelper 'formatBody', ->
+  formatBody @format, @body
 
 Template.badMessage.helpers
   message: -> Router.current().params.message
@@ -166,6 +169,12 @@ images = {}
 id2template = {}
 scrollToLater = null
 
+initImage = (id) ->
+  if id not of images
+    images[id] =
+      attachment: null
+      count: 0
+
 messageDrag = (target, bodyToo = true) ->
   return unless target
   onDragStart = (e) =>
@@ -178,17 +187,13 @@ messageDrag = (target, bodyToo = true) ->
     e.dataTransfer.setData 'application/coauthor-id', @data._id
     e.dataTransfer.setData 'application/coauthor-type', type
   type = 'message'
-  if @data.format == 'file'
-    formatted = formatBody @data.format, @data.body
-    if formatted[...4] == '<img'
-      type = 'img'
-    else if formatted[...4] == '<video'
-      type = 'video'
+  if @data.file
+    type = fileType @data.file
     #if "class='odd-file'" not in formatted and
     #   "class='bad-file'" not in formatted
     #  url = formatted
     if bodyToo
-      $(@find '.panel-body')?.find('img, video, a')?.each (i, elt) =>
+      $(@find '.message-file')?.find('img, video, a')?.each (i, elt) =>
         elt.addEventListener 'dragstart', onDragStart
   target.addEventListener 'dragstart', onDragStart
 
@@ -212,25 +217,24 @@ Template.submessage.onRendered ->
   tid = @data._id
   id2template[@data._id] = @
   scrollToMessage @data._id if scrollToLater == @data._id
-  attachment = @data.format == 'file'
+  attachment = @data.file
   #images = Session.get 'images'
   subimages = @images = []
-  $(@firstNode).children('.panel-body').find('img[src^="/gridfs/fs/"]')
+  $(@firstNode).children('.panel-body').children('.message-file').find('img[src^="/gridfs/fs/"]')
   .each ->
-    id = url2file @.getAttribute('src')
-    subimages.push id
-    if id not of images
-      images[id] =
-        attachment: null
-        count: 0
-    if attachment
-      images[id].attachment = tid
-    else
-      images[id].count += 1
-    if images[id].count > 0 and images[id].attachment? and not messageFolded.get(images[id].attachment)?
+    id = url2file @getAttribute('src')
+    initImage id
+    images[id].attachment = tid
+    if images[id].count > 0 and not messageFolded.get(images[id].attachment)?
       messageFolded.set images[id].attachment, true
-    #console.log images
-  #Session.set 'images', images
+  $(@firstNode).children('.panel-body').children('.message-body').find('img[src^="/gridfs/fs/"]')
+  .each ->
+    id = url2file @getAttribute('src')
+    initImage id
+    subimages.push id
+    images[id].count += 1
+    if images[id].attachment? and not messageFolded.get(images[id].attachment)?
+      messageFolded.set images[id].attachment, true
 
 scrollDelay = 750
 
@@ -336,7 +340,7 @@ Template.submessage.helpers
               e.dataTransfer =
                 getData: ->
                   switch type
-                    when 'img'
+                    when 'image'
                       switch ti.data.format
                         when 'markdown'
                           "![](coauthor:#{id})"
@@ -399,11 +403,13 @@ Template.submessage.helpers
   formatTitle: ->
     history = messageHistory.get(@_id) ? @
     title = history.title
-    return title unless title
-    if messageRaw.get @_id
-      "<CODE CLASS='raw'>#{_.escape title}</CODE>"
+    if title
+      if messageRaw.get @_id
+        "<CODE CLASS='raw'>#{_.escape title}</CODE>"
+      else
+        formatTitle history.format, title
     else
-      formatTitle history.format, title
+      formatFilename history
   formatBody: ->
     history = messageHistory.get(@_id) ? @
     body = history.body
@@ -412,8 +418,16 @@ Template.submessage.helpers
       "<PRE CLASS='raw'>#{_.escape body}</PRE>"
     else
       formatBody history.format, body
+  formatFile: ->
+    history = messageHistory.get(@_id) ? @
+    file = history.file
+    return file unless file
+    file = formatFile file
+    if messageRaw.get @_id
+      "<PRE CLASS='raw'>#{_.escape file}</PRE>"
+    else
+      file
 
-  isFile: -> @format == 'file'
   canEdit: -> canEdit @_id
   canDelete: -> canDelete @_id
   canUndelete: -> canUndelete @_id
@@ -434,6 +448,18 @@ Template.submessage.helpers
   absentTags: absentTags
   absentTagsCount: ->
     absentTags().count()
+
+@formatFilename = (self, orUntitled = false) ->
+  if self.file
+    file = findFile self.file
+    title = file?.filename
+  if title
+    #"<code>#{_.escape file.filename}</code>"
+    _.escape title
+  else if orUntitled
+    untitledMessage
+  else
+    title
 
 Template.registerHelper 'messagePanelClass', ->
   if @deleted
@@ -686,9 +712,7 @@ attachFiles = (files, e, t) ->
   for file in files
     file.callback = (file2) ->
       Meteor.call 'messageNew', group, message, null,
-        format: 'file'
-        title: file2.fileName
-        body: file2.uniqueIdentifier
+        file: file2.uniqueIdentifier
     file.group = group
     Files.resumable.addFile file, e
 
@@ -703,9 +727,7 @@ replaceFiles = (files, e, t) ->
     file = files[0]
     file.callback = (file2) ->
       Meteor.call 'messageUpdate', message,
-        format: 'file'
-        title: file2.fileName
-        body: file2.uniqueIdentifier
+        file: file2.uniqueIdentifier
     file.group = group
     Files.resumable.addFile file, e
 

@@ -1,5 +1,5 @@
-@availableFormats = ['markdown', 'latex', 'html']  ## 'file' not an option for user
-@mathjaxFormats = availableFormats  ## Don't do tex2jax for files
+@availableFormats = ['markdown', 'latex', 'html']
+@mathjaxFormats = availableFormats
 
 if Meteor.isClient
   Template.registerHelper 'formats', ->
@@ -121,18 +121,6 @@ latex2html = (tex) ->
   .replace /\[DOUBLEBACKSLASH\]/g, '\\\\'
 
 @formats =
-  file: (text, title) ->
-    return text if title
-    file = findFile text
-    if file?
-      if file.contentType[...6] == 'image/'
-        text = """<img src="#{urlToFile file}">"""
-      else if file.contentType in ['video/mp4', 'video/ogg', 'video/webm']
-        text = """<video controls><source src="#{urlToFile file}" type="#{file.contentType}"></video>"""
-      else
-        text = """<i class="odd-file"><a href="#{urlToFile file}">&lt;#{file.length}-byte #{file.contentType} file&gt;</a></i>"""
-    else
-      text = """<i class="bad-file">&lt;unknown file with ID #{text}&gt;</i>"""
   markdown: (text, title) ->
     ## Escape all characters that can be (in particular, _s) that appear
     ## inside math mode, to prevent Marked from processing them.
@@ -158,8 +146,8 @@ postprocessCoauthorLinks = (text) ->
   text.replace ///(<img\s[^<>]*src\s*=\s*['"])#{coauthorLinkRe}///ig,
     (match, p1, p2) ->
       msg = Messages.findOne p2
-      if msg? and msg.format == 'file'
-        p1 + urlToFile msg.body
+      if msg? and msg.file
+        p1 + urlToFile msg.file
       else
         if msg?
           console.warn "Couldn't detect image in message #{p2} -- must be text?"
@@ -265,6 +253,18 @@ jsdiff = require 'diff'
   .replace /\s*<\/P>\s*$/i, ''
   title = postprocessKaTeX title, math unless leaveTeX
   sanitize postprocessCoauthorLinks title
+
+@formatFile = (fileId) ->
+  file = findFile fileId
+  unless file?
+    return """<i class="bad-file">&lt;unknown file with ID #{fileId}&gt;</i>"""
+  switch fileType file
+    when 'image'
+      """<img src="#{urlToFile file}">"""
+    when 'video'
+      """<video controls><source src="#{urlToFile file}" type="#{file.contentType}"></video>"""
+    else  ## 'unknown'
+      """<i class="odd-file"><a href="#{urlToFile file}">&lt;#{file.length}-byte #{file.contentType} file&gt;</a></i>"""
 
 @stripHTMLTags = (html) ->
   html.replace /<[^>]*>/gm, ''

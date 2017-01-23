@@ -23,6 +23,15 @@ fileUrlPrefix = "#{Files.baseURL}/id/"
 @deleteFile = (id) ->
   Files.remove new Meteor.Collection.ObjectID id
 
+@fileType = (file) ->
+  file = findFile file unless file.contentType?
+  if file.contentType[...6] == 'image/'
+    'image'
+  else if file.contentType in ['video/mp4', 'video/ogg', 'video/webm']
+    'video'
+  else
+    'unknown'
+
 if Meteor.isServer
   @readableFiles = (userid) ->
     Files.find
