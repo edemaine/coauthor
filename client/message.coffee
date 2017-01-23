@@ -464,12 +464,17 @@ Template.submessage.helpers
     title
 
 Template.registerHelper 'messagePanelClass', ->
+  editingClass =
+    if Template.instance().editing?.get()
+      ' editing'
+    else
+      ''
   if @deleted
-    'panel-danger message-deleted'
+    "panel-danger message-deleted #{editingClass}"
   else if @published
-    'panel-primary message-published'
+    "panel-primary message-published #{editingClass}"
   else
-    'panel-warning message-unpublished'
+    "panel-warning message-unpublished #{editingClass}"
 
 @linkToAuthor = (group, user) ->
   link = pathFor 'author',
