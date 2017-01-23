@@ -172,9 +172,10 @@ template(name="submessage")
         if file
           if editingRV
             .fileDescription.clearfix
-              span.glyphicon.glyphicon-paperclip
-              | !{formatFileDescription}
-              .file-right-buttons.btn-group.pull-right.hidden-print
+              .fileDescriptionText
+                span.glyphicon.glyphicon-paperclip
+                | !{formatFileDescription}
+              .file-right-buttons.btn-group.hidden-print
                 //- In future, support basic image editing.  For now, just:
                 +messageReplace _id=_id group=group tabindex=tabindex9
       .panel-body
