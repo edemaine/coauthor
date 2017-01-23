@@ -238,11 +238,6 @@ Template.messageShort.onRendered ->
   mathjax()
 
 Template.messageShort.helpers
-  formatTitle: ->
-    if @title
-      formatTitle @format, titleOrUntitled @title
-    else
-      formatFilename @, true
   messageLink: ->
     pathFor 'message',
       group: @group

@@ -2,13 +2,16 @@ import { defaultFormat } from './settings.coffee'
 
 @untitledMessage = '(untitled)'
 
-@titleOrUntitled = (title) ->
-  unless title?
-    title #'???'
-  else if title.trim().length == 0
-    untitledMessage
+@titleOrUntitled = (msg) ->
+  unless msg?
+    null
+  else if not msg.title? or msg.title.trim().length == 0
+    if msg.file and (file = findFile msg.file)
+      file.filename
+    else
+      untitledMessage
   else
-    title
+    msg.title
 
 @Messages = new Mongo.Collection 'messages'
 @MessagesDiff = new Mongo.Collection 'messages.diff'
@@ -301,7 +304,8 @@ idle = 1000   ## one second
 @messageEmpty = (message) ->
   message = Messages.findOne message unless message._id?
   message.title.trim().length == 0 and
-  message.body.trim().length == 0
+  message.body.trim().length == 0 and
+  not message.file
 
 _noLongerRoot = (message) ->
   Messages.update message,
@@ -552,11 +556,13 @@ Meteor.methods
       delete message.children
       delete message.root
       message.id = id
-      MessagesDiff.insert message
+      diffid = MessagesDiff.insert message
+      message._id = diffid
       if parent?
         _messageParent id, parent, position, null  ## there's no old parent
       else
         _submessagesChanged message
+      notifyMessageUpdate message, true if Meteor.isServer  ## created = true
       id
 
     ## Initial URL (short name) is the Mongo-provided ID.  User can edit later.

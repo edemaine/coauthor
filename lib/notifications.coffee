@@ -116,11 +116,8 @@ if Meteor.isServer
 
   notifiers = {}
 
-  @notifyMessageUpdate = (diff) ->
+  @notifyMessageUpdate = (diff, created = false) ->
     msg = Messages.findOne diff.id
-    ## Don't notify about empty messages (e.g. initial creation) --
-    ## wait for content.  xxx should only do this if diff is version 1!
-    return if messageEmpty msg
     for to in messageSubscribers msg
       ## Don't send notifications to myself, if so requested.
       continue if diff.updators.length == 1 and diff.updators[0] == to.username and not notifySelf to
@@ -140,13 +137,17 @@ if Meteor.isServer
           $push:
             dates: diff.updated
             diffs: diff._id
+        ## Assuming we don't need to check `created` here, as message existed.
       else
-        notificationInsert
+        notification =
           type: 'messageUpdate'
           to: to.username
           message: diff.id
           dates: [diff.updated]
           diffs: [diff._id]
+        if created
+          notification.created = created
+        notificationInsert notification
 
   messageSubscribers = (msg) ->
     if _.isString msg
@@ -235,18 +236,42 @@ if Meteor.isServer
       notificationSchedule notification
 
   linkToGroup = (group, html) ->
-    url = Meteor.absoluteUrl "#{group}"
+    #url = Meteor.absoluteUrl "#{group}"
+    url = urlFor 'group',
+      group: group
     if html
       "<A HREF=\"#{url}\">#{group}</A>"
     else
       "#{group} [#{url}]"
 
-  linkToMessage = (msg, html) ->
-    url = Meteor.absoluteUrl "#{msg.group}/m/#{msg._id}"
+  linkToMessage = (msg, html, quote = false) ->
+    #url = Meteor.absoluteUrl "#{msg.group}/m/#{msg._id}"
+    url = urlFor 'message',
+      group: msg.group
+      message: msg._id
     if html
-      "<A HREF=\"#{url}\">#{_.escape titleOrUntitled msg.title}</A>"
+      if quote
+        """&ldquo;<a href=\"#{url}\">#{formatTitleOrFilename msg}</a>&rdquo;"""
+      else
+        #"<A HREF=\"#{url}\">#{_.escape titleOrUntitled msg}</A>"
+        """<a href=\"#{url}\">#{formatTitleOrFilename msg}</a>"""
     else
-      "#{titleOrUntitled msg.title} [#{url}]"
+      if quote
+        """"#{titleOrUntitled msg}" [#{url}]"""
+      else
+        """#{titleOrUntitled msg} [#{url}]"""
+
+  linkToTag = (group, tag, html) ->
+    if html
+      url = urlFor 'tag',
+        group: group
+        tag: tag
+      """<a href="#{url}">#{tag}</a>"""
+    else
+      tag
+
+  linkToTags = (group, tags, html) ->
+    (linkToTag(group, tag.key, html) for tag in sortTags tags).join(', ') or '(none)'
 
   notificationEmail = (notifications) ->
     return unless notifications.length > 0
@@ -256,14 +281,18 @@ if Meteor.isServer
     ## read.  (Otherwise, upon verifying, you'd get a ton of email.)
     return unless emails.length > 0
 
-    html = ''
-    text = ''
     messageUpdates = (notification for notification in notifications when notification.type =='messageUpdate')
     for notification in messageUpdates
       notification.msg = Messages.findOne notification.message
     ## Some messages may have been superdeleted by now; don't email about them.
     messageUpdates = (notification for notification in notifications when notification.msg?)
+    ## Don't notify about empty messages (e.g. initial creation without
+    ## follow-up) -- wait for content.  xxx should check if diff is version 1!
+    messageUpdates = (notification for notification in notifications when not messageEmpty notification.msg)
     return if messageUpdates.length == 0
+
+    html = ''
+    text = ''
     bygroup = _.groupBy messageUpdates, (notification) -> notification.msg.group
     if messageUpdates.length != 1
       subject = "#{messageUpdates.length} updates in #{_.keys(bygroup).sort().join ', '}"
@@ -296,19 +325,29 @@ if Meteor.isServer
               authors[author] = (authors[author] ? 0) + 1
             for key of diff
               changed[key] = true
+          ## Ignore some initial values during creation of message.
+          if notification.created
+            delete changed.deleted unless msg.deleted
+            delete changed.body unless 0 < msg.body.trim().length
+            delete changed.tags unless 0 < _.size msg.tags
+            ## Don't notify about title or format change when brand new
+            delete changed.title
+            delete changed.format
+          verb = 'updated'
+          verb = 'created' if notification.created
           authors = _.keys(authors).sort().join ', '
           if messageUpdates.length == 1
-            subject = "#{authors} updated '#{titleOrUntitled msg.title}' in #{msg.group}"
+            subject = "#{authors} #{verb} '#{titleOrUntitled msg.title}' in #{msg.group}"
           #if diffs.length > 1
           #  dates = "between #{diffs[0].updated} and #{diffs[diffs.length-1].updated}"
           #else
           dates = "on #{diffs[diffs.length-1].updated}"
           if msg.root?
-            html += "<P><B>#{authors}</B> changed message '#{linkToMessage msg, true}' in the thread '#{linkToMessage rootmsg, true}' #{dates}"
-            text += "#{authors} changed message '#{linkToMessage msg, false}' in the thread '#{linkToMessage rootmsg, false}' #{dates}"
+            html += "<P><B>#{authors}</B> #{verb} message #{linkToMessage msg, true, true} in the thread #{linkToMessage rootmsg, true, true} #{dates}"
+            text += "#{authors} #{verb} message #{linkToMessage msg, false, true} in the thread #{linkToMessage rootmsg, false, true} #{dates}"
           else
-            html += "<P><B>#{authors}</B> changed root message in the thread #{linkToMessage msg, true} #{dates}"
-            text += "#{authors} changed root message in the thread #{linkToMessage msg, false} #{dates}"
+            html += "<P><B>#{authors}</B> #{verb} root message in the thread #{linkToMessage msg, true, true} #{dates}"
+            text += "#{authors} #{verb} root message in the thread #{linkToMessage msg, false, true} #{dates}"
           html += '\n\n'
           text += '\n\n'
           ## xxx currently no notification of title changed
@@ -316,25 +355,35 @@ if Meteor.isServer
           if changed.body
             body = formatBody msg.format, msg.body, true
             html += "<BLOCKQUOTE>\n#{body}\n</BLOCKQUOTE>"
-            text += indentLines(stripHTMLTags(body), '    ')
+            text += indentLines(msg.body, '    ')
             html += '\n'
             text += '\n'
-          if changed.deleted or changed.format or changed.tags
+          if changed.title or changed.deleted or changed.format or changed.tags or changed.file
             html += "<UL>\n"
-          if changed.deleted
-            if msg.deleted
-              text += "  * DELETED\n"
-              html += "<LI>DELETED\n"
-            else
-              text += "  * UNDELETED\n"
-              html += "<LI>UNDELETED\n"
-          if changed.format
-            text += "  * Format: #{msg.format}\n"
-            html += "<LI>Format: #{msg.format}\n"
-          if changed.tags
-            text += "  * Tags: #{(tag.key for tag in sortTags msg.tags).join ", "}\n"
-            html += "<LI>Tags: #{(tag.key for tag in sortTags msg.tags).join ", "}\n"
-          if changed.format or changed.tags
+            if changed.title
+              text += "  * Title changed\n"
+              html += "<LI>Title changed\n"
+            if changed.deleted
+              if msg.deleted
+                text += "  * DELETED\n"
+                html += "<LI>DELETED\n"
+              else
+                text += "  * UNDELETED\n"
+                html += "<LI>UNDELETED\n"
+            if changed.format
+              text += "  * Format: #{msg.format}\n"
+              html += "<LI>Format: #{msg.format}\n"
+            if changed.tags
+              text += "  * Tags: #{linkToTags msg.group, msg.tags, false}\n"
+              html += "<LI>Tags: #{linkToTags msg.group, msg.tags, true}\n"
+            if changed.file
+              file = findFile msg.file
+              if file?
+                text += """  * File upload: "#{file.filename}" (#{file.length} bytes)\n"""
+                html += "<LI>File upload: &ldquo;#{file.filename}&rdquo; (#{file.length} bytes)\n"
+              else
+                text += "  * File upload: #{msg.file}?\n"
+                html += "<LI>File upload: #{msg.file}?\n"
             html += "</UL>\n"
           html += '\n'
           text += '\n'

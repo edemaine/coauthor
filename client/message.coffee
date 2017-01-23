@@ -38,7 +38,7 @@ dropdownToggle = (e) ->
   $(e.target).parents('.dropdown-menu').first().parent().find('.dropdown-toggle').dropdown 'toggle'
 
 #Template.registerHelper 'titleOrUntitled', ->
-#  titleOrUntitled @title
+#  titleOrUntitled @
 
 Template.registerHelper 'children', ->
   if @children
@@ -66,10 +66,7 @@ Template.rootHeader.helpers
       Messages.findOne @root
 
 Template.registerHelper 'formatTitle', ->
-  if @title
-    formatTitle @format, @title
-  else
-    formatFilename @
+  formatTitleOrFilename @
 
 Template.registerHelper 'formatBody', ->
   formatBody @format, @body
@@ -108,7 +105,7 @@ Template.message.helpers
 
 Template.message.onCreated ->
   @autorun ->
-    setTitle titleOrUntitled Template.currentData()?.title
+    setTitle titleOrUntitled Template.currentData()
 
 Template.message.onRendered ->
   $('body').scrollspy
@@ -402,14 +399,10 @@ Template.submessage.helpers
   title: historify 'title'
   formatTitle: ->
     history = messageHistory.get(@_id) ? @
-    title = history.title
-    if title
-      if messageRaw.get @_id
-        "<CODE CLASS='raw'>#{_.escape title}</CODE>"
-      else
-        formatTitle history.format, title
+    if messageRaw.get @_id
+      "<CODE CLASS='raw'>#{_.escape history.title}</CODE>"
     else
-      formatFilename history
+      formatTitleOrFilename history
   formatBody: ->
     history = messageHistory.get(@_id) ? @
     body = history.body
@@ -450,18 +443,6 @@ Template.submessage.helpers
   absentTags: absentTags
   absentTagsCount: ->
     absentTags().count()
-
-@formatFilename = (self, orUntitled = false) ->
-  if self.file
-    file = findFile self.file
-    title = file?.filename
-  if title
-    #"<code>#{_.escape file.filename}</code>"
-    _.escape title
-  else if orUntitled
-    untitledMessage
-  else
-    title
 
 Template.registerHelper 'messagePanelClass', ->
   editingClass =

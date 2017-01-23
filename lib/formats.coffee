@@ -261,7 +261,7 @@ jsdiff = require 'diff'
   fileId = file
   file = findFile file unless file._id
   return formatBadFile() unless file?
-  """<i class="odd-file"><a href="#{urlToFile file}">&lt;#{file.length}-byte #{file.contentType} file&gt;</a></i>"""
+  """<i class="odd-file"><a href="#{urlToFile file}">&lt;#{file.length}-byte #{file.contentType} file &ldquo;#{file.filename}&rdquo;&gt;</a></i>"""
 
 @formatFile = (file) ->
   fileId = file
@@ -275,8 +275,26 @@ jsdiff = require 'diff'
     else  ## 'unknown'
       formatFileDescription file
 
-@stripHTMLTags = (html) ->
-  html.replace /<[^>]*>/gm, ''
+@formatFilename = (msg, orUntitled = false) ->
+  if msg.file
+    file = findFile msg.file
+    title = file?.filename
+  if title
+    #"<code>#{_.escape file.filename}</code>"
+    _.escape title
+  else if orUntitled
+    untitledMessage
+  else
+    title
+
+@formatTitleOrFilename = (msg) ->
+  if msg.format and msg.title and msg.title.trim().length > 0
+    formatTitle msg.format, msg.title
+  else
+    formatFilename msg, true
+
+#@stripHTMLTags = (html) ->
+#  html.replace /<[^>]*>/gm, ''
 
 @indentLines = (text, indent) ->
   text.replace /^/gm, indent
