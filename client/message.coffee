@@ -66,7 +66,10 @@ Template.rootHeader.helpers
       Messages.findOne @root
 
 Template.registerHelper 'formatTitle', ->
-  formatTitleOrFilename @
+  formatTitleOrFilename @, false
+
+Template.registerHelper 'formatTitleOrUntitled', ->
+  formatTitleOrFilename @, true
 
 Template.registerHelper 'formatBody', ->
   formatBody @format, @body
@@ -402,7 +405,7 @@ Template.submessage.helpers
     if messageRaw.get @_id
       "<CODE CLASS='raw'>#{_.escape history.title}</CODE>"
     else
-      formatTitleOrFilename history
+      formatTitleOrFilename history, false  ## don't write (untitled)
   formatBody: ->
     history = messageHistory.get(@_id) ? @
     body = history.body

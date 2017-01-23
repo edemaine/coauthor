@@ -106,7 +106,7 @@ template(name="messageShort")
   tr.messageShort(class=deletedClass)
     td.title.tex2jax
       a(href=messageLink)
-        | !{formatTitle}
+        | !{formatTitleOrUntitled}
         each tags
           span.label.label-default #{key}
           |  

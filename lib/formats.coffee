@@ -287,11 +287,11 @@ jsdiff = require 'diff'
   else
     title
 
-@formatTitleOrFilename = (msg) ->
+@formatTitleOrFilename = (msg, orUntitled = true) ->
   if msg.format and msg.title and msg.title.trim().length > 0
     formatTitle msg.format, msg.title
   else
-    formatFilename msg, true
+    formatFilename msg, orUntitled
 
 #@stripHTMLTags = (html) ->
 #  html.replace /<[^>]*>/gm, ''
