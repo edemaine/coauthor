@@ -1,5 +1,6 @@
 .space { padding-left: 0.5em; }
 
+.glyphicon-paperclip { vertical-align: middle; }
 .title { font-weight: bold; vertical-align: middle; }
 input.title { width: 100%; }
 .author { font-style: italic; }
@@ -10,6 +11,7 @@ input.title { width: 100%; }
 .message-right-buttons { margin: -5px -10px -5px 5px; } /* cf. panel-heading's padding of 10px 15px */
 input.title ~ .message-right-buttons { margin: 0px; }
 .message-reply-buttons { margin-right: 1em; }
+.fileDescription { padding: 0.5ex 0.5em; border-bottom: 1px solid #337ab7; }
 
 .ace_editor { width: 100%; height: 20em; }
 

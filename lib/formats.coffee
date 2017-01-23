@@ -254,17 +254,26 @@ jsdiff = require 'diff'
   title = postprocessKaTeX title, math unless leaveTeX
   sanitize postprocessCoauthorLinks title
 
-@formatFile = (fileId) ->
-  file = findFile fileId
-  unless file?
-    return """<i class="bad-file">&lt;unknown file with ID #{fileId}&gt;</i>"""
+@formatBadFile = (fileId) ->
+  """<i class="bad-file">&lt;unknown file with ID #{fileId}&gt;</i>"""
+
+@formatFileDescription = (file) ->
+  fileId = file
+  file = findFile file unless file._id
+  return formatBadFile() unless file?
+  """<i class="odd-file"><a href="#{urlToFile file}">&lt;#{file.length}-byte #{file.contentType} file&gt;</a></i>"""
+
+@formatFile = (file) ->
+  fileId = file
+  file = findFile file unless file._id
+  return formatBadFile() unless file?
   switch fileType file
     when 'image'
       """<img src="#{urlToFile file}">"""
     when 'video'
       """<video controls><source src="#{urlToFile file}" type="#{file.contentType}"></video>"""
     else  ## 'unknown'
-      """<i class="odd-file"><a href="#{urlToFile file}">&lt;#{file.length}-byte #{file.contentType} file&gt;</a></i>"""
+      formatFileDescription file
 
 @stripHTMLTags = (html) ->
   html.replace /<[^>]*>/gm, ''

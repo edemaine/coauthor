@@ -427,6 +427,8 @@ Template.submessage.helpers
       "<PRE CLASS='raw'>#{_.escape file}</PRE>"
     else
       file
+  formatFileDescription: ->
+    formatFileDescription @file  ## always editing so not in history
 
   canEdit: -> canEdit @_id
   canDelete: -> canDelete @_id
