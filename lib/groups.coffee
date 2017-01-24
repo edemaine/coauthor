@@ -90,39 +90,43 @@ Meteor.methods
     check role, String
     check yesno, Boolean
     #console.log 'setRole', group, user, role, yesno
-    if groupRoleCheck group, 'admin'
-      if user == anonymousUser
-        if yesno
-          Groups.update
-            name: group
-          , $addToSet: anonymous: role
-        else
-          Groups.update
-            name: group
-          , $pull: anonymous: role
+    unless groupRoleCheck group, 'admin'
+      throw new Meteor.Error 'setRole.unauthorized',
+        "You need 'admin' permissions to set roles in group '#{group}'"
+    if user == anonymousUser
+      if yesno
+        Groups.update
+          name: group
+        , $addToSet: anonymous: role
       else
-        key = 'roles.' + escapeGroup group
-        op = {}
-        op[key] = role
-        if yesno
-          Meteor.users.update
-            username: user
-          , $addToSet: op
-        else
-          Meteor.users.update
-            username: user
-          , $pull: op
+        Groups.update
+          name: group
+        , $pull: anonymous: role
+    else
+      key = 'roles.' + escapeGroup group
+      op = {}
+      op[key] = role
+      if yesno
+        Meteor.users.update
+          username: user
+        , $addToSet: op
+      else
+        Meteor.users.update
+          username: user
+        , $pull: op
 
   groupDefaultSort: (group, sortBy) ->
     check group, String
     check sortBy,
       key: Match.Where (key) -> key in sortKeys
       reverse: Boolean
-    if groupRoleCheck group, 'super'
-      Groups.update
-         name: group
-       ,
-         $set: defaultSort: sortBy
+    unless groupRoleCheck group, 'super'
+      throw new Meteor.Error 'groupDefaultSort.unauthorized',
+        "You need 'super' permissions to set default sort in group '#{group}'"
+    Groups.update
+       name: group
+     ,
+       $set: defaultSort: sortBy
 
   groupNew: (group) ->
     check group, String

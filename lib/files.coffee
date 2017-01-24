@@ -16,7 +16,8 @@ fileUrlPrefix = "#{Files.baseURL}/id/"
   if url[...fileUrlPrefix.length] == fileUrlPrefix
     url[fileUrlPrefix.length..]
   else
-    throw "Bad file URL #{url}"
+    throw new Meteor.Error 'url2file.invalid',
+      "Bad file URL #{url}"
 
 @findFile = (id) ->
   Files.findOne new Meteor.Collection.ObjectID id

@@ -582,48 +582,50 @@ Meteor.methods
       #parent: Match.Optional String      ## use children, not parent
       published: Match.Optional Boolean
       deleted: Match.Optional Boolean
+    unless canPost group, parent
+      throw new Meteor.Error 'messageNew.unauthorized',
+        "Insufficient permissions to post new message in group '#{group}' under parent '#{parent}'"
 
-    if canPost group, parent
-      now = new Date
-      username = Meteor.user().username
-      message.creator = username
-      message.created = now
-      message.authors =
-        "#{escapeUser username}": now
-      message.group = group
-      #message.parent: parent         ## use children, not parent
-      message.children = []
-      ## Default content.
-      message.title = "" unless message.title?
-      message.body = "" unless message.body?
-      message.format = Meteor.user()?.profile?.format or defaultFormat unless message.format?
-      message.tags = {} unless message.tags?
-      message.published = autopublish() unless message.published?
-      message.updators = [Meteor.user().username]
-      message.updated = now
-      if message.published == true
-        message.published = now
-      message.deleted = false unless message.deleted?
-      ## Now handled by _messageParent
-      #if parent?
-      #  pmsg = Messages.findOne parent
-      #  message.root = pmsg.root ? parent
-      id = Messages.insert message
-      ## Prepare for MessagesDiff
-      delete message.creator
-      delete message.created
-      delete message.authors
-      delete message.children
-      delete message.root
-      message.id = id
-      diffid = MessagesDiff.insert message
-      message._id = diffid
-      if parent?
-        _messageParent id, parent, position, null  ## there's no old parent
-      else
-        _submessagesChanged message
-      notifyMessageUpdate message, true if Meteor.isServer  ## created = true
-      id
+    now = new Date
+    username = Meteor.user().username
+    message.creator = username
+    message.created = now
+    message.authors =
+      "#{escapeUser username}": now
+    message.group = group
+    #message.parent: parent         ## use children, not parent
+    message.children = []
+    ## Default content.
+    message.title = "" unless message.title?
+    message.body = "" unless message.body?
+    message.format = Meteor.user()?.profile?.format or defaultFormat unless message.format?
+    message.tags = {} unless message.tags?
+    message.published = autopublish() unless message.published?
+    message.updators = [Meteor.user().username]
+    message.updated = now
+    if message.published == true
+      message.published = now
+    message.deleted = false unless message.deleted?
+    ## Now handled by _messageParent
+    #if parent?
+    #  pmsg = Messages.findOne parent
+    #  message.root = pmsg.root ? parent
+    id = Messages.insert message
+    ## Prepare for MessagesDiff
+    delete message.creator
+    delete message.created
+    delete message.authors
+    delete message.children
+    delete message.root
+    message.id = id
+    diffid = MessagesDiff.insert message
+    message._id = diffid
+    if parent?
+      _messageParent id, parent, position, null  ## there's no old parent
+    else
+      _submessagesChanged message
+    notifyMessageUpdate message, true if Meteor.isServer  ## created = true
+    id
 
     ## Initial URL (short name) is the Mongo-provided ID.  User can edit later.
     #message.url = id
@@ -639,21 +641,23 @@ Meteor.methods
 
   messageEditStart: (id) ->
     check Meteor.userId(), String
-    if canEdit id
-      if Meteor.isServer
-        old = Messages.findOne id
-        return unless old?
-        unless old.editing?.length
-          ShareJS.model.delete id
-          ShareJS.initializeDoc id, old.body ? ''
-          timer = null
-          listener = Meteor.bindEnvironment (opData) ->
-            delayedEditor2messageUpdate id
-          ShareJS.model.listen id, listener
-        ## We used to do the following update in client too, to do
-        ## speculatively, but it seems problematic for now.
-        Messages.update id,
-          $addToSet: editing: Meteor.user().username
+    unless canEdit id
+      throw new Meteor.Error 'messageEditStart.unauthorized',
+        "Insufficient permissions to edit message '#{id}'"
+    if Meteor.isServer
+      old = Messages.findOne id
+      return unless old?
+      unless old.editing?.length
+        ShareJS.model.delete id
+        ShareJS.initializeDoc id, old.body ? ''
+        timer = null
+        listener = Meteor.bindEnvironment (opData) ->
+          delayedEditor2messageUpdate id
+        ShareJS.model.listen id, listener
+      ## We used to do the following update in client too, to do
+      ## speculatively, but it seems problematic for now.
+      Messages.update id,
+        $addToSet: editing: Meteor.user().username
 
   messageEditStop: (id) ->
     check Meteor.userId(), String
@@ -696,123 +700,130 @@ Meteor.methods
       updators: Match.Optional [String]
       published: Match.Optional Match.OneOf Date, Boolean
     ]
-    if canImport group
-      now = new Date
-      me = Meteor.user().username
-      if message.published == true
-        message.published = now
-      message.deleted = false unless message.deleted?
-      diffs[0].deleted = false unless diffs[0].deleted?
-      message.group = group
-      message.children = []
-      message.updated = diffs[diffs.length-1].updated
-      message.updators = diffs[diffs.length-1].updaors
-      message.importer = me
-      message.imported = now
-      ## Automatically set 'authors' to have the latest update for each author.
-      message.authors = {}
-      for diff in diffs
-        for author in diff.updators
-          message.authors[author] = diff.updated
-      #if parent?
-      #  pmsg = Messages.findOne parent
-      #  message.root = pmsg.root ? parent
-      id = Messages.insert message
-      for diff in diffs
-        diff.id = id
-        diff.group = group
-        diff.importer = me
-        diff.imported = now
-        MessagesDiff.insert diff
-      if parent?
-        _messageParent id, parent, null, null, true
-      else
-        _submessagesChanged message
-      id
+    unless canImport group
+      throw new Meteor.Error 'messageImport.unauthorized',
+        "Insufficient permissions to import into group '#{group}'"
+    now = new Date
+    me = Meteor.user().username
+    if message.published == true
+      message.published = now
+    message.deleted = false unless message.deleted?
+    diffs[0].deleted = false unless diffs[0].deleted?
+    message.group = group
+    message.children = []
+    message.updated = diffs[diffs.length-1].updated
+    message.updators = diffs[diffs.length-1].updaors
+    message.importer = me
+    message.imported = now
+    ## Automatically set 'authors' to have the latest update for each author.
+    message.authors = {}
+    for diff in diffs
+      for author in diff.updators
+        message.authors[author] = diff.updated
+    #if parent?
+    #  pmsg = Messages.findOne parent
+    #  message.root = pmsg.root ? parent
+    id = Messages.insert message
+    for diff in diffs
+      diff.id = id
+      diff.group = group
+      diff.importer = me
+      diff.imported = now
+      MessagesDiff.insert diff
+    if parent?
+      _messageParent id, parent, null, null, true
+    else
+      _submessagesChanged message
+    id
 
   messageSuperdelete: (message) ->
     check message, String
-    if canSuperdelete message
-      user = Meteor.user().username
-      now = new Date
-      msg = Messages.findOne message
-      return unless msg?
-      Messages.remove message
-      children = msg.children
-      parent = findMessageParent message
-      if parent?
-        Messages.update parent._id,
-          $pull: children: message
-        Messages.update parent._id,
-          $push: children:
-            $each: children
-            $position: parent.children.indexOf message
-        ## children roots remain the same in this case
-        _submessagesChanged msg.root
-        for child, i in children
-          MessagesParent.insert
-            child: child
-            position: i + parent.children.indexOf message
-            parent: parent
-            updator: user
-            updated: now
-      else
-        #_submessagesChanged message  ## unnecessary now that it's deleted
-        for child in children
-          Messages.update child,
-            $unset: root: ''
-          _submessagesChanged child
-      
-      ## Delete all associated files.
-      MessagesDiff.find
-        id: message
-      .forEach (diff) ->
-        if diff.file
-          deleteFile diff.file
-      ## Delete all diffs for this message.
-      MessagesDiff.remove
-        id: message
-      ## Delete all parent references to this message.
-      ## 
-      MessagesParent.remove
-        $or: [
-          child: message
-        , parent: message
-        ]
+    unless canSuperdelete message
+      throw new Meteor.Error 'messageSuperdelete.unauthorized',
+        "Insufficient permissions to superdelete in group '#{group}'"
+    user = Meteor.user().username
+    now = new Date
+    msg = Messages.findOne message
+    return unless msg?
+    Messages.remove message
+    children = msg.children
+    parent = findMessageParent message
+    if parent?
+      Messages.update parent._id,
+        $pull: children: message
+      Messages.update parent._id,
+        $push: children:
+          $each: children
+          $position: parent.children.indexOf message
+      ## children roots remain the same in this case
+      _submessagesChanged msg.root
+      for child, i in children
+        MessagesParent.insert
+          child: child
+          position: i + parent.children.indexOf message
+          parent: parent
+          updator: user
+          updated: now
+    else
+      #_submessagesChanged message  ## unnecessary now that it's deleted
+      for child in children
+        Messages.update child,
+          $unset: root: ''
+        _submessagesChanged child
+    
+    ## Delete all associated files.
+    MessagesDiff.find
+      id: message
+    .forEach (diff) ->
+      if diff.file
+        deleteFile diff.file
+    ## Delete all diffs for this message.
+    MessagesDiff.remove
+      id: message
+    ## Delete all parent references to this message.
+    MessagesParent.remove
+      $or: [
+        child: message
+      , parent: message
+      ]
 
   recomputeAuthors: ->
     ## Force recomputation of all `authors` fields to be the latest update
     ## for each updator.
-    if canSuper wildGroup
-      Messages.find({}).forEach (msg) ->
-        authors = {}
-        updated = updators = null
-        MessagesDiff.find
-          id: msg._id
-        .forEach (diff) ->
-          updated = diff.updated
-          updators = diff.updators
-          for updator in updators
-            escape = escapeUser updator
-            if escape not of authors or authors[escape].getTime() < updated.getTime()
-              authors[escape] = updated
-        Messages.update msg._id,
-          $set:
-            authors: authors
-            updated: updated    ## last one
-            updators: updators  ## last one
+    unless canSuper wildGroup
+      throw new Meteor.Error 'recomputeAuthors.unauthorized',
+        "Insufficient permissions to recompute authors in group '#{wildGroup}'"
+    Messages.find({}).forEach (msg) ->
+      authors = {}
+      updated = updators = null
+      MessagesDiff.find
+        id: msg._id
+      .forEach (diff) ->
+        updated = diff.updated
+        updators = diff.updators
+        for updator in updators
+          escape = escapeUser updator
+          if escape not of authors or authors[escape].getTime() < updated.getTime()
+            authors[escape] = updated
+      Messages.update msg._id,
+        $set:
+          authors: authors
+          updated: updated    ## last one
+          updators: updators  ## last one
 
   recomputeRoots: ->
-    if canSuper wildGroup
-      rootMessages().forEach (root) ->
-        descendants = descendantMessageIds root
-        if descendants.length > 0
-          Messages.update
-            _id: $in: descendants
-          ,
-            $set: root: root._id
-          ,
-            multi: true
+    unless canSuper wildGroup
+      throw new Meteor.Error 'recomputeRoots.unauthorized',
+        "Insufficient permissions to recompute roots in group '#{wildGroup}'"
+    rootMessages().forEach (root) ->
+      descendants = descendantMessageIds root
+      if descendants.length > 0
+        Messages.update
+          _id: $in: descendants
+        ,
+          $set: root: root._id
+        ,
+          multi: true
 
 ## Upgrade from old file message format (format 'file', body = file pointer)
 ## to new file message format (file = file pointer)

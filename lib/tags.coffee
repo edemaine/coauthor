@@ -2,7 +2,8 @@
 
 @escapeTag = escapeKey
 @unescapeTag = unescapeKey
-@validTag = validKey
+@validTag = (tag) ->
+  validKey tag and tag.trim().length > 0
 
 @sortTags = (tags) ->
   return [] unless tags
@@ -67,51 +68,58 @@ Meteor.methods
     check group, String
     check key, String
     check type, "boolean"  ## only type supported for now
-    if canPost group, null
-      ## Forbid only-whitespace tag
-      if key.trim() and validKey key
-        ## Only add if it doesn't exist already.
-        old = Tags.findOne
-          group: group
-          key: key
-        if old?
-          if old.deleted
-            Tags.update old._id,
-              $set:
-                deleted: false
-                updator: Meteor.user().username
-                updated: new Date
-        else
-          Tags.insert
-            group: group
-            key: key
-            type: type
+    unless canPost group, null
+      throw new Meteor.Error 'tagNew.unauthorized',
+        "Insufficient permissions to tag message in group '#{group}'"
+    ## Forbid only-whitespace tag
+    unless validTag key
+      throw new Meteor.Error 'tagNew.invalid',
+        "Invalid tag key '#{key}'"
+    ## Only add if it doesn't exist already.
+    old = Tags.findOne
+      group: group
+      key: key
+    if old?
+      if old.deleted
+        Tags.update old._id,
+          $set:
             deleted: false
-            creator: Meteor.user().username
-            created: new Date
+            updator: Meteor.user().username
+            updated: new Date
+    else
+      Tags.insert
+        group: group
+        key: key
+        type: type
+        deleted: false
+        creator: Meteor.user().username
+        created: new Date
 
   tagDelete: (group, key, maybe = false) ->
     check Meteor.userId(), String  ## should be done by 'canPost'
     check group, String
     check key, String
-    if canPost group, null
-      any = Messages.findOne
-        group: group
-        tags: "#{escapeTag key}": $exists: true
-      if any
-        if maybe
-          return
-        else
-          throw "tagDelete: Message #{any._id} still uses tag '#{key}'!"
-      old = Tags.findOne
-        group: group
-        key: key
-      if old? and not old.deleted
-        Tags.update old._id,
-          $set:
-            deleted: true
-            updator: Meteor.user().username
-            updated: new Date
+    unless canPost group, null
+      throw new Meteor.Error 'tagDelete.unauthorized',
+        "Insufficient permissions to untag message in group '#{group}'"
+    any = Messages.findOne
+      group: group
+      tags: "#{escapeTag key}": $exists: true
+    if any
+      if maybe
+        return
+      else
+        throw new Meteor.Error 'tagDelete.inUse',
+          "Message #{any._id} still uses tag '#{key}'!"
+    old = Tags.findOne
+      group: group
+      key: key
+    if old? and not old.deleted
+      Tags.update old._id,
+        $set:
+          deleted: true
+          updator: Meteor.user().username
+          updated: new Date
 
 ## Find used but missing tags (for inheriting old databases).
 if Meteor.isServer
