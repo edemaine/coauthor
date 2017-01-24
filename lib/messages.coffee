@@ -358,7 +358,8 @@ idle = 1000   ## one second
     when 1
       parents[0]
     else
-      throw "Message #{message} has #{parents.length} parents! #{parents}"
+      throw new Meteor.Error 'findMessageParent.multiple',
+        "Message #{message} has #{parents.length} parents! #{parents}"
 
 @messageEmpty = (message) ->
   message = Messages.findOne message unless message._id?

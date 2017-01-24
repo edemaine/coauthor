@@ -21,5 +21,24 @@ template(name="frontpage")
   if canSuper
     span.space
     .btn-group
+      button.btn.btn-info.groupNewButton New Group
       button.btn.btn-warning.recomputeAuthorsButton Recompute Authors
       button.btn.btn-warning.recomputeRootsButton Recompute Roots
+
+template(name="groupNew")
+  .modal
+    .modal-dialog.groupNew
+      .modal-content
+        .modal-header
+          h2 Create New Group
+        .modal-body
+          .alert.alert-warning <b>Warning:</b> Group creation cannot be undone.  So take care in naming!
+          form
+            .form-group
+              label(for="groupInput") New group name:
+              input.form-control(id="groupInput", placeholder="Group")
+            .row
+              .col-xs-6
+                button.btn.btn-block.btn-warning.groupNewButton Create Group
+              .col-xs-6
+                button.btn.btn-block.btn-success.cancelButton Cancel

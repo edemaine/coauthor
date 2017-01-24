@@ -1,10 +1,10 @@
 @wildGroup = '*'
 @anonymousUser = '*'
 
-escapeGroup = escapeKey
-unescapeGroup = unescapeKey
-validGroup = (group) ->
-  validKey(group) and group.charAt(0) != '*'
+@escapeGroup = escapeKey
+@unescapeGroup = unescapeKey
+@validGroup = (group) ->
+  validKey(group) and group.charAt(0) != '*' and group.trim().length > 0
 
 @sortKeys = ['title', 'creator', 'published', 'updated', 'posts', 'subscribe']
 
@@ -123,3 +123,17 @@ Meteor.methods
          name: group
        ,
          $set: defaultSort: sortBy
+
+  groupNew: (group) ->
+    check group, String
+    unless groupRoleCheck wildGroup, 'super'
+      throw new Meteor.Error 'groupNew.unauthorized',
+        "You need global 'super' permissions to create a new group '#{group}'"
+    unless validGroup group
+      throw new Meteor.Error 'groupNew.invalid',
+        "Group name '#{group}' is invalid"
+    if Groups.findOne(name: group)?
+      throw new Meteor.Error 'groupNew.exists',
+        "Attempt to create group '#{group}' which already exists"
+    Groups.insert
+      name: group
