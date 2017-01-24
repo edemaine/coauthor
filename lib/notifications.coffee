@@ -285,10 +285,10 @@ if Meteor.isServer
     for notification in messageUpdates
       notification.msg = Messages.findOne notification.message
     ## Some messages may have been superdeleted by now; don't email about them.
-    messageUpdates = (notification for notification in notifications when notification.msg?)
+    messageUpdates = (notification for notification in messageUpdates when notification.msg?)
     ## Don't notify about empty messages (e.g. initial creation without
     ## follow-up) -- wait for content.  xxx should check if diff is version 1!
-    messageUpdates = (notification for notification in notifications when not messageEmpty notification.msg)
+    messageUpdates = (notification for notification in messageUpdates when not messageEmpty notification.msg)
     return if messageUpdates.length == 0
 
     html = ''
