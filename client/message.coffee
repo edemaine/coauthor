@@ -74,6 +74,9 @@ Template.registerHelper 'formatTitleOrUntitled', ->
 Template.registerHelper 'formatBody', ->
   formatBody @format, @body
 
+Template.registerHelper 'formatFile', ->
+  formatFile @file
+
 Template.badMessage.helpers
   message: -> Router.current().params.message
 

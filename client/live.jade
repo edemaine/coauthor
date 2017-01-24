@@ -45,6 +45,9 @@ template(name='readMessageNoHeader')
         unless published
           span.label.label-warning Unpublished
     unless folded
-      .panel-body.message-body.tex2jax !{formatBody}
+      .panel-body
+        .message-body.tex2jax !{formatBody}
+        if file
+          p.message-file !{formatFile}
       .message-footer
         +messageAuthor
