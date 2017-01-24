@@ -85,6 +85,14 @@ if Meteor.isServer
       return @ready() unless query?
       Messages.find query
 
+  Meteor.publish 'messages.imported', (group) ->
+    check group, String
+    @autorun ->
+      query = accessibleMessagesQuery group, findUser @userId
+      return @ready() unless query?
+      query.imported = $ne: null
+      Messages.find query
+
   Meteor.publish 'messages.root', (group) ->
     check group, String
     @autorun ->

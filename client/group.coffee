@@ -178,7 +178,7 @@ Template.superdeleteImport.events
     e.stopPropagation()
     Modal.hide()
     console.log 'Loading all messages in group...'
-    sub = Meteor.subscribe 'messages.all', t.data.group, ->
+    sub = Meteor.subscribe 'messages.imported', t.data.group, ->
       count = 0
       Messages.find
         group: t.data.group
