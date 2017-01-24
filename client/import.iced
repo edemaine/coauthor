@@ -244,6 +244,19 @@ importLaTeX = (group, zip) ->
           abbrev: abbrev
           url: match[2][1...-1]
 
+  processCites = (tex) ->
+    tex.replace /\\cite\s*(?:\[([^\[\]]*)\]\s*)?{([^{}]*)}/g, (match, p1, p2) ->
+      '[' + (
+        for cite in p2.split ','
+          cite = cite.trim()
+          bib = bibs[cite]
+          if bib?
+            "\\href{#{bib.url}}{#{bib.abbrev}}"
+          else
+            console.warn "Missing bib url for '#{cite}'" unless bib?
+            cite
+      ).join(', ') + (if p1? then ", #{p1}" else '') + ']'
+
   ## Extract figures.
   figures = {}
   for filename, content of zip.files
@@ -264,7 +277,7 @@ importLaTeX = (group, zip) ->
               console.warn "Missing file for \\includegraphics{#{graphics}}"
             graphics.push filename
           caption = /\\caption\s*{((?:[^{}]|{[^{}]*})*)}/.exec p2
-          caption = caption[1]
+          caption = processCites caption[1]
           labels = []
           lr = /\\label\s*{((?:[^{}]|{[^{}]*})*)}/g
           while (match = lr.exec p2)?
@@ -285,17 +298,7 @@ importLaTeX = (group, zip) ->
       tex = tex
       .replace /%.*$\n?/mg, ''
       .replace /\\begin\s*{(wrap)?figure}[^\0]*?\\end\s*{(wrap)?figure}\s*/g, ''
-      .replace /\\cite\s*(?:\[([^\[\]]*)\]\s*)?{([^{}]*)}/g, (match, p1, p2) ->
-        '[' + (
-          for cite in p2.split ','
-            cite = cite.trim()
-            bib = bibs[cite]
-            if bib?
-              "\\href{#{bib.url}}{#{bib.abbrev}}"
-            else
-              console.warn "Missing bib url for '#{cite}'" unless bib?
-              cite
-        ).join(', ') + (if p1? then ", #{p1}" else '') + ']'
+      tex = processCites tex
       depths = []
       start = null
       labels = {}
@@ -332,7 +335,7 @@ importLaTeX = (group, zip) ->
       for message in messages
         attach = []
         message.body = message.body
-        .replace /\\ref\s*{([^{}]*)}/, (match, p1) ->
+        .replace /\\ref\s*{([^{}]*)}/g, (match, p1) ->
           if p1 of labels
             labels[p1]
           else if p1 of figures
