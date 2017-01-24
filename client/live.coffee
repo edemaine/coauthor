@@ -3,11 +3,8 @@ Template.live.onCreated ->
 
 Template.live.helpers
   messages: ->
-    Messages.find
-      group: @group
-      published: $ne: false
-      deleted: false
-    , liveMessagesLimit @limit
+    Messages.find undeletedMessagesQuery(@group),
+      liveMessagesLimit @limit
   valid: ->
     parseInt(@limit) >= 0
 

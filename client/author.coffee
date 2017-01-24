@@ -1,18 +1,6 @@
 Template.author.onCreated ->
   setTitle "Author #{Template.currentData()?.author}"
 
-messagesBy = (group, author) ->
-  query =
-    group: group
-    "authors.#{escapeUser author}": $exists: true
-    published: $ne: false
-    deleted: false
-  if group == wildGroup
-    delete query.group
-  Messages.find query,
-    sort: [['updated', 'desc']]
-    #limit: parseInt(@limit)
-
 Template.author.helpers
   messages: ->
     messagesBy @group, @author

@@ -65,14 +65,12 @@ if Meteor.isServer
       ## Regular users can see all messages they authored, plus
       ## published undeleted messages by others.
       if user?.username
-        $and: [
-          group: group
-        , $or: [
-            published: $ne: false    ## published is false or Date
-            deleted: false
-          , "authors.#{escapeUser user.username}": $exists: true
-          ]
-        ]  ## if you change this, change message.coffee's children helper
+        group: group
+        $or: [
+          published: $ne: false    ## published is false or Date
+          deleted: false
+        , "authors.#{escapeUser user.username}": $exists: true
+        ]
       else
         group: group
         published: $ne: false    ## published is false or Date
@@ -111,29 +109,88 @@ if Meteor.isServer
           ]
         ]
 
+if Meteor.isServer
+  ## Returns a query for the messages matching the given query (possibly
+  ## with options) along with their roots.  Implicitly we are assuming that,
+  ## if a message is accessible, then so is its root.  This is not technically
+  ## true if the root is deleted/unpublished and not authored by the user,
+  ## in which case we reveal the message to the user (but seems better than
+  ## having a dangling root pointer...).
+  addRootsToQuery = (query, options = {}) ->
+    #options = _.clone options  ## avoid modifying caller's options
+    options.fields = root: 1  ## just get (and depend on) root and _id
+    messages = Messages.find query, options
+    ids = {}
+    messages.forEach (msg) ->
+      ids[msg._id] = 1
+      ids[msg.root] = 1 if msg.root?
+    ids = _.keys ids  ## remove duplicates
+    _id: $in: ids
+
+@messagesByQuery = (group, author) ->
+  query =
+    group: group
+    "authors.#{escapeUser author}": $exists: true
+    published: $ne: false
+    deleted: false
+  if group == wildGroup
+    delete query.group
+  query
+
+@messagesBy = (group, author) ->
+  Messages.find messagesByQuery(group, author),
+    sort: [['updated', 'desc']]
+    #limit: parseInt(@limit)
+
+if Meteor.isServer
   Meteor.publish 'messages.author', (group, author) ->
     check group, String
     check author, String
     @autorun ->
       query = accessibleMessagesQuery group, findUser @userId
       return @ready() unless query?
-      ## Mimicking author.coffee's messagesBy
-      query["authors.#{escapeUser author}"] = $exists: true
-      query.published = $ne: false
-      query.deleted = false
-      Messages.find query
+      query = $and: [
+        query
+        messagesByQuery wildGroup, author  ## no need to repeat group
+      ]
+      Messages.find addRootsToQuery query
 
+@messagesTaggedQuery = (group, tag) ->
+  query =
+    group: group
+    "tags.#{escapeTag tag}": $exists: true
+    published: $ne: false
+    deleted: false
+  if group == wildGroup
+    delete query.group
+  query
+
+@messagesTagged = (group, tag) ->
+  Messages.find messagesTaggedQuery(group, tag),
+    sort: [['updated', 'desc']]
+    #limit: parseInt(@limit)
+
+if Meteor.isServer
   Meteor.publish 'messages.tag', (group, tag) ->
     check group, String
     check tag, String
     @autorun ->
       query = accessibleMessagesQuery group, findUser @userId
       return @ready() unless query?
-      ## Mimicking tag.coffee's messagesTagged
-      query["tags.#{escapeTag tag}"] = $exists: true
-      query.published = $ne: false
-      query.deleted = false
-      Messages.find query
+      query = $and: [
+        query
+        messagesTaggedQuery wildGroup, tag  ## no need to repeat group
+      ]
+      Messages.find addRootsToQuery query
+
+@undeletedMessagesQuery = (group) ->
+  query =
+    group: group
+    published: $ne: false
+    deleted: false
+  if group == wildGroup
+    delete query.group
+  query
 
 @liveMessagesLimit = (limit) ->
   sort: [['updated', 'desc']]
@@ -148,10 +205,12 @@ if Meteor.isServer
       query = accessibleMessagesQuery group, findUser @userId
       return @ready() unless query?
       ## Mimicking Template.live.helpers' messages
-      query.published = $ne: false
-      query.deleted = false
-      Messages.find query,
-        liveMessagesLimit limit
+      query = $and: [
+        query
+        undeletedMessagesQuery wildGroup  ## no need to repeat group
+      ]
+      options = liveMessagesLimit limit
+      Messages.find addRootsToQuery query, options
 
 @parseSince = (since) ->
   try
@@ -183,7 +242,7 @@ if Meteor.isServer
       return @ready() unless pSince?
       ## Mimicking since.coffee's messagesSince
       query.updated = $gte: pSince
-      Messages.find query
+      Messages.find addRootsToQuery query
 
 if Meteor.isServer
   Meteor.publish 'messages.diff', (message) ->
