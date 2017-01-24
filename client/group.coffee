@@ -173,19 +173,22 @@ Template.importButtons.events
     Modal.show 'superdeleteImport', @
 
 Template.superdeleteImport.events
-  'click .shallowSuperdeleteButton': (e, t) ->
+  'click .superdeleteImportConfirm': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
     Modal.hide()
-    count = 0
-    Messages.find
-      group: t.data.group
-      imported: $ne: null
-    .forEach (msg) ->
-      count += 1
-      console.log 'Superdeleting', msg._id
-      Meteor.call 'messageSuperdelete', msg._id
-    console.log 'Superdeleted', count, 'imported messages'
+    console.log 'Loading all messages in group...'
+    sub = Meteor.subscribe 'messages.all', t.data.group, ->
+      count = 0
+      Messages.find
+        group: t.data.group
+        imported: $ne: null
+      .forEach (msg) ->
+        count += 1
+        console.log 'Superdeleting', msg._id #, msg.title?[...20]
+        Meteor.call 'messageSuperdelete', msg._id
+      console.log 'Superdeleted', count, 'imported messages'
+      sub.stop()
   'click .cancelButton': (e) ->
     e.preventDefault()
     e.stopPropagation()
