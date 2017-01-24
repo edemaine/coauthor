@@ -318,6 +318,7 @@ if Meteor.isServer
   ## Can edit message if an "author" (the creator or edited in the past),
   ## or if we have global edit privileges in this group.
   msg = Messages.findOne message
+  return false unless msg?
   escapeUser(Meteor.user()?.username) of (msg.authors ? {}) or
   groupRoleCheck msg.group, 'edit'
 
@@ -345,7 +346,7 @@ if Meteor.isServer
 idle = 1000   ## one second
 
 @message2group = (message) ->
-  Messages.findOne(message).group
+  Messages.findOne(message)?.group
 
 @findMessageParent = (message) ->
   message = message._id if message._id?

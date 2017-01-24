@@ -231,8 +231,8 @@ template(name="superdelete")
           p Are you sure you want to delete &ldquo;#{title}&rdquo; (#{_id}) by #{creator}?
           p Superdelete destroys all logs of the message ever existing and cannot be undone.  Use only for silly mistakes.
         .modal-footer
-          button.btn.btn-warning.shallowSuperdeleteButton Superdelete node, not children
-          button.btn.btn-danger.deepSuperdeleteButton Recursively superdelete node and children
+          button.btn.btn-warning.shallowSuperdeleteButton Superdelete node, not descendants
+          button.btn.btn-danger.deepSuperdeleteButton Recursively superdelete node and descendants
           button.btn.btn-success.cancelButton.fullwidth Cancel
 
 template(name="messageHistory")
