@@ -245,6 +245,7 @@ importLaTeX = (group, zip) ->
           url: match[2][1...-1]
 
   processCites = (tex) ->
+    return tex unless tex
     tex.replace /\\cite\s*(?:\[([^\[\]]*)\]\s*)?{([^{}]*)}/g, (match, p1, p2) ->
       '[' + (
         for cite in p2.split ','
@@ -263,32 +264,68 @@ importLaTeX = (group, zip) ->
     if filename[-4..] == '.tex'
       tex = content.asText()
       tex = tex.replace /%.*$\n?/mg, ''
-      .replace /\\begin\s*{(wrap)?figure}([^\0]*?)\\end\s*{(wrap)?figure}\s*/g,
-        (match, p1, p2, p3) ->
+      .replace /\\begin\s*{(wrap)?figure}([^]*?)\\end\s*{(wrap)?figure}\s*/g,
+        (match, beginFigure, body, endFigure) ->
+          ## Collect all \includegraphics, possibly with subcaptions
           graphics = []
-          gr = /\\includegraphics\s*(\[[^\[\]]*\]\s*)?{((?:[^{}]|{[^{}]*})*)}/g
-          while (match = gr.exec p2)?
-            filename = match[2]
+          findLabels = (text) ->
+            [
+              labels = []
+              text.replace /\\label\s*{((?:[^{}]|{[^{}]*})*)}/g,
+                (match3, label) ->
+                  labels.push label
+                  ''
+            ]
+          findIncludeGraphics = (text, subcaption = null, labels = []) ->
+            text.replace /\\includegraphics\s*(\[[^\[\]]*\]\s*)?{((?:[^{}]|{[^{}]*})*)}/g,
+              (match3, optional, filename) ->
+                if optional.match /page\s*=/
+                  console.warn 'Import does not support \\includegraphics[page=...]'
+                graphics.push
+                  filename: filename
+                  subcaption: subcaption
+                  labels: labels
+                ''
+            ''
+          body = body.replace /\\subcaptionbox\s*{((?:[^{}]|{[^{}]*})*)}\s*{((?:[^{}]|{[^{}]*})*)}/g,
+            (match2, subcaption, subbody) ->
+              [labels, subcaption] = findLabels subcaption
+              findIncludeGraphics subbody, subcaption, labels
+          body = body.replace /\\begin\s*{subfigure}([^]*?)\\end\s*{subfigure}/g,
+            (match2, subbody) ->
+              [labels, subbody] = findLabels subbody
+              subcaption = /\\caption\s*{((?:[^{}]|{[^{}]*})*)}/.exec(subbody)?[1]
+              findIncludeGraphics subbody, subcaption, labels
+          findIncludeGraphics body
+          ## Search for correct extensions
+          for graphic in graphics
             for extension in ['', '.svg', '.png', '.jpg', '.pdf']
-              if filename + extension of zip.files
-                filename += extension
+              if graphic.filename + extension of zip.files
+                graphic.filename += extension
                 break
-            if filename not of zip.files
-              console.warn "Missing file for \\includegraphics{#{graphics}}"
-            graphics.push filename
-          caption = /\\caption\s*{((?:[^{}]|{[^{}]*})*)}/.exec p2
-          caption = processCites caption[1]
-          labels = []
-          lr = /\\label\s*{((?:[^{}]|{[^{}]*})*)}/g
-          while (match = lr.exec p2)?
-            labels.push match[1]
-          console.log "Figure #{labels.join ' / '} = #{graphics.join ' & '} = #{caption}"
+            if graphic.filename not of zip.files
+              console.warn "Missing file for \\includegraphics{#{graphic.filename}}"
+          for graphic in graphics
+            ## Remove \\ use within subcaption, which is generally just for
+            ## layout and not relevant for web layout.
+            if graphic.subcaption
+              graphic.subcaption = graphic.subcaption.replace /\s*\\\\\s*/, ' '
+              graphic.subcaption = processCites graphic.subcaption
+          [labels, body] = findLabels body
+          caption = /\\caption\s*{((?:[^{}]|{[^{}]*})*)}/.exec(body)[1]
+          caption = processCites caption
+          console.log "Figure #{labels.join ' / '} = #{(graphic.filename + (if graphic.subcaption then "[#{graphic.subcaption}]" else '') for graphic in graphics).join ' & '} = #{caption}"
           figure =
             graphics: graphics
             caption: caption
             labels: labels
+          if labels.length > 1
+            console.warn "Multiple labels will appear: #{labels.join ' / '}"
           for label in labels
             figures[label] = figure
+          for graphic in figure.graphics
+            for label in graphic.labels
+              figures[label] = figure
 
   ## Extract sections.
   for filename, content of zip.files
@@ -297,7 +334,7 @@ importLaTeX = (group, zip) ->
       ## Remove comments (to ignore \sections inside comments).
       tex = tex
       .replace /%.*$\n?/mg, ''
-      .replace /\\begin\s*{(wrap)?figure}[^\0]*?\\end\s*{(wrap)?figure}\s*/g, ''
+      .replace /\\begin\s*{(wrap)?figure}[^]*?\\end\s*{(wrap)?figure}\s*/g, ''
       tex = processCites tex
       depths = []
       start = null
@@ -335,12 +372,13 @@ importLaTeX = (group, zip) ->
       for message in messages
         attach = []
         message.body = message.body
-        .replace /\\ref\s*{([^{}]*)}/g, (match, p1) ->
-          if p1 of labels
-            labels[p1]
-          else if p1 of figures
-            attach.push figures[p1]
-            "``#{figures[p1].labels[figures[p1].labels.length-1]}''"
+        .replace /\\ref\s*{([^{}]*)}/g, (match, ref) ->
+          if ref of labels
+            labels[ref]
+          else if ref of figures
+            attach.push figures[ref]
+            #"``#{figures[ref].labels[figures[p1].labels.length-1]}''"
+            "``#{ref}''"
           else
             console.warn "Unresolved #{match}"
             match
@@ -354,7 +392,8 @@ importLaTeX = (group, zip) ->
         attach = _.unique attach  ## upload \ref'd figures only once each
         for figure in attach
           figure.message =
-            title: "Figure ``#{figure.labels[figure.labels.length-1]}''"
+            title: "Figure " +
+              ("``#{label}''" for label in figure.labels).join " / "
             body: figure.caption
             published: now
             format: 'latex'
@@ -367,12 +406,9 @@ importLaTeX = (group, zip) ->
 
         await
           for figure in attach
-            figuremsg =
-              title: "Figure #{figure.labels[figure.labels.length-1]}"
-              body: body
-
             figure.files = []
-            for filename in figure.graphics
+            for graphic in figure.graphics
+              filename = graphic.filename
               base = basename filename
               file = new File [zip.files[filename].asArrayBuffer()],
                        base,
@@ -381,6 +417,7 @@ importLaTeX = (group, zip) ->
               file.creator = me
               file.created = now
               file.group = group
+              file.graphic = graphic
               figure.files.push file
               do (d = defer file.file2id) ->
                 file.callback = (file2) ->
@@ -391,7 +428,13 @@ importLaTeX = (group, zip) ->
             for file in figure.files
               filerev =
                 file: file.file2id
+                format: 'latex'
                 published: now
+              if file.graphic.labels.length > 0
+                filerev.title = "Figure " +
+                  ("``#{label}''" for label in file.graphic.labels).join " / "
+              if file.graphic.subcaption
+                filerev.body = file.graphic.subcaption
               filemsg = _.clone filerev
               filemsg.creator = me
               filemsg.created = now
@@ -412,8 +455,14 @@ importers =
   unless importer?
     console.warn "Unrecognized import format '#{format}'"
     return
+  sub = Meteor.subscribe 'messages.imported', group, ->
+  done = 0
   for file in files
     reader = new FileReader
     reader.onload = (e) ->
       importer group, e.target.result
+      done += 1
+      if done == files.length
+        sub.stop()
+        console.log 'Import complete'
     reader["readAs#{importer.readAs}"] file
