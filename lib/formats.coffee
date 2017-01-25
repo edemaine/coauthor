@@ -94,10 +94,6 @@ latex2html = (tex) ->
   .replace /\\end\s*{(problem|theorem|conjecture|lemma|corollary)}/g, '</blockquote>'
   .replace /\\begin\s*{(proof|pf)}/g, '<b>Proof:</b> '
   .replace /\\end\s*{(proof|pf)}/g, ' $\\Box$'
-  .replace /``/g, '&ldquo;'
-  .replace /''/g, '&rdquo;'
-  .replace /`/g, '&lsquo;'
-  .replace /'/g, '&rsquo;'
   .replace /\\"{(.)}/g, '&$1uml;'
   .replace /\\"(.)/g, '&$1uml;'
   .replace /\\'{(.)}/g, '&$1acute;'
@@ -119,6 +115,11 @@ latex2html = (tex) ->
   .replace /\\u\s*{a}/g, '&#259;'
   .replace /\\v\s*{a}/g, '&#462;'
   .replace /\\H\s*{o}/g, '&#337;'
+  .replace /``/g, '&ldquo;'
+  .replace /''/g, '&rdquo;'
+  #.replace /''|"/g, '&rdquo;'  ## " replacement wreaks havoc with HTML
+  .replace /`/g, '&lsquo;'
+  .replace /'/g, '&rsquo;'
   .replace /\\&/g, '&amp;'
   .replace /\\([{}])/g, '$1'
   .replace /~/g, '&nbsp;'
@@ -215,7 +216,7 @@ postprocessKaTeX = (text, math) ->
       .replace /&/g, '&amp;'
       .replace /</g, '&lt;'
       .replace />/g, '&gt;'
-      "<SPAN CLASS='katex-error' TITLE='#{title}'>#{latex}</SPAN>"
+      """<SPAN CLASS="katex-error" TITLE="#{title}">#{latex}</SPAN>"""
   if math?
     text.replace /MATH(\d+)ENDMATH/g, (match, p1) ->
       replacer math[p1]
