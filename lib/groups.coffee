@@ -11,7 +11,7 @@
 titleDigits = 10
 @titleSort = (title) ->
   title = title.title if title.title?
-  title.toLowerCase().replace /\d+/, (n) -> s.lpad n, titleDigits, '0'
+  title.toLowerCase().replace /\d+/g, (n) -> s.lpad n, titleDigits, '0'
 
 @Groups = new Mongo.Collection 'groups'
 
