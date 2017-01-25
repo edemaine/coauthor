@@ -58,6 +58,9 @@ latex2html = (tex) ->
   tex = tex.replace /\\def\s*\\([a-zA-Z]+)\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, (match, p1, p2) ->
     defs[p1] = p2
     ''
+  tex = tex.replace /\\let\s*\\([a-zA-Z]+)\s*=?\s*\\([a-zA-Z]+)\s*/g, (match, p1, p2) ->
+    defs[p1] = "\\#{p2}"
+    ''
   for def, val of defs
     #console.log "\\#{def} = #{val}"
     tex = tex.replace ///\\#{def}\s*///g, val
