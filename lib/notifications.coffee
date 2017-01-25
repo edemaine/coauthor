@@ -337,7 +337,7 @@ if Meteor.isServer
           verb = 'created' if notification.created
           authors = _.keys(authors).sort().join ', '
           if messageUpdates.length == 1
-            subject = "#{authors} #{verb} '#{titleOrUntitled msg.title}' in #{msg.group}"
+            subject = "#{authors} #{verb} '#{titleOrUntitled msg}' in #{msg.group}"
           #if diffs.length > 1
           #  dates = "between #{diffs[0].updated} and #{diffs[diffs.length-1].updated}"
           #else
