@@ -296,7 +296,7 @@ importLaTeX = (group, zip) ->
               [labels, subbody] = findLabels subbody
               subcaption = /\\caption\s*{((?:[^{}]|{[^{}]*})*)}/.exec(subbody)?[1]
               findIncludeGraphics subbody, subcaption, labels
-          findIncludeGraphics body
+          findIncludeGraphics body, false  ## subcaption = false for root images
           ## Search for correct extensions
           for graphic in graphics
             for extension in ['', '.svg', '.png', '.jpg', '.pdf']
@@ -326,6 +326,9 @@ importLaTeX = (group, zip) ->
           for graphic in figure.graphics
             for label in graphic.labels
               figures[label] = figure
+
+  formatLabel = (label) ->
+    "``#{label.replace /^fig:/, ''}''"
 
   ## Extract sections.
   for filename, content of zip.files
@@ -377,8 +380,8 @@ importLaTeX = (group, zip) ->
             labels[ref]
           else if ref of figures
             attach.push figures[ref]
-            #"``#{figures[ref].labels[figures[p1].labels.length-1]}''"
-            "``#{ref}''"
+            #formatLabel figures[ref].labels[figures[p1].labels.length-1]
+            formatLabel ref
           else
             console.warn "Unresolved #{match}"
             match
@@ -389,21 +392,7 @@ importLaTeX = (group, zip) ->
         delete revision.creator
         await Meteor.call 'messageImport', group, null, message, [revision], defer error, message._id
 
-        attach = _.unique attach  ## upload \ref'd figures only once each
-        for figure in attach
-          figure.message =
-            title: "Figure " +
-              ("``#{label}''" for label in figure.labels).join " / "
-            body: figure.caption
-            published: now
-            format: 'latex'
-          frevision = _.clone figure.message
-          figure.message.creator = me
-          figure.message.created = now
-          frevision.updators = [me]
-          frevision.updated = now
-          await Meteor.call 'messageImport', group, message._id, figure.message, [frevision], defer error, figure.message._id
-
+        attach = _.uniq attach  ## upload \ref'd figures only once each
         await
           for figure in attach
             figure.files = []
@@ -423,6 +412,23 @@ importLaTeX = (group, zip) ->
                 file.callback = (file2) ->
                   d file2.uniqueIdentifier
               Files.resumable.addFile file
+        for figure in attach
+          figure.message =
+            title: "Figure " +
+              (formatLabel label for label in figure.labels).join " / "
+            body: figure.caption
+            format: 'latex'
+            published: now
+          rootFiles = (file for file in figure.files when file.graphic.subcaption == false)
+          if rootFiles.length == 1
+            figure.message.file = rootFiles[0].file2id
+            figure.files = _.without figures.files, rootFiles[0]
+          frevision = _.clone figure.message
+          figure.message.creator = me
+          figure.message.created = now
+          frevision.updators = [me]
+          frevision.updated = now
+          await Meteor.call 'messageImport', group, message._id, figure.message, [frevision], defer error, figure.message._id
         await
           for figure in attach
             for file in figure.files
@@ -432,7 +438,7 @@ importLaTeX = (group, zip) ->
                 published: now
               if file.graphic.labels.length > 0
                 filerev.title = "Figure " +
-                  ("``#{label}''" for label in file.graphic.labels).join " / "
+                  (formatLabel label for label in file.graphic.labels).join " / "
               if file.graphic.subcaption
                 filerev.body = file.graphic.subcaption
               filemsg = _.clone filerev
