@@ -86,6 +86,8 @@ latex2html = (tex) ->
   .replace /\\includegraphics\s*{([^{}]*)}/g, '<img src="$1">'
   .replace /\\begin\s*{(problem|theorem|conjecture|lemma|corollary)}/g, (m, p1) -> "<blockquote><b>#{s.capitalize p1}:</b> "
   .replace /\\end\s*{(problem|theorem|conjecture|lemma|corollary)}/g, '</blockquote>'
+  .replace /\\begin\s*{(proof|pf)}/g, '<b>Proof:</b> '
+  .replace /\\end\s*{(proof|pf)}/g, ' $\\Box$'
   .replace /``/g, '&ldquo;'
   .replace /''/g, '&rdquo;'
   ## This following break math mode currently...
@@ -193,6 +195,7 @@ postprocessKaTeX = (text, math) ->
         throwOnError: false
         macros:
           '\\dots': '\\ldots'
+          '\\epsilon': '\\varepsilon'
       #.replace /<math>.*<\/math>/, ''  ## remove MathML
     catch e
       throw e unless e instanceof katex.ParseError
