@@ -115,6 +115,7 @@ latex2html = (tex) ->
   .replace /\\v\s*{a}/g, '&#462;'
   .replace /\\H\s*{o}/g, '&#337;'
   .replace /\\&/g, '&amp;'
+  .replace /\\([{}])/g, '$1'
   .replace /~/g, '&nbsp;'
   .replace /\\\s/g, ' '
   .replace /---/g, '&mdash;'
