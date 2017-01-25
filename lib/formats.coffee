@@ -12,12 +12,13 @@ if Meteor.isClient
 ## braces (e.g. $\hbox{$x$}$) and escaped dollar signs (\$ doesn't count as $),
 ## and replaces them with the output of the given replacer function.
 replaceMathBlocks = (text, replacer) ->
+  #console.log text
   blocks = []
   re = /[${}]|\\./g
   start = null
   braces = 0
   while (match = re.exec text)?
-    #console.log match
+    #console.log '>', match
     switch match[0]
       when '$'
         if start?  ## already in $ block
@@ -60,6 +61,8 @@ latex2html = (tex) ->
   for def, val of defs
     #console.log "\\#{def} = #{val}"
     tex = tex.replace ///\\#{def}\s*///g, val
+  ## After \def expansion, protect math
+  [tex, math] = preprocessKaTeX tex
   tex = '<p>' + tex
   .replace /\\\\/g, '[DOUBLEBACKSLASH]'
   .replace /\\(BY|YEAR)\s*{([^{}]*)}/g, '<span style="border: thin solid; margin-left: 0.5em; padding: 0px 4px; font-variant:small-caps">$2</span>'
@@ -90,9 +93,8 @@ latex2html = (tex) ->
   .replace /\\end\s*{(proof|pf)}/g, ' $\\Box$'
   .replace /``/g, '&ldquo;'
   .replace /''/g, '&rdquo;'
-  ## This following break math mode currently...
-  #.replace /`/g, '&lsquo;'
-  #.replace /'/g, '&rsquo;'
+  .replace /`/g, '&lsquo;'
+  .replace /'/g, '&rsquo;'
   .replace /\\"{(.)}/g, '&$1uml;'
   .replace /\\"(.)/g, '&$1uml;'
   .replace /\\'{(.)}/g, '&$1acute;'
@@ -123,6 +125,8 @@ latex2html = (tex) ->
   .replace /\n\n+/g, '\n<p>\n'
   .replace /<p>\s*(<h[1-9]>)/g, '$1'
   .replace /\[DOUBLEBACKSLASH\]/g, '\\\\'
+  ## Restore math
+  tex = tex.replace /MATH(\d+)ENDMATH/g, (match, p1) -> math[p1]
 
 @formats =
   markdown: (text, title) ->
