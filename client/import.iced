@@ -351,7 +351,7 @@ importLaTeX = (group, zip) ->
         if start?
           now = new Date
           body = tex[start...match.index]
-          body = body.replace /\\label{([^{}]*)}/, (match, p1) ->
+          body = body.replace /\\label{([^{}]*)}/g, (match, p1) ->
             labels[p1] = title[...title.indexOf ' ']
             ''
           console.log "Importing '#{title}'"
