@@ -302,6 +302,8 @@ importLaTeX = (group, zip) ->
             for extension in ['', '.svg', '.png', '.jpg', '.pdf']
               if graphic.filename + extension of zip.files
                 graphic.filename += extension
+                if graphic.filename[graphic.filename.length-4..] == '.pdf'
+                  console.warn "Using pdf graphic #{graphic.filename}"
                 break
             if graphic.filename not of zip.files
               console.warn "Missing file for \\includegraphics{#{graphic.filename}}"
