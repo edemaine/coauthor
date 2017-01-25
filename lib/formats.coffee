@@ -88,6 +88,7 @@ latex2html = (tex) ->
   .replace /\\end\s*{(problem|theorem|conjecture|lemma|corollary)}/g, '</blockquote>'
   .replace /``/g, '&ldquo;'
   .replace /''/g, '&rdquo;'
+  ## This following break math mode currently...
   #.replace /`/g, '&lsquo;'
   #.replace /'/g, '&rsquo;'
   .replace /\\"{(.)}/g, '&$1uml;'
