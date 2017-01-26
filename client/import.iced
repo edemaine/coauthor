@@ -482,7 +482,7 @@ importLaTeX = (group, zip) ->
             match
         .replace /\\includegraphics\s*(\[[^\[\]]*\]\s*)?{((?:[^{}]|{[^{}]*})*)}/g,
           (match, optional, filename) ->
-            "\\includegraphics#{optional}{coauthor:#{inlineGraphics[filename].message._id}"
+            "\\includegraphics#{optional}{coauthor:#{inlineGraphics[filename].message._id}}"
         ## Now we can upload the message itself.
         revision = _.clone message
         revision.updated = revision.created
