@@ -255,7 +255,7 @@ jsdiff = require 'diff'
   sanitize postprocessCoauthorLinks body
 
 @formatTitle = (format, title, leaveTeX = false) ->
-  [title, math] = preprocessKaTeX title unless leaveTeX
+  [title, math] = preprocessKaTeX title unless leaveTeX or format == 'latex'
   if format of formats
     title = formats[format] title, true
   else
