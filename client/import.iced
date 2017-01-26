@@ -329,6 +329,8 @@ importLaTeX = (group, zip) ->
             for label in graphic.labels
               figures[label] = figure
 
+  title2section = (title) ->
+    title[...title.indexOf ' ']  ## section number
   formatLabel = (label) ->
     "``#{label.replace /^fig:/, ''}''"
 
@@ -345,6 +347,7 @@ importLaTeX = (group, zip) ->
       depths = []
       start = null
       labels = {}
+      links = {}
       messages = []
       figurecount = 0
       r = /\\(sub)*section\s*{((?:[^{}]|{[^{}]*})*)}|\\bibliography/g
@@ -352,8 +355,8 @@ importLaTeX = (group, zip) ->
         if start?
           now = new Date
           body = tex[start...match.index]
-          body = body.replace /\\label{([^{}]*)}/g, (match, p1) ->
-            labels[p1] = title[...title.indexOf ' ']
+          body = body.replace /\\label{([^{}]*)}/g, (match, label) ->
+            labels[label] = title2section title
             ''
           console.log "Importing '#{title}'"
           messages.push
@@ -380,7 +383,11 @@ importLaTeX = (group, zip) ->
         message.body = message.body
         .replace /\\ref\s*{([^{}]*)}/g, (match, ref) ->
           if ref of labels
-            labels[ref]
+            if labels[ref] of links
+              "\\href{#{links[labels[ref]]}}{#{labels[ref]}}"
+            else
+              console.warn "\\ref{#{ref}} used before \\label{#{ref}} defined, so no link to the corresponding message; you might add it manually"
+              labels[ref]
           else if ref of figures
             attach.push figures[ref]
             #formatLabel figures[ref].labels[figures[p1].labels.length-1]
@@ -394,6 +401,7 @@ importLaTeX = (group, zip) ->
         revision.updators = [revision.creator]
         delete revision.creator
         await Meteor.call 'messageImport', group, null, message, [revision], defer error, message._id
+        links[title2section message.title] = "coauthor:#{message._id}"
 
         attach = _.uniq attach  ## upload \ref'd figures only once each
         await
