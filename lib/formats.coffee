@@ -88,6 +88,7 @@ latex2html = (tex) ->
   .replace /\\section\s*\*?\s*{((?:[^{}]|{[^{}]*})*)}/g, '<h2>$1</h2>'
   .replace /\\subsection\s*\*?\s*{((?:[^{}]|{[^{}]*})*)}/g, '<h3>$1</h3>'
   .replace /\\subsubsection\s*\*?\s*{((?:[^{}]|{[^{}]*})*)}/g, '<h4>$1</h4>'
+  .replace /\\paragraph\s*\*?\s*{((?:[^{}]|{[^{}]*})*)}\s*/g, '<p><b>$1</b> '
   .replace /\\footnote\s*{((?:[^{}]|{[^{}]*})*)}/g, '[$1]'
   .replace /\\includegraphics\s*{([^{}]*)}/g, '<img src="$1">'
   .replace /\\begin\s*{(problem|theorem|conjecture|lemma|corollary)}/g, (m, p1) -> "<blockquote><b>#{s.capitalize p1}:</b> "
