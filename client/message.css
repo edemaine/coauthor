@@ -50,6 +50,7 @@ nav.contents { overflow-y: scroll; padding-bottom: 5px; }
 .affix { top: 0px; }
 
 code.raw { color: #333; }  /* match <pre> */
+pre { white-space: pre-wrap; }
 
 .root { margin-bottom: 0px; } /* glom onto message below */
 
