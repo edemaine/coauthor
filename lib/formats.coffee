@@ -103,6 +103,8 @@ latex2html = (tex) ->
           ''
       style = ' style="' + style + '"' if style
       """<img src="#{graphic}"#{style}>"""
+  .replace /\\pdftooltip\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g,
+    (match, p1, p2) -> """<span title="#{p2.replace /"/g, '&#34;'}">#{p1}</span>"""
   .replace /\\raisebox\s*{\s*([-0-9.]+)\s*([a-zA-Z]*)\s*}{((?:[^{}]|{[^{}]*})*)}/g,
     (match, value, unit, arg) ->
       if value[0] == '-'

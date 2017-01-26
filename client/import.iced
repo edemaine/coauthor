@@ -222,7 +222,7 @@ importLaTeX = (group, zip) ->
       bib = content.asText()
       r = /@[\w\s]*{([^,]*),[^@]*?\burl\s*=\s*("[^"]*"|{[^{}]*})/ig
       while (match = r.exec bib)?
-        author = /\bauthor\s*=\s*("(?:{[^{}]*}|[^"])*"|{(?:[^{}]|{[^{}]*})*})/i.exec match[0]
+        author = /\bauthor\s*=\s*("(?:{[^{}]*}|[^"])*"|{(?:[^{}]|{(?:[^{}]|{[^{}]*})*})*})/i.exec match[0]
         console.log match[0] unless author
         author = author[1][1...-1].split /\s*\band\b\s*/i
         author = for auth in author
@@ -230,6 +230,9 @@ importLaTeX = (group, zip) ->
             auth[auth.indexOf(',')+1..].trim() + ' ' + auth[...auth.indexOf ','].trim()
           else
             auth
+        title = /\btitle\s*=\s*("(?:{[^{}]*}|[^"])*"|{(?:[^{}]|{(?:[^{}]|{[^{}]*})*})*})/i.exec match[0]
+        console.log match[0] unless title
+        title = title[1][1...-1].replace /[{}]/g, ''
         year = /\byear\s*=\s*("(?:{[^{}]*}|[^"])*"|{(?:[^{}]|{[^{}]*})*}|\d+)/i.exec match[0]
         year = year[1].replace /["{}]/g, ''
         if author.length <= 1
@@ -240,10 +243,20 @@ importLaTeX = (group, zip) ->
         console.log match[1], '=', abbrev, '=', author.join(' & '), year, '=', match[2][1...-1]
         bibs[match[1]] =
           author: author
+          title: title
           year: year
           abbrev: abbrev
           url: match[2][1...-1]
 
+  cleanBibTeX = (bib) ->
+    ## Convert newlines into spaces for single-line tooltip.
+    bib.replace /\s*\n\s*/g, ' '
+    ## Remove {}s that aren't used for argument to a command (common in BibTeX).
+    .replace /(\\.|\\[a-zA-Z]+\s*)?[{}]/g, (match, p1, p2) ->
+      if p1
+        match
+      else
+        ''
   processCites = (tex) ->
     return tex unless tex
     tex.replace /\\cite\s*(?:\[([^\[\]]*)\]\s*)?{([^{}]*)}/g, (match, p1, p2) ->
@@ -252,7 +265,7 @@ importLaTeX = (group, zip) ->
           cite = cite.trim()
           bib = bibs[cite]
           if bib?
-            "\\href{#{bib.url}}{#{bib.abbrev}}"
+            "\\pdftooltip{\\href{#{bib.url}}{#{bib.abbrev}}}{``#{cleanBibTeX bib.title}'' by #{cleanBibTeX bib.author.join '; '}}"
           else
             console.warn "Missing bib url for '#{cite}'" unless bib?
             cite
@@ -433,7 +446,7 @@ importLaTeX = (group, zip) ->
                 "Figure #{(formatLabel label for label in figure.labels).join ' / '}"
               else  ## for inline graphics
                 ''
-            body: figure.caption
+            body: figure.caption ? ''
             format: 'latex'
             published: now
           rootFiles = (file for file in figure.files when file.graphic.subcaption == false)
