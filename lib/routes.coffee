@@ -142,5 +142,3 @@ Router.route '/:group/settings',
 Router.route '/',
   name: 'frontpage'
   fastRender: true
-
-Router.plugin 'autoscroll'
