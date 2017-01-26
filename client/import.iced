@@ -379,30 +379,16 @@ importLaTeX = (group, zip) ->
         start = match.index + match[0].length
 
       for message in messages
+        ## First, find which figures are used in this message.
+        ## We upload the figures before the message so that the message
+        ## can easily hyperlink directly to the messages.
         attach = []
-        message.body = message.body
-        .replace /\\ref\s*{([^{}]*)}/g, (match, ref) ->
-          if ref of labels
-            if labels[ref] of links
-              "\\href{#{links[labels[ref]]}}{#{labels[ref]}}"
-            else
-              console.warn "\\ref{#{ref}} used before \\label{#{ref}} defined, so no link to the corresponding message; you might add it manually"
-              labels[ref]
-          else if ref of figures
-            attach.push figures[ref]
-            #formatLabel figures[ref].labels[figures[p1].labels.length-1]
-            formatLabel ref
-          else
-            console.warn "Unresolved #{match}"
-            match
-        revision = _.clone message
-        revision.updated = revision.created
-        delete revision.created
-        revision.updators = [revision.creator]
-        delete revision.creator
-        await Meteor.call 'messageImport', group, null, message, [revision], defer error, message._id
-        links[title2section message.title] = "coauthor:#{message._id}"
-
+        message.body.replace /\\ref\s*{([^{}]*)}/g, (match, ref) ->
+          attach.push figures[ref] if ref of figures
+          ''
+        ## Next, upload the used figures as messages, submessages, and/or
+        ## files.  At this point, each figure root gets no parent, as we
+        ## haven't created the message for the problem yet.
         attach = _.uniq attach  ## upload \ref'd figures only once each
         await
           for figure in attach
@@ -439,7 +425,7 @@ importLaTeX = (group, zip) ->
           figure.message.created = now
           frevision.updators = [me]
           frevision.updated = now
-          await Meteor.call 'messageImport', group, message._id, figure.message, [frevision], defer error, figure.message._id
+          await Meteor.call 'messageImport', group, null, figure.message, [frevision], defer error, figure.message._id
         await
           for figure in attach
             for file in figure.files
@@ -459,6 +445,32 @@ importLaTeX = (group, zip) ->
               filerev.updated = now
               Meteor.call 'messageImport', group, figure.message._id, filemsg, [filerev],
                 defer()  ## ignoring error
+        ## Next, upload the message itself, with hyperlinks to the figures.
+        message.body = message.body
+        .replace /\\ref\s*{([^{}]*)}/g, (match, ref) ->
+          if ref of labels
+            if labels[ref] of links
+              "\\href{#{links[labels[ref]]}}{#{labels[ref]}}"
+            else
+              console.warn "\\ref{#{ref}} used before \\label{#{ref}} defined, so no link to the corresponding message; you might add it manually"
+              labels[ref]
+          else if ref of figures
+            #formatLabel figures[ref].labels[figures[p1].labels.length-1]
+            "\\href{coauthor:#{figures[ref].message._id}}{#{formatLabel ref}}"
+          else
+            console.warn "Unresolved #{match}"
+            match
+        revision = _.clone message
+        revision.updated = revision.created
+        delete revision.created
+        revision.updators = [revision.creator]
+        delete revision.creator
+        await Meteor.call 'messageImport', group, null, message, [revision], defer error, message._id
+        links[title2section message.title] = "coauthor:#{message._id}"
+        ## Finally, reparent the figures' root messages to be children
+        ## of the main message for the problem.
+        for figure in attach
+          Meteor.call 'messageParent', figure.message._id, message._id
 
 #importLaTeX.readAs = 'Text'
 importLaTeX.readAs = 'ArrayBuffer'
