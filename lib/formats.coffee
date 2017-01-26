@@ -72,7 +72,7 @@ latex2html = (tex) ->
   .replace /\\protect\s*/g, ''
   .replace /\\textbf\s*{((?:[^{}]|{[^{}]*})*)}/g, '<b>$1</b>'
   .replace /\\textit\s*{((?:[^{}]|{[^{}]*})*)}/g, '<i>$1</i>'
-  .replace /\\textsf\s*{((?:[^{}]|{[^{}]*})*)}/g, '<span style="font-family: sans-serif">$1</I>'
+  .replace /\\textsf\s*{((?:[^{}]|{[^{}]*})*)}/g, '<span style="font-family: sans-serif">$1</span>'
   .replace /\\emph\s*{((?:[^{}]|{[^{}]*})*)}/g, '<em>$1</em>'
   .replace /\\textsc\s*{((?:[^{}]|{[^{}]*})*)}/g, '<span style="font-variant:small-caps">$1</span>'
   .replace /\\underline\s*{((?:[^{}]|{[^{}]*})*)}/g, '<u>$1</u>'
