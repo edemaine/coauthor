@@ -257,9 +257,39 @@ importLaTeX = (group, zip) ->
             console.warn "Missing bib url for '#{cite}'" unless bib?
             cite
       ).join(', ') + (if p1? then ", #{p1}" else '') + ']'
+  findLabels = (text) ->
+    [
+      labels = []
+      text.replace /\\label\s*{((?:[^{}]|{[^{}]*})*)}/g,
+        (match, label) ->
+          labels.push label
+          ''
+    ]
+  findIncludeGraphics = (text, subcaption = null, labels = []) ->
+    graphics = []
+    text.replace /\\includegraphics\s*(\[[^\[\]]*\]\s*)?{((?:[^{}]|{[^{}]*})*)}/g,
+      (match, optional, filename) ->
+        if optional.match /page\s*=/
+          console.warn 'Import does not support \\includegraphics[page=...]'
+        graphics.push
+          filename: filename
+          subcaption: subcaption
+          labels: labels
+        ''
+    graphics
+  findGraphicFile = (graphic) ->
+    for extension in ['', '.svg', '.png', '.jpg', '.pdf']
+      if graphic.filename + extension of zip.files
+        graphic.filename += extension
+        if graphic.filename[graphic.filename.length-4..] == '.pdf'
+          console.warn "Using pdf graphic #{graphic.filename}"
+        break
+    if graphic.filename not of zip.files
+      console.warn "Missing file for \\includegraphics{#{graphic.filename}}"
 
   ## Extract figures.
   figures = {}
+  inlineGraphics = {}
   for filename, content of zip.files
     if filename[-4..] == '.tex'
       tex = content.asText()
@@ -268,45 +298,22 @@ importLaTeX = (group, zip) ->
         (match, beginFigure, body, endFigure) ->
           ## Collect all \includegraphics, possibly with subcaptions
           graphics = []
-          findLabels = (text) ->
-            [
-              labels = []
-              text.replace /\\label\s*{((?:[^{}]|{[^{}]*})*)}/g,
-                (match3, label) ->
-                  labels.push label
-                  ''
-            ]
-          findIncludeGraphics = (text, subcaption = null, labels = []) ->
-            text.replace /\\includegraphics\s*(\[[^\[\]]*\]\s*)?{((?:[^{}]|{[^{}]*})*)}/g,
-              (match3, optional, filename) ->
-                if optional.match /page\s*=/
-                  console.warn 'Import does not support \\includegraphics[page=...]'
-                graphics.push
-                  filename: filename
-                  subcaption: subcaption
-                  labels: labels
-                ''
-            ''
           body = body.replace /\\subcaptionbox\s*{((?:[^{}]|{[^{}]*})*)}\s*{((?:[^{}]|{[^{}]*})*)}/g,
             (match2, subcaption, subbody) ->
               [labels, subcaption] = findLabels subcaption
-              findIncludeGraphics subbody, subcaption, labels
+              graphics.push (findIncludeGraphics subbody, subcaption, labels)...
+              ''
           body = body.replace /\\begin\s*{subfigure}([^]*?)\\end\s*{subfigure}/g,
             (match2, subbody) ->
               [labels, subbody] = findLabels subbody
               subcaption = /\\caption\s*{((?:[^{}]|{[^{}]*})*)}/.exec(subbody)?[1]
-              findIncludeGraphics subbody, subcaption, labels
-          findIncludeGraphics body, false  ## subcaption = false for root images
+              graphics.push (findIncludeGraphics subbody, subcaption, labels)...
+              ''
+          ## subcaption = false for root images
+          graphics.push (findIncludeGraphics body, false)...
           ## Search for correct extensions
           for graphic in graphics
-            for extension in ['', '.svg', '.png', '.jpg', '.pdf']
-              if graphic.filename + extension of zip.files
-                graphic.filename += extension
-                if graphic.filename[graphic.filename.length-4..] == '.pdf'
-                  console.warn "Using pdf graphic #{graphic.filename}"
-                break
-            if graphic.filename not of zip.files
-              console.warn "Missing file for \\includegraphics{#{graphic.filename}}"
+            findGraphicFile graphic
           for graphic in graphics
             ## Remove \\ use within subcaption, which is generally just for
             ## layout and not relevant for web layout.
@@ -328,11 +335,19 @@ importLaTeX = (group, zip) ->
           for graphic in figure.graphics
             for label in graphic.labels
               figures[label] = figure
+          ''
+      ## Find inlined \includegraphics outside of figures:
+      for graphic in findIncludeGraphics tex, false
+        oldName = graphic.filename
+        findGraphicFile graphic
+        inlineGraphics[oldName] =
+        inlineGraphics[graphic.filename] =
+          graphics: [graphic]
 
   title2section = (title) ->
     title[...title.indexOf ' ']  ## section number
   formatLabel = (label) ->
-    "``#{label.replace /^fig:/, ''}''"
+    "``#{label.replace /^fi?g:/, ''}''"
 
   ## Extract sections = top-level threads.
   for filename, content of zip.files
@@ -386,6 +401,8 @@ importLaTeX = (group, zip) ->
         message.body.replace /\\ref\s*{([^{}]*)}/g, (match, ref) ->
           attach.push figures[ref] if ref of figures
           ''
+        for graphic in findIncludeGraphics message.body
+          attach.push inlineGraphics[graphic.filename]
         ## Next, upload the used figures as messages, submessages, and/or
         ## files.  At this point, each figure root gets no parent, as we
         ## haven't created the message for the problem yet.
@@ -411,8 +428,11 @@ importLaTeX = (group, zip) ->
               Files.resumable.addFile file
         for figure in attach
           figure.message =
-            title: "Figure " +
-              (formatLabel label for label in figure.labels).join " / "
+            title:
+              if figure.labels and figure.labels.length > 0
+                "Figure #{(formatLabel label for label in figure.labels).join ' / '}"
+              else  ## for inline graphics
+                ''
             body: figure.caption
             format: 'latex'
             published: now
@@ -445,7 +465,7 @@ importLaTeX = (group, zip) ->
               filerev.updated = now
               Meteor.call 'messageImport', group, figure.message._id, filemsg, [filerev],
                 defer()  ## ignoring error
-        ## Next, upload the message itself, with hyperlinks to the figures.
+        ## With the files uploaded, we can hyperlink to them in the message.
         message.body = message.body
         .replace /\\ref\s*{([^{}]*)}/g, (match, ref) ->
           if ref of labels
@@ -460,6 +480,10 @@ importLaTeX = (group, zip) ->
           else
             console.warn "Unresolved #{match}"
             match
+        .replace /\\includegraphics\s*(\[[^\[\]]*\]\s*)?{((?:[^{}]|{[^{}]*})*)}/g,
+          (match, optional, filename) ->
+            "\\includegraphics#{optional}{coauthor:#{inlineGraphics[filename].message._id}"
+        ## Now we can upload the message itself.
         revision = _.clone message
         revision.updated = revision.created
         delete revision.created
