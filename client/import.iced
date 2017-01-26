@@ -332,11 +332,12 @@ importLaTeX = (group, zip) ->
   formatLabel = (label) ->
     "``#{label.replace /^fig:/, ''}''"
 
-  ## Extract sections.
+  ## Extract sections = top-level threads.
   for filename, content of zip.files
     if filename[-4..] == '.tex'
       tex = content.asText()
-      ## Remove comments (to ignore \sections inside comments).
+      ## Remove comments (to ignore \sections inside comments),
+      ## and remove figures (already processed).
       tex = tex
       .replace /%.*$\n?/mg, ''
       .replace /\\begin\s*{(wrap)?figure}[^]*?\\end\s*{(wrap)?figure}\s*/g, ''
