@@ -65,7 +65,7 @@ Template.group.helpers
     pluralize(Messages.find
       group: @group
       root: null
-    .count(), 'root message')
+    .count(), 'message thread')
   members: ->
     members =
       for member in groupMembers @group
