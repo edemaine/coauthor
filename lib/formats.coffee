@@ -90,7 +90,19 @@ latex2html = (tex) ->
   .replace /\\subsubsection\s*\*?\s*{((?:[^{}]|{[^{}]*})*)}/g, '<h4>$1</h4>'
   .replace /\\paragraph\s*\*?\s*{((?:[^{}]|{[^{}]*})*)}\s*/g, '<p><b>$1</b> '
   .replace /\\footnote\s*{((?:[^{}]|{[^{}]*})*)}/g, '[$1]'
-  .replace /\\includegraphics\s*{([^{}]*)}/g, '<img src="$1">'
+  .replace /\\includegraphics\s*(\[[^\[\]]*\]\s*)?{((?:[^{}]|{[^{}]*})*)}/g,
+    (match, optional, graphic) ->
+      style = ''
+      optional.replace /width\s*=\s*([0-9.]+)\s*([a-zA-Z]*)/g,
+        (match2, value, unit) ->
+          style += "width: #{value}#{unit};"
+          ''
+      .replace /height\s*=\s*([0-9.]+)\s*([a-zA-Z]*)/g,
+        (match2, value, unit) ->
+          style += "height: #{value}#{unit};"
+          ''
+      style = ' style="' + style + '"' if style
+      """<img src="#{graphic}"#{style}>"""
   .replace /\\begin\s*{(problem|theorem|conjecture|lemma|corollary)}/g, (m, p1) -> "<blockquote><b>#{s.capitalize p1}:</b> "
   .replace /\\end\s*{(problem|theorem|conjecture|lemma|corollary)}/g, '</blockquote>'
   .replace /\\begin\s*{(proof|pf)}/g, '<b>Proof:</b> '
@@ -122,7 +134,7 @@ latex2html = (tex) ->
   .replace /`/g, '&lsquo;'
   .replace /'/g, '&rsquo;'
   .replace /\\&/g, '&amp;'
-  .replace /\\([{}])/g, '$1'
+  .replace /\\([${}])/g, '$1'
   .replace /~/g, '&nbsp;'
   .replace /\\\s/g, ' '
   .replace /---/g, '&mdash;'
@@ -130,8 +142,7 @@ latex2html = (tex) ->
   .replace /\n\n+/g, '\n<p>\n'
   .replace /<p>\s*(<h[1-9]>)/g, '$1'
   .replace /\[DOUBLEBACKSLASH\]/g, '\\\\'
-  ## Restore math
-  tex = tex.replace /MATH(\d+)ENDMATH/g, (match, p1) -> math[p1]
+  [tex, math]
 
 @formats =
   markdown: (text, title) ->
@@ -188,6 +199,10 @@ preprocessKaTeX = (text) ->
     math[i] = block
     "MATH#{i}ENDMATH"
   [text, math]
+
+putMathBack = (tex, math) ->
+  ## Restore math
+  tex.replace /MATH(\d+)ENDMATH/g, (match, p1) -> math[p1]
 
 postprocessKaTeX = (text, math) ->
   replacer = (block) ->
@@ -246,27 +261,33 @@ jsdiff = require 'diff'
     #  after: sanitized
   sanitized
 
-@formatBody = (format, body, leaveTeX = false) ->
-  [body, math] = preprocessKaTeX body unless leaveTeX or format == 'latex'
-  if format of formats
-    body = formats[format] body, false
+formatEither = (isTitle, format, text, leaveTeX = false) ->
+  ## LaTeX format is special because it does its own math preprocessing at a
+  ## specific time during its formatting.  Other formats don't touch math.
+  if format == 'latex'
+    [text, math] = formats[format] text, isTitle
   else
-    console.warn "Unrecognized format '#{format}'"
-  body = postprocessKaTeX body, math unless leaveTeX
-  sanitize postprocessCoauthorLinks body
+    [text, math] = preprocessKaTeX text unless leaveTeX
+    if format of formats
+      text = formats[format] text, isTitle
+    else
+      console.warn "Unrecognized format '#{format}'"
+  ## Remove surrounding <P> block caused by Markdown and LaTeX formatters.
+  if isTitle
+    text = text
+    .replace /^\s*<P>\s*/i, ''
+    .replace /\s*<\/P>\s*$/i, ''
+  if leaveTeX
+    text = putMathBack text, math if format == 'latex'
+  else
+    text = postprocessKaTeX text, math
+  sanitize postprocessCoauthorLinks text
+
+@formatBody = (format, body, leaveTeX = false) ->
+  formatEither false, format, body, leaveTeX
 
 @formatTitle = (format, title, leaveTeX = false) ->
-  [title, math] = preprocessKaTeX title unless leaveTeX or format == 'latex'
-  if format of formats
-    title = formats[format] title, true
-  else
-    console.warn "Unrecognized format '#{format}'"
-  ## Remove surrounding <P> block caused by Markdown and LaTeX formatters.
-  title = title
-  .replace /^\s*<P>\s*/i, ''
-  .replace /\s*<\/P>\s*$/i, ''
-  title = postprocessKaTeX title, math unless leaveTeX
-  sanitize postprocessCoauthorLinks title
+  formatEither true, format, title, leaveTeX
 
 @formatBadFile = (fileId) ->
   """<i class="bad-file">&lt;unknown file with ID #{fileId}&gt;</i>"""
