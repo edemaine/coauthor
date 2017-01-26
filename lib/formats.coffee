@@ -197,14 +197,11 @@ postprocessCoauthorLinks = (text) ->
         match
   .replace ///(<a\s[^<>]*href\s*=\s*['"])#{coauthorLinkRe}///ig,
     (match, p1, p2) ->
-      msg = Messages.findOne p2
-      if msg?
-        p1 + pathFor 'message',
-          group: msg.group
-          message: msg._id
-      else
-        console.warn "Couldn't find group for message #{p2} (likely subscription issue)"
-        match
+      ## xxx Could add msg.title, when available, to hover text...
+      #msg = Messages.findOne p2
+      p1 + pathFor 'message',
+        group: msg.group
+        message: msg._id
 
 katex = require 'katex'
 
