@@ -106,8 +106,6 @@ latex2html = (tex) ->
       """<img src="#{graphic}"#{style}>"""
   .replace /\\pdftooltip\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g,
     (match, p1, p2) -> """<span title="#{(putMathBack p2, math).replace /"/g, '&#34;'}">#{p1}</span>"""
-  console.log tex, '!'
-  tex = tex
   .replace /\\raisebox\s*{\s*([-0-9.]+)\s*([a-zA-Z]*)\s*}{((?:[^{}]|{[^{}]*})*)}/g,
     (match, value, unit, arg) ->
       if value[0] == '-'
@@ -161,7 +159,6 @@ latex2html = (tex) ->
   .replace /\n\n+/g, '\n<p>\n'
   .replace /<p>\s*(<h[1-9]>)/g, '$1'
   .replace /\[DOUBLEBACKSLASH\]/g, '\\\\'
-  console.log tex, '?'
   [tex, math]
 
 @formats =
