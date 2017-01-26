@@ -93,16 +93,23 @@ latex2html = (tex) ->
   .replace /\\includegraphics\s*(\[[^\[\]]*\]\s*)?{((?:[^{}]|{[^{}]*})*)}/g,
     (match, optional, graphic) ->
       style = ''
-      optional.replace /width\s*=\s*([0-9.]+)\s*([a-zA-Z]*)/g,
+      optional.replace /width\s*=\s*([-0-9.]+)\s*([a-zA-Z]*)/g,
         (match2, value, unit) ->
           style += "width: #{value}#{unit};"
           ''
-      .replace /height\s*=\s*([0-9.]+)\s*([a-zA-Z]*)/g,
+      .replace /height\s*=\s*([-0-9.]+)\s*([a-zA-Z]*)/g,
         (match2, value, unit) ->
           style += "height: #{value}#{unit};"
           ''
       style = ' style="' + style + '"' if style
       """<img src="#{graphic}"#{style}>"""
+  .replace /\\raisebox\s*{\s*([-0-9.]+)\s*([a-zA-Z]*)\s*}{((?:[^{}]|{[^{}]*})*)}/g,
+    (match, value, unit, arg) ->
+      if value[0] == '-'
+        value = value[1..]
+      else
+        value = "-#{value}"
+      """<span style="margin-top: #{value}#{unit};">#{arg}</span>"""
   .replace /\\begin\s*{(problem|theorem|conjecture|lemma|corollary)}/g, (m, p1) -> "<blockquote><b>#{s.capitalize p1}:</b> "
   .replace /\\end\s*{(problem|theorem|conjecture|lemma|corollary)}/g, '</blockquote>'
   .replace /\\begin\s*{(proof|pf)}/g, '<b>Proof:</b> '
