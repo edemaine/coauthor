@@ -198,10 +198,11 @@ postprocessCoauthorLinks = (text) ->
   .replace ///(<a\s[^<>]*href\s*=\s*['"])#{coauthorLinkRe}///ig,
     (match, p1, p2) ->
       ## xxx Could add msg.title, when available, to hover text...
-      #msg = Messages.findOne p2
+      ## xxx Currently assuming message is in same group if can't find it.
+      msg = Messages.findOne p2
       p1 + pathFor 'message',
-        group: msg.group
-        message: msg._id
+        group: msg?.group or Router.current().params.group
+        message: p2
 
 katex = require 'katex'
 
