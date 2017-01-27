@@ -13,7 +13,9 @@
 
 Template.registerHelper 'routeGroup', routeGroup
 
-Template.registerHelper 'routeGroupOrWild', routeGroupOrWild
+Template.registerHelper 'routeGroupOrWildData', ->
+  group: routeGroupOrWild()
+  0: '*'
 
 Template.registerHelper 'wildGroup', ->
   routeGroup() == wildGroup
