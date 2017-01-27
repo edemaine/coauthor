@@ -1,6 +1,7 @@
 Template.frontpage.helpers
   groups: ->
-    Groups.find()
+    Groups.find {},
+      sort: [['name', 'asc']]
   groupcount: ->
     Groups.find().count()
   canSuper: ->
