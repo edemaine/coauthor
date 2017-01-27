@@ -21,16 +21,6 @@ Template.registerHelper 'super', ->
   Session.get 'super'
 
 Template.layout.events
-  'click .usersButton': (e) ->
-    e.preventDefault()
-    e.stopPropagation()
-    Router.go 'users', group: routeGroupRoute() ? wildGroupRoute
-
-  'click .settingsButton': (e) ->
-    e.preventDefault()
-    e.stopPropagation()
-    Router.go 'settings', group: routeGroupRoute() ? wildGroupRoute
-
   'click .superButton': (e) ->
     e.preventDefault()
     e.stopPropagation()

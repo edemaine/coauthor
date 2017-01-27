@@ -13,6 +13,8 @@
 
 Template.registerHelper 'routeGroup', routeGroup
 
+Template.registerHelper 'routeGroupOrWild', routeGroupOrWild
+
 Template.registerHelper 'wildGroup', ->
   routeGroup() == wildGroup
 
@@ -68,7 +70,7 @@ Template.group.helpers
     .count(), 'message thread')
   members: ->
     members =
-      for member in groupMembers @group
+      for member in sortedGroupMembers @group
         linkToAuthor @group, member
     if members.length > 0
       members.join(', ')
@@ -220,18 +222,26 @@ Template.messageList.helpers
       group: @group
       root: null
     sort = sortBy()
-    mongosort = [[sort.key, if sort.reverse then 'desc' else 'asc']]
-    msgs = Messages.find query, sort: mongosort
-    if sort.key in ['title', 'posts', 'updated', 'subscribe']
+    mongosort =
       switch sort.key
-        when 'title'
-          key = (msg) -> titleSort msg.title
         when 'posts'
-          key = (msg) -> msg.submessageCount
+          'submessageCount'
         when 'updated'
-          key = (msg) -> msg.submessageLastUpdate.getTime()
-        when 'subscribe'
-          key = (msg) -> subscribedToMessage msg._id
+          'submessageLastUpdate'
+        else
+          sort.key
+    msgs = Messages.find query,
+      sort: [[mongosort, if sort.reverse then 'desc' else 'asc']]
+    switch sort.key
+      when 'title'
+        key = (msg) -> titleSort msg.title
+      when 'creator'
+        key = (msg) -> userSortKey msg.creator
+      when 'subscribe'
+        key = (msg) -> subscribedToMessage msg._id
+      else
+        key = null
+    if key?
       msgs = msgs.fetch()
       msgs = _.sortBy msgs, key
       msgs.reverse() if sort.reverse

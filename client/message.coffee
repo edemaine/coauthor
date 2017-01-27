@@ -96,7 +96,7 @@ orphans = (message) ->
 Template.message.helpers
   subscribers: ->
     subscribers =
-      for subscriber in messageSubscribers @_id
+      for subscriber in sortedMessageSubscribers @_id
         linkToAuthor @group, subscriber
     if subscribers.length > 0
       subscribers.join(', ')
@@ -467,10 +467,13 @@ Template.registerHelper 'messagePanelClass', ->
   link = pathFor 'author',
     group: group
     author: user
-  "<a class='author' href='#{link}'>#{user}</a>"
+  """<a class="author" href="#{link}" title="User '#{user}'">#{displayUser user}</a>"""
 
 Template.registerHelper 'formatCreator', ->
   linkToAuthor @group, @creator
+
+Template.registerHelper 'creator', ->
+  displayUser @creator
 
 Template.registerHelper 'formatAuthors', ->
   a = for own author, date of @authors when author != @creator or date.getTime() != @created.getTime()

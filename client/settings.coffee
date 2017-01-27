@@ -63,3 +63,23 @@ Template.settings.events
     e.preventDefault()
     e.stopPropagation()
     Meteor.call '_accounts/unlink/service', Meteor.userId(), 'dropbox'
+
+Template.fullNameEditor.onCreated ->
+  @editing = new ReactiveVar
+
+Template.fullNameEditor.helpers
+  editing: -> Template.instance().editing.get()
+  fullname: -> @fullname
+  showFullname: -> @fullname or "(not specified)"
+
+Template.fullNameEditor.events
+  'click .saveButton': (e, t) ->
+    e.stopPropagation()
+    fullname = t.find('.fullname').value.trim()
+    if fullname != @fullname
+      Meteor.users.update Meteor.userId(),
+        $set: 'profile.fullname': fullname
+    t.editing.set false
+  'click .editButton': (e, t) ->
+    e.stopPropagation()
+    t.editing.set true

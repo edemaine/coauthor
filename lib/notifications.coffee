@@ -82,6 +82,9 @@ if Meteor.isClient
       msg = msg._id
     MessagesSubscribers.findOne(msg)?.subscribers ? []
 
+  @sortedMessageSubscribers = (msg) ->
+    _.sortBy messageSubscribers(group), userSortKey
+
 if Meteor.isServer
   Meteor.publish 'notifications', () ->
     @autorun ->

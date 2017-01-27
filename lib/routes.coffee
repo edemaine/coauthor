@@ -26,6 +26,7 @@ Router.route '/:group/m/:message',
   subscriptions: -> [
     Subscribe.subscribe 'messages.submessages', @params.message
     Subscribe.subscribe 'messages.subscribers', @params.message
+    Subscribe.subscribe 'groups.members', @params.group
     Subscribe.subscribe 'tags', @params.group
   ]
   data: ->
@@ -75,6 +76,7 @@ Router.route '/:group/since/:since',
   name: 'since'
   subscriptions: -> [
     Subscribe.subscribe 'messages.since', @params.group, @params.since
+    Subscribe.subscribe 'groups.members', @params.group
   ]
   data: ->
     group: @params.group
@@ -85,6 +87,7 @@ Router.route '/:group/live/:limit',
   name: 'live'
   subscriptions: -> [
     Subscribe.subscribe 'messages.live', @params.group, @params.limit
+    Subscribe.subscribe 'groups.members', @params.group
   ]
   data: ->
     group: @params.group
@@ -98,6 +101,7 @@ Router.route '/:group/live',
   template: 'live'
   subscriptions: -> [
     Subscribe.subscribe 'messages.live', @params.group, defaultLiveLimit
+    Subscribe.subscribe 'groups.members', @params.group
   ]
   data: ->
     group: @params.group
@@ -108,6 +112,7 @@ Router.route '/:group/author/:author',
   name: 'author'
   subscriptions: -> [
     Subscribe.subscribe 'messages.author', @params.group, @params.author
+    Subscribe.subscribe 'groups.members', @params.group
   ]
   data: ->
     group: @params.group
@@ -118,6 +123,7 @@ Router.route '/:group/tag/:tag',
   name: 'tag'
   subscriptions: -> [
     Subscribe.subscribe 'messages.tag', @params.group, @params.tag
+    Subscribe.subscribe 'groups.members', @params.group
   ]
   data: ->
     group: @params.group

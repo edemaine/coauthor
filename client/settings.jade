@@ -2,18 +2,21 @@ template(name="settings")
   if currentUser
     h1 Settings
     with profile
-      table.table
+      table.table.table-striped.settings
         tbody
           tr
             th
+              label Full name: 
+            td
+              +fullNameEditor
+          tr
+            th
               label Preferred message format: 
-              span.space
             td
               +formatSelector
           tr
             th
               label Messages initially published:
-              span.space
             td
               if autopublish
                 button.btn.btn-success.autopublishButton(type="button", data-toggle="button", autocomplete="off") Yes
@@ -22,7 +25,6 @@ template(name="settings")
           tr
             th
               label Editor theme:
-              span.space
             td
               button.btn.btn-default.themeButton(type="button", data-toggle="button", autocomplete="off")= theme
           tr
@@ -73,3 +75,15 @@ template(name="settings")
                 button.btn.btn-default.linkDropbox Link Dropbox Account
   else
     .alert.alert-danger(role="alert") Please <B>sign in</B> (in the upper-right corner) to change your settings.
+
+template(name="fullNameEditor")
+  .input-group
+    if editing
+      input.form-control.fullname(type="text", placeholder="FirstName LastName", value=fullname)
+    else
+      input.form-control(type="text", value=showFullname, disabled)
+    span.input-group-btn
+      if editing
+        button.btn.btn-info.saveButton Save
+      else
+        button.btn.btn-info.editButton Edit

@@ -64,9 +64,9 @@ template(name="layout")
             else
               button.superButton.btn.btn-danger Become Superuser
           if showUsers
-            button.usersButton.btn.btn-warning Users
+            a.btn.btn-warning(href="{{pathFor 'users' group=routeGroupOrWild}}") Users
           if currentUser
-            button.settingsButton.btn.btn-default Settings
+            a.btn.btn-default(href="{{pathFor 'settings' group=routeGroupOrWild}}") Settings
     #main.row-fluid
       +yield
   +loading

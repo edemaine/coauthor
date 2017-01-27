@@ -1,5 +1,10 @@
 Accounts.ui.config
   passwordSignupFields: 'USERNAME_AND_EMAIL'
+  extraSignupFields: [
+    fieldName: 'fullname'
+    fieldLabel: 'Full name (FirstName LastName)'
+    inputType: 'text'
+  ]
 
 Template._loginButtonsAdditionalLoggedInDropdownActions.helpers
   unverified: ->

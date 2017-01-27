@@ -8,6 +8,19 @@
   Meteor.users.findOne
     username: username
 
+@displayUser = (username) ->
+  user = findUsername username
+  user?.profile?.fullname or username
+
+## Sort by last name if available
+@userSortKey = (username) ->
+  display = displayUser username
+  space = display.lastIndexOf ' '
+  if space >= 0
+    display[space+1..] + ", " + display[...space]
+  else
+    display
+
 ## Need to escape dots in usernames.
 @escapeUser = escapeKey
 @unescapeUser = unescapeKey
@@ -16,8 +29,7 @@ if Meteor.isServer
   Meteor.publish 'users', (group) ->
     @autorun ->
       if groupRoleCheck group, 'admin', findUser @userId
-        Meteor.users.find {},
-          roles: 1
+        Meteor.users.find {}
       else
         @ready()
 

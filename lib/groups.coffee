@@ -50,12 +50,12 @@ if Meteor.isServer
     @autorun ->
       readableGroups @userId
 
-  @groupMembers = (group) ->
+  @groupMembers = (group, options) ->
     roles = {}
     roles['roles.' + escapeGroup group] =
       $exists: true
       $ne: []
-    Meteor.users.find roles
+    Meteor.users.find roles, options
 
   Meteor.publish 'groups.members', (group) ->
     check group, String
@@ -63,16 +63,21 @@ if Meteor.isServer
       id = Groups.findOne
         name: group
       ._id
+      @autorun ->
+        groupMembers group,
+          fields:
+            username: 1
+            profile: 1
       init = true
       @autorun ->
         members =
-          members: (user.username for user in groupMembers(group).fetch())
+          members: groupMembers(group, fields: username: 1).map (user) -> user.username
         if init
+          init = false
           members.group = group
           @added 'groups.members', id, members
         else
           @changed 'groups.members', id, members
-      init = false
     @ready()
 
 if Meteor.isClient
@@ -82,6 +87,9 @@ if Meteor.isClient
     GroupsMembers.findOne
       group: group
     ?.members ? []
+
+  @sortedGroupMembers = (group) ->
+    _.sortBy groupMembers(group), userSortKey
 
 Meteor.methods
   setRole: (group, user, role, yesno) ->
