@@ -125,6 +125,7 @@ if Meteor.isServer
       ## Don't send notifications to myself, if so requested.
       continue if diff.updators.length == 1 and diff.updators[0] == to.username and not notifySelf to
       ## Only notify people who can read the message!
+      ## Checked again during notification.
       ## xxx this is already checked by serverMessageSubscribers
       ## xxx what should behavior be for superuser?  Currently they see all...
       continue unless canSee msg, false, to
@@ -289,6 +290,8 @@ if Meteor.isServer
       notification.msg = Messages.findOne notification.message
     ## Some messages may have been superdeleted by now; don't email about them.
     messageUpdates = (notification for notification in messageUpdates when notification.msg?)
+    ## Ignore messages that have been hidden from this user since (e.g. deleted)
+    messageUpdates = (notification for notification in messageUpdates when canSee notification.msg, false, user)
     ## Don't notify about empty messages (e.g. initial creation without
     ## follow-up) -- wait for content.  xxx should check if diff is version 1!
     messageUpdates = (notification for notification in messageUpdates when not messageEmpty notification.msg)
