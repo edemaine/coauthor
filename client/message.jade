@@ -161,6 +161,8 @@ template(name="submessage")
             unless folded
               button.btn.btn-default.historyButton(tabindex="{{tabindex 6}}") History
               if canEdit
+                if file
+                  +messageReplace _id=_id group=group tabindex=tabindex9
                 button.btn.btn-info.editButton(tabindex="{{tabindex 8}}") Edit
     unless folded
       if history
@@ -246,7 +248,7 @@ template(name="messageAttach")
 
 template(name="messageReplace")
   input.replaceInput(type="file", style="display:none")
-  button.btn.btn-default.replaceButton(tabindex=tabindex) Replace File
+  button.btn.btn-info.replaceButton(tabindex=tabindex) Replace File
 
 template(name="messageParentConfirm")
   .modal
