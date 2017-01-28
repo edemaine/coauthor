@@ -463,12 +463,6 @@ Template.registerHelper 'messagePanelClass', ->
   else
     "panel-warning message-unpublished #{editingClass}"
 
-@linkToAuthor = (group, user) ->
-  link = pathFor 'author',
-    group: group
-    author: user
-  """<a class="author" href="#{link}" title="User '#{user}'">#{displayUser user}</a>"""
-
 Template.registerHelper 'formatCreator', ->
   linkToAuthor @group, @creator
 

@@ -82,7 +82,7 @@ if Meteor.isClient
       msg = msg._id
     MessagesSubscribers.findOne(msg)?.subscribers ? []
 
-  @sortedMessageSubscribers = (msg) ->
+  @sortedMessageSubscribers = (group) ->
     _.sortBy messageSubscribers(group), userSortKey
 
 if Meteor.isServer
@@ -109,7 +109,7 @@ if Meteor.isServer
     if canSee root, false, findUser @userId
       init = true
       @autorun ->
-        subs = subscribers: (user.username for user in messageSubscribers root when _.some user.emails, (email) -> email.verified)
+        subs = subscribers: (user.username for user in serverMessageSubscribers root when _.some user.emails, (email) -> email.verified)
         if init
           @added 'messages.subscribers', root, subs
         else
@@ -121,11 +121,11 @@ if Meteor.isServer
 
   @notifyMessageUpdate = (diff, created = false) ->
     msg = Messages.findOne diff.id
-    for to in messageSubscribers msg
+    for to in serverMessageSubscribers msg
       ## Don't send notifications to myself, if so requested.
       continue if diff.updators.length == 1 and diff.updators[0] == to.username and not notifySelf to
       ## Only notify people who can read the message!
-      ## xxx this is already checked by messageSubscribers
+      ## xxx this is already checked by serverMessageSubscribers
       ## xxx what should behavior be for superuser?  Currently they see all...
       continue unless canSee msg, false, to
       ## Coallesce past notification (if it exists) into this notification,
@@ -152,7 +152,7 @@ if Meteor.isServer
           notification.created = created
         notificationInsert notification
 
-  messageSubscribers = (msg) ->
+  @serverMessageSubscribers = (msg) ->
     if _.isString msg
       root = msg
     else
@@ -338,19 +338,21 @@ if Meteor.isServer
             delete changed.format
           verb = 'updated'
           verb = 'created' if notification.created
-          authors = _.keys(authors).sort().join ', '
+          authors = _.sortBy _.keys(authors), userSortKey
+          authorsText = (displayUser user for user in authors).join ', '
+          authorsHTML = (linkToAuthor msg.group, user for user in authors).join ', '
           if messageUpdates.length == 1
-            subject = "#{authors} #{verb} '#{titleOrUntitled msg}' in #{msg.group}"
+            subject = "#{authorsText} #{verb} '#{titleOrUntitled msg}' in #{msg.group}"
           #if diffs.length > 1
           #  dates = "between #{diffs[0].updated} and #{diffs[diffs.length-1].updated}"
           #else
           dates = "on #{diffs[diffs.length-1].updated}"
           if msg.root?
-            html += "<P><B>#{authors}</B> #{verb} message #{linkToMessage msg, true, true} in the thread #{linkToMessage rootmsg, true, true} #{dates}"
-            text += "#{authors} #{verb} message #{linkToMessage msg, false, true} in the thread #{linkToMessage rootmsg, false, true} #{dates}"
+            html += "<P><B>#{authorsHTML}</B> #{verb} message #{linkToMessage msg, true, true} in the thread #{linkToMessage rootmsg, true, true} #{dates}"
+            text += "#{authorsText} #{verb} message #{linkToMessage msg, false, true} in the thread #{linkToMessage rootmsg, false, true} #{dates}"
           else
-            html += "<P><B>#{authors}</B> #{verb} root message in the thread #{linkToMessage msg, true, true} #{dates}"
-            text += "#{authors} #{verb} root message in the thread #{linkToMessage msg, false, true} #{dates}"
+            html += "<P><B>#{authorsHTML}</B> #{verb} root message in the thread #{linkToMessage msg, true, true} #{dates}"
+            text += "#{authorsText} #{verb} root message in the thread #{linkToMessage msg, false, true} #{dates}"
           html += '\n\n'
           text += '\n\n'
           ## xxx currently no notification of title changed
