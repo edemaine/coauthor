@@ -10,7 +10,7 @@
 
 @displayUser = (username) ->
   user = findUsername username
-  user?.profile?.fullname or username
+  user?.profile?.fullname?.trim?() or username
 
 @linkToAuthor = (group, user) ->
   link = pathFor 'author',
