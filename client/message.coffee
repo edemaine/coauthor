@@ -274,7 +274,7 @@ absentTags = ->
   data = Template.currentData()
   Tags.find
     group: data.group
-    key: $nin: _.keys data.tags
+    key: $nin: _.keys data.tags ? {}
     deleted: false
   ,
     sort: ['key']
@@ -510,7 +510,7 @@ Template.submessage.events
     e.preventDefault()
     e.stopPropagation()
     message = t.data._id
-    tags = t.data.tags
+    tags = t.data.tags ? {}
     textTag = $(e.target).parents('form').first().find('.tagAddText')[0]
     tag = textTag.value.trim()
     textTag.value = ''  ## reset custom tag
