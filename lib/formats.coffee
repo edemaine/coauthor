@@ -116,7 +116,7 @@ latex2html = (tex) ->
   .replace /\\begin\s*{(problem|theorem|conjecture|lemma|corollary)}/g, (m, p1) -> "<blockquote><b>#{s.capitalize p1}:</b> "
   .replace /\\end\s*{(problem|theorem|conjecture|lemma|corollary)}/g, '</blockquote>'
   .replace /\\begin\s*{(proof|pf)}/g, '<b>Proof:</b> '
-  .replace /\\end\s*{(proof|pf)}/g, ' $\\Box$'
+  .replace /\\end\s*{(proof|pf)}/g, ' &#8718;'
   .replace /\\"{(.)}/g, '&$1uml;'
   .replace /\\"(.)/g, '&$1uml;'
   .replace /\\'c|\\'{c}/g, '&#263;'
