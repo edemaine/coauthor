@@ -81,21 +81,22 @@ template(name="submessage")
           unless here
             a.btn.btn-info.focusButton(aria-label="Focus", href="{{pathFor 'message' group=group message=_id}}", draggable="true")
               span.glyphicon.glyphicon-arrow-right(aria-hidden="true")
-          else
-            if prev
-              with prev
-                a.btn.btn-info(href="{{pathFor 'message' group=group message=_id}}", title=title)
+          if here
+            unless root
+              if prev
+                with prev
+                  a.btn.btn-info(href="{{pathFor 'message' group=group message=_id}}", title=title)
+                    span.glyphicon.glyphicon-backward(aria-hidden="true")
+              else
+                a.btn.btn-info.disabled
                   span.glyphicon.glyphicon-backward(aria-hidden="true")
-            else
-              a.btn.btn-info.disabled
-                span.glyphicon.glyphicon-backward(aria-hidden="true")
-            if next
-              with next
-                a.btn.btn-info(href="{{pathFor 'message' group=group message=_id}}", title=title)
+              if next
+                with next
+                  a.btn.btn-info(href="{{pathFor 'message' group=group message=_id}}", title=title)
+                    span.glyphicon.glyphicon-forward(aria-hidden="true")
+              else
+                a.btn.btn-info.disabled
                   span.glyphicon.glyphicon-forward(aria-hidden="true")
-            else
-              a.btn.btn-info.disabled
-                span.glyphicon.glyphicon-forward(aria-hidden="true")
         span.space
         if file
           span.glyphicon.glyphicon-paperclip
