@@ -37,6 +37,7 @@ Template.users.helpers
   users: ->
     Meteor.users.find {},
       sort: [['createdAt', 'asc']]
+  fullname: -> @profile.fullname
   showAnonymous: ->
     @group != wildGroup
   showInvitations: ->
