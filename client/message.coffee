@@ -445,6 +445,8 @@ Template.submessage.helpers
 
   folded: -> messageFolded.get @_id
   raw: -> messageRaw.get @_id
+  prev: -> messageNeighbors(@_id)?.prev
+  next: -> messageNeighbors(@_id)?.next
 
   absentTags: absentTags
   absentTagsCount: ->

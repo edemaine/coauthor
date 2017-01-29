@@ -111,10 +111,10 @@ if Meteor.isServer
       @autorun ->
         subs = subscribers: (user.username for user in serverMessageSubscribers root when _.some user.emails, (email) -> email.verified)
         if init
+          init = false
           @added 'messages.subscribers', root, subs
         else
           @changed 'messages.subscribers', root, subs
-      init = false
     @ready()
 
   notifiers = {}

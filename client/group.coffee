@@ -26,18 +26,12 @@ Template.registerHelper 'wildGroup', ->
 
 Template.registerHelper 'groupData', groupData
 
-@defaultSort =
-  key: 'published'
-  reverse: true
-
 @sortBy = ->
   if Router.current().params.sortBy in sortKeys
     key: Router.current().params.sortBy
     reverse: Router.current().route.getName()[-7..] == 'reverse'
-  else if groupData().defaultSort?
-    groupData().defaultSort
   else
-    defaultSort
+    groupDefaultSort routeGroup()
 
 @linkToSort = (sort) ->
   if sort.reverse
@@ -220,34 +214,7 @@ Template.messageList.helpers
     else
       'glyphicon-sort-by-alphabet'
   topMessages: ->
-    query =
-      group: @group
-      root: null
-    sort = sortBy()
-    mongosort =
-      switch sort.key
-        when 'posts'
-          'submessageCount'
-        when 'updated'
-          'submessageLastUpdate'
-        else
-          sort.key
-    msgs = Messages.find query,
-      sort: [[mongosort, if sort.reverse then 'desc' else 'asc']]
-    switch sort.key
-      when 'title'
-        key = (msg) -> titleSort msg.title
-      when 'creator'
-        key = (msg) -> userSortKey msg.creator
-      when 'subscribe'
-        key = (msg) -> subscribedToMessage msg._id
-      else
-        key = null
-    if key?
-      msgs = msgs.fetch()
-      msgs = _.sortBy msgs, key
-      msgs.reverse() if sort.reverse
-    msgs
+    groupSortedBy @group, sortBy()
 
 Template.messageShort.onRendered ->
   mathjax()

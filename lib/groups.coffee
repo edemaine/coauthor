@@ -8,6 +8,10 @@
 
 @sortKeys = ['title', 'creator', 'published', 'updated', 'posts', 'subscribe']
 
+@defaultSort =
+  key: 'published'
+  reverse: true
+
 titleDigits = 10
 @titleSort = (title) ->
   title = title.title if title.title?
@@ -15,10 +19,15 @@ titleDigits = 10
 
 @Groups = new Mongo.Collection 'groups'
 
-@groupAnonymousRoles = (group) ->
+@findGroup = (group) ->
   Groups.findOne
     name: group
-  ?.anonymous ? []
+
+@groupDefaultSort = (group) ->
+  findGroup(group)?.defaultSort ? defaultSort
+
+@groupAnonymousRoles = (group) ->
+  findGroup(group)?.anonymous ? []
 
 @groupRoleCheck = (group, role, user = Meteor.user()) ->
   ## Note that group may be wildGroup to check specifically for global role.
@@ -60,9 +69,7 @@ if Meteor.isServer
   Meteor.publish 'groups.members', (group) ->
     check group, String
     if groupRoleCheck group, 'read', findUser @userId
-      id = Groups.findOne
-        name: group
-      ._id
+      id = findGroup(group)._id
       @autorun ->
         groupMembers group,
           fields:
@@ -144,8 +151,39 @@ Meteor.methods
     unless validGroup group
       throw new Meteor.Error 'groupNew.invalid',
         "Group name '#{group}' is invalid"
-    if Groups.findOne(name: group)?
+    if findGroup(group)?
       throw new Meteor.Error 'groupNew.exists',
         "Attempt to create group '#{group}' which already exists"
     Groups.insert
       name: group
+
+@groupSortedBy = (group, sort, options, user = Meteor.user()) ->
+  query = accessibleMessagesQuery group, user
+  query.root = null
+  mongosort =
+    switch sort.key
+      when 'posts'
+        'submessageCount'
+      when 'updated'
+        'submessageLastUpdate'
+      else
+        sort.key
+  options = {} unless options?
+  options.sort = [[mongosort, if sort.reverse then 'desc' else 'asc']]
+  if options.fields
+    options.fields[mongosort] = 1
+  msgs = Messages.find query, options
+  switch sort.key
+    when 'title'
+      key = (msg) -> titleSort msg.title
+    when 'creator'
+      key = (msg) -> userSortKey msg.creator
+    when 'subscribe'
+      key = (msg) -> subscribedToMessage msg._id
+    else
+      key = null
+  if key?
+    msgs = msgs.fetch()
+    msgs = _.sortBy msgs, key
+    msgs.reverse() if sort.reverse
+  msgs

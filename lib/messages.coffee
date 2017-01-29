@@ -55,29 +55,29 @@ _submessageLastUpdate = (root) ->
   recurse message
   descendants
 
-if Meteor.isServer
-  accessibleMessagesQuery = (group, user = Meteor.user()) ->
-    ## Mimic logic of `canSee` below.
-    if groupRoleCheck group, 'super', user
-      ## Super-user can see all messages, even unpublished/deleted messages.
+@accessibleMessagesQuery = (group, user = Meteor.user()) ->
+  ## Mimic logic of `canSee` below.
+  if groupRoleCheck group, 'super', user
+    ## Super-user can see all messages, even unpublished/deleted messages.
+    group: group
+  else if groupRoleCheck group, 'read', user
+    ## Regular users can see all messages they authored, plus
+    ## published undeleted messages by others.
+    if user?.username
       group: group
-    else if groupRoleCheck group, 'read', user
-      ## Regular users can see all messages they authored, plus
-      ## published undeleted messages by others.
-      if user?.username
-        group: group
-        $or: [
-          published: $ne: false    ## published is false or Date
-          deleted: false
-        , "authors.#{escapeUser user.username}": $exists: true
-        ]
-      else
-        group: group
+      $or: [
         published: $ne: false    ## published is false or Date
         deleted: false
+      , "authors.#{escapeUser user.username}": $exists: true
+      ]
     else
-      null
+      group: group
+      published: $ne: false    ## published is false or Date
+      deleted: false
+  else
+    null
 
+if Meteor.isServer
   Meteor.publish 'messages.all', (group) ->
     check group, String
     @autorun ->
@@ -261,6 +261,40 @@ if Meteor.isServer
           id: message
       else
         @ready()
+
+  Meteor.publish 'messages.neighbors', (root) ->
+    check root, String
+    if canSee root, false, findUser @userId
+      init = true
+      @autorun ->
+        msg = Messages.findOne root
+        return unless msg?
+        messages = groupSortedBy msg.group, groupDefaultSort(msg.group),
+          fields:
+            title: 1
+            group: 1
+        , findUser @userId
+        ids = (message._id for message in messages)
+        index = ids.indexOf root
+        neighbors = {}
+        if index >= 0
+          neighbors.prev = messages[index-1] if index > 0
+          neighbors.next = messages[index+1] if index < messages.length - 1
+        if init
+          init = false
+          @added 'messages.neighbors', root, neighbors
+        else
+          @changed 'messages.neighbors', root, neighbors
+    @ready()
+
+if Meteor.isClient
+  @MessagesNeighbors = new Mongo.Collection 'messages.neighbors'
+
+  @messageNeighbors = (root) ->
+    return unless root
+    unless _.isString root
+      root = root._id
+    MessagesNeighbors.findOne root
 
 #if Meteor.isServer
 #  Meteor.publish 'messages.summary', (group) ->
