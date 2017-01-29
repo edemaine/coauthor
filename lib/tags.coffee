@@ -3,7 +3,7 @@
 @escapeTag = escapeKey
 @unescapeTag = unescapeKey
 @validTag = (tag) ->
-  validKey tag and tag.trim().length > 0
+  validKey(tag) and tag.trim().length > 0
 
 @sortTags = (tags) ->
   return [] unless tags
