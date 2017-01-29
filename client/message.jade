@@ -86,10 +86,16 @@ template(name="submessage")
               with prev
                 a.btn.btn-info(href="{{pathFor 'message' group=group message=_id}}", title=title)
                   span.glyphicon.glyphicon-backward(aria-hidden="true")
+            else
+              a.btn.btn-info.disabled
+                span.glyphicon.glyphicon-backward(aria-hidden="true")
             if next
               with next
                 a.btn.btn-info(href="{{pathFor 'message' group=group message=_id}}", title=title)
                   span.glyphicon.glyphicon-forward(aria-hidden="true")
+            else
+              a.btn.btn-info.disabled
+                span.glyphicon.glyphicon-forward(aria-hidden="true")
         span.space
         if file
           span.glyphicon.glyphicon-paperclip
