@@ -17,7 +17,10 @@ template(name="users")
       each users
         tr(data-username=username)
           th
-            div.username #{username}
+            if fullname
+              div.name #{fullname} (#{username})
+            else
+              div.name #{username}
             div.createdAt created {{formatDate createdAt}}
           td(data-role="read") !{readRole}
           td(data-role="post") !{postRole}
