@@ -64,7 +64,16 @@ latex2html = (tex) ->
   for def, val of defs
     #console.log "\\#{def} = #{val}"
     tex = tex.replace ///\\#{def}\s*///g, val
-  ## After \def expansion, protect math
+  tex = tex.replace /\\begin\s*{verbatim}([^]*?)\\end\s*{verbatim}/g, (match, verb) ->
+    verb = verb
+    .replace /&/g, '&amp;'
+    .replace /\\/g, '&#92;'
+    .replace /\$/g, '&#36;'
+    .replace /</g, '&lt;'
+    .replace />/g, '&gt;'
+    #verb = putMathBack verb, math
+    "<pre>#{verb}</pre>"
+  ## After \def expansion and verbatim processing, protect math
   [tex, math] = preprocessKaTeX tex
   tex = '<p>' + tex
   .replace /\\\\/g, '[DOUBLEBACKSLASH]'
