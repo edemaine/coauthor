@@ -111,6 +111,14 @@ in other fields too.
   * Superdelete (permanently destroying a message including its history)
   * Setting the default sort for a group
 
+## User Tips ##
+
+* LaTeX mode supports LaTeX accents (like `\'e`), but other modes do not.  To
+  easily type accented characters (e.g., on Windows where this is not easy), try
+  [this Chrome extension](https://chrome.google.com/webstore/detail/fastaccent/gkadokkbkifbfpiljldcnnpkebpannhb/related?hl=en-GB)
+  or
+  [this Firefox extension](https://addons.mozilla.org/en-us/firefox/addon/easyaccent/).
+
 ## Installation and Permissions ##
 
 Here is how to get a local test server running:
