@@ -28,7 +28,7 @@ fileUrlPrefix = "#{Files.baseURL}/id/"
   file = findFile file unless file.contentType?
   if file.contentType[...6] == 'image/'
     'image'
-  else if file.contentType in ['video/mp4', 'video/quicktime', 'video/ogg', 'video/webm']
+  else if file.contentType in ['video/mp4', 'video/ogg', 'video/webm']
     'video'
   else
     'unknown'
