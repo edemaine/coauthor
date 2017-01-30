@@ -101,7 +101,7 @@ latex2html = (tex) ->
   .replace /\\paragraph\s*\*?\s*{((?:[^{}]|{[^{}]*})*)}\s*/g, '<p><b>$1</b> '
   .replace /\\footnote\s*{((?:[^{}]|{[^{}]*})*)}/g, '[$1]'
   .replace /\\includegraphics\s*(\[[^\[\]]*\]\s*)?{((?:[^{}]|{[^{}]*})*)}/g,
-    (match, optional, graphic) ->
+    (match, optional = '', graphic) ->
       style = ''
       optional.replace /width\s*=\s*([-0-9.]+)\s*([a-zA-Z]*)/g,
         (match2, value, unit) ->
@@ -202,7 +202,7 @@ postprocessCoauthorLinks = (text) ->
         if msg?
           console.warn "Couldn't detect image in message #{p2} -- must be text?"
         else
-          console.warn "Couldn't find group for message #{p2} (likely subscription issue)", msg
+          console.warn "Couldn't find group for message #{p2} (likely subscription issue)"
         match
   .replace ///(<a\s[^<>]*href\s*=\s*['"])#{coauthorLinkRe}///ig,
     (match, p1, p2) ->
