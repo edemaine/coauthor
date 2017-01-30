@@ -136,7 +136,7 @@ Router.route '/:group/tag/:tag',
 Router.route '/:group/users',
   name: 'users'
   subscriptions: -> [
-    Subscribe.subscribe 'users'
+    Subscribe.subscribe 'users', @params.group
   ]
   data: ->
     group: routeGroup()
