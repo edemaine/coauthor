@@ -32,7 +32,7 @@ input.title ~ .message-right-buttons { margin: 0px; }
   cursor: auto; padding: 0px 5px; } /* normally 3px 20px */
 .dropdown-menu.tagMenu > li > a { font-size: 75%; } /* matches label */
 
-img, video { max-width: 100% }
+img, video { max-width: 100%; max-height: 100vh; }
 
 .historySlider { margin-left: 5em; margin-right: 5em; }
 .slider.slider-horizontal { width: 100%; }
