@@ -21,15 +21,15 @@
   },
   "homepage": "https://github.com/edemaine/coauthor",
   "dependencies": {
-    "babel-runtime": "^6.18.0",
+    "babel-runtime": "^6.22.0",
     "bcrypt": "^0.8.7",
     "codemirror": "^5.22.2",
     "codemirror-spell-checker": "^1.1.2",
     "diff": "^3.2.0",
     "katex": "^0.7.0",
     "markdown-it": "^8.2.2",
-    "meteor-node-stubs": "^0.2.3",
-    "sanitize-html": "^1.13.0"
+    "meteor-node-stubs": "^0.2.5",
+    "sanitize-html": "^1.14.1"
   },
   "devDependencies": {
     "grunt": "^1.0.1",
