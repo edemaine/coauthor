@@ -26,7 +26,18 @@ in other fields too.
 * Three **formats** for writing messages:
   * [Github-style Markdown](https://guides.github.com/features/mastering-markdown/)
     (default)
-  * LaTeX (very limited)
+  * LaTeX, limited.  The following features are supported; feel free to ask
+    for more.  `%...`, `\def\macro{...}`, `\let\macro=\mac`,
+    `\\`, `\BY{...}`, `\YEAR{...}`, `\protect`, `\textbf`, `\textit`,
+    `\textsf`, `\emph`, `\textsc`, `\underline`, `\url`, `\href{url}{text}`,
+    `\textcolor{color}{text}`, `\colorbox{backcolor}{text}`, `\item`,
+    `\chapter`, `\section`, `\subsection`, `\subsubsection`, `\footnote`,
+    `\includegraphics[width/height]{url}`, `\"`, `\'`, ```\` ```,
+    `\^`, `\~`, `\=`, `\c`, `\v`, `\u`, `\H`, ``` `` ```, `''`,
+    `\&`, `\$`, `\{`, `\}`, `~`, `--`, `---`, `\\`,
+    `\begin/\end` for environments `verbatim`, `enumerate`, `itemize`,
+    `problem`, `theorem`, `conjecture`, `lemma`, `corollary`, `fact`,
+    `observation`, `proposition`, `claim`, `proof`.
   * HTML, sanitized.  The following tags are allowed; feel free to ask for
     more.  `<h1>`, `<h2>`, `<h3>`, `<h4>`, `<h5>`, `<h6>`,
     `<blockquote>`, `<p>`, `<div>`, `<span>`,

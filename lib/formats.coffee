@@ -122,8 +122,8 @@ latex2html = (tex) ->
       else
         value = "-#{value}"
       """<span style="margin-top: #{value}#{unit};">#{arg}</span>"""
-  .replace /\\begin\s*{(problem|theorem|conjecture|lemma|corollary|fact|observation|proposition)}/g, (m, p1) -> "<blockquote><b>#{s.capitalize p1}:</b> "
-  .replace /\\end\s*{(problem|theorem|conjecture|lemma|corollary|fact|observation|proposition)}/g, '</blockquote>'
+  .replace /\\begin\s*{(problem|theorem|conjecture|lemma|corollary|fact|observation|proposition|claim)}/g, (m, p1) -> "<blockquote><b>#{s.capitalize p1}:</b> "
+  .replace /\\end\s*{(problem|theorem|conjecture|lemma|corollary|fact|observation|proposition|claim)}/g, '</blockquote>'
   .replace /\\begin\s*{(proof|pf)}/g, '<b>Proof:</b> '
   .replace /\\end\s*{(proof|pf)}/g, ' &#8718;'
   .replace /\\"{(.)}/g, '&$1uml;'
