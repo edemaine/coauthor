@@ -23,6 +23,9 @@ sanitizeHtml.defaults.selfClosing.push 'source'
 sanitizeHtml.defaults.allowedTags.push 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'
 sanitizeHtml.defaults.allowedTags.push 'del'  ## ~~strikethrough~~
 
+## Additional HTML features
+sanitizeHtml.defaults.allowedTags.push 's'
+
 ## LaTeX features
 sanitizeHtml.defaults.allowedTags.push 'u'  ## \underline
 
