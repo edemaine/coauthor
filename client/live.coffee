@@ -23,5 +23,4 @@ Template.readMessage.onRendered ->
     mathjax()
 
 Template.readMessage.helpers
-  readChildren: ->
-    messageChildren @readChildren
+  readChildren: -> @readChildren
