@@ -156,7 +156,7 @@ Here is how to get a local test server running:
 3. `cd coauthor`
 4. `meteor npm install`
 5. `meteor`
-6. Open the website [http://localhost/3000/](http://localhost/3000/)
+6. Open the website [http://localhost:3000/](http://localhost:3000/)
 7. Create an account
 8. `meteor mongo`
 9. Give your account permissions as follows:
@@ -175,3 +175,27 @@ WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
   superdelete, history-creating import, and the ability to see other users'
   deleted messages
 * admin: administer over other users, in particular setting permissions
+
+To deploy to a public server, we recommend
+[meteor-up](https://github.com/kadirahq/meteor-up).
+
+1. Edit `.deploy/mup.js` to point to your SSH key (for accessing the server),
+   your SSL certificate (for an https server), and your SMTP server
+   (see below).
+2. `mup setup` to install all necessary software on the server
+3. `mup deploy` each time you want to deploy code to server
+   (initially and after each `git pull`)
+
+You'll also need an SMTP server to send email notifications.
+In Postfix, modify the `/etc/postfix/main.cf` configuration as follows
+(substituting your own hostname):
+
+ * Set `myhostname = yourhostname.com`
+ * Add `, $myhostname` to `mydestination`
+ * Add ` 172.17.0.0/16` to `mynetworks`:
+
+   `mynetworks = 127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128 172.17.0.0/16`
+
+Also, if you want `coauthor@yourhostname.com` to receive email,
+add an alias like `coauthor: edemaine@mit.edu` to `/etc/aliases`
+and then run `sudo newaliases`.
