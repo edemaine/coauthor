@@ -277,10 +277,10 @@ template(name="messageParentConfirm")
           .row
             .col-xs-6.halfHeight
               with oldParent
-                +readMessageNoHeader
+                +readMessage
             .col-xs-6.halfHeight
               with parent
-                +readMessageNoHeader
+                +readMessage
           .row
             .col-xs-12.parentArrow
               .parentArrow1
@@ -291,7 +291,7 @@ template(name="messageParentConfirm")
           .row
             .col-xs-12.halfHeight
               with child
-                +readMessageNoHeader
+                +readMessage
         .modal-footer
           button.btn.btn-danger.messageParentButton Yes, reparent
           button.btn.btn-success.cancelButton.fullwidth Cancel

@@ -11,7 +11,7 @@ template(name='since')
       .panel-body
         if valid
           each messages
-            +readMessage
+            +readMessageHeader
         else
           .alert.alert-danger(role="alert") Invalid &ldquo;since&rdquo; query.  Examples: &ldquo;5 days&rdquo; or &ldquo;2016-01-01 15:30&rdquo; or &ldquo;0:00&rdquo;.
       if valid

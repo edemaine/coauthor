@@ -11,17 +11,17 @@ template(name='live')
       .panel-body
         if valid
           each messages
-            +readMessage
+            +readMessageHeader
         else
           .alert.alert-danger(role="alert") Invalid number of last messages.
   else
     +badGroup
 
-template(name='readMessage')
+template(name='readMessageHeader')
   +rootHeader
-  +readMessageNoHeader
+  +readMessage
 
-template(name='readMessageNoHeader')
+template(name='readMessage')
   .panel.message(class=messagePanelClass, data-message=_id, id=_id)
     .panel-heading.clearfix
       .message-left-buttons.btn-group.btn-group-xs
@@ -51,3 +51,6 @@ template(name='readMessageNoHeader')
           p.message-file !{formatFile}
       .message-footer
         +messageAuthor
+      .children
+        each readChildren
+          +readMessage

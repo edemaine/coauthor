@@ -5,7 +5,7 @@ template(name='author')
         span.title.panel-title Author &ldquo;#{author}&rdquo;
       .panel-body
         each messages
-          +readMessage
+          +readMessageHeader
       .panel-footer
         i= messageCount
         | by #{author} in group #{group}

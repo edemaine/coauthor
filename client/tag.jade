@@ -5,7 +5,7 @@ template(name='tag')
         span.title.panel-title Tag &ldquo;#{tag}&rdquo;
       .panel-body
         each messages
-          +readMessage
+          +readMessageHeader
       .panel-footer
         i= messageCount
         | tagged &ldquo;#{tag}&rdquo; in group #{group}

@@ -17,7 +17,11 @@ Template.live.events
   'submit form': (e, t) ->
     e.preventDefault()
 
-Template.readMessageNoHeader.onRendered ->
+Template.readMessage.onRendered ->
   @autorun ->
     Template.currentData()
     mathjax()
+
+Template.readMessage.helpers
+  readChildren: ->
+    messageChildren @readChildren
