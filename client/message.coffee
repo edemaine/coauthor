@@ -40,11 +40,11 @@ dropdownToggle = (e) ->
 #Template.registerHelper 'titleOrUntitled', ->
 #  titleOrUntitled @
 
-@messageChildren = (children) ->
-  return children unless children
-  children = Messages.find _id: $in: children
+@messageChildren = (childrenIds) ->
+  return childrenIds unless childrenIds
+  children = Messages.find _id: $in: childrenIds
                .fetch()
-  children = _.sortBy children, (child) => children.indexOf child._id
+  children = _.sortBy children, (child) => childrenIds.indexOf child._id
   ## Use canSee to properly fake non-superuser mode.
   children = (child for child in children when canSee child)
   for child, index in children
