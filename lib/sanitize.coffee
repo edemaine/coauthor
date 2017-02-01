@@ -9,7 +9,6 @@ sanitizeHtml.defaults.allowedAttributes['*'] = [
 
 sanitizeHtml.defaults.allowedTags.push 'img'
 sanitizeHtml.defaults.allowedAttributes.img.push 'alt', 'width', 'height'
-sanitizeHtml.defaults.allowedAttributes.a.push 'title'
 
 sanitizeHtml.defaults.allowedTags.push 'span'
 

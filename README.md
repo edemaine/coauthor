@@ -26,8 +26,16 @@ in other fields too.
 * Three **formats** for writing messages:
   * [Github-style Markdown](https://guides.github.com/features/mastering-markdown/)
     (default)
-  * HTML (sanitized)
   * LaTeX (very limited)
+  * HTML, sanitized.  The following tags are allowed; feel free to ask for
+    more.  `<h1>`, `<h2>`, `<h3>`, `<h4>`, `<h5>`, `<h6>`,
+    `<blockquote>`, `<p>`, `<div>`, `<span>`,
+    `<a href/name/target>`, `<ul>`, `<ol>`, `<nl>`, `<li>`, `<b>`,
+    `<strong>`, `<i>`, `<em>`, `<u>`, `<s>`, `<strike>`, `<del>`, `<code>`,
+    `<hr>`, `<br>`, `<table>`, `<thead>`, `<caption>`,
+    `<tbody>`, `<tr>`, `<th>`, `<td>`, `<pre>`,
+    `<img src/alt/width/height>`, `<video controls>`, `<source src>`
+    attributes `title/style/class/aria-*`.
   
   All formats support LaTeX math (via `$...$` or `$$...$$`) via
   [KaTeX](https://khan.github.io/KaTeX/).  Easy to add additional formats.
