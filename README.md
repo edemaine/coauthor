@@ -23,10 +23,19 @@ in other fields too.
   number of "old versions" that will get saved -- server only pushes after
   document has not changed for 1 second.)
 
-* Three **formats** for writing messages:
+* Three **formats** for writing messages (and easy to add additional formats).
+  All formats support LaTeX math (via `$...$` or `$$...$$`) via
+  [KaTeX](https://khan.github.io/KaTeX/), so math mode supports
+  [this list of supported functions](https://github.com/Khan/KaTeX/wiki/Function-Support-in-KaTeX).
+
   * [Github-style Markdown](https://guides.github.com/features/mastering-markdown/)
-    (default)
-  * LaTeX, limited.  The following features are supported; feel free to ask
+    (default), e.g., `*italic*`, `**bold**`, `~~strikethrough~~`,
+    `# Heading`, `## Subheading`, \`code\`, `> Block quote`,
+    <code>\`\`\`multiple lines of code\`\`\`</code>,
+    links via `[text](url)`, images via `![caption](url)`,
+    lists via `*` or `1.`, tables, etc.
+  * LaTeX, limited.  Beyond extensive math mode support (see below),
+    the following features are supported in text mode; feel free to ask
     for more.  `%...`, `\def\macro{...}`, `\let\macro=\mac`, `\protect`,
     `\textbf`, `\textit`, `\textsf`, `\emph`, `\textsc`, `\underline`,
     `\textcolor{color}{text}`, `\colorbox{backcolor}{text}`,
@@ -49,9 +58,6 @@ in other fields too.
     `<tbody>`, `<tr>`, `<th>`, `<td>`, `<pre>`,
     `<img src/alt/width/height>`, `<video controls>`, `<source src>`
     attributes `title/style/class/aria-*`.
-  
-  All formats support LaTeX math (via `$...$` or `$$...$$`) via
-  [KaTeX](https://khan.github.io/KaTeX/).  Easy to add additional formats.
 
 * [CodeMirror editor](http://codemirror.net/) supports syntax highlighting,
   block folding, bracket matching, line numbering, light and dark themes,
