@@ -13,6 +13,8 @@ Template.layout.helpers
     canAdmin routeGroup()
   inUsers: ->
     Router.current().route.getName() == 'users'
+  creditsWide: ->
+    Router.current().route.getName() != 'message'
 
 Template.registerHelper 'couldSuper', ->
   canSuper routeGroupOrWild(), false

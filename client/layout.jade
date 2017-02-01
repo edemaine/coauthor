@@ -69,10 +69,14 @@ template(name="layout")
             a.btn.btn-default(href="{{pathFor 'settings' data=routeGroupOrWildData}}") Settings
     #main.row-fluid
       +yield
+    if creditsWide
+      +credits
   +loading
   if uploading
     .alert.alert-success.footer
       +uploadProgress
+
+template(name="credits")
   p.credits
     img(src="/favicon32.png")
     | <b>Coauthor</b> written by <a href="http://erikdemaine.org">Erik Demaine</a>, with help from many others.
