@@ -66,6 +66,15 @@ Template.settings.events
 
 Template.fullNameEditor.onCreated ->
   @editing = new ReactiveVar
+  ## When active editor gets rendered (typically after clicking "Edit"),
+  ## give it focus.
+  @autorun =>
+    if @editing.get()
+      setTimeout =>
+        $(@find '.fullname').focus()
+      , 100
+
+Template.fullNameEditor.onRendered ->
 
 Template.fullNameEditor.helpers
   editing: -> Template.instance().editing.get()
