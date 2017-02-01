@@ -27,14 +27,16 @@ in other fields too.
   * [Github-style Markdown](https://guides.github.com/features/mastering-markdown/)
     (default)
   * LaTeX, limited.  The following features are supported; feel free to ask
-    for more.  `%...`, `\def\macro{...}`, `\let\macro=\mac`,
-    `\\`, `\BY{...}`, `\YEAR{...}`, `\protect`, `\textbf`, `\textit`,
-    `\textsf`, `\emph`, `\textsc`, `\underline`, `\url`, `\href{url}{text}`,
-    `\textcolor{color}{text}`, `\colorbox{backcolor}{text}`, `\item`,
+    for more.  `%...`, `\def\macro{...}`, `\let\macro=\mac`, `\protect`,
+    `\textbf`, `\textit`, `\textsf`, `\emph`, `\textsc`, `\underline`,
+    `\textcolor{color}{text}`, `\colorbox{backcolor}{text}`,
+    `\url`, `\href{url}{text}`, `\pdftooltip{hovertext}{text}`,
+    `\raisebox{amount}{text}`,
+    `\BY{...}`, `\YEAR{...}`,
     `\chapter`, `\section`, `\subsection`, `\subsubsection`, `\footnote`,
     `\includegraphics[width/height]{url}`, `\"`, `\'`, ```\` ```,
     `\^`, `\~`, `\=`, `\c`, `\v`, `\u`, `\H`, ``` `` ```, `''`,
-    `\&`, `\$`, `\{`, `\}`, `~`, `--`, `---`, `\\`,
+    `\&`, `\$`, `\{`, `\}`, `~`, `--`, `---`, `\\`, `\item`,
     `\begin/\end` for environments `verbatim`, `enumerate`, `itemize`,
     `problem`, `theorem`, `conjecture`, `lemma`, `corollary`, `fact`,
     `observation`, `proposition`, `claim`, `proof`.
