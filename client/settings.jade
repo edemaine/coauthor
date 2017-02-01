@@ -11,6 +11,13 @@ template(name="settings")
               +fullNameEditor
           tr
             th
+              label Email address:
+            td
+              +emailEditor
+              div
+                +_loginButtonsAdditionalLoggedInDropdownActions
+          tr
+            th
               label Preferred message format: 
             td
               +formatSelector
@@ -31,8 +38,6 @@ template(name="settings")
             th
               label Email notifications:
             td
-              div
-                +_loginButtonsAdditionalLoggedInDropdownActions
               if notificationsOn
                 button.btn.btn-success.notificationsButton(type="button", data-toggle="button", autocomplete="off")
                   if notificationsDefault
@@ -77,11 +82,23 @@ template(name="settings")
     .alert.alert-danger(role="alert") Please <B>sign in</B> (in the upper-right corner) to change your settings.
 
 template(name="fullNameEditor")
-  .input-group
+  form.input-group
     if editing
-      input.form-control.fullname(type="text", placeholder="FirstName LastName", value=fullname)
+      input.form-control.fullname.textEdit(type="text", placeholder="FirstName LastName", value=fullname)
     else
       input.form-control(type="text", value=showFullname, disabled)
+    span.input-group-btn
+      if editing
+        button.btn.btn-info.saveButton Save
+      else
+        button.btn.btn-info.editButton Edit
+
+template(name="emailEditor")
+  form.input-group
+    if editing
+      input.form-control.email.textEdit(type="text", placeholder="username@hostname.org", value=email)
+    else
+      input.form-control(type="text", value=showEmail, disabled)
     span.input-group-btn
       if editing
         button.btn.btn-info.saveButton Save

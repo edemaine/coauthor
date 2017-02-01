@@ -51,3 +51,11 @@ if Meteor.isServer
         @ready()
 else  ## client
   Meteor.subscribe 'userData'
+
+Meteor.methods
+  userEditEmail: (email) ->
+    check Meteor.userId(), String
+    if Meteor.isServer  ## no Accounts on client
+      if Meteor.user().emails?[0]?.address?
+        Accounts.removeEmail Meteor.userId(), Meteor.user().emails[0].address
+      Accounts.addEmail Meteor.userId(), email
