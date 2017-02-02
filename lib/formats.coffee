@@ -263,28 +263,6 @@ postprocessKaTeX = (text, math) ->
   else
     replaceMathBlocks text, replacer
 
-jsdiff = require 'diff'
-
-@sanitize = (html) ->
-  sanitized = sanitizeHtml html
-  if Meteor.isClient and sanitized != html
-    context = ''
-    diffs =
-      for diff in jsdiff.diffChars html, sanitized
-        if diff.removed
-          "?#{diff.value}?"
-        else if diff.added
-          "!#{diff.value}!"
-        else
-          if diff.value.length > 40
-            diff.value = diff.value[...20] + "..." + diff.value[diff.value.length-20..]
-          diff.value
-    console.warn "Sanitized", diffs.join ''
-    #console.warn "Sanitized",
-    #  before: html
-    #  after: sanitized
-  sanitized
-
 formatEither = (isTitle, format, text, leaveTeX = false) ->
   ## LaTeX format is special because it does its own math preprocessing at a
   ## specific time during its formatting.  Other formats don't touch math.

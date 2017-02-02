@@ -1,7 +1,7 @@
 ## https://github.com/djedi23/meteor-sanitize-html/
 ## https://github.com/punkave/sanitize-html
 
-@sanitizeHtml = require 'sanitize-html'
+sanitizeHtml = require 'sanitize-html'
 
 sanitizeHtml.defaults.allowedAttributes['*'] = [
   'style', 'class', 'title', 'aria-*'
@@ -41,3 +41,29 @@ sanitizeHtml.defaults.allowedAttributes.mfrac = ['linethickness']
 sanitizeHtml.defaults.allowedAttributes.mi = ['mathvariant']
 sanitizeHtml.defaults.allowedAttributes.mo = ['fence', 'separator']
 sanitizeHtml.defaults.allowedAttributes.mstyle = ['mathcolor']
+
+jsdiff = require 'diff'
+
+maxDiffSize = 200
+
+@sanitize = (html) ->
+  sanitized = sanitizeHtml html
+  if Meteor.isClient and sanitized != html
+    context = ''
+    if html.length + sanitized.length < maxDiffSize
+      diffs =
+        for diff in jsdiff.diffChars html, sanitized
+          if diff.removed
+            "?#{diff.value}?"
+          else if diff.added
+            "!#{diff.value}!"
+          else
+            if diff.value.length > 40
+              diff.value = diff.value[...20] + "..." + diff.value[diff.value.length-20..]
+            diff.value
+      console.warn "Sanitized", diffs.join ''
+    else
+      console.warn "Sanitized",
+        before: html
+        after: sanitized
+  sanitized
