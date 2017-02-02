@@ -209,8 +209,8 @@ postprocessCoauthorLinks = (text) ->
       ## xxx Could add msg.title, when available, to hover text...
       ## xxx Currently assuming message is in same group if can't find it.
       msg = Messages.findOne p2
-      p1 + pathFor 'message',
-        group: msg?.group or Router.current().params.group
+      p1 + urlFor 'message',
+        group: msg?.group or Router.current?()?.params?.group or wildGroup
         message: p2
 
 katex = require 'katex'
