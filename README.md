@@ -145,6 +145,12 @@ in other fields too.
   [this Chrome extension](https://chrome.google.com/webstore/detail/fastaccent/gkadokkbkifbfpiljldcnnpkebpannhb/related?hl=en-GB)
   or
   [this Firefox extension](https://addons.mozilla.org/en-us/firefox/addon/easyaccent/).
+* Conversely, if you're on modern MacOS, holding down letter keys will bring
+  up an accent tool instead of repeating the key.  If you'd rather repeat the
+  key (e.g. for Vim mode),
+  [follow these instructions](http://www.idownloadblog.com/2015/01/14/how-to-enable-key-repeats-on-your-mac/):
+  `defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false`
+  then restart your web browser.
 
 ## Installation and Permissions ##
 
