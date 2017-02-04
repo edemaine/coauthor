@@ -52,41 +52,79 @@ replaceMathBlocks = (text, replacer) ->
   else
     text
 
-latex2html = (tex) ->
+inTag = (string, offset) ->
+  open = string.lastIndexOf '<', offset
+  if open >= 0
+    close = string.lastIndexOf '>', offset
+    if close < open  ## potential unclosed HTML tag
+      return true
+  false
+
+latexSymbols =
+  '``': '&ldquo;'
+  "''": '&rdquo;'
+  '"': '&rdquo;'
+  '`': '&lsquo;'
+  "'": '&rsquo;'
+  '~': '&nbsp;'
+  '---': '&mdash;'
+  '--': '&ndash;'
+latexSymbolsRe = ///#{_.keys(latexSymbols).join '|'}///g
+latexEscape = (x) ->
+  x.replace /[-`'~\\$%&<>]/g, (char) -> "&##{char.charCodeAt 0};"
+
+@latex2html = (tex) ->
+  ## Parse verbatim first (to avoid contents getting mangled by other parsing).
+  tex = tex.replace /\\begin\s*{verbatim}([^]*?)\\end\s*{verbatim}/g,
+    (match, verb) -> "<pre>#{latexEscape verb}</pre>"
+  ## Also parse URLs first, to allow for weird characters in URLs (e.g. %)
+  tex = tex.replace /\\url\s*{([^{}]*)}/g, (match, url) ->
+    """<a href="#{url}">#{latexEscape url}</a>"""
+  .replace /\\href\s*{([^{}]*)}\s*{((?:[^{}]|{[^{}]*})*)}/g, '<a href="$1">$2</a>'
+  ## Now remove comments, stripping newlines from the input.
+  comments = (text) ->
+    text = text.replace /%.*$\n?/mg, (match, offset, string) ->
+      if inTag string, offset
+        ## Potential unclosed HTML tag: leave alone, but process other
+        ## %s on the same line after tag closes.
+        close = match.indexOf '>'
+        if close >= 0
+          match[..close] + comments match[close+1..]
+        else
+          match
+      else
+        ''
+  tex = comments tex
+  ## Paragraph detection must go before any macro expansion (which eat \n's)
+  tex = tex.replace /\n\n+/g, '\n\\par\n'
+  ## Process \def and \let, and expand all macros.
   defs = {}
-  tex = tex.replace /%.*$\n?/mg, ''
   tex = tex.replace /\\def\s*\\([a-zA-Z]+)\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, (match, p1, p2) ->
     defs[p1] = p2
     ''
   tex = tex.replace /\\let\s*\\([a-zA-Z]+)\s*=?\s*\\([a-zA-Z]+)\s*/g, (match, p1, p2) ->
     defs[p1] = "\\#{p2}"
     ''
-  for def, val of defs
-    #console.log "\\#{def} = #{val}"
-    tex = tex.replace ///\\#{def}\s*///g, val
-  tex = tex.replace /\\begin\s*{verbatim}([^]*?)\\end\s*{verbatim}/g, (match, verb) ->
-    verb = verb
-    .replace /&/g, '&amp;'
-    .replace /\\/g, '&#92;'
-    .replace /\$/g, '&#36;'
-    .replace /</g, '&lt;'
-    .replace />/g, '&gt;'
-    #verb = putMathBack verb, math
-    "<pre>#{verb}</pre>"
+  #for def, val of defs
+  #  console.log "\\#{def} = #{val}"
+  r = ///\\(#{_.keys(defs).join '|'})\s*///g
+  while 0 <= tex.search(r)
+    tex = tex.replace r, (match, def) -> defs[def]
   ## After \def expansion and verbatim processing, protect math
   [tex, math] = preprocessKaTeX tex
+  ## Start initial paragraph
   tex = '<p>' + tex
-  .replace /\\\\/g, '[DOUBLEBACKSLASH]'
+  ## Commands
+  tex = tex.replace /\\\\/g, '[DOUBLEBACKSLASH]'
   .replace /\\(BY|YEAR)\s*{([^{}]*)}/g, '<span style="border: thin solid; margin-left: 0.5em; padding: 0px 4px; font-variant:small-caps">$2</span>'
   .replace /\\protect\s*/g, ''
+  .replace /\\par\s*/g, '<p>'
   .replace /\\textbf\s*{((?:[^{}]|{[^{}]*})*)}/g, '<b>$1</b>'
   .replace /\\textit\s*{((?:[^{}]|{[^{}]*})*)}/g, '<i>$1</i>'
   .replace /\\textsf\s*{((?:[^{}]|{[^{}]*})*)}/g, '<span style="font-family: sans-serif">$1</span>'
   .replace /\\emph\s*{((?:[^{}]|{[^{}]*})*)}/g, '<em>$1</em>'
   .replace /\\textsc\s*{((?:[^{}]|{[^{}]*})*)}/g, '<span style="font-variant:small-caps">$1</span>'
   .replace /\\underline\s*{((?:[^{}]|{[^{}]*})*)}/g, '<u>$1</u>'
-  .replace /\\url\s*{([^{}]*)}/g, '<a href="$1">$1</a>'
-  .replace /\\href\s*{([^{}]*)}\s*{((?:[^{}]|{[^{}]*})*)}/g, '<a href="$1">$2</a>'
   .replace /\\textcolor\s*{([^{}]*)}\s*{([^{}]*)}/g, '<span style="color: $1">$2</a>'
   .replace /\\colorbox\s*{([^{}]*)}\s*{([^{}]*)}/g, '<span style="background-color: $1">$2</a>'
   .replace /\\begin\s*{enumerate}/g, '<ol>'
@@ -146,7 +184,7 @@ latex2html = (tex) ->
   .replace /\\=u|\\={u}/g, '&#363;'
   .replace /\\=y|\\={y}/g, '&#563;'
   .replace /\\c\s*{s}/g, '&#351;'
-  .replace /\\c\s*{z}/g, 'z'  ## doesn't exist
+  .replace /\\c\s*{z}/g, 'z&#807;'
   .replace /\\v\s*{C}/g, '&#268;'
   .replace /\\v\s*{s}/g, '&#353;'
   .replace /\\v\s*{n}/g, '&#328;'
@@ -154,19 +192,16 @@ latex2html = (tex) ->
   .replace /\\u\s*{a}/g, '&#259;'
   .replace /\\v\s*{a}/g, '&#462;'
   .replace /\\H\s*{o}/g, '&#337;'
-  .replace /``/g, '&ldquo;'
-  .replace /''/g, '&rdquo;'
-  #.replace /''|"/g, '&rdquo;'  ## " replacement wreaks havoc with HTML
-  .replace /`/g, '&lsquo;'
-  .replace /'/g, '&rsquo;'
   .replace /\\&/g, '&amp;'
   .replace /\\([${}])/g, '$1'
-  .replace /~/g, '&nbsp;'
   .replace /\\\s/g, ' '
-  .replace /---/g, '&mdash;'
-  .replace /--/g, '&ndash;'
-  .replace /\n\n+/g, '\n<p>\n'
+  .replace latexSymbolsRe, (match, offset, string) ->
+    if inTag string, offset  ## potential unclosed HTML tag; leave alone
+      match
+    else
+      latexSymbols[match]
   .replace /<p>\s*(<h[1-9]>)/g, '$1'
+  .replace /<p>(\s*<p>)+/g, '<p>'  ## Remove double paragraph breaks
   .replace /\[DOUBLEBACKSLASH\]/g, '\\\\'
   [tex, math]
 
