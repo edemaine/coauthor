@@ -383,6 +383,7 @@ Template.submessage.helpers
           #    #    e.dataTransfer.setData('text/plain', "\\href{#{id}}{}")
           #    e.dataTransfer.setData('text/plain', "<IMG SRC='coauthor:#{id}'>")
       editorMode editor, ti.data.format
+      editorKeyboard editor, messageKeyboard.get(ti.data._id) ? defaultKeyboard
 
   keyboard: ->
     capitalize messageKeyboard.get(@_id) ? defaultKeyboard
