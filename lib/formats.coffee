@@ -286,9 +286,9 @@ postprocessLinks = (text) ->
 
 postprocessAtMentions = (text) ->
   users = Meteor.users.find {}, fields: username: 1
-  .fetch()
+  .map (user) -> user.username
   return text unless 0 < users.length
-  users = (escapeRe user.username for user in users)
+  users = (escapeRe user for user in users)
   text.replace ///@(#{users.join '|'})\b///, (match, user) ->
     "@#{linkToAuthor (routeGroup?() ? wildGroup), user}"
 
