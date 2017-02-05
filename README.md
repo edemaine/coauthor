@@ -41,7 +41,7 @@ in other fields too.
     `\textbf`, `\textit`, `\textsf`, `\emph`, `\textsc`, `\underline`,
     `\textcolor{color}{text}`, `\colorbox{backcolor}{text}`,
     `\url`, `\href{url}{text}`, `\pdftooltip{hovertext}{text}`,
-    `\raisebox{amount}{text}`,
+    `\raisebox{amount}{text}`, `\par`,
     `\BY{...}`, `\YEAR{...}`,
     `\chapter`, `\section`, `\subsection`, `\subsubsection`, `\footnote`,
     `\includegraphics[width/height]{url}`, `\"`, `\'`, ```\` ```,
