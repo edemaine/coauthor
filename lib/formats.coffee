@@ -109,7 +109,6 @@ latexEscape = (x) ->
   #  console.log "\\#{def} = #{val}"
   if 0 < _.size defs
     r = ///\\(#{_.keys(defs).join '|'})\s*///g
-    console.log _.keys(defs).join '|'
     while 0 <= tex.search(r)
       tex = tex.replace r, (match, def) -> defs[def]
   ## After \def expansion and verbatim processing, protect math
