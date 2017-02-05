@@ -107,9 +107,11 @@ latexEscape = (x) ->
     ''
   #for def, val of defs
   #  console.log "\\#{def} = #{val}"
-  r = ///\\(#{_.keys(defs).join '|'})\s*///g
-  while 0 <= tex.search(r)
-    tex = tex.replace r, (match, def) -> defs[def]
+  if 0 < _.size defs
+    r = ///\\(#{_.keys(defs).join '|'})\s*///g
+    console.log _.keys(defs).join '|'
+    while 0 <= tex.search(r)
+      tex = tex.replace r, (match, def) -> defs[def]
   ## After \def expansion and verbatim processing, protect math
   [tex, math] = preprocessKaTeX tex
   ## Start initial paragraph
