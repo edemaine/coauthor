@@ -24,8 +24,9 @@ in other fields too.
   document has not changed for 1 second.)
 
 * Three **formats** for writing messages (and easy to add additional formats).
-  All formats support LaTeX math (via `$...$`, `$$...$$`, `\(...\)`, or
-  `\[...\]`) via [KaTeX](https://khan.github.io/KaTeX/), so math mode supports
+  All formats support LaTeX math (via `$...$`, `$$...$$`, `\(...\)`, `\[...\]`,
+  or `\begin{align/equation/eqnarray}...\end{align/equation/eqnarray}`)
+  via [KaTeX](https://khan.github.io/KaTeX/), so math mode supports
   [this list of supported functions](https://github.com/Khan/KaTeX/wiki/Function-Support-in-KaTeX).
 
   * [Github-style Markdown](https://guides.github.com/features/mastering-markdown/)
