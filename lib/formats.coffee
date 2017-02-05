@@ -285,11 +285,11 @@ postprocessLinks = (text) ->
   string.replace /[\\^$*+?.()|{}\[\]]/g, "\\$1"
 
 postprocessAtMentions = (text) ->
-  users = {}
-  Meteor.users.find().forEach (user) ->
-    users[user.username] = user.profile.fullname
-  return text unless 0 < _.size users
-  text.replace ///@(#{(escapeRe user for user of users).join '|'})\b///, (match, user) ->
+  users = Meteor.users.find {}, fields: username: 1
+  .fetch()
+  return text unless 0 < users.length
+  users = (escapeRe user.username for user in users)
+  text.replace ///@(#{users.join '|'})\b///, (match, user) ->
     "@#{linkToAuthor (routeGroup?() ? wildGroup), user}"
 
 katex = require 'katex'
