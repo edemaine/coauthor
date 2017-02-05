@@ -281,6 +281,7 @@ absentTags = ->
 
 Template.submessage.helpers
   tabindex: tabindex
+  tabindex5: -> tabindex 5
   tabindex7: -> tabindex 7
   tabindex9: -> tabindex 9
   here: ->
@@ -436,8 +437,7 @@ Template.submessage.helpers
   canPublish: -> canPublish @_id
   canUnpublish: -> canUnpublish @_id
   canSuperdelete: -> canSuperdelete @_id
-  canReply: -> canPost @group, @_id
-  canAttach: -> canPost @group, @_id
+  canPrivate: -> canPrivate @_id
 
   history: -> messageHistory.get(@_id)?
   forHistory: ->
@@ -461,10 +461,13 @@ Template.registerHelper 'messagePanelClass', ->
       ''
   if @deleted
     "panel-danger message-deleted #{editingClass}"
-  else if @published
-    "panel-primary message-published #{editingClass}"
   else
-    "panel-warning message-unpublished #{editingClass}"
+    unless @published
+      "panel-warning message-unpublished #{editingClass}"
+    else if @private
+      "panel-info message-private #{editingClass}"
+    else
+      "panel-primary message-public #{editingClass}"
 
 Template.registerHelper 'formatCreator', ->
   linkToAuthor @group, @creator
@@ -565,6 +568,13 @@ Template.submessage.events
     Meteor.call 'messageUpdate', message,
       deleted: not @deleted
 
+  'click .privateButton': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    message = t.data._id
+    Meteor.call 'messageUpdate', message,
+      private: not @private
+
   'click .editorKeyboard': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
@@ -594,7 +604,10 @@ Template.submessage.events
     e.stopPropagation()
     message = @_id
     if canPost @group, @_id
-      Meteor.call 'messageNew', @group, @_id, (error, result) ->
+      msg = {}
+      if e.target.getAttribute 'data-private'
+        msg.private = true
+      Meteor.call 'messageNew', @group, @_id, null, msg, (error, result) ->
         if error
           console.error error
         else if result
@@ -730,6 +743,46 @@ uploader 'messageReplace', 'replaceButton', 'replaceInput', replaceFiles
 Template.messageAuthor.helpers
   creator: ->
     "!" + @creator
+
+privacyOptions = [
+  code: 'public'
+  list: ['public']
+  display: 'Public messages only (usual behavior)'
+,
+  code: 'both'
+  list: ['public', 'private']
+  display: 'Public and private messages (for feedback)'
+,
+  code: 'private'
+  list: ['private']
+  display: 'Private messages only (for solved problems)'
+]
+privacyOptionsByCode = {}
+for option in privacyOptions
+  privacyOptionsByCode[option.code] = option
+
+Template.threadPrivacy.helpers
+  privacyOptions: privacyOptions
+  active: ->
+    if _.isEqual(_.sortBy(privacyOptionsByCode[@code].list),
+                 _.sortBy(Template.parentData(2).threadPrivacy ? ['public']))
+      'active'
+    else
+      ''
+
+Template.threadPrivacy.events
+  'click .threadPrivacy': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    Meteor.call 'threadPrivacy', Template.parentData()._id,
+      privacyOptionsByCode[e.target.getAttribute 'data-code'].list
+    dropdownToggle e
+
+Template.replyButtons.helpers
+  canReply: -> canPost @group, @_id
+  canAttach: -> canPost @group, @_id
+  canPublicReply: -> 'public' in (@threadPrivacy ? ['public'])
+  canPrivateReply: -> 'private' in (@threadPrivacy ? ['public'])
 
 Template.tableOfContentsMessage.helpers
   parentId: ->

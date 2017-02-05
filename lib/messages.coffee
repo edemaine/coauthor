@@ -29,7 +29,8 @@ _submessageCount = (root) ->
   Messages.find
     root: root
     published: $ne: false    ## published is false or Date
-    deleted: false
+    deleted: $ne: true
+    private: $ne: true
   .count()
 
 _submessageLastUpdate = (root) ->
@@ -39,7 +40,8 @@ _submessageLastUpdate = (root) ->
   Messages.find
     root: root._id
     published: $ne: false    ## published is false or Date
-    deleted: false
+    deleted: $ne: true
+    private: $ne: true
   .forEach (submessage) ->
     updated = dateMax updated, submessage.updated
   updated
@@ -67,13 +69,16 @@ _submessageLastUpdate = (root) ->
       group: group
       $or: [
         published: $ne: false    ## published is false or Date
-        deleted: false
-      , "authors.#{escapeUser user.username}": $exists: true
+        deleted: $ne: true
+        private: $ne: true
+      ,
+        "authors.#{escapeUser user.username}": $exists: true
       ]
     else
       group: group
       published: $ne: false    ## published is false or Date
-      deleted: false
+      deleted: $ne: true
+      private: $ne: true
   else
     null
 
@@ -140,7 +145,7 @@ if Meteor.isServer
     group: group
     "authors.#{escapeUser author}": $exists: true
     published: $ne: false
-    deleted: false
+    deleted: $ne: true
   if group == wildGroup
     delete query.group
   query
@@ -168,7 +173,7 @@ if Meteor.isServer
     group: group
     "tags.#{escapeTag tag}": $exists: true
     published: $ne: false
-    deleted: false
+    deleted: $ne: true
   if group == wildGroup
     delete query.group
   query
@@ -195,7 +200,7 @@ if Meteor.isServer
   query =
     group: group
     published: $ne: false
-    deleted: false
+    deleted: $ne: true
   if group == wildGroup
     delete query.group
   query
@@ -345,9 +350,9 @@ if Meteor.isServer
     true
   else if groupRoleCheck group, 'read', user
     ## Regular users can see all messages they authored, plus
-    ## published undeleted messages by others.
-    (message.published and not message.deleted) or
-    user.username of (message.authors ? {})
+    ## published undeleted public messages by others.
+    (message.published and not message.deleted and not message.private) or
+    amAuthor message, user
   else
     false
 
@@ -382,6 +387,25 @@ if Meteor.isServer
 @canSuperdelete = (message) ->
   canSuper message2group message
 
+@amAuthor = (message, user = Meteor.user()) ->
+  message = Messages.findOne message unless message._id?
+  user?.username and
+  escapeUser(user?.username) of (message.authors ? {})
+
+@canPrivate = (message) ->
+  message = Messages.findOne message unless message._id?
+  if canSuper message.group
+    ## Superuser can always change private flag
+    true
+  else
+    ## Regular user can change private flag for their own messages,
+    ## and only if thread privacy allows for both public and private.
+    unless amAuthor message
+      false
+    else
+      root = findMessageRoot message
+      'public' in root.threadPrivacy and 'private' in root.threadPrivacy
+
 @canAdmin = (group) ->
   groupRoleCheck group, 'admin'
 
@@ -403,6 +427,13 @@ idle = 1000   ## one second
     else
       throw new Meteor.Error 'findMessageParent.multiple',
         "Message #{message} has #{parents.length} parents! #{parents}"
+
+@findMessageRoot = (message) ->
+  message = Messages.findOne message unless message._id?
+  if message.root?
+    Messages.findOne message.root
+  else
+    message
 
 @messageEmpty = (message) ->
   message = Messages.findOne message unless message._id?
@@ -426,9 +457,22 @@ _submessagesChanged = (root) ->
 if Meteor.isServer
   rootMessages().forEach _submessagesChanged
 
+checkPrivacy = (privacy, root) ->
+  root = findMessageRoot root  ## can pass message or message ID
+  switch privacy
+    when true
+      unless root.threadPrivacy? and 'private' in root.threadPrivacy
+        throw new Meteor.Error 'checkPrivacy.privateForbidden',
+          "Cannot create private message in thread '#{root._id}'"
+    when false
+      unless root.threadPrivacy? and 'public' in root.threadPrivacy
+        throw new Meteor.Error 'checkPrivacy.publicForbidden',
+          "Cannot create public message in thread '#{root._id}'"
+  null
+
 ## The following should be called directly only on the server;
 ## clients should use the corresponding method.
-@_messageUpdate = (id, message, authors = null, old = null) ->
+_messageUpdate = (id, message, authors = null, old = null) ->
   ## authors is set only when internal to server, in which case we bypass
   ## authorization checks, which already happened in messageEditStart.
   unless authors?
@@ -446,6 +490,8 @@ if Meteor.isServer
     #parent: Match.Optional String      ## use children, not parent
     published: Match.Optional Boolean
     deleted: Match.Optional Boolean
+    private: Match.Optional Boolean
+  checkPrivacy message.private, id
 
   ## Don't update if there aren't any actual differences.  Compare with 'old'
   ## if provided (in cases when it's already been fetched by the server);
@@ -625,10 +671,16 @@ Meteor.methods
       #parent: Match.Optional String      ## use children, not parent
       published: Match.Optional Boolean
       deleted: Match.Optional Boolean
+      private: Match.Optional Boolean
     unless canPost group, parent
       throw new Meteor.Error 'messageNew.unauthorized',
         "Insufficient permissions to post new message in group '#{group}' under parent '#{parent}'"
-
+    root = findMessageRoot parent
+    checkPrivacy message.private, root
+    unless message.private?
+      ## Default to public if possible; private otherwise
+      if root.threadPrivacy? and 'public' not in root.threadPrivacy
+        message.private = true
     now = new Date
     username = Meteor.user().username
     message.creator = username
@@ -729,6 +781,7 @@ Meteor.methods
       #parent: Match.Optional String      ## use children, not parent
       published: Match.Optional Match.OneOf Date, Boolean
       deleted: Match.Optional Boolean
+      #private: Match.Optional Boolean
       creator: Match.Optional String
       created: Match.Optional Date
       #updated and updators added automatically from last diff
@@ -739,6 +792,7 @@ Meteor.methods
       file: Match.Optional String
       tags: Match.Optional Match.Where validTags
       deleted: Match.Optional Boolean
+      #private: Match.Optional Boolean
       updated: Match.Optional Date
       updators: Match.Optional [String]
       published: Match.Optional Match.OneOf Date, Boolean
@@ -830,6 +884,21 @@ Meteor.methods
         child: message
       , parent: message
       ]
+
+  threadPrivacy: (message, list) ->
+    #check Meteor.userId(), String  ## should be done by 'canSuper'
+    check message, String
+    check list, [Match.OneOf 'public', 'private']
+    list = _.uniq list  ## remove any duplicates
+    unless canSuper message2group message
+      throw new Meteor.Error 'threadPrivacy.unauthorized',
+        "Insufficient permissions to change privacy for thread '#{message}'"
+    msg = Messages.findOne message
+    if msg.root?
+      throw new Meteor.Error 'threadPrivacy.nonroot',
+        "Can change thread privacy only for root messages, not '#{message}'"
+    Messages.update message,
+      $set: threadPrivacy: list
 
   recomputeAuthors: ->
     ## Force recomputation of all `authors` fields to be the latest update

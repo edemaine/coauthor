@@ -138,6 +138,8 @@ template(name="submessage")
       else
         unless published
           span.label.label-warning Unpublished
+      if private
+        span.label.label-info Private
       .message-right-buttons.btn-group.pull-right.hidden-print
         if raw
           button.btn.btn-warning.rawButton(tabindex="{{tabindex 1}}") Formatted
@@ -160,9 +162,16 @@ template(name="submessage")
                 button.btn.btn-success.publishButton(tabindex="{{tabindex 2}}") Publish
             if canDelete
               button.btn.btn-danger.deleteButton(tabindex="{{tabindex 3}}") Delete
+            if canPrivate
+              if private
+                button.btn.btn-danger.privateButton(tabindex="{{tabindex 4}}") Public
+              else
+                button.btn.btn-danger.privateButton(tabindex="{{tabindex 4}}") Private
           if editingRV
+            unless root
+              +threadPrivacy tabindex=tabindex5
             .btn-group
-              button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false", tabindex="{{tabindex 5}}")
+              button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false", tabindex="{{tabindex 6}}")
                 | #{keyboard}
                 span.caret
               ul.dropdown-menu(role="menu")
@@ -204,20 +213,14 @@ template(name="submessage")
           p.message-file !{formatFile}
       .message-footer.clearfix
         .message-reply-buttons.btn-group.pull-left.hidden-print
-          if canReply
-            button.btn.btn-default.replyButton Reply
-          if canAttach
-            +messageAttach
+          +replyButtons
         +messageAuthor
       .children
         each children
           +submessage
       if children
         .panel-body.panel-secondbody.btn-group.hidden-print
-          if canReply
-            button.btn.btn-default.replyButton Reply
-          if canAttach
-            +messageAttach
+          +replyButtons
 
 template(name="messageAuthor")
   .author.text-right
@@ -226,6 +229,30 @@ template(name="messageAuthor")
     else
       | (created by
     | !{formatCreator} {{formatDate created prefix='on '}}!{formatAuthors})
+
+template(name="threadPrivacy")
+  if canSuper
+    .btn-group
+      button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false", tabindex=tabindex)
+        | Privacy
+        span.caret
+      ul.dropdown-menu(role="menu")
+        each privacyOptions
+          li.threadPrivacy(class=active)
+            a(href="#",data-code=code)= display
+
+template(name="replyButtons")
+  if canReply
+    if canPrivateReply
+      if canPublicReply
+        button.btn.btn-default.replyButton Public Reply
+        button.btn.btn-default.replyButton(data-private="1") Private Reply
+      else
+        button.btn.btn-default.replyButton(data-private="1") Private Reply
+    else
+      button.btn.btn-default.replyButton Reply
+  if canAttach
+    +messageAttach
 
 template(name="formatSelector")
   .btn-group
@@ -237,7 +264,7 @@ template(name="formatSelector")
       span.caret
     ul.dropdown-menu(role="menu")
       each formats
-        li.editorFormat(class="#{active}")
+        li.editorFormat(class=active)
           a(href="#",data-format=format)= capitalized
 
 template(name="superdelete")

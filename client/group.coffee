@@ -48,9 +48,11 @@ Template.registerHelper 'groups', ->
 Template.registerHelper 'groupcount', ->
   Groups.find().count()
 
-Template.registerHelper 'admin', -> canAdmin @group
+Template.registerHelper 'admin', -> canAdmin @group ? routeGroup()
 
-Template.registerHelper 'canImport', -> canImport @group
+Template.registerHelper 'canImport', -> canImport @group ? routeGroup()
+
+Template.registerHelper 'canSuper', -> canSuper @group ? routeGroup()
 
 Template.registerHelper 'canSee', -> canSee @
 
