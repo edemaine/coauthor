@@ -678,9 +678,13 @@ Meteor.methods
     root = findMessageRoot parent
     checkPrivacy message.private, root
     unless message.private?
-      ## Default to public if possible; private otherwise
-      if root.threadPrivacy? and 'public' not in root.threadPrivacy
-        message.private = true
+      ## Default to match parent
+      if parent?
+        pmsg = Messages.findOne parent
+        message.private = pmsg.private if pmsg.private?
+      ## Old default: public if available, private otherwise
+      #if root.threadPrivacy? and 'public' not in root.threadPrivacy
+      #  message.private = true
     now = new Date
     username = Meteor.user().username
     message.creator = username

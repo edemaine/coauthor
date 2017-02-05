@@ -245,10 +245,10 @@ template(name="replyButtons")
   if canReply
     if canPrivateReply
       if canPublicReply
-        button.btn.btn-default.replyButton Public Reply
-        button.btn.btn-default.replyButton(data-private="1") Private Reply
+        button.btn.btn-default.replyButton(data-privacy="public") Public Reply
+        button.btn.btn-default.replyButton(data-privacy="private") Private Reply
       else
-        button.btn.btn-default.replyButton(data-private="1") Private Reply
+        button.btn.btn-default.replyButton(data-private="private") Private Reply
     else
       button.btn.btn-default.replyButton Reply
   if canAttach

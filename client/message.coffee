@@ -605,8 +605,12 @@ Template.submessage.events
     message = @_id
     if canPost @group, @_id
       msg = {}
-      if e.target.getAttribute 'data-private'
-        msg.private = true
+      privacy = e.target.getAttribute 'data-privacy'
+      switch privacy
+        when 'public'
+          msg.private = false
+        when 'private'
+          msg.private = true
       Meteor.call 'messageNew', @group, @_id, null, msg, (error, result) ->
         if error
           console.error error
