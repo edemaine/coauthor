@@ -404,7 +404,7 @@ if Meteor.isServer
       false
     else
       root = findMessageRoot message
-      'public' in root.threadPrivacy and 'private' in root.threadPrivacy
+      root.threadPrivacy? and 'public' in root.threadPrivacy and 'private' in root.threadPrivacy
 
 @canAdmin = (group) ->
   groupRoleCheck group, 'admin'
@@ -429,6 +429,7 @@ idle = 1000   ## one second
         "Message #{message} has #{parents.length} parents! #{parents}"
 
 @findMessageRoot = (message) ->
+  return message unless message?
   message = Messages.findOne message unless message._id?
   if message.root?
     Messages.findOne message.root
@@ -461,13 +462,13 @@ checkPrivacy = (privacy, root) ->
   root = findMessageRoot root  ## can pass message or message ID
   switch privacy
     when true
-      unless root.threadPrivacy? and 'private' in root.threadPrivacy
+      unless root?.threadPrivacy? and 'private' in root.threadPrivacy
         throw new Meteor.Error 'checkPrivacy.privateForbidden',
-          "Cannot create private message in thread '#{root._id}'"
+          "Cannot make message private in thread '#{root._id}'"
     when false
-      unless root.threadPrivacy? and 'public' in root.threadPrivacy
+      unless root?.threadPrivacy? and 'public' in root.threadPrivacy
         throw new Meteor.Error 'checkPrivacy.publicForbidden',
-          "Cannot create public message in thread '#{root._id}'"
+          "Cannot reate message public in thread '#{root._id}'"
   null
 
 ## The following should be called directly only on the server;
