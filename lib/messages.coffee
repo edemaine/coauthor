@@ -73,6 +73,8 @@ _submessageLastUpdate = (root) ->
         private: $ne: true
       ,
         "authors.#{escapeUser user.username}": $exists: true
+      ,
+        body: ///@#{user.username}\b///
       ]
     else
       group: group
@@ -389,8 +391,9 @@ if Meteor.isServer
 
 @amAuthor = (message, user = Meteor.user()) ->
   message = Messages.findOne message unless message._id?
-  user?.username and
-  escapeUser(user?.username) of (message.authors ? {})
+  return false unless user?.username
+  escapeUser(user.username) of (message.authors ? {}) or
+  0 <= message.body.search ///@#{user.username}\b///
 
 @canPrivate = (message) ->
   message = Messages.findOne message unless message._id?

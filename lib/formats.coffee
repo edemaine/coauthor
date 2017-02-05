@@ -267,7 +267,7 @@ postprocessCoauthorLinks = (text) ->
       ## xxx Currently assuming message is in same group if can't find it.
       msg = Messages.findOne p2
       p1 + urlFor 'message',
-        group: msg?.group or Router.current?()?.params?.group or wildGroup
+        group: msg?.group or routeGroup?() or wildGroup
         message: p2
 
 ## URL regular expression with scheme:// required, to avoid extraneous matching
@@ -280,6 +280,17 @@ postprocessLinks = (text) ->
     else
       match.replace /\/+/g, (slash) ->
         "#{slash}&#8203;"  ## Add zero-width space after every slash group
+
+@escapeRe = (string) ->
+  string.replace /[\\^$*+?.()|{}\[\]]/g, "\\$1"
+
+postprocessAtMentions = (text) ->
+  users = {}
+  Meteor.users.find().forEach (user) ->
+    users[user.username] = user.profile.fullname
+  return text unless 0 < _.size users
+  text.replace ///@(#{(escapeRe user for user of users).join '|'})\b///, (match, user) ->
+    "@#{linkToAuthor (routeGroup?() ? wildGroup), user}"
 
 katex = require 'katex'
 
@@ -350,6 +361,7 @@ formatEither = (isTitle, format, text, leaveTeX = false) ->
     text = postprocessKaTeX text, math
   text = postprocessCoauthorLinks text
   text = postprocessLinks text
+  text = postprocessAtMentions text
   sanitize text
 
 @formatBody = (format, body, leaveTeX = false) ->
