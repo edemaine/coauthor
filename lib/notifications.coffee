@@ -369,7 +369,7 @@ if Meteor.isServer
             text += indentLines(msg.body, '    ')
             html += '\n'
             text += '\n'
-          if changed.title or changed.deleted or changed.format or changed.tags or changed.file
+          if changed.title or changed.deleted or changed.private or changed.format or changed.tags or changed.file
             html += "<UL>\n"
             if changed.title
               text += "  * Title changed\n"
@@ -381,6 +381,13 @@ if Meteor.isServer
               else
                 text += "  * UNDELETED\n"
                 html += "<LI>UNDELETED\n"
+            if changed.private
+              if msg.private
+                text += "  * PRIVATE\n"
+                html += "<LI>PRIVATE\n"
+              else
+                text += "  * PUBLIC\n"
+                html += "<LI>PUBLIC\n"
             if changed.format
               text += "  * Format: #{msg.format}\n"
               html += "<LI>Format: #{msg.format}\n"
