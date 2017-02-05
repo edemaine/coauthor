@@ -14,40 +14,61 @@ if Meteor.isClient
 replaceMathBlocks = (text, replacer) ->
   #console.log text
   blocks = []
-  re = /[${}]|\\./g
-  start = null
+  re = /[{}]|\$\$?|\\(begin|end)\s*{(equation|eqnarray|align)\*?}|\\./g
+  block = null
+  startBlock = (b) ->
+    block = b
+    block.start = match.index
+    block.contentStart = match.index + match[0].length
+  endBlock = ->
+    block.content = text[block.contentStart...match.index]
+    delete block.contentStart  ## no longer needed
+    ## Simulate \begin{align}...\end{align} with \begin{aligned}...\end{aligned}
+    if block.environment and block.environment in ['eqnarray', 'align']
+      block.content = "\\begin{aligned}#{block.content}\\end{aligned}"
+    block.end = match.index + match[0].length
+    blocks.push block
+    block = null
   braces = 0
   while (match = re.exec text)?
     #console.log '>', match
     switch match[0]
-      when '$'
-        if start?  ## already in $ block
-          if match.index > start+1  ## not opening $$
-            if braces == 0  ## ignore $ nested within braces e.g. \text{$x$}
-              blocks.push
-                start: start
-                end: match.index
-              start = null
-        else  ## not in $ block
-          if blocks.length > 0 and blocks[blocks.length-1].end+1 == match.index
-            ## second $ terminator
-            blocks[blocks.length-1].end = match.index  ## closing $$
-          else  ## starting $ block
-            braces = 0
-            start = match.index
+      when '$', '$$'
+        if block?  ## already in math block => closing
+          if braces == 0  ## ignore $ nested within braces e.g. \text{$x$}
+            endBlock()
+        else  ## not in math block => opening
+          startBlock
+            display: match[0].length > 1  ## $$?
+          braces = 0
+      when '\\(', '\\['
+        if braces == 0 and not block?
+          startBlock
+            display: match[0][1] == '['
+      when '\\)', '\\]'
+        if braces == 0 and block?
+          endBlock()
       when '{'
         braces += 1
       when '}'
         braces -= 1
         braces = 0 if braces < 0  ## ignore extra }s
+      else
+        if match[1] == 'begin' and not block?
+          startBlock
+            display: true
+            environment: match[2]
+        else if match[1] == 'end' and block?
+          if braces == 0
+            endBlock()
   if blocks.length > 0
     out = text[...blocks[0].start]
     for block, i in blocks
-      out += replacer text[block.start..block.end]
+      out += replacer block
       if i < blocks.length-1
-        out += text[block.end+1...blocks[i+1].start]
+        out += text[block.end...blocks[i+1].start]
       else
-        out += text[block.end+1..]
+        out += text[block.end..]
     out
   else
     text
@@ -277,17 +298,14 @@ putMathBack = (tex, math) ->
 
 postprocessKaTeX = (text, math) ->
   replacer = (block) ->
-    start$ = /^\$+/.exec block
-    end$ = /\$+$/.exec block
-    display = start$[0].length >= 2
-    block = block[start$[0].length...end$.index]
+    content = block.content
     #.replace /&lt;/g, '<'
     #.replace /&gt;/g, '>'
     #.replace /’/g, "'"
     #.replace /‘/g, "`"  ## remove bad Marked automatic behavior
     try
-      katex.renderToString block,
-        displayMode: display
+      katex.renderToString content,
+        displayMode: block.display
         throwOnError: false
         macros:
           '\\dots': '\\ldots'
@@ -295,15 +313,15 @@ postprocessKaTeX = (text, math) ->
       #.replace /<math>.*<\/math>/, ''  ## remove MathML
     catch e
       throw e unless e instanceof katex.ParseError
-      #console.warn "KaTeX failed to parse $#{block}$: #{e}"
+      #console.warn "KaTeX failed to parse $#{content}$: #{e}"
       title = e.toString()
       .replace /&/g, '&amp;'
-      .replace /'/g, '&#39;'
-      latex = block
+      .replace /"/g, '&#34;'
+      latex = content
       .replace /&/g, '&amp;'
       .replace /</g, '&lt;'
       .replace />/g, '&gt;'
-      """<SPAN CLASS="katex-error" TITLE="#{title}">#{latex}</SPAN>"""
+      """<span class="katex-error" title="#{title}">#{latex}</span>"""
   if math?
     text.replace /MATH(\d+)ENDMATH/g, (match, p1) ->
       replacer math[p1]
