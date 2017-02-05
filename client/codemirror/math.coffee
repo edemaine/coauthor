@@ -8,17 +8,23 @@ mathMode =
     math: s.math
     braces: s.braces
   token: (stream, state) ->
+    startMath = ->
+      state.braces = 0
+      state.math = true
     unless state.math
       if stream.eat '$'
         stream.eat '$'  ## possible second $
-        state.braces = 0
-        state.math = true
+        startMath()
       else
         if stream.eat '\\'
-          stream.next()  ## escaped character
+          if stream.match /^[\(\[]|begin\s*{(equation|eqnarray|align)\*?}/, true
+            startMath()
+          else
+            stream.next()  ## escaped character
+            return null
         else
-          stream.match /^[^\\$]+/, true
-        return null
+          stream.match /^[^\\$]+/, true  ## skip irrelevant characters
+          return null
     ## If we get here, we have state.math == true.
     while state.math
       stream.match /^[^${}\\]+/, true
@@ -26,7 +32,11 @@ mathMode =
       break unless char?
       switch char
         when '\\'
-          stream.next()  ## escaped character
+          if stream.match /^[\]\)]|end\s*{(equation|eqnarray|align)\*?}/, true
+            if state.braces == 0
+              state.math = false
+          else
+            stream.next()  ## escaped character
         when '{'
           state.braces += 1
         when '}'
