@@ -611,7 +611,7 @@ Meteor.methods
   messageUpdate: (id, message) -> _messageUpdate id, message
 
   messageNew: (group, parent = null, position = null, message = {}) ->
-    check Meteor.userId(), String  ## should be done by 'canPost'
+    #check Meteor.userId(), String  ## should be done by 'canPost'
     check parent, String if parent?
     check position, Number if position?
     check group, String
@@ -683,7 +683,7 @@ Meteor.methods
     _messageParent child, parent, position
 
   messageEditStart: (id) ->
-    check Meteor.userId(), String
+    #check Meteor.userId(), String  ## should be done by 'canEdit'
     unless canEdit id
       throw new Meteor.Error 'messageEditStart.unauthorized',
         "Insufficient permissions to edit message '#{id}'"
@@ -716,7 +716,7 @@ Meteor.methods
     ## Meteor.user().username just committed this version.
 
   messageImport: (group, parent, message, diffs) ->
-    check Meteor.userId(), String  ## should be done by 'canImport'
+    #check Meteor.userId(), String  ## should be done by 'canImport'
     check group, String
     check parent, String if parent?
     check message,
@@ -780,6 +780,7 @@ Meteor.methods
     id
 
   messageSuperdelete: (message) ->
+    #check Meteor.userId(), String  ## should be done by 'canSuperdelete'
     check message, String
     unless canSuperdelete message
       throw new Meteor.Error 'messageSuperdelete.unauthorized',
@@ -833,6 +834,7 @@ Meteor.methods
   recomputeAuthors: ->
     ## Force recomputation of all `authors` fields to be the latest update
     ## for each updator.
+    #check Meteor.userId(), String  ## should be done by 'canSuper'
     unless canSuper wildGroup
       throw new Meteor.Error 'recomputeAuthors.unauthorized',
         "Insufficient permissions to recompute authors in group '#{wildGroup}'"
@@ -855,6 +857,7 @@ Meteor.methods
           updators: updators  ## last one
 
   recomputeRoots: ->
+    #check Meteor.userId(), String  ## should be done by 'canSuper'
     unless canSuper wildGroup
       throw new Meteor.Error 'recomputeRoots.unauthorized',
         "Insufficient permissions to recompute roots in group '#{wildGroup}'"
