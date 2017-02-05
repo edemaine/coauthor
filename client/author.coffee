@@ -11,3 +11,5 @@ Template.author.helpers
       pathFor 'author',
         group: wildGroupRoute
         author: @author
+  displayUser: ->
+    displayUser @author

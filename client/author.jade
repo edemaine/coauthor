@@ -2,7 +2,7 @@ template(name='author')
   if groupData
     .panel.panel-primary
       .panel-heading
-        span.title.panel-title Author &ldquo;#{author}&rdquo;
+        span.title.panel-title Author &ldquo;#{displayUser}&rdquo; (username &lsquo;#{author}&rsquo;)
       .panel-body
         each messages
           +readMessageHeader
