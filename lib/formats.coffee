@@ -249,6 +249,17 @@ postprocessCoauthorLinks = (text) ->
         group: msg?.group or Router.current?()?.params?.group or wildGroup
         message: p2
 
+## URL regular expression with scheme:// required, to avoid extraneous matching
+@urlRe = /\w+:\/\/[-\w~!$&'()*+,;=.:@%#?\/]+/g
+
+postprocessLinks = (text) ->
+  text.replace urlRe, (match, offset, string) ->
+    if inTag string, offset
+      match
+    else
+      match.replace /\/+/g, (slash) ->
+        "#{slash}&#8203;"  ## Add zero-width space after every slash group
+
 katex = require 'katex'
 
 preprocessKaTeX = (text) ->
@@ -319,7 +330,9 @@ formatEither = (isTitle, format, text, leaveTeX = false) ->
     text = putMathBack text, math if format == 'latex'
   else
     text = postprocessKaTeX text, math
-  sanitize postprocessCoauthorLinks text
+  text = postprocessCoauthorLinks text
+  text = postprocessLinks text
+  sanitize text
 
 @formatBody = (format, body, leaveTeX = false) ->
   formatEither false, format, body, leaveTeX
