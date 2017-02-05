@@ -45,7 +45,10 @@
   not user.profile.notifications? or user.profile.notifications?.autosubscribe != false
 
 @subscribedToMessage = (message, user = Meteor.user()) ->
+  ## Extra memberOfGroup test prevents users with global permissions
+  ## from autosubscribing.
   canSee(message, false, user) and \
+  memberOfGroup(message2group(message), user) and \
   if message in (user.profile.notifications?.subscribed ? [])
     true
   else if message in (user.profile.notifications?.unsubscribed ? [])

@@ -36,6 +36,10 @@ titleDigits = 10
   role in (user?.roles?[escapeGroup group] ? []) or
   role in groupAnonymousRoles group
 
+@memberOfGroup = (group, user = Meteor.user()) ->
+  roles = user.roles[escapeGroup group]
+  roles and roles.length > 0
+
 if Meteor.isServer
   @readableGroups = (userId) ->
     user = findUser userId
@@ -60,11 +64,12 @@ if Meteor.isServer
       readableGroups @userId
 
   @groupMembers = (group, options) ->
-    roles = {}
-    roles['roles.' + escapeGroup group] =
-      $exists: true
-      $ne: []
-    Meteor.users.find roles, options
+    ## Mimic memberOfGroup above
+    Meteor.users.find
+      "roles.#{escapeGroup group}":
+        $exists: true
+        $ne: []
+    , options
 
   Meteor.publish 'groups.members', (group) ->
     check group, String
