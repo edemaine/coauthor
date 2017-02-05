@@ -44,6 +44,8 @@ template(name='readMessage')
       else
         unless published
           span.label.label-warning Unpublished
+      if private
+        span.label.label-info Private
     unless folded
       .panel-body
         .message-body.tex2jax !{formatBody}
