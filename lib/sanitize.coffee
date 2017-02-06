@@ -24,6 +24,7 @@ sanitizeHtml.defaults.allowedTags.push 'del'  ## ~~strikethrough~~
 
 ## Additional HTML features
 sanitizeHtml.defaults.allowedTags.push 's'
+sanitizeHtml.defaults.allowedAttributes.ol = ['start']
 
 ## LaTeX features
 sanitizeHtml.defaults.allowedTags.push 'u'  ## \underline
