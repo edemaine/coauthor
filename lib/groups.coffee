@@ -161,6 +161,8 @@ Meteor.methods
         "Attempt to create group '#{group}' which already exists"
     Groups.insert
       name: group
+      created: new Date
+      creator: Meteor.user().username
 
 @groupSortedBy = (group, sort, options, user = Meteor.user()) ->
   query = accessibleMessagesQuery group, user
