@@ -213,6 +213,8 @@ template(name="submessage")
           p.message-file !{formatFile}
       .message-footer.clearfix
         .message-reply-buttons.btn-group.pull-left.hidden-print
+          if editingRV
+            button.btn.btn-info.editButton(tabindex="{{tabindex 8}}") Stop Editing
           +replyButtons
         +messageAuthor
       .children
