@@ -116,11 +116,22 @@ in other fields too.
   they and other visual file types such as PDF will be rendered by some
   kind of thumbnails.)
 
-* Messages can start Unpublished, or after publication, Deleted; in either
-  state, the message is hidden from non-authors.  (An author is someone who
-  has edited the message.)  The default published state is initially true
-  (so everyone sees the new message and live updates immediately), but can vary
-  by user (e.g., if they are "shy" and only want to post finished thoughts).
+* Messages can start **Unpublished**, or after publication, **Deleted**;
+  in either state, the message is hidden from non-authors.  (An *author* is
+  someone who has edited the message, or who is @-mentioned in the body.)
+  The default published state is initially true (so everyone sees the new
+  message and live updates immediately), but can vary by user (e.g., if they
+  are "shy" and only want to post finished thoughts).
+
+* Threads can be marked as allowing **public** replies only (the default, for
+  maximum collaboration), **private** replies only (useful for solved
+  problems/puzzles, to prevent accidentally spoiling of the fun), or
+  **public and private** replies (useful for feedback on lectures, for example,
+  which can have varying relevance to the entire group).  Replies to replies
+  inherit the public/private state of their parent.  Superusers can
+  see all the messages and change them between public and private.
+  Private messages can @-mention another user (via `@username` in the body)
+  to allow them to see and jointly edit the message.
 
 * **Email notifications** for subscribed threads, clustering together all
   updates since the last email, with a maximum of 1 hour lag.
