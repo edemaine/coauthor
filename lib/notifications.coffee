@@ -336,6 +336,7 @@ if Meteor.isServer
               changed[key] = true
           ## Ignore some initial values during creation of message.
           if notification.created
+            delete changed.published if msg.published
             delete changed.deleted unless msg.deleted
             delete changed.body unless 0 < msg.body.trim().length
             delete changed.tags unless 0 < _.size msg.tags
