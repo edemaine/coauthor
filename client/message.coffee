@@ -230,14 +230,17 @@ Template.submessage.onRendered ->
     images[id].attachment = tid
     if images[id].count > 0 and not messageFolded.get(images[id].attachment)?
       messageFolded.set images[id].attachment, true
-  $(@firstNode).children('.panel-body').children('.message-body').find('img[src^="/gridfs/fs/"]')
-  .each ->
-    id = url2file @getAttribute('src')
-    initImage id
-    subimages.push id
-    images[id].count += 1
-    if images[id].attachment? and not messageFolded.get(images[id].attachment)?
-      messageFolded.set images[id].attachment, true
+  ## If message is deleted or otherwise default-folded,
+  ## don't check for images it references.
+  unless messageFolded.get @data._id
+    $(@firstNode).children('.panel-body').children('.message-body').find('img[src^="/gridfs/fs/"]')
+    .each ->
+      id = url2file @getAttribute('src')
+      initImage id
+      subimages.push id
+      images[id].count += 1
+      if images[id].attachment? and not messageFolded.get(images[id].attachment)?
+        messageFolded.set images[id].attachment, true
 
 scrollDelay = 750
 
