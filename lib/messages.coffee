@@ -464,14 +464,15 @@ if Meteor.isServer
 checkPrivacy = (privacy, root) ->
   return unless privacy?
   root = findMessageRoot root  ## can pass message or message ID
+  return unless root?
   unless canSuper root.group
     switch privacy
       when true
-        unless root?.threadPrivacy? and 'private' in root.threadPrivacy
+        unless root.threadPrivacy? and 'private' in root.threadPrivacy
           throw new Meteor.Error 'checkPrivacy.privateForbidden',
             "Cannot make message private in thread '#{root._id}'"
       when false
-        unless root?.threadPrivacy? and 'public' in root.threadPrivacy
+        unless root.threadPrivacy? and 'public' in root.threadPrivacy
           throw new Meteor.Error 'checkPrivacy.publicForbidden',
             "Cannot make message public in thread '#{root._id}'"
   null
@@ -686,13 +687,13 @@ Meteor.methods
     unless message.private?
       ## If root says private only, default is to be private.
       ## Otherwise, match parent.
-      if root.threadPrivacy? and 'public' not in root.threadPrivacy
+      if root?.threadPrivacy? and 'public' not in root.threadPrivacy
         message.private = true
       else if parent?
         pmsg = Messages.findOne parent
         message.private = pmsg.private if pmsg.private?
       ## Old default: public if available, private otherwise
-      #if root.threadPrivacy? and 'public' not in root.threadPrivacy
+      #if root?.threadPrivacy? and 'public' not in root.threadPrivacy
       #  message.private = true
     now = new Date
     username = Meteor.user().username
