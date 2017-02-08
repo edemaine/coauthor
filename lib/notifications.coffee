@@ -258,10 +258,10 @@ if Meteor.isServer
       message: msg._id
     if html
       if quote
-        """&ldquo;<a href=\"#{url}\">#{formatTitleOrFilename msg}</a>&rdquo;"""
+        """&ldquo;<a href=\"#{url}\">#{formatTitleOrFilename msg, true, true}</a>&rdquo;"""
       else
         #"<A HREF=\"#{url}\">#{_.escape titleOrUntitled msg}</A>"
-        """<a href=\"#{url}\">#{formatTitleOrFilename msg}</a>"""
+        """<a href=\"#{url}\">#{formatTitleOrFilename msg, true, true}</a>"""
     else
       if quote
         """"#{titleOrUntitled msg}" [#{url}]"""

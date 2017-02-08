@@ -346,7 +346,7 @@ formatEither = (isTitle, format, text, leaveTeX = false) ->
   if format == 'latex'
     [text, math] = formats[format] text, isTitle
   else
-    [text, math] = preprocessKaTeX text unless leaveTeX
+    [text, math] = preprocessKaTeX text
     if format of formats
       text = formats[format] text, isTitle
     else
@@ -357,7 +357,7 @@ formatEither = (isTitle, format, text, leaveTeX = false) ->
     .replace /^\s*<P>\s*/i, ''
     .replace /\s*<\/P>\s*$/i, ''
   if leaveTeX
-    text = putMathBack text, math if format == 'latex'
+    text = putMathBack text, math
   else
     text = postprocessKaTeX text, math
   text = postprocessCoauthorLinks text
@@ -377,13 +377,13 @@ formatEither = (isTitle, format, text, leaveTeX = false) ->
 @formatFileDescription = (file) ->
   fileId = file
   file = findFile file unless file._id
-  return formatBadFile() unless file?
+  return formatBadFile fileId unless file?
   """<i class="odd-file"><a href="#{urlToFile file}">&lt;#{file.length}-byte #{file.contentType} file &ldquo;#{file.filename}&rdquo;&gt;</a></i>"""
 
 @formatFile = (file) ->
   fileId = file
   file = findFile file unless file._id
-  return formatBadFile() unless file?
+  return formatBadFile fileId unless file?
   switch fileType file
     when 'image'
       """<img src="#{urlToFile file}">"""
@@ -404,9 +404,9 @@ formatEither = (isTitle, format, text, leaveTeX = false) ->
   else
     title
 
-@formatTitleOrFilename = (msg, orUntitled = true) ->
+@formatTitleOrFilename = (msg, orUntitled = true, leaveTeX = false) ->
   if msg.format and msg.title and msg.title.trim().length > 0
-    formatTitle msg.format, msg.title
+    formatTitle msg.format, msg.title, leaveTeX
   else
     formatFilename msg, orUntitled
 
