@@ -140,8 +140,8 @@ latexEscape = (x) ->
   ## Commands
   tex = tex.replace /\\\\/g, '[DOUBLEBACKSLASH]'
   .replace /\\(BY|YEAR)\s*{([^{}]*)}/g, '<span style="border: thin solid; margin-left: 0.5em; padding: 0px 4px; font-variant:small-caps">$2</span>'
-  .replace /\\protect\s*/g, ''
-  .replace /\\par\s*/g, '<p>'
+  .replace /\\protect\b\s*/g, ''
+  .replace /\\par\b\s*/g, '<p>'
   .replace /\\textbf\s*{((?:[^{}]|{[^{}]*})*)}/g, '<b>$1</b>'
   .replace /\\textit\s*{((?:[^{}]|{[^{}]*})*)}/g, '<i>$1</i>'
   .replace /\\textsf\s*{((?:[^{}]|{[^{}]*})*)}/g, '<span style="font-family: sans-serif">$1</span>'
@@ -152,7 +152,7 @@ latexEscape = (x) ->
   .replace /\\colorbox\s*{([^{}]*)}\s*{([^{}]*)}/g, '<span style="background-color: $1">$2</a>'
   .replace /\\begin\s*{enumerate}/g, '<ol>'
   .replace /\\begin\s*{itemize}/g, '<ul>'
-  .replace /\\item/g, '<li>'
+  .replace /\\item\b\s*/g, '<li>'
   .replace /\\end\s*{enumerate}/g, '</ol>'
   .replace /\\end\s*{itemize}/g, '</ul>'
   .replace /\\chapter\s*\*?\s*{((?:[^{}]|{[^{}]*})*)}/g, '<h1>$1</h1>'
@@ -217,7 +217,7 @@ latexEscape = (x) ->
   .replace /\\H\s*{o}/g, '&#337;'
   .replace /\\&/g, '&amp;'
   .replace /\\([${}])/g, '$1'
-  .replace /\\\s/g, ' '
+  .replace /\\\s+/g, ' '
   .replace latexSymbolsRe, (match, offset, string) ->
     if inTag string, offset  ## potential unclosed HTML tag; leave alone
       match
