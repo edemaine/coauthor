@@ -462,6 +462,7 @@ if Meteor.isServer
   rootMessages().forEach _submessagesChanged
 
 checkPrivacy = (privacy, root) ->
+  return unless privacy?
   root = findMessageRoot root  ## can pass message or message ID
   unless canSuper root.group
     switch privacy
