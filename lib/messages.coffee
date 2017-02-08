@@ -682,8 +682,11 @@ Meteor.methods
     root = findMessageRoot parent
     checkPrivacy message.private, root
     unless message.private?
-      ## Default to match parent
-      if parent?
+      ## If root says private only, default is to be private.
+      ## Otherwise, match parent.
+      if root.threadPrivacy? and 'public' not in root.threadPrivacy
+        message.private = true
+      else if parent?
         pmsg = Messages.findOne parent
         message.private = pmsg.private if pmsg.private?
       ## Old default: public if available, private otherwise
