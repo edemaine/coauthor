@@ -27,6 +27,7 @@ replaceMathBlocks = (text, replacer) ->
     if block.environment and block.environment in ['eqnarray', 'align']
       block.content = "\\begin{aligned}#{block.content}\\end{aligned}"
     block.end = match.index + match[0].length
+    block.all = text[block.start...block.end]
     blocks.push block
     block = null
   braces = 0
@@ -305,7 +306,7 @@ preprocessKaTeX = (text) ->
 
 putMathBack = (tex, math) ->
   ## Restore math
-  tex.replace /MATH(\d+)ENDMATH/g, (match, p1) -> math[p1]
+  tex.replace /MATH(\d+)ENDMATH/g, (match, p1) -> math[p1].all
 
 postprocessKaTeX = (text, math) ->
   replacer = (block) ->
