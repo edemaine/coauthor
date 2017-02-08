@@ -37,7 +37,7 @@ titleDigits = 10
   role in groupAnonymousRoles group
 
 @memberOfGroup = (group, user = Meteor.user()) ->
-  roles = user.roles[escapeGroup group]
+  roles = user?.roles?[escapeGroup group]
   roles and roles.length > 0
 
 if Meteor.isServer
