@@ -128,9 +128,9 @@ Template.message.onRendered ->
   $('[data-toggle="tooltip"]').tooltip()
 
   ## Give focus to first Title input, if there is one.
-  titles = $('input.title')
-  if titles.length
-    titles[0].focus()
+  setTimeout ->
+    $('input.title').first().focus()
+  , 100
 
 editing = (self) ->
   Meteor.user()? and Meteor.user().username in (self.editing ? [])
