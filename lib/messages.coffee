@@ -463,15 +463,16 @@ if Meteor.isServer
 
 checkPrivacy = (privacy, root) ->
   root = findMessageRoot root  ## can pass message or message ID
-  switch privacy
-    when true
-      unless root?.threadPrivacy? and 'private' in root.threadPrivacy
-        throw new Meteor.Error 'checkPrivacy.privateForbidden',
-          "Cannot make message private in thread '#{root._id}'"
-    when false
-      unless root?.threadPrivacy? and 'public' in root.threadPrivacy
-        throw new Meteor.Error 'checkPrivacy.publicForbidden',
-          "Cannot reate message public in thread '#{root._id}'"
+  unless canSuper root.group
+    switch privacy
+      when true
+        unless root?.threadPrivacy? and 'private' in root.threadPrivacy
+          throw new Meteor.Error 'checkPrivacy.privateForbidden',
+            "Cannot make message private in thread '#{root._id}'"
+      when false
+        unless root?.threadPrivacy? and 'public' in root.threadPrivacy
+          throw new Meteor.Error 'checkPrivacy.publicForbidden',
+            "Cannot make message public in thread '#{root._id}'"
   null
 
 ## The following should be called directly only on the server;
