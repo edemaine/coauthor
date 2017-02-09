@@ -1,5 +1,8 @@
 @Notifications = new Mongo.Collection 'notifications'
 
+if Meteor.isServer
+  Notifications._ensureIndex [['to', 1], ['seen', 1], ['message', 1]]
+
 @notificationLevels = [
   'batched'
   'settled'
@@ -117,7 +120,7 @@ if Meteor.isServer
       user = findUser @userId
       if user?
         Notifications.find
-          user: user.username
+          to: user.username
           seen: false
       else
         @ready()
@@ -126,7 +129,7 @@ if Meteor.isServer
       user = findUser @userId
       if user?
         Notifications.find
-          user: user.username
+          to: user.username
       else
         @ready()
 

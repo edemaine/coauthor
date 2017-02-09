@@ -17,6 +17,15 @@ import { defaultFormat } from './settings.coffee'
 @MessagesDiff = new Mongo.Collection 'messages.diff'
 @MessagesParent = new Mongo.Collection 'messages.parents'
 
+if Meteor.isServer
+  ## This index makes it easy to find all messages in a specified group,
+  ## and to find all root (root = null) messages in a specified group.
+  Messages._ensureIndex [
+    ['group', 1]
+    ['root', 1]
+  ]
+  #Messages._ensureIndex group: 'hashed'
+
 @rootMessages = (group) ->
   query =
     root: null

@@ -20,6 +20,9 @@ titleDigits = 10
 
 @Groups = new Mongo.Collection 'groups'
 
+if Meteor.isServer
+  Groups._ensureIndex [['name', 'hashed']]
+
 @findGroup = (group) ->
   return group if group.name?
   Groups.findOne

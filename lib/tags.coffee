@@ -1,5 +1,8 @@
 @Tags = new Mongo.Collection 'tags'
 
+if Meteor.isServer
+  Tags._ensureIndex [['group', 1], ['deleted', 1]]
+
 @escapeTag = escapeKey
 @unescapeTag = unescapeKey
 @validTag = (tag) ->
