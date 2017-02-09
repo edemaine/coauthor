@@ -283,14 +283,18 @@ postprocessLinks = (text) ->
         "#{slash}&#8203;"  ## Add zero-width space after every slash group
 
 @escapeRe = (string) ->
-  string.replace /[\\^$*+?.()|{}\[\]]/g, "\\$1"
+  string.replace /[\\^$*+?.()|{}\[\]]/g, "\\$&"
 
 postprocessAtMentions = (text) ->
+  return text unless 0 <= text.indexOf '@'
   users = Meteor.users.find {}, fields: username: 1
   .map (user) -> user.username
   return text unless 0 < users.length
+  ## Reverse-sort by length to ensure maximum-length match
+  ## (to handle when one username is a prefix of another).
+  _.sortBy users, (name) -> -name.length
   users = (escapeRe user for user in users)
-  text.replace ///@(#{users.join '|'})\b///g, (match, user) ->
+  text.replace ///@(#{users.join '|'})(?!\w)///g, (match, user) ->
     "@#{linkToAuthor (routeGroup?() ? wildGroup), user}"
 
 katex = require 'katex'
