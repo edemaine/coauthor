@@ -96,7 +96,6 @@ if Meteor.isServer
 
   membersAddUsername = (username, groups) ->
     if groups.length > 0
-      console.log 'adding', username, 'to', groups
       Groups.update
         name: $in: groups
       ,
