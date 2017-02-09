@@ -26,7 +26,7 @@ Router.route '/:group/m/:message',
   subscriptions: -> [
     Subscribe.subscribe 'messages.submessages', @params.message
     Subscribe.subscribe 'messages.subscribers', @params.message
-    Subscribe.subscribe 'messages.neighbors', @params.message
+    Subscribe.subscribe 'messages.root', @params.group
     Subscribe.subscribe 'groups.members', @params.group
     Subscribe.subscribe 'tags', @params.group
   ]

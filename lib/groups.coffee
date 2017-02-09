@@ -1,5 +1,6 @@
 @wildGroup = '*'
 @anonymousUser = '*'
+@readAllUser = '[READ-ALL]'
 
 @escapeGroup = escapeKey
 @unescapeGroup = unescapeKey
@@ -30,6 +31,8 @@ titleDigits = 10
   findGroup(group)?.anonymous ? []
 
 @groupRoleCheck = (group, role, user = Meteor.user()) ->
+  if user == readAllUser
+    return role == 'read'
   ## Note that group may be wildGroup to check specifically for global role.
   ## If e.g. in Meteor.publish handler, pass in user: findUser userId
   role in (user?.roles?[wildGroup] ? []) or

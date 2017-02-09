@@ -269,40 +269,6 @@ if Meteor.isServer
       else
         @ready()
 
-  Meteor.publish 'messages.neighbors', (root) ->
-    check root, String
-    if canSee root, false, findUser @userId
-      init = true
-      @autorun ->
-        msg = Messages.findOne root
-        return unless msg?
-        messages = groupSortedBy msg.group, groupDefaultSort(msg.group),
-          fields:
-            title: 1
-            group: 1
-        , findUser @userId
-        ids = (message._id for message in messages)
-        index = ids.indexOf root
-        neighbors = {}
-        if index >= 0
-          neighbors.prev = messages[index-1] if index > 0
-          neighbors.next = messages[index+1] if index < messages.length - 1
-        if init
-          init = false
-          @added 'messages.neighbors', root, neighbors
-        else
-          @changed 'messages.neighbors', root, neighbors
-    @ready()
-
-if Meteor.isClient
-  @MessagesNeighbors = new Mongo.Collection 'messages.neighbors'
-
-  @messageNeighbors = (root) ->
-    return unless root
-    unless _.isString root
-      root = root._id
-    MessagesNeighbors.findOne root
-
 #if Meteor.isServer
 #  Meteor.publish 'messages.summary', (group) ->
 #    check group, String
@@ -953,6 +919,22 @@ Meteor.methods
           $set: root: root._id
         ,
           multi: true
+
+## On client, requires messages.root subscription
+@messageNeighbors = (root) ->
+  return unless root._id?
+  messages = groupSortedBy root.group, groupDefaultSort(root.group),
+    fields:
+      title: 1
+      group: 1
+  messages = messages.fetch() if messages.fetch?
+  ids = (message._id for message in messages)
+  index = ids.indexOf root._id
+  return unless index >= 0
+  neighbors = {}
+  neighbors.prev = messages[index-1] if index > 0
+  neighbors.next = messages[index+1] if index < messages.length - 1
+  neighbors
 
 ## Upgrade from old file message format (format 'file', body = file pointer)
 ## to new file message format (file = file pointer)
