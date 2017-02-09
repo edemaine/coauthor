@@ -290,7 +290,7 @@ postprocessAtMentions = (text) ->
   .map (user) -> user.username
   return text unless 0 < users.length
   users = (escapeRe user for user in users)
-  text.replace ///@(#{users.join '|'})\b///, (match, user) ->
+  text.replace ///@(#{users.join '|'})\b///g, (match, user) ->
     "@#{linkToAuthor (routeGroup?() ? wildGroup), user}"
 
 katex = require 'katex'
