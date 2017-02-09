@@ -34,7 +34,7 @@ _submessageCount = (root) ->
   .count()
 
 _submessageLastUpdate = (root) ->
-  root = Messages.findOne root unless root._id?
+  root = findMessage root
   return null unless root?
   updated = root.updated
   Messages.find
@@ -50,7 +50,7 @@ _submessageLastUpdate = (root) ->
 @descendantMessageIds = (message) ->
   descendants = []
   recurse = (m) ->
-    m = Messages.findOne m if _.isString m
+    m = findMessage m
     for child in m.children
       descendants.push child
       recurse child
@@ -310,7 +310,7 @@ if Meteor.isServer
   ## above, so we don't need to check this in the client.  But this function
   ## is still needed in the server for messages.diff subscription above,
   ## and when simulating non-superuser mode in client/message.coffee.
-  message = Messages.findOne message unless message._id?
+  message = findMessage message
   return false unless message?
   group = message.group #message2group message
   if canSuper group, client, user #groupRoleCheck group, 'super', user
@@ -329,10 +329,10 @@ if Meteor.isServer
   Meteor.userId()? and
   groupRoleCheck group, 'post'
 
-@canEdit = (message) ->
+@canEdit = (msg) ->
   ## Can edit message if an "author" (the creator or edited in the past),
   ## or if we have global edit privileges in this group.
-  msg = Messages.findOne message
+  msg = findMessage msg
   return false unless msg?
   escapeUser(Meteor.user()?.username) of (msg.authors ? {}) or
   groupRoleCheck msg.group, 'edit'
@@ -356,13 +356,13 @@ if Meteor.isServer
   canSuper message2group message
 
 @amAuthor = (message, user = Meteor.user()) ->
-  message = Messages.findOne message unless message._id?
+  message = findMessage message
   return false unless user?.username
   escapeUser(user.username) of (message.authors ? {}) or
   0 <= message.body.search ///@#{user.username}\b///
 
 @canPrivate = (message) ->
-  message = Messages.findOne message unless message._id?
+  message = findMessage message
   if canSuper message.group
     ## Superuser can always change private flag
     true
@@ -381,7 +381,7 @@ if Meteor.isServer
 idle = 1000   ## one second
 
 @message2group = (message) ->
-  Messages.findOne(message)?.group
+  findMessage(message)?.group
 
 @findMessage = (message) ->
   message = Messages.findOne message unless message._id?
@@ -403,14 +403,14 @@ idle = 1000   ## one second
 
 @findMessageRoot = (message) ->
   return message unless message?
-  message = Messages.findOne message unless message._id?
+  message = findMessage message
   if message.root?
     Messages.findOne message.root
   else
     message
 
 @messageEmpty = (message) ->
-  message = Messages.findOne message unless message._id?
+  message = findMessage message
   message.title.trim().length == 0 and
   message.body.trim().length == 0 and
   not message.file
