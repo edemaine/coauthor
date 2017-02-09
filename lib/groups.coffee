@@ -139,6 +139,7 @@ if Meteor.isServer
           fields:
             username: 1
             profile: 1
+            emails: 1  ## necessary to know whether email address verified
       else
         @ready()
 

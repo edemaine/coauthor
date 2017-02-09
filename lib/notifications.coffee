@@ -44,17 +44,51 @@
 @autosubscribe = (user = Meteor.user()) ->
   not user.profile.notifications? or user.profile.notifications?.autosubscribe != false
 
+## Checks whether specified user gets notifications about this message.
+## However, it does not check two conditions required for notifiactions:
+## * canSee.  On client, this is implied when user = self.
+##   When generating notification list, we're interested generally about the
+##   thread, so this is a good approximation.
+## * The user has a verified email address.  Don't want this for client
+##   checkboxes.
 @subscribedToMessage = (message, user = Meteor.user()) ->
-  ## Extra memberOfGroup test prevents users with global permissions
-  ## from autosubscribing.
-  canSee(message, false, user) and \
+  #canSee(message, false, user) and \
+  ## memberOfGroup test prevents users with global permissions from
+  ## autosubscribing to everything.  Also easier to find subscribers
+  ## by starting with group's members.
   memberOfGroup(message2group(message), user) and \
-  if message in (user.profile.notifications?.subscribed ? [])
-    true
-  else if message in (user.profile.notifications?.unsubscribed ? [])
-    false
+  if autosubscribe user
+    message not in (user.profile.notifications?.unsubscribed ? [])
   else
-    autosubscribe user
+    message in (user.profile.notifications?.subscribed ? [])
+
+## Mimicks logic of subscribedToMessage above, plus requires verified email.
+@messageSubscribers = (msg, options = {}) ->
+  msg = findMessage msg
+  group = msg.group
+  root = msg.root ? msg._id
+  Meteor.users.find
+    username: $in: groupMembers group
+    emails: $elemMatch: verified: true
+    'profile.notifications.on':
+      if defaultNotificationsOn
+        $ne: false
+      else
+        true
+    $or: [
+      'profile.notifications.autosubscribe': $ne: false
+      'profile.notifications.unsubscribed': $nin: [root]
+    ,
+      'profile.notifications.autosubscribe': false
+      'profile.notifications.subscribed': root
+    ]
+  , options
+
+@sortedMessageSubscribers = (msg) ->
+  users = messageSubscribers msg,
+    fields: username: true
+  .map (user) -> user.username
+  _.sortBy users, userSortKey
 
 @notificationTime = (notification) ->
   user = findUsername notification.to
@@ -77,17 +111,6 @@
 ##   - possible future types: 'import', 'superdelete', 'users', 'settings'
 ##   - seen: true/false (whether notification has been delivered/deleted)
 
-if Meteor.isClient
-  @MessagesSubscribers = new Mongo.Collection 'messages.subscribers'
-
-  @messageSubscribers = (msg) ->
-    unless _.isString msg
-      msg = msg._id
-    MessagesSubscribers.findOne(msg)?.subscribers ? []
-
-  @sortedMessageSubscribers = (group) ->
-    _.sortBy messageSubscribers(group), userSortKey
-
 if Meteor.isServer
   Meteor.publish 'notifications', () ->
     @autorun ->
@@ -107,31 +130,18 @@ if Meteor.isServer
       else
         @ready()
 
-  Meteor.publish 'messages.subscribers', (root) ->
-    check root, String
-    if canSee root, false, findUser @userId
-      init = true
-      @autorun ->
-        subs = subscribers: (user.username for user in serverMessageSubscribers root when _.some user.emails, (email) -> email.verified)
-        if init
-          init = false
-          @added 'messages.subscribers', root, subs
-        else
-          @changed 'messages.subscribers', root, subs
-    @ready()
-
   notifiers = {}
 
   @notifyMessageUpdate = (diff, created = false) ->
     msg = Messages.findOne diff.id
-    for to in serverMessageSubscribers msg
+    messageSubscribers(msg).forEach (to) ->
       ## Don't send notifications to myself, if so requested.
-      continue if diff.updators.length == 1 and diff.updators[0] == to.username and not notifySelf to
+      return if diff.updators.length == 1 and diff.updators[0] == to.username and not notifySelf to
       ## Only notify people who can read the message!
       ## Checked again during notification.
-      ## xxx this is already checked by serverMessageSubscribers
-      ## xxx what should behavior be for superuser?  Currently they see all...
-      continue unless canSee msg, false, to
+      ## Currently superuser can see everything, so they get notified about
+      ## everything in the groups they are members of.
+      return unless canSee msg, false, to
       ## Coallesce past notification (if it exists) into this notification,
       ## if they regard the same message and haven't yet been seen by user.
       notification = Notifications.findOne
@@ -155,28 +165,6 @@ if Meteor.isServer
         if created
           notification.created = created
         notificationInsert notification
-
-  @serverMessageSubscribers = (msg) ->
-    if _.isString msg
-      root = msg
-    else
-      root = msg.root ? msg._id
-    users = Meteor.users.find
-      'profile.notifications.on':
-        if defaultNotificationsOn
-          $ne: false
-        else
-          true
-      ## This query didn't work ($ne doesn't enter array elements?)
-      #$or: [
-      #  autosubscribe: $ne: false
-      #  unsubscribe: $ne: root
-      #,
-      #  autosubscribe: false
-      #  subscribe: root
-      #]
-    .fetch()
-    user for user in users when subscribedToMessage root, user
 
   notificationInsert = (notification) ->
     notification.seen = false
