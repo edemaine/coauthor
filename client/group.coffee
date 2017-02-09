@@ -243,8 +243,8 @@ Template.messageShort.events
     if subscribedToMessage @_id
       Meteor.users.update Meteor.userId(),
         $push: 'profile.notifications.unsubscribed': @_id
-        $pop: 'profile.notifications.subscribed': @_id
+        $pull: 'profile.notifications.subscribed': @_id
     else
       Meteor.users.update Meteor.userId(),
         $push: 'profile.notifications.subscribed': @_id
-        $pop: 'profile.notifications.unsubscribed': @_id
+        $pull: 'profile.notifications.unsubscribed': @_id
