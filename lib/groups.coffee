@@ -21,6 +21,7 @@ titleDigits = 10
 @Groups = new Mongo.Collection 'groups'
 
 @findGroup = (group) ->
+  return group if group.name?
   Groups.findOne
     name: group
 
@@ -42,6 +43,14 @@ titleDigits = 10
 @memberOfGroup = (group, user = Meteor.user()) ->
   roles = user?.roles?[escapeGroup group]
   roles and roles.length > 0
+
+## List all groups that the user is a member of.
+## (Mimicking memberOfGroup above.)
+@memberOfGroups = (user = Meteor.user()) ->
+  for group, roles of user?.roles ? {}
+    continue unless roles.length > 0
+    continue if group == wildGroup
+    unescapeGroup group
 
 if Meteor.isServer
   @readableGroups = (userId) ->
@@ -66,45 +75,79 @@ if Meteor.isServer
     @autorun ->
       readableGroups @userId
 
-  @groupMembers = (group, options) ->
-    ## Mimic memberOfGroup above
-    Meteor.users.find
-      "roles.#{escapeGroup group}":
-        $exists: true
-        $ne: []
-    , options
+  #@groupMembers = (group, options) ->
+  #  ## Mimic memberOfGroup above
+  #  Meteor.users.find
+  #    "roles.#{escapeGroup group}":
+  #      $exists: true
+  #      $ne: []
+  #  , options
+
+  ## Give all groups a 'members' array field, automatically updated to
+  ## contain all users that match memberOfGroup defined above.
+  ## The initial live query will get all memberships, so reset to empty.
+  ## (Also needed because $addToSet only works with fields containing arrays.)
+  Groups.update {}
+    #members: null
+  ,
+    $set: members: []
+  ,
+    multi: true
+
+  membersAddUsername = (username, groups) ->
+    if groups.length > 0
+      console.log 'adding', username, 'to', groups
+      Groups.update
+        name: $in: groups
+      ,
+        $addToSet: members: username
+      ,
+        multi: true
+
+  membersRemoveUsername = (username, groups) ->
+    if groups.length > 0
+      Groups.update
+        name: $in: groups
+      ,
+        $pull: members: username
+      ,
+        multi: true
+
+  Meteor.users.find
+    roles: $exists: true
+  ,
+    fields:
+      roles: true
+      username: true
+  .observe
+    added: (user) ->
+      membersAddUsername user.username, memberOfGroups user
+    removed: (user) ->
+      membersRemoveUsername user.username, memberOfGroups user
+    changed: (userNew, userOld) ->
+      groupsNew = memberOfGroups userNew
+      groupsOld = memberOfGroups userOld
+      membersRemoveUsername userOld.username, _.difference groupsOld, groupsNew
+      membersAddUsername userNew.username, _.difference groupsNew, groupsOld
 
   Meteor.publish 'groups.members', (group) ->
     check group, String
-    if groupRoleCheck group, 'read', findUser @userId
-      id = findGroup(group)._id
-      @autorun ->
-        groupMembers group,
+    @autorun ->
+      if groupRoleCheck group, 'read', findUser @userId
+        Meteor.users.find
+          username: $in: groupMembers group
+        ,
           fields:
             username: 1
             profile: 1
-      init = true
-      @autorun ->
-        members =
-          members: groupMembers(group, fields: username: 1).map (user) -> user.username
-        if init
-          init = false
-          members.group = group
-          @added 'groups.members', id, members
-        else
-          @changed 'groups.members', id, members
-    @ready()
+      else
+        @ready()
 
-if Meteor.isClient
-  @GroupsMembers = new Mongo.Collection 'groups.members'
+@groupMembers = (group) ->
+  findGroup(group).members
 
-  @groupMembers = (group) ->
-    GroupsMembers.findOne
-      group: group
-    ?.members ? []
-
-  @sortedGroupMembers = (group) ->
-    _.sortBy groupMembers(group), userSortKey
+@sortedGroupMembers = (group) ->
+  _.sortBy groupMembers(group), userSortKey
 
 Meteor.methods
   setRole: (group, user, role, yesno) ->
