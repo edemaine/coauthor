@@ -58,6 +58,8 @@ localstorage@1.0.12
 logging@1.1.16
 meteor@1.6.0
 meteor-base@1.0.4
+meteorhacks:kadira@2.30.3
+meteorhacks:meteorx@1.4.1
 meteorhacks:subs-manager@1.6.4
 minifier-css@1.2.15
 minifier-js@1.2.15
