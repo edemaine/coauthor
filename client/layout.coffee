@@ -10,7 +10,7 @@ Template.layout.helpers
       ''
   showUsers: ->
     Router.current().route.getName() != 'users' and
-    canAdmin routeGroup()
+    canAdmin routeGroupOrWild()
   inUsers: ->
     Router.current().route.getName() == 'users'
   creditsWide: ->
