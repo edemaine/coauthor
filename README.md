@@ -215,6 +215,10 @@ In Postfix, modify the `/etc/postfix/main.cf` configuration as follows
 
    `mynetworks = 127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128 172.17.0.0/16`
 
-Also, if you want `coauthor@yourhostname.com` to receive email,
+If you want `coauthor@yourhostname.com` to receive email,
 add an alias like `coauthor: edemaine@mit.edu` to `/etc/aliases`
 and then run `sudo newaliases`.
+
+If you want to use [Kadira](https://kadira.io/) to monitor the performance,
+errors, etc., the package is already installed; just add credentials to a
+`server/kadira.js` file.
