@@ -47,8 +47,9 @@ if Meteor.isServer
 @autosubscribe = (user = Meteor.user()) ->
   not user.profile.notifications? or user.profile.notifications?.autosubscribe != false
 
-## Checks whether specified user gets notifications about this message.
-## However, it does not check two conditions required for notifiactions:
+## Checks whether specified user has *requested* notifications about this
+## message, as desired by client checkbox UI.  It therefore does *not* check
+## two conditions required for notifications:
 ## * canSee.  On client, this is implied when user = self.
 ##   When generating notification list, we're interested generally about the
 ##   thread, so this is a good approximation.
@@ -65,12 +66,14 @@ if Meteor.isServer
   else
     message in (user.profile.notifications?.subscribed ? [])
 
-## Mimicks logic of subscribedToMessage above, plus requires verified email.
+## Mimicks logic of subscribedToMessage above, plus requires verified email
+## and canSee (everything required for notifications).
 @messageSubscribers = (msg, options = {}) ->
   msg = findMessage msg
   group = msg.group
   root = msg.root ? msg._id
-  Meteor.users.find
+  options.fields.roles = true if options.fields?
+  users = Meteor.users.find
     username: $in: groupMembers group
     emails: $elemMatch: verified: true
     'profile.notifications.on':
@@ -86,12 +89,13 @@ if Meteor.isServer
       'profile.notifications.subscribed': root
     ]
   , options
+  .fetch()
+  (user for user in users when canSee msg, false, user)
 
 @sortedMessageSubscribers = (msg) ->
   users = messageSubscribers msg,
     fields: username: true
-  .map (user) -> user.username
-  _.sortBy users, userSortKey
+  _.sortBy (user.username for user in users), userSortKey
 
 @notificationTime = (notification) ->
   user = findUsername notification.to
@@ -137,14 +141,14 @@ if Meteor.isServer
 
   @notifyMessageUpdate = (diff, created = false) ->
     msg = Messages.findOne diff.id
-    messageSubscribers(msg).forEach (to) ->
+    for to in messageSubscribers msg
       ## Don't send notifications to myself, if so requested.
-      return if diff.updators.length == 1 and diff.updators[0] == to.username and not notifySelf to
-      ## Only notify people who can read the message!
-      ## Checked again during notification.
+      continue if diff.updators.length == 1 and diff.updators[0] == to.username and not notifySelf to
+      ## Only notify people who can read the message!  Already checked by
+      ## messageSubscribers, and checked again during notification.
       ## Currently superuser can see everything, so they get notified about
       ## everything in the groups they are members of.
-      return unless canSee msg, false, to
+      #continue unless canSee msg, false, to
       ## Coallesce past notification (if it exists) into this notification,
       ## if they regard the same message and haven't yet been seen by user.
       notification = Notifications.findOne

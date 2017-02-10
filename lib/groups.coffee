@@ -143,6 +143,7 @@ if Meteor.isServer
             username: 1
             profile: 1
             emails: 1  ## necessary to know whether email address verified
+            roles: 1  ## necessary to know who can see messages
       else
         @ready()
 
