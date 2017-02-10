@@ -18,13 +18,19 @@ import { defaultFormat } from './settings.coffee'
 @MessagesParent = new Mongo.Collection 'messages.parents'
 
 if Meteor.isServer
+  #Messages._ensureIndex group: 'hashed'
   ## This index makes it easy to find all messages in a specified group,
   ## and to find all root (root = null) messages in a specified group.
   Messages._ensureIndex [
     ['group', 1]
     ['root', 1]
   ]
-  #Messages._ensureIndex group: 'hashed'
+  ## This index is for the 'live' and 'since' query:
+  ## most recent messages in a group.
+  Messages._ensureIndex [
+    ['group', 1]
+    ['updated', -1]
+  ]
 
 @rootMessages = (group) ->
   query =
