@@ -43,9 +43,10 @@ Template.registerHelper 'groupData', groupData
     sortBy: sort.key
 
 Template.registerHelper 'groups', ->
-  Groups.find()
+  Groups.find {},
+    sort: [['name', 'asc']]
 
-Template.registerHelper 'groupcount', ->
+Template.registerHelper 'groupCount', ->
   Groups.find().count()
 
 Template.registerHelper 'admin', -> canAdmin @group ? routeGroup()

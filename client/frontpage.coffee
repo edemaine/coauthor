@@ -1,12 +1,3 @@
-Template.frontpage.helpers
-  groups: ->
-    Groups.find {},
-      sort: [['name', 'asc']]
-  groupcount: ->
-    Groups.find().count()
-  canSuper: ->
-    canSuper wildGroup
-
 Template.frontpage.events
   'click .groupNewButton': ->
     Modal.show 'groupNew'

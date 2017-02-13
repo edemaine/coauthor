@@ -1,14 +1,14 @@
 template(name="frontpage")
   h1 Welcome to Coauthor!
   if currentUser
-    if groupcount
+    if groupCount
       .alert.alert-success(role="alert") Choose a <B>group</B> below to get started.
     else if ready
       .alert.alert-danger(role="alert") You do not appear to have access to any groups.  You probably need to <B>talk to someone in charge</B>.
     else
       .alert.alert-warning(role="alert") Loading...
   else
-    if groupcount
+    if groupCount
       .alert.alert-warning(role="alert") Choose a <B>public group</B> below, or <B>sign in</B> (in the upper-right corner) to gain more access.
     else if ready
       .alert.alert-danger(role="alert") Please <B>sign in</B> (in the upper-right corner) to get started.
@@ -17,7 +17,7 @@ template(name="frontpage")
   .list-group
     each groups
       a.list-group-item(href="{{pathFor 'group' group=name}}")= name
-  i #{groupcount} groups
+  i #{groupCount} groups
   if canSuper
     span.space
     .btn-group
