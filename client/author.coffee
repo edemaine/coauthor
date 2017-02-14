@@ -13,3 +13,12 @@ Template.author.helpers
         author: @author
   displayUser: ->
     displayUser @author
+  email: ->
+    console.log @author, findUsername @author
+    email = findUsername(@author)?.emails?[0]
+    unless email
+      'unspecified'
+    else if email.verified
+      "&lsquo;#{_.escape email.address}&rsquo;"
+    else
+      "&lsquo;#{_.escape email.address}&rsquo; unverified"
