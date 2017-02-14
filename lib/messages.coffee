@@ -89,7 +89,7 @@ _submessageLastUpdate = (root) ->
       ,
         "authors.#{escapeUser user.username}": $exists: true
       ,
-        body: ///@#{user.username}\b///
+        body: ///@#{user.username}(?!\w)///
       ]
     else
       group: group
