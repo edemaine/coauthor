@@ -57,6 +57,9 @@ _submessageLastUpdate = (root) ->
     published: $ne: false    ## published is false or Date
     deleted: $ne: true
     private: $ne: true
+  ,
+    fields:
+      updated: true
   .forEach (submessage) ->
     updated = dateMax updated, submessage.updated
   updated
