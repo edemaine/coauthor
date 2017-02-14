@@ -140,10 +140,10 @@ if Meteor.isServer
           username: $in: groupMembers group
         ,
           fields:
-            username: 1
-            profile: 1
-            emails: 1  ## necessary to know whether email address verified
-            roles: 1  ## necessary to know who can see messages
+            username: true
+            profile: true
+            emails: true  ## necessary to know whether email address verified
+            roles: true  ## necessary to know who can see messages
       else
         @ready()
 
