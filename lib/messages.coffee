@@ -78,8 +78,8 @@ _submessageLastUpdate = (root) ->
     ## Super-user can see all messages, even unpublished/deleted messages.
     group: group
   else if groupRoleCheck group, 'read', user
-    ## Regular users can see all messages they authored, plus
-    ## published undeleted messages by others.
+    ## Regular users can see all messages they authored, or are @mentioned in,
+    ## plus published undeleted messages by others.
     if user?.username
       group: group
       $or: [
