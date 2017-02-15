@@ -130,6 +130,16 @@ Router.route '/:group/tag/:tag',
     tag: @params.tag
   fastRender: true
 
+Router.route '/:group/stats',
+  name: 'stats'
+  subscriptions: -> [
+    Subscribe.subscribe 'messages.author', @params.group
+    Subscribe.subscribe 'groups.members', @params.group
+  ]
+  data: ->
+    group: @params.group
+  fastRender: true
+
 @wildGroupRoute = 'GLOBAL'
 
 Router.route '/:group/users',

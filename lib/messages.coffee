@@ -187,13 +187,16 @@ if Meteor.isServer
 if Meteor.isServer
   Meteor.publish 'messages.author', (group, author) ->
     check group, String
-    check author, String
+    check author, Match.Optional String  ## defaults to self
     @autorun ->
-      query = accessibleMessagesQuery group, findUser @userId
+      me = findUser @userId
+      query = accessibleMessagesQuery group, me
       return @ready() unless query?
+      unless author?
+        return @ready() unless me?
       query = $and: [
         query
-        messagesByQuery wildGroup, author  ## no need to repeat group
+        messagesByQuery wildGroup, (author ? me.username)  ## no need to repeat group
       ]
       Messages.find addRootsToQuery query
 

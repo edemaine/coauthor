@@ -1,0 +1,11 @@
+template(name='stats')
+  if groupData
+    +statsGood
+  else
+    +badGroup
+
+template(name='statsGood')
+  h1 Statistics
+  h2 Your Statistics
+  canvas.yourStats(width="800", height="400")
+  h2 Global Statistics
