@@ -14,7 +14,6 @@ Template.author.helpers
   displayUser: ->
     displayUser @author
   email: ->
-    console.log @author, findUsername @author
     email = findUsername(@author)?.emails?[0]
     unless email
       'unspecified'
