@@ -1,4 +1,5 @@
 import { defaultFormat } from './settings.coffee'
+import { ShareJS } from 'meteor/mizzao:sharejs'
 
 @untitledMessage = '(untitled)'
 
@@ -621,8 +622,6 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
 
 if Meteor.isServer
   editorTimers = {}
-
-  `import {ShareJS} from 'meteor/mizzao:sharejs'`
 
   ## If we're using a persistent store for sharejs, we need to cleanup
   ## leftover documents from last time.  This should only be for local
