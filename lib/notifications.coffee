@@ -141,46 +141,71 @@ if Meteor.isServer
 
   @notifyMessageUpdate = (diff, created = false) ->
     msg = Messages.findOne diff.id
-    for to in messageSubscribers msg
-      ## Don't send notifications to myself, if so requested.
-      continue if diff.updators.length == 1 and diff.updators[0] == to.username and not notifySelf to
-      ## Only notify people who can read the message!  Already checked by
-      ## messageSubscribers, and checked again during notification.
-      ## Currently superuser can see everything, so they get notified about
-      ## everything in the groups they are members of.
-      #continue unless canSee msg, false, to
-      ## Coallesce past notification (if it exists) into this notification,
-      ## if they regard the same message and haven't yet been seen by user.
-      notification = Notifications.findOne
-        type: 'messageUpdate'
-        to: to.username
-        message: diff.id
-        seen: false
-      if notification?
-        notificationUpdate notification,
-          $push:
-            dates: diff.updated
-            diffs: diff._id
+    subscribers = messageSubscribers msg
+    ## Don't send notifications to myself, if so requested.
+    subscribers = (to for to in subscribers when not
+      (diff.updators.length == 1 and
+       diff.updators[0] == to.username and not notifySelf to))
+    ## Only notify people who can read the message!  Already checked by
+    ## messageSubscribers, and checked again during notification.
+    ## Currently superuser can see everything, so they get notified about
+    ## everything in the groups they are members of.
+    #subscribers = (to for to in subscribers when canSee msg, false, to)
+    return unless subscribers.length > 0
+    ## Coallesce past notification (if it exists) into this notification,
+    ## if they regard the same message and haven't yet been seen by user.
+    notifications = Notifications.find
+      type: 'messageUpdate'
+      to: $in: (to.username for to in subscribers)
+      message: diff.id
+      seen: false
+    .fetch()
+    if notifications.length > 0
+      Notifications.update
+        _id: $in: (notification._id for notification in notifications)
+      ,
+        $push:
+          dates: diff.updated
+          diffs: diff._id
+      ,
+        multi: true
+      byUsername = {}
+      for notification in notifications
+        byUsername[notification.to] = notification
+        notification.dates.push diff.updated
+        notification.diffs.push diff._id
+        notificationSchedule notification
         ## Assuming we don't need to check `created` here, as message existed.
-      else
-        notification =
-          type: 'messageUpdate'
-          to: to.username
-          message: diff.id
-          dates: [diff.updated]
-          diffs: [diff._id]
-        if created
-          notification.created = created
-        notificationInsert notification
+      ## Reduce to the "new" subscribers which had no prior notification.
+      subscribers = (to for to in subscribers when to.username not of byUsername)
+    if subscribers.length > 0
+      notifications =
+        for to in subscribers
+          notification =
+            type: 'messageUpdate'
+            to: to.username
+            message: diff.id
+            dates: [diff.updated]
+            diffs: [diff._id]
+            seen: false
+          if created
+            notification.created = created
+          notification
+      ids = Notifications.insertMany notifications
+      for notification, i in notifications
+        notification._id = ids[i]
+        notificationSchedule notification
 
-  notificationInsert = (notification) ->
-    notification.seen = false
-    notification._id = Notifications.insert notification
-    notificationSchedule notification
+  ## No longer used directly; instead use insertMany()
+  #notificationInsert = (notification) ->
+  #  notification.seen = false
+  #  notification._id = Notifications.insert notification
+  #  notificationSchedule notification
 
-  notificationUpdate = (old, update) ->
-    Notifications.update old._id, update
-    notificationSchedule old._id
+  ## No longer used directly; instead use updateMany()
+  #notificationUpdate = (old, update) ->
+  #  Notifications.update old._id, update
+  #  notificationSchedule old  ## doesn't include update, but has _id & to fields
 
   ## Don't schedule anything sooner than one second from now.
   ## This is useful when many things are trying to schedule for right now
