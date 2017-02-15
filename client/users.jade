@@ -18,9 +18,9 @@ template(name="users")
         tr(data-username=username)
           th
             if fullname
-              div.name #{fullname} (#{username})
+              div.name #{fullname} (<a href="{{pathFor 'author' group=routeGroup author=username}}">#{username}</a>, #{email})
             else
-              div.name #{username}
+              div.name <a href="{{pathFor 'author' group=routeGroup author=username}}">#{username}</a>, #{email}
             div.createdAt created {{formatDate createdAt}}
           td(data-role="read") !{readRole}
           td(data-role="post") !{postRole}

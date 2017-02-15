@@ -38,6 +38,14 @@ Template.users.helpers
     Meteor.users.find {},
       sort: [['createdAt', 'asc']]
   fullname: -> @profile.fullname
+  email: ->
+    email = @emails?[0]
+    unless email
+      'no email'
+    else if email.verified
+      email.address
+    else
+      "#{email.address} unverified"
   showAnonymous: ->
     @group != wildGroup
   showInvitations: ->
