@@ -242,7 +242,7 @@ if Meteor.isServer
     url = urlFor 'group',
       group: group
     if html
-      "<A HREF=\"#{url}\">#{group}</A>"
+      "<a href=\"#{url}\">#{group}</a>"
     else
       "#{group} [#{url}]"
 
@@ -255,7 +255,7 @@ if Meteor.isServer
       if quote
         """&ldquo;<a href=\"#{url}\">#{formatTitleOrFilename msg, true, true}</a>&rdquo;"""
       else
-        #"<A HREF=\"#{url}\">#{_.escape titleOrUntitled msg}</A>"
+        #"<a href=\"#{url}\">#{_.escape titleOrUntitled msg}</a>"
         """<a href=\"#{url}\">#{formatTitleOrFilename msg, true, true}</a>"""
     else
       if quote
