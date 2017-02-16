@@ -522,6 +522,16 @@ _messageUpdate = (id, message, authors = null, old = null) ->
   notifyMessageUpdate message if Meteor.isServer  ## client in simulation
   diffid
 
+_messageAddChild = (child, parent, position = null) ->
+  if position?
+    Messages.update parent,
+      $push: children:
+        $each: [child]
+        $position: position
+  else
+    Messages.update parent,
+      $push: children: child
+
 _messageParent = (child, parent, position = null, oldParent = true, importing = false) ->
   ## oldParent is an internal option for server only; true means "search for/
   ## deal with old parent", while null means we assert there is no old parent.
@@ -531,13 +541,18 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
     throw new Meteor.Error 'messageParent.noChild',
       "Missing child message #{child} to reparent"
   if parent?
-    pmsg = Messages.findOne parent
-    unless pmsg?
-      ## This can happen in client simulation when parent isn't in
-      ## subscription.
-      return if @isSimulation
-      throw new Meteor.Error 'messageParent.noParent',
-        "Missing parent message #{parent} to reparent"
+    ## On server, can give a parent message instead of an ID, to save query.
+    if parent._id?
+      pmsg = parent
+      parent = pmsg._id
+    else
+      pmsg = Messages.findOne parent
+      unless pmsg?
+        ## This can happen in client simulation when parent isn't in
+        ## subscription.
+        return if Meteor.isClient
+        throw new Meteor.Error 'messageParent.noParent',
+          "Missing parent message #{parent} to reparent"
     group = pmsg.group
     root = pmsg.root ? parent
   else
@@ -579,14 +594,7 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
       oldParent = null
   return if parent == oldParent == null  ## no-op, root case
   if parent?
-    if position?
-      Messages.update parent,
-        $push: children:
-          $each: [child]
-          $position: position
-    else
-      Messages.update parent,
-        $push: children: child
+    _messageAddChild child, parent, position
   if root != cmsg.root
     Messages.update child,
       $set: root: root
@@ -712,24 +720,33 @@ Meteor.methods
     if message.published == true
       message.published = now
     message.deleted = false unless message.deleted?
-    ## Now handled by _messageParent
-    #if parent?
-    #  pmsg = Messages.findOne parent
-    #  message.root = pmsg.root ? parent
+    ## Speed up _messageParent by presetting root
+    if parent?
+      message.root = root._id
+    else
+      message.root = null
+      message.submessageCount = 0
+      message.submessageLastUpdate = now
+    ## Actual insertion
     id = Messages.insert message
+    ## Parenting
+    if parent?
+      #_messageParent id, parent, position, null  ## there's no old parent
+      _messageAddChild id, parent, position
+      ## Because we preset root, even _messageParent won't call this for us.
+      ## We already simulated the effect when message is its own root.
+      _submessagesChanged message.root
     ## Prepare for MessagesDiff
     delete message.creator
     delete message.created
     delete message.authors
     delete message.children
     delete message.root
+    delete message.submessageCount
+    delete message.submessageLastUpdate
     message.id = id
     diffid = MessagesDiff.insert message
     message._id = diffid
-    if parent?
-      _messageParent id, parent, position, null  ## there's no old parent
-    else
-      _submessagesChanged message
     notifyMessageUpdate message, true if Meteor.isServer  ## created = true
     id
 
