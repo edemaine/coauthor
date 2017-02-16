@@ -26,6 +26,10 @@ if Meteor.isServer
     ['group', 1]
     ['root', 1]
   ]
+  ## This index makes it easy to find all submessages within a given root.
+  Messages._ensureIndex [
+    ['root', 1]
+  ]
   ## This index is for the 'live' and 'since' query:
   ## most recent messages in a group.
   Messages._ensureIndex [
