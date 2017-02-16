@@ -32,6 +32,10 @@ if Meteor.isServer
     ['group', 1]
     ['updated', -1]
   ]
+  ## This index makes findMessageParent fast.
+  Messages._ensureIndex [
+    ['children', 1]
+  ]
 
 @rootMessages = (group) ->
   query =
@@ -526,30 +530,41 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
   check position, Number if position?
   #check oldParent, Boolean
   #check importing, Boolean
+
+  cmsg = Messages.findOne child
+  unless cmsg?
+    throw new Meteor.Error 'messageParent.noChild',
+      "Missing child message #{child} to reparent"
+
   if parent?
     pmsg = Messages.findOne parent
-    unless pmsg
-      console.warn 'Missing parent', parent, 'for child', child
-      return  ## This should only happen in client simulation
+    unless pmsg?
+      ## This can happen in client simulation when parent isn't in
+      ## subscription.
+      return if @isSimulation
+      throw new Meteor.Error 'messageParent.noParent',
+        "Missing parent message #{parent} to reparent"
     group = pmsg.group
     root = pmsg.root ? parent
-
-    ## Check before creating a cycle in the parent pointers!
-    ancestor = pmsg
-    while ancestor?
-      if ancestor._id == child
-        throw new Meteor.Error 'messageParent.cycle',
-          "Attempt to make #{child} its own ancestor (via #{parent})"
-      ancestor = findMessageParent ancestor
   else
-    group = child.group  ## xxx can't specify other group...
+    group = cmsg.group  ## xxx can't reparent into root message of other group
     root = null
 
   unless canEdit(child) and canPost group, parent
     throw new Meteor.Error 'messageParent.unauthorized',
       "Insufficient privileges to reparent message #{child} into #{parent}"
 
-  cmsg = Messages.findOne child
+  ## Check before creating a cycle in the parent pointers.
+  ## This can happen only if we are making the message nonroot (parent
+  ## nonnull) and the child has children of its own.
+  if parent? and cmsg.children?.length
+    ancestor = pmsg
+    while ancestor?
+      if ancestor._id == child
+        throw new Meteor.Error 'messageParent.cycle',
+          "Attempt to make #{child} its own ancestor (via #{parent})"
+      ancestor = findMessageParent ancestor
+
   oldPosition = null
   oldSiblingsBefore = null
   oldSiblingsAfter = null
@@ -583,7 +598,7 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
       $set: root: root
     if cmsg.root?
       ## If we move a nonroot message to have new root, update descendants.
-      descendants = descendantMessageIds child
+      descendants = descendantMessageIds cmsg
       if descendants.length > 0
         Messages.update
           _id: $in: descendants
@@ -591,8 +606,9 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
           $set: root: root ? child
         ,
           multi: true
-    else
-      ## To reparent root message, change the root of all descendants.
+    else if cmsg.children?.length
+      ## To reparent root message (with children),
+      ## change the root of all descendants.
       Messages.update
         root: child
       ,
