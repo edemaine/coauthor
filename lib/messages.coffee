@@ -226,6 +226,7 @@ if Meteor.isServer
     group: group
     published: $ne: false
     deleted: $ne: true
+    private: $ne: true
   if group == wildGroup
     delete query.group
   query
