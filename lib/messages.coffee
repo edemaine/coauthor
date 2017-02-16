@@ -525,17 +525,11 @@ _messageUpdate = (id, message, authors = null, old = null) ->
 _messageParent = (child, parent, position = null, oldParent = true, importing = false) ->
   ## oldParent is an internal option for server only; true means "search for/
   ## deal with old parent", while null means we assert there is no old parent.
-  check Meteor.userId(), String  ## should be done by 'canEdit'
-  check parent, String if parent != null
-  check position, Number if position?
-  #check oldParent, Boolean
-  #check importing, Boolean
 
   cmsg = Messages.findOne child
   unless cmsg?
     throw new Meteor.Error 'messageParent.noChild',
       "Missing child message #{child} to reparent"
-
   if parent?
     pmsg = Messages.findOne parent
     unless pmsg?
@@ -668,8 +662,8 @@ Meteor.methods
 
   messageNew: (group, parent = null, position = null, message = {}) ->
     #check Meteor.userId(), String  ## should be done by 'canPost'
-    check parent, String if parent?
-    check position, Number if position?
+    check parent, Match.OneOf String, null
+    check position, Match.Maybe Number
     check group, String
     check message,
       title: Match.Optional String
@@ -749,6 +743,9 @@ Meteor.methods
   messageParent: (child, parent, position = null) ->
     ## Notably, disabling oldParent search and importing options are not
     ## allowed from client, only internal to server.
+    check Meteor.userId(), String  ## should be done by 'canEdit'
+    check parent, Match.OneOf String, null
+    check position, Match.Maybe Number
     _messageParent child, parent, position
 
   messageEditStart: (id) ->
@@ -787,7 +784,7 @@ Meteor.methods
   messageImport: (group, parent, message, diffs) ->
     #check Meteor.userId(), String  ## should be done by 'canImport'
     check group, String
-    check parent, String if parent?
+    check parent, Match.OneOf String, null
     check message,
       title: Match.Optional String
       body: Match.Optional String
