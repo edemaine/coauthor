@@ -6,30 +6,44 @@ Template.statsGood.onCreated ->
   @autorun =>
     @weekLabels.splice 0, @weekLabels.length
     @postCounts.splice 0, @postCounts.length
-    Messages.find messagesByQuery Template.currentData().group, Meteor.user().username
+    lastDay = null
+    makeDay = =>
+      @weekLabels.push lastDay.format 'YYYY-MM-DD'
+      @postCounts.push 0
+    Messages.find messagesByQuery(Template.currentData().group, Meteor.user().username)
     , sort: created: 1
     .forEach (msg) =>
-      day = moment(msg.created).format 'YYYY-MM-DD'
-      if @weekLabels.length > 0 and @weekLabels[@weekLabels.length-1] == day
-        @postCounts[@postCounts.length-1] += 1
+      day = moment(msg.created).startOf 'day'
+      if lastDay?
+        while lastDay.valueOf() != day.valueOf()
+          lastDay = lastDay.add 1, 'days'
+          makeDay()
       else
-        @weekLabels.push day
-        @postCounts.push 1
-    @chart?.update()
+        lastDay = day
+        makeDay()
+      @postCounts[@postCounts.length-1] += 1
+    @chart?.update 1000
 
 Template.statsGood.onRendered ->
   @chart = new Chart @find('.yourStats'),
-    type: 'bar'
+    type: 'line'
     data:
       labels: @weekLabels
       datasets: [
         label: 'Number of posts',
         data: @postCounts
-        borderWidth: 1
+        borderWidth: 4
+        borderColor: 'rgba(0,0,0,0.75)'
       ]
     options:
       scales:
         yAxes: [
           ticks:
             beginAtZero: true
+            ## Integer workaround from https://github.com/chartjs/Chart.js/issues/2539
+            callback: (tick) ->
+              if 0 <= tick.toString().indexOf '.'
+                null
+              else
+                tick.toLocaleString()
         ]
