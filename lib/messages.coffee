@@ -169,20 +169,27 @@ if Meteor.isServer
     ids = _.keys ids  ## remove duplicates
     _id: $in: ids
 
-@messagesByQuery = (group, author) ->
+@messagesByQuery = (group, author, atMentions = true) ->
   query =
     group: group
-    "authors.#{escapeUser author}": $exists: true
     published: $ne: false
     deleted: $ne: true
+    $or: [
+      "authors.#{escapeUser author}": $exists: true
+    ]
   if group == wildGroup
     delete query.group
+  if atMentions
+    query.$or.push body: ///@#{author}(?!\w)///
   query
 
 @messagesBy = (group, author) ->
   Messages.find messagesByQuery(group, author),
     sort: [['updated', 'desc']]
     #limit: parseInt(@limit)
+
+@atMentioned = (message, author) ->
+  ///@#{author}(?!\w)///.test message.body
 
 if Meteor.isServer
   Meteor.publish 'messages.author', (group, author) ->

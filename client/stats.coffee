@@ -1,21 +1,45 @@
 import Chart from 'chart.js'
 
+Chart.defaults.global.hover.intersect = false
+Chart.defaults.global.hover.mode = 'index'
+Chart.defaults.global.tooltips.intersect = false
+Chart.defaults.global.tooltips.mode = 'index'
+
 purple = (alpha) -> "rgba(102,51,153,#{alpha})"
+blue = (alpha) -> "rgba(5,141,199,#{alpha})"
 
 Template.statsGood.onCreated ->
-  @labels = []
-  @postCounts = []
-  @pointColors = []
+  @stats =
+    datasets: [
+      label: 'Authored posts',
+      borderWidth: 4
+      colorFunc: purple
+    ,
+      label: 'Posts that @mention you',
+      borderWidth: 4
+      colorFunc: blue
+    ]
+  for dataset in @stats.datasets
+    dataset.borderColor = dataset.colorFunc 0.6
+    dataset.backgroundColor = dataset.colorFunc 0.1
   @autorun =>
-    @labels.splice 0, @labels.length
-    @postCounts.splice 0, @postCounts.length
-    @pointColors.splice 0, @pointColors.length
+    username = Meteor.user().username
+    @stats.labels = []
+    for dataset in @stats.datasets
+      dataset.data = []
     lastDay = null
     makeDay = =>
-      @labels.push lastDay.format 'ddd, MMM DD, YYYY' #'YYYY-MM-DD'
-      @postCounts.push 0
-    Messages.find messagesByQuery(Template.currentData().group, Meteor.user().username)
-    , sort: created: 1
+      @stats.labels.push lastDay.format 'ddd, MMM DD, YYYY' #'YYYY-MM-DD'
+      for dataset in @stats.datasets
+        dataset.data.push 0
+    Messages.find messagesByQuery(Template.currentData().group, username)
+    ,
+      fields:
+        created: true
+        body: true
+        title: true
+        authors: true
+      sort: created: 1
     .forEach (msg) =>
       day = moment(msg.created).startOf 'day'
       if lastDay?
@@ -25,29 +49,29 @@ Template.statsGood.onCreated ->
       else
         lastDay = day
         makeDay()
-      @postCounts[@postCounts.length-1] += 1
-    for count, i in @postCounts
-      if count == 0
-        @pointColors.push 'red'
-      else
-        @pointColors.push purple 1
+      if username of msg.authors
+        @stats.datasets[0].data[@stats.datasets[0].data.length-1] += 1
+      if atMentioned msg, username
+        @stats.datasets[1].data[@stats.datasets[1].data.length-1] += 1
+    for dataset in @stats.datasets
+      dataset.pointBorderColor = []
+    for i in [0...@stats.labels.length]
+      zero = true
+      for dataset in @stats.datasets
+        unless dataset.data[i] == 0
+          zero = false
+          break
+      for dataset in @stats.datasets
+        if zero
+          dataset.pointBorderColor.push 'red'
+        else
+          dataset.pointBorderColor.push dataset.colorFunc 1
     @chart?.update 1000
 
 Template.statsGood.onRendered ->
   @chart = new Chart @find('.yourStats'),
     type: 'line'
-    data:
-      labels: @labels
-      datasets: [
-        label: 'Authored posts',
-        data: @postCounts
-        borderWidth: 4
-        borderColor: purple 0.7
-        backgroundColor: purple 0.1
-        #borderColor: 'rgba(5,141,199,0.9)'
-        #backgroundColor: 'rgba(5,141,199,0.1)'
-        pointBorderColor: @pointColors
-      ]
+    data: @stats
     options:
       scales:
         yAxes: [
