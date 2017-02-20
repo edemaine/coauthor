@@ -33,7 +33,7 @@ switch sharejsEditor
             "ace/keyboard/#{keyboard}"
       )
 
-dropdownToggle = (e) ->
+@dropdownToggle = (e) ->
   #$(e.target).parent().dropdown 'toggle'
   $(e.target).parents('.dropdown-menu').first().parent().find('.dropdown-toggle').dropdown 'toggle'
 

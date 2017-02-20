@@ -5,6 +5,10 @@ Chart.defaults.global.hover.mode = 'index'
 Chart.defaults.global.tooltips.intersect = false
 Chart.defaults.global.tooltips.mode = 'index'
 
+defaultUnit = 'week'
+currentUnit = ->
+  Template.currentData().unit or defaultUnit
+
 purple = (alpha) -> "rgba(102,51,153,#{alpha})"
 blue = (alpha) -> "rgba(5,141,199,#{alpha})"
 
@@ -23,13 +27,22 @@ Template.statsGood.onCreated ->
     dataset.borderColor = dataset.colorFunc 0.6
     dataset.backgroundColor = dataset.colorFunc 0.1
   @autorun =>
+    unit = currentUnit()
+    format =
+      switch unit
+        when 'day', 'week'
+          'ddd, MMM DD, YYYY' #'YYYY-MM-DD'
+        when 'month'
+          'MMM YYYY' #'YYYY-MM'
+        when 'year'
+          'YYYY'
     username = Meteor.user().username
     @stats.labels = []
     for dataset in @stats.datasets
       dataset.data = []
-    lastDay = null
+    lastDate = null
     makeDay = =>
-      @stats.labels.push lastDay.format 'ddd, MMM DD, YYYY' #'YYYY-MM-DD'
+      @stats.labels.push lastDate.format format
       for dataset in @stats.datasets
         dataset.data.push 0
     Messages.find messagesByQuery(Template.currentData().group, username)
@@ -41,13 +54,13 @@ Template.statsGood.onCreated ->
         authors: true
       sort: created: 1
     .forEach (msg) =>
-      day = moment(msg.created).startOf 'day'
-      if lastDay?
-        while lastDay.valueOf() != day.valueOf()
-          lastDay = lastDay.add 1, 'days'
+      day = moment(msg.created).startOf unit
+      if lastDate?
+        while lastDate.valueOf() != day.valueOf()
+          lastDate = lastDate.add 1, unit
           makeDay()
       else
-        lastDay = day
+        lastDate = day
         makeDay()
       if username of msg.authors
         @stats.datasets[0].data[@stats.datasets[0].data.length-1] += 1
@@ -84,3 +97,21 @@ Template.statsGood.onRendered ->
               else
                 tick.toLocaleString()
         ]
+
+Template.statsGood.helpers
+  activeUnit: (which) ->
+    if which == currentUnit()
+      'active'
+    else
+      ''
+  unit: ->
+    capitalize currentUnit()
+
+Template.statsGood.events
+  'click .unit': (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+    dropdownToggle e
+    Router.go 'stats',
+      group: @group
+      unit: e.target.getAttribute 'data-unit'

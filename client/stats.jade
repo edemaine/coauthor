@@ -5,12 +5,26 @@ template(name='stats')
     +badGroup
 
 template(name='statsGood')
-  h1 Statistics
+  h1
+    | Statistics by
+    .btn-group
+      button.btn.btn-lg.btn-primary.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
+        | #{unit}
+        span.caret
+      ul.dropdown-menu(role="menu")
+        li.unit(class="{{activeUnit 'day'}}")
+          a(href="#",data-unit="day") Day
+        li.unit(class="{{activeUnit 'week'}}")
+          a(href="#",data-unit="week") Week
+        li.unit(class="{{activeUnit 'month'}}")
+          a(href="#",data-unit="month") Month
+        li.unit(class="{{activeUnit 'year'}}")
+          a(href="#",data-unit="year") Year
   h2 Your Statistics
   canvas.yourStats(width="800", height="400")
-  h2 Global Statistics
-  p
-    i [coming soon]
+  //-
+    h2 Global Statistics
+    p
+      i [coming soon]
   hr
-  p
-    i Only showing data about undeleted published messages you can see. Messages are plotted according to their <b>creation date</b>.
+  p.small Only showing data about undeleted published messages visible to you. Messages are plotted according to their <i>creation date</i>.

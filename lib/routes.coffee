@@ -131,6 +131,17 @@ Router.route '/:group/tag/:tag',
   fastRender: true
 
 Router.route '/:group/stats',
+  name: 'stats.default'
+  template: 'stats'
+  subscriptions: -> [
+    Subscribe.subscribe 'messages.author', @params.group
+    Subscribe.subscribe 'groups.members', @params.group
+  ]
+  data: ->
+    group: @params.group
+  fastRender: true
+
+Router.route '/:group/stats/:unit',
   name: 'stats'
   subscriptions: -> [
     Subscribe.subscribe 'messages.author', @params.group
@@ -138,6 +149,7 @@ Router.route '/:group/stats',
   ]
   data: ->
     group: @params.group
+    unit: @params.unit
   fastRender: true
 
 @wildGroupRoute = 'GLOBAL'
