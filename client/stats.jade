@@ -21,8 +21,8 @@ template(name='statsGood')
         li.unit(class="{{activeUnit 'year'}}")
           a(href="#",data-unit="year") Year
     if week
+      span.small starting on 
       if canSuper
-        span.small starting on 
         .btn-group
           button.btn.btn-lg.btn-danger.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
             | #{weekStart}
@@ -42,6 +42,8 @@ template(name='statsGood')
               a(href="#",data-day="5") Friday
             li.weekStart(class="{{activeWeekStart 6}}")
               a(href="#",data-day="6") Saturday
+      else
+        span.small #{weekStart}
   h2 Your Statistics
   canvas.yourStats(width="800", height="400")
   //-
