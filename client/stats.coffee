@@ -9,6 +9,10 @@ defaultUnit = 'week'
 currentUnit = ->
   Template.currentData().unit or defaultUnit
 
+defaultWeekStart = 0  ## Sunday
+weekStart = ->
+  groupData()?.weekStart ? defaultWeekStart
+
 purple = (alpha) -> "rgba(102,51,153,#{alpha})"
 blue = (alpha) -> "rgba(5,141,199,#{alpha})"
 
@@ -28,6 +32,8 @@ Template.statsGood.onCreated ->
     dataset.backgroundColor = dataset.colorFunc 0.1
   @autorun =>
     unit = currentUnit()
+    if unit == 'week'
+      weekDay = weekStart()
     format =
       switch unit
         when 'day', 'week'
@@ -54,7 +60,15 @@ Template.statsGood.onCreated ->
         authors: true
       sort: created: 1
     .forEach (msg) =>
-      day = moment(msg.created).startOf unit
+      switch unit
+        when 'week'
+          day = moment(msg.created).startOf 'day'
+          if day.day() < weekDay
+            day.day -7 + weekDay  ## previous week
+          else
+            day.day weekDay  ## same week
+        else
+          day = moment(msg.created).startOf unit
       if lastDate?
         while lastDate.valueOf() != day.valueOf()
           lastDate = lastDate.add 1, unit
@@ -104,8 +118,17 @@ Template.statsGood.helpers
       'active'
     else
       ''
+  week: ->
+    currentUnit() == 'week'
   unit: ->
     capitalize currentUnit()
+  weekStart: ->
+    moment().day(weekStart()).format 'dddd'
+  activeWeekStart: (which) ->
+    if which == weekStart()
+      'active'
+    else
+      ''
 
 Template.statsGood.events
   'click .unit': (e) ->
@@ -115,3 +138,8 @@ Template.statsGood.events
     Router.go 'stats',
       group: @group
       unit: e.target.getAttribute 'data-unit'
+  'click .weekStart': (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+    dropdownToggle e
+    Meteor.call 'groupWeekStart', @group, parseInt e.target.getAttribute 'data-day'

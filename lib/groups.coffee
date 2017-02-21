@@ -198,6 +198,17 @@ Meteor.methods
      ,
        $set: defaultSort: sortBy
 
+  groupWeekStart: (group, weekStart) ->
+    check group, String
+    check weekStart, Match.Where (x) -> x in [0, 1, 2, 3, 4, 5, 6]
+    unless groupRoleCheck group, 'super'
+      throw new Meteor.Error 'groupWeekStart.unauthorized',
+        "You need 'super' permissions to set week start in group '#{group}'"
+    Groups.update
+       name: group
+     ,
+       $set: weekStart: weekStart
+
   groupNew: (group) ->
     check group, String
     unless groupRoleCheck wildGroup, 'super'

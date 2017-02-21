@@ -20,6 +20,28 @@ template(name='statsGood')
           a(href="#",data-unit="month") Month
         li.unit(class="{{activeUnit 'year'}}")
           a(href="#",data-unit="year") Year
+    if week
+      if canSuper
+        span.small starting on 
+        .btn-group
+          button.btn.btn-lg.btn-danger.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
+            | #{weekStart}
+            span.caret
+          ul.dropdown-menu(role="menu")
+            li.weekStart(class="{{activeWeekStart 0}}")
+              a(href="#",data-day="0") Sunday
+            li.weekStart(class="{{activeWeekStart 1}}")
+              a(href="#",data-day="1") Monday
+            li.weekStart(class="{{activeWeekStart 2}}")
+              a(href="#",data-day="2") Tuesday
+            li.weekStart(class="{{activeWeekStart 3}}")
+              a(href="#",data-day="3") Wednesday
+            li.weekStart(class="{{activeWeekStart 4}}")
+              a(href="#",data-day="4") Thursday
+            li.weekStart(class="{{activeWeekStart 5}}")
+              a(href="#",data-day="5") Friday
+            li.weekStart(class="{{activeWeekStart 6}}")
+              a(href="#",data-day="6") Saturday
   h2 Your Statistics
   canvas.yourStats(width="800", height="400")
   //-
