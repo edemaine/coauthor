@@ -19,16 +19,23 @@ fileUrlPrefix = "/file/"
   id = id._id if id._id?
   "#{fileUrlPrefix}#{id}"
 
-internalFileUrlPrefix = "#{Files.baseURL}/id/"
-@urlToInternalFile = (id) ->
-  id = id._id if id._id?
-  "#{fileUrlPrefix}#{id}"
-
 @url2file = (url) ->
   if url[...fileUrlPrefix.length] == fileUrlPrefix
     url[fileUrlPrefix.length..]
   else
     throw new Meteor.Error 'url2file.invalid',
+      "Bad file URL #{url}"
+
+internalFileUrlPrefix = "#{Files.baseURL}/id/"
+@urlToInternalFile = (id) ->
+  id = id._id if id._id?
+  "#{fileUrlPrefix}#{id}"
+
+@url2internalFile = (url) ->
+  if url[...internalFileUrlPrefix.length] == internalFileUrlPrefix
+    url[internalFileUrlPrefix.length..]
+  else
+    throw new Meteor.Error 'url2internalFile.invalid',
       "Bad file URL #{url}"
 
 @findFile = (id) ->
@@ -38,9 +45,9 @@ internalFileUrlPrefix = "#{Files.baseURL}/id/"
 
 @fileType = (file) ->
   file = findFile file unless file.contentType?
-  if file.contentType[...6] == 'image/'
+  if file?.contentType[...6] == 'image/'
     'image'
-  else if file.contentType in ['video/mp4', 'video/ogg', 'video/webm']
+  else if file?.contentType in ['video/mp4', 'video/ogg', 'video/webm']
     'video'
   else
     'unknown'

@@ -192,6 +192,7 @@ messageDrag = (target, bodyToo = true) ->
   type = 'message'
   if @data.file
     type = fileType @data.file
+    #console.log @data.file, type
     #if "class='odd-file'" not in formatted and
     #   "class='bad-file'" not in formatted
     #  url = formatted
@@ -215,17 +216,18 @@ Template.submessage.onRendered ->
   messageFolded.set @data._id, true if @data.deleted
 
   ## Fold referenced attached files by default on initial load.
-  #@$.children('.panel').children('.panel-body').find('a[href|="/gridfs/fs/"]')
-  #console.log @$ 'a[href|="/gridfs/fs/"]'
+  #@$.children('.panel').children('.panel-body').find('a[href|="/file/"]')
+  #console.log @$ 'a[href|="/file/"]'
   tid = @data._id
   id2template[@data._id] = @
   scrollToMessage @data._id if scrollToLater == @data._id
   attachment = @data.file
   #images = Session.get 'images'
   subimages = @images = []
-  $(@firstNode).children('.panel-body').children('.message-file').find('img[src^="/gridfs/fs/"]')
+  $(@firstNode).children('.panel-body').children('.message-file').find('img[src^="/file/"]')
   .each ->
     id = url2file @getAttribute('src')
+    #console.log 'target', id
     initImage id
     images[id].attachment = tid
     if images[id].count > 0 and not messageFolded.get(images[id].attachment)?
@@ -233,9 +235,10 @@ Template.submessage.onRendered ->
   ## If message is deleted or otherwise default-folded,
   ## don't check for images it references.
   unless messageFolded.get @data._id
-    $(@firstNode).children('.panel-body').children('.message-body').find('img[src^="/gridfs/fs/"]')
+    $(@firstNode).children('.panel-body').children('.message-body').find('img[src^="/file/"]')
     .each ->
       id = url2file @getAttribute('src')
+      #console.log 'source', id
       initImage id
       subimages.push id
       images[id].count += 1
