@@ -45,8 +45,8 @@ if Meteor.isServer
         Meteor.users.find
           _id: @userId
         , fields:
-            roles: 1
-            'services.dropbox.id': 1
+            roles: true
+            'services.dropbox.id': true
       else
         @ready()
 else  ## client
