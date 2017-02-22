@@ -313,7 +313,8 @@ putMathBack = (tex, math) ->
   tex.replace /MATH(\d+)ENDMATH/g, (match, p1) -> math[p1].all
 
 postprocessKaTeX = (text, math) ->
-  replacer = (block) ->
+  text.replace /MATH(\d+)ENDMATH/g, (match, p1) ->
+    block = math[p1]
     content = block.content
     #.replace /&lt;/g, '<'
     #.replace /&gt;/g, '>'
@@ -338,11 +339,6 @@ postprocessKaTeX = (text, math) ->
       .replace /</g, '&lt;'
       .replace />/g, '&gt;'
       """<span class="katex-error" title="#{title}">#{latex}</span>"""
-  if math?
-    text.replace /MATH(\d+)ENDMATH/g, (match, p1) ->
-      replacer math[p1]
-  else
-    replaceMathBlocks text, replacer
 
 formatEither = (isTitle, format, text, leaveTeX = false) ->
   ## LaTeX format is special because it does its own math preprocessing at a
