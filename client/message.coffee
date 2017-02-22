@@ -224,14 +224,10 @@ Template.submessage.onRendered ->
   attachment = @data.file
   #images = Session.get 'images'
   subimages = @images = []
-  $(@firstNode).children('.panel-body').children('.message-file').find('img[src^="/file/"]')
-  .each ->
-    id = url2file @getAttribute('src')
-    #console.log 'target', id
-    initImage id
-    images[id].attachment = tid
-    if images[id].count > 0 and not messageFolded.get(images[id].attachment)?
-      messageFolded.set images[id].attachment, true
+  initImage tid
+  images[tid].attachment = tid
+  if images[tid].count > 0 and not messageFolded.get tid
+    messageFolded.set tid, true
   ## If message is deleted or otherwise default-folded,
   ## don't check for images it references.
   unless messageFolded.get @data._id
