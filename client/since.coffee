@@ -9,6 +9,7 @@ messagesSince = (group, since) ->
     updated: $gte: parseSince since
     published: $ne: false
     deleted: false
+    private: $ne: true
   ,
     sort: [['updated', 'asc']]
   .fetch()
