@@ -310,24 +310,24 @@ preprocessKaTeX = (text) ->
 
 putMathBack = (tex, math) ->
   ## Restore math
-  tex.replace /MATH(\d+)ENDMATH/g, (match, p1) -> math[p1].all
+  tex.replace /MATH(\d+)ENDMATH/g, (match, id) -> math[id].all
 
 postprocessKaTeX = (text, math) ->
-  text.replace /MATH(\d+)ENDMATH/g, (match, p1) ->
-    block = math[p1]
+  text.replace /MATH(\d+)ENDMATH([,.!?:;'"\-)\]}]*)/g, (match, id, punct) ->
+    block = math[id]
     content = block.content
     #.replace /&lt;/g, '<'
     #.replace /&gt;/g, '>'
     #.replace /’/g, "'"
     #.replace /‘/g, "`"  ## remove bad Marked automatic behavior
     try
-      katex.renderToString content,
+      out = katex.renderToString content,
         displayMode: block.display
         throwOnError: false
         macros:
           '\\dots': '\\ldots'
           '\\epsilon': '\\varepsilon'
-      #.replace /<math>.*<\/math>/, ''  ## remove MathML
+      .replace /<math>.*<\/math>/, ''  ## remove MathML
     catch e
       throw e unless e instanceof katex.ParseError
       #console.warn "KaTeX failed to parse $#{content}$: #{e}"
@@ -338,7 +338,11 @@ postprocessKaTeX = (text, math) ->
       .replace /&/g, '&amp;'
       .replace /</g, '&lt;'
       .replace />/g, '&gt;'
-      """<span class="katex-error" title="#{title}">#{latex}</span>"""
+      out = """<span class="katex-error" title="#{title}">#{latex}</span>"""
+    if punct
+      '<span class="nobr">' + out + punct + '</span>'
+    else
+      out
 
 formatEither = (isTitle, format, text, leaveTeX = false) ->
   ## LaTeX format is special because it does its own math preprocessing at a

@@ -42,6 +42,7 @@ sanitizeHtml.defaults.allowedAttributes.mfrac = ['linethickness']
 sanitizeHtml.defaults.allowedAttributes.mi = ['mathvariant']
 sanitizeHtml.defaults.allowedAttributes.mo = ['fence', 'separator']
 sanitizeHtml.defaults.allowedAttributes.mstyle = ['mathcolor']
+sanitizeHtml.defaults.allowedTags.push 'nobr'
 
 jsdiff = require 'diff'
 
