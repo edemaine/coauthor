@@ -183,10 +183,10 @@ latexEscape = (x) ->
       else
         value = "-#{value}"
       """<span style="margin-top: #{value}#{unit};">#{arg}</span>"""
-  .replace /\\begin\s*{(problem|theorem|conjecture|lemma|corollary|fact|observation|proposition|claim)}/g, (m, p1) -> "<blockquote><b>#{s.capitalize p1}:</b> "
+  .replace /\\begin\s*{(problem|theorem|conjecture|lemma|corollary|fact|observation|proposition|claim)}(\s*\[([^\]]*)\])?/g, (m, env, x, opt) -> "<blockquote><b>#{s.capitalize env}#{if opt then " (#{opt})" else ''}:</b> "
   .replace /\\end\s*{(problem|theorem|conjecture|lemma|corollary|fact|observation|proposition|claim)}/g, '</blockquote>'
-  .replace /\\begin\s*{(proof|pf)}/g, '<b>Proof:</b> '
-  .replace /\\end\s*{(proof|pf)}/g, ' &#8718;'
+  .replace /\\begin\s*{(proof|pf)}(\s*\[([^\]]*)\])?/g, (m, env, x, opt) -> "<b>Proof#{if opt then " (#{opt})" else ''}:</b> "
+  .replace /\\end\s*{(proof|pf)}/g, ' <span class="pull-right">&#8718;</span></p><p class="clearfix">'
   .replace /\\"{(.)}/g, '&$1uml;'
   .replace /\\"(.)/g, '&$1uml;'
   .replace /\\'c|\\'{c}/g, '&#263;'
