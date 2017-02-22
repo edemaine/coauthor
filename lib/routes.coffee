@@ -28,6 +28,7 @@ Router.route '/:group/m/:message',
     Subscribe.subscribe 'messages.root', @params.group
     Subscribe.subscribe 'groups.members', @params.group
     Subscribe.subscribe 'tags', @params.group
+    Subscribe.subscribe 'files', @params.group
   ]
   data: ->
     Messages.findOne @params.message
@@ -77,6 +78,7 @@ Router.route '/:group/since/:since',
   subscriptions: -> [
     Subscribe.subscribe 'messages.since', @params.group, @params.since
     Subscribe.subscribe 'groups.members', @params.group
+    Subscribe.subscribe 'files', @params.group
   ]
   data: ->
     group: @params.group
@@ -88,6 +90,7 @@ Router.route '/:group/live/:limit',
   subscriptions: -> [
     Subscribe.subscribe 'messages.live', @params.group, @params.limit
     Subscribe.subscribe 'groups.members', @params.group
+    Subscribe.subscribe 'files', @params.group
   ]
   data: ->
     group: @params.group
@@ -102,6 +105,7 @@ Router.route '/:group/live',
   subscriptions: -> [
     Subscribe.subscribe 'messages.live', @params.group, defaultLiveLimit
     Subscribe.subscribe 'groups.members', @params.group
+    Subscribe.subscribe 'files', @params.group
   ]
   data: ->
     group: @params.group
@@ -113,6 +117,7 @@ Router.route '/:group/author/:author',
   subscriptions: -> [
     Subscribe.subscribe 'messages.author', @params.group, @params.author
     Subscribe.subscribe 'groups.members', @params.group
+    Subscribe.subscribe 'files', @params.group
   ]
   data: ->
     group: @params.group
@@ -124,6 +129,7 @@ Router.route '/:group/tag/:tag',
   subscriptions: -> [
     Subscribe.subscribe 'messages.tag', @params.group, @params.tag
     Subscribe.subscribe 'groups.members', @params.group
+    Subscribe.subscribe 'files', @params.group
   ]
   data: ->
     group: @params.group

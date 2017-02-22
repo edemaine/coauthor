@@ -8,6 +8,12 @@
       _id: params._id
   ]
 
+if Meteor.isServer
+  Files._ensureIndex [
+    ['metadata.group', 1]
+    ['metadata._Resumable', 1]
+  ]
+
 fileUrlPrefix = "#{Files.baseURL}/id/"
 @urlToFile = (id) ->
   id = id._id if id._id?
@@ -41,13 +47,15 @@ if Meteor.isServer
       #  'metadata.updator': @userId
       'metadata.group': $in: readableGroupNames userid
 
-  Meteor.publish 'files', (userId) ->
-    ## This prevents a race condition on the client between Meteor.userId() and subscriptions to this publish
-    ## See: https://stackoverflow.com/questions/24445404/how-to-prevent-a-client-reactive-race-between-meteor-userid-and-a-subscription/24460877#24460877
-    if @userId is userId
-      @autorun => readableFiles @userId
-    else
-      @ready()
+  Meteor.publish 'files', (group) ->
+    check group, String
+    @autorun ->
+      if groupRoleCheck group, 'read', findUser @userId
+        Files.find
+          'metadata._Resumable': $exists: false
+          'metadata.group': group
+      else
+        @ready()
 
   Files.allow
     insert: (userId, file) ->
@@ -65,7 +73,6 @@ if Meteor.isServer
       file.metadata?.uploader in [userId, null]
 else
   Tracker.autorun ->
-    Meteor.subscribe 'files', Meteor.userId()
     $.cookie 'X-Auth-Token', Accounts._storedLoginToken(),
       path: '/'
 
