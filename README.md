@@ -93,10 +93,12 @@ in other fields too.
   (Currently the folds are not preserved across sessions / rerenders.)
 
 * **Dragging** messages to change the parentage/hierarchy, or move their
-  position within their parent.  Dragging directly onto a message makes
-  the dragged message the last child, while dragging onto the slot before
-  a message makes the dragged message the immediately preceding sibling.
-  Dialog confirms move.
+  position within their parent.  You must drag *onto* the table of contents
+  on the right; you can drag *from* the table of contents, or from the
+  right-arrow of a message in the main view.
+  Dragging directly onto a message makes the dragged message the last child,
+  while dragging onto the slot before a message makes the dragged message the
+  immediately preceding sibling.  Dialog confirms move.
 
 * **Tags**: attached an arbitrary set of strings to a message.  Find other
   messages with the same tag by clicking on a tag.
@@ -110,15 +112,19 @@ in other fields too.
   Drag messages (via their arrow icon) into other messages to make such links.
 
 * **Files** (another type of message) can be attached to other messages, as
-  another type of reply.  File messages can have title and body too; title
-  defaults to the filename.  Files can be replaced.  Image/video files
-  (including PNG, JPEG, SVG, MP4) are displayed inline.  (In the future,
-  they and other visual file types such as PDF will be rendered by some
-  kind of thumbnails.)
+  another type of reply.  You can click on the Attach button to select a file
+  to attach, or drag the file from the operating system onto the Attach
+  button.  Similarly, files can be modified by clicking the Replace File
+  button or dragging a file onto that button.
+  File messages can have title and body too; title defaults to the filename.
+  Image/video files (including PNG, JPEG, SVG, MP4) are displayed inline.
+  (In the future, they and other visual file types such as PDF will be
+  rendered by some kind of thumbnails.)
 
 * Messages can start **Unpublished**, or after publication, **Deleted**;
-  in either state, the message is hidden from non-authors.  (An *author* is
-  someone who has edited the message, or who is @-mentioned in the body.)
+  in either state, the message is hidden from people who are not authors
+  (an *author* is someone who has edited the message), @-mentioned
+  (via `@username`), or superusers.
   The default published state is initially true (so everyone sees the new
   message and live updates immediately), but can vary by user (e.g., if they
   are "shy" and only want to post finished thoughts).
