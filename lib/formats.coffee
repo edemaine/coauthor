@@ -253,7 +253,7 @@ postprocessCoauthorLinks = (text) ->
   ## xxx More critically, won't load anything outside current subscription...
   text.replace ///(<img\s[^<>]*src\s*=\s*['"])#{coauthorLinkRe}///ig,
     (match, p1, p2) ->
-      p1 + urlToFile msg
+      p1 + urlToFile p2
       #msg = Messages.findOne p2
       #if msg? and msg.file
       #  p1 + urlToFile msg
