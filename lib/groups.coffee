@@ -148,7 +148,7 @@ if Meteor.isServer
         @ready()
 
 @groupMembers = (group) ->
-  findGroup(group).members
+  findGroup(group).members ? []
 
 @sortedGroupMembers = (group) ->
   _.sortBy groupMembers(group), userSortKey
@@ -222,6 +222,7 @@ Meteor.methods
         "Attempt to create group '#{group}' which already exists"
     Groups.insert
       name: group
+      members: []
       created: new Date
       creator: Meteor.user().username
 
