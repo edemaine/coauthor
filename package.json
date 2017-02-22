@@ -26,6 +26,7 @@
     "chart.js": "^2.5.0",
     "codemirror": "^5.22.2",
     "codemirror-spell-checker": "^1.1.2",
+    "cookie": "^0.3.1",
     "diff": "^3.2.0",
     "katex": "^0.7.0",
     "markdown-it": "^8.2.2",

@@ -75,7 +75,7 @@ Template.registerHelper 'formatBody', ->
   formatBody @format, @body
 
 Template.registerHelper 'formatFile', ->
-  formatFile @file
+  formatFile @
 
 Template.badMessage.helpers
   message: -> Router.current().params.message
@@ -424,15 +424,13 @@ Template.submessage.helpers
       formatBody history.format, body
   formatFile: ->
     history = messageHistory.get(@_id) ? @
-    file = history.file
-    return file unless file
-    file = formatFile file
+    format = formatFile history
     if messageRaw.get @_id
-      "<PRE CLASS='raw'>#{_.escape file}</PRE>"
+      "<PRE CLASS='raw'>#{_.escape format}</PRE>"
     else
-      file
+      format
   formatFileDescription: ->
-    formatFileDescription @file  ## always editing so not in history
+    formatFileDescription @  ## always editing so not in history
 
   canEdit: -> canEdit @_id
   canDelete: -> canDelete @_id

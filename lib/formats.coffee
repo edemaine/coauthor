@@ -253,15 +253,16 @@ postprocessCoauthorLinks = (text) ->
   ## xxx More critically, won't load anything outside current subscription...
   text.replace ///(<img\s[^<>]*src\s*=\s*['"])#{coauthorLinkRe}///ig,
     (match, p1, p2) ->
-      msg = Messages.findOne p2
-      if msg? and msg.file
-        p1 + urlToFile msg.file
-      else
-        if msg?
-          console.warn "Couldn't detect image in message #{p2} -- must be text?"
-        else
-          console.warn "Couldn't find group for message #{p2} (likely subscription issue)"
-        match
+      p1 + urlToFile msg
+      #msg = Messages.findOne p2
+      #if msg? and msg.file
+      #  p1 + urlToFile msg
+      #else
+      #  if msg?
+      #    console.warn "Couldn't detect image in message #{p2} -- must be text?"
+      #  else
+      #    console.warn "Couldn't find group for message #{p2} (likely subscription issue)"
+      #  match
   .replace ///(<a\s[^<>]*href\s*=\s*['"])#{coauthorLinkRe}///ig,
     (match, p1, p2) ->
       ## xxx Could add msg.title, when available, to hover text...
@@ -380,23 +381,21 @@ formatEither = (isTitle, format, text, leaveTeX = false) ->
 @formatBadFile = (fileId) ->
   """<i class="bad-file">&lt;unknown file with ID #{fileId}&gt;</i>"""
 
-@formatFileDescription = (file) ->
-  fileId = file
-  file = findFile file unless file._id
-  return formatBadFile fileId unless file?
-  """<i class="odd-file"><a href="#{urlToFile file}">&lt;#{file.length}-byte #{file.contentType} file &ldquo;#{file.filename}&rdquo;&gt;</a></i>"""
+@formatFileDescription = (msg, file = null) ->
+  file = findFile msg.file unless file?
+  return formatBadFile msg.file unless file?
+  """<i class="odd-file"><a href="#{urlToFile msg}">&lt;#{file.length}-byte #{file.contentType} file &ldquo;#{file.filename}&rdquo;&gt;</a></i>"""
 
-@formatFile = (file) ->
-  fileId = file
-  file = findFile file unless file._id
-  return formatBadFile fileId unless file?
+@formatFile = (msg, file = null) ->
+  file = findFile msg.file unless file?
+  return formatBadFile msg.file unless file?
   switch fileType file
     when 'image'
-      """<img src="#{urlToFile file}">"""
+      """<img src="#{urlToFile msg}">"""
     when 'video'
-      """<video controls><source src="#{urlToFile file}" type="#{file.contentType}"></video>"""
+      """<video controls><source src="#{urlToFile msg}" type="#{file.contentType}"></video>"""
     else  ## 'unknown'
-      formatFileDescription file
+      formatFileDescription msg, file
 
 @formatFilename = (msg, orUntitled = false) ->
   if msg.file

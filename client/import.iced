@@ -150,7 +150,7 @@ importOSQA = (group, zip) ->
     for revision in revisions
       revision.body = revision.body.replace upfile_url, (match, p1) ->
         if p1 of files
-          urlToFile files[p1]
+          urlToInternalFile files[p1]
         else
           match
 

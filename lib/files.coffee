@@ -14,10 +14,16 @@ if Meteor.isServer
     ['metadata._Resumable', 1]
   ]
 
-fileUrlPrefix = "#{Files.baseURL}/id/"
+fileUrlPrefix = "/file/"
 @urlToFile = (id) ->
   id = id._id if id._id?
   "#{fileUrlPrefix}#{id}"
+
+internalFileUrlPrefix = "#{Files.baseURL}/id/"
+@urlToInternalFile = (id) ->
+  id = id._id if id._id?
+  "#{fileUrlPrefix}#{id}"
+
 @url2file = (url) ->
   if url[...fileUrlPrefix.length] == fileUrlPrefix
     url[fileUrlPrefix.length..]
