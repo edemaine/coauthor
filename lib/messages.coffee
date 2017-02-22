@@ -101,7 +101,7 @@ _submessageLastUpdate = (root) ->
       ,
         "authors.#{escapeUser user.username}": $exists: true
       ,
-        body: ///@#{user.username}(?!\w)///
+        body: ///#{atRe}#{user.username}(?!\w)///
       ]
     else
       group: group
@@ -180,7 +180,7 @@ if Meteor.isServer
   if group == wildGroup
     delete query.group
   if atMentions
-    query.$or.push body: ///@#{author}(?!\w)///
+    query.$or.push body: ///#{atRe}#{author}(?!\w)///
   query
 
 @messagesBy = (group, author) ->
@@ -189,7 +189,7 @@ if Meteor.isServer
     #limit: parseInt(@limit)
 
 @atMentioned = (message, author) ->
-  ///@#{author}(?!\w)///.test message.body
+  ///#{atRe}#{author}(?!\w)///.test message.body
 
 if Meteor.isServer
   Meteor.publish 'messages.author', (group, author) ->
@@ -397,7 +397,7 @@ if Meteor.isServer
   message = findMessage message
   return false unless user?.username
   escapeUser(user.username) of (message.authors ? {}) or
-  (message.body and 0 <= message.body.search ///@#{user.username}\b///)
+  (message.body and 0 <= message.body.search ///#{atRe}#{user.username}\b///)
 
 @canPrivate = (message) ->
   message = findMessage message

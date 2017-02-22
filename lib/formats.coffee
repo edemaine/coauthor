@@ -285,8 +285,10 @@ postprocessLinks = (text) ->
 @escapeRe = (string) ->
   string.replace /[\\^$*+?.()|{}\[\]]/g, "\\$&"
 
+@atRe = '[@\\uff20]'  ## FF20 is FULLWIDTH COMMERCIAL AT common in Asian scripts?
+
 postprocessAtMentions = (text) ->
-  return text unless 0 <= text.indexOf '@'
+  return text unless 0 <= text.search ///#{atRe}///
   users = Meteor.users.find {}, fields: username: 1
   .map (user) -> user.username
   return text unless 0 < users.length
@@ -294,7 +296,7 @@ postprocessAtMentions = (text) ->
   ## (to handle when one username is a prefix of another).
   _.sortBy users, (name) -> -name.length
   users = (escapeRe user for user in users)
-  text.replace ///@(#{users.join '|'})(?!\w)///g, (match, user) ->
+  text.replace ///#{atRe}(#{users.join '|'})(?!\w)///g, (match, user) ->
     "@#{linkToAuthor (routeGroup?() ? wildGroup), user}"
 
 katex = require 'katex'
