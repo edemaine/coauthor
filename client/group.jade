@@ -28,7 +28,7 @@ template(name="postButtons")
       a.btn.btn-default.myPostsButton(class=disableMyPosts,href=linkToMyPosts) My Posts
       a.btn.btn-default.liveButton(href="{{pathFor 'live.default'}}", title="Show the last n messages, updating live", data-toggle="tooltip") Live Feed
       a.btn.btn-default.sinceButton(href="{{pathFor 'since' since='1 hour'}}", title="Show all messages since a specified time in the past", data-toggle="tooltip") Catchup Since...
-      a.btn.btn-default.statsButton(href="{{pathFor 'stats.default'}}") Statistics
+      a.btn.btn-default.statsButton(href=linkToStats) Statistics
   //---replaced by clicking columns to trigger sort
     span.space
     .btn-group

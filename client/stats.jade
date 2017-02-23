@@ -44,11 +44,11 @@ template(name='statsGood')
               a(href="#",data-day="6") Saturday
       else
         span.small #{weekStart}
-  h2 Your Statistics
-  canvas.yourStats(width="800", height="400")
+  if username
+    h2 !{linkToAuthor}&rsquo;s Statistics
+    canvas.userStats(width="800", height="400")
   //-
     h2 Global Statistics
-    p
-      i [coming soon]
+    canvas.globalStats(width="800", height="400")
   hr
-  p.small Only showing data about undeleted published messages visible to you. Messages are plotted according to their <i>creation date</i>.
+  p.small * Data represents <b>undeleted</b>, <b>published</b> messages <b>visible to you</b>. Messages are plotted according to their <b>creation date</b>.

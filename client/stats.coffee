@@ -16,6 +16,12 @@ weekStart = ->
 purple = (alpha) -> "rgba(102,51,153,#{alpha})"
 blue = (alpha) -> "rgba(5,141,199,#{alpha})"
 
+Template.stats.onCreated ->
+  if Template.currentData()?.username
+    setTitle "Statistics for #{Template.currentData().username}"
+  else
+    setTitle "Statistics"
+
 Template.statsGood.onCreated ->
   @stats =
     datasets: [
@@ -23,7 +29,7 @@ Template.statsGood.onCreated ->
       borderWidth: 4
       colorFunc: purple
     ,
-      label: 'Posts that @mention you',
+      label: 'Posts that @-mention user',
       borderWidth: 4
       colorFunc: blue
     ]
@@ -31,6 +37,7 @@ Template.statsGood.onCreated ->
     dataset.borderColor = dataset.colorFunc 0.6
     dataset.backgroundColor = dataset.colorFunc 0.1
   @autorun =>
+    t = Template.currentData()
     unit = currentUnit()
     if unit == 'week'
       weekDay = weekStart()
@@ -42,7 +49,7 @@ Template.statsGood.onCreated ->
           'MMM YYYY' #'YYYY-MM'
         when 'year'
           'YYYY'
-    username = Meteor.user().username
+    return unless t.username?
     @stats.labels = []
     for dataset in @stats.datasets
       dataset.data = []
@@ -51,7 +58,7 @@ Template.statsGood.onCreated ->
       @stats.labels.push lastDate.format format
       for dataset in @stats.datasets
         dataset.data.push 0
-    Messages.find messagesByQuery(Template.currentData().group, username)
+    Messages.find messagesByQuery(t.group, t.username)
     ,
       fields:
         created: true
@@ -76,9 +83,9 @@ Template.statsGood.onCreated ->
       else
         lastDate = day
         makeDay()
-      if username of msg.authors
+      if t.username of msg.authors
         @stats.datasets[0].data[@stats.datasets[0].data.length-1] += 1
-      if atMentioned msg, username
+      if atMentioned msg, t.username
         @stats.datasets[1].data[@stats.datasets[1].data.length-1] += 1
     for dataset in @stats.datasets
       dataset.pointBorderColor = []
@@ -96,21 +103,22 @@ Template.statsGood.onCreated ->
     @chart?.update 1000
 
 Template.statsGood.onRendered ->
-  @chart = new Chart @find('.yourStats'),
-    type: 'line'
-    data: @stats
-    options:
-      scales:
-        yAxes: [
-          ticks:
-            beginAtZero: true
-            ## Integer workaround from https://github.com/chartjs/Chart.js/issues/2539
-            callback: (tick) ->
-              if 0 <= tick.toString().indexOf '.'
-                null
-              else
-                tick.toLocaleString()
-        ]
+  if @find('.userStats')
+    @chart = new Chart @find('.userStats'),
+      type: 'line'
+      data: @stats
+      options:
+        scales:
+          yAxes: [
+            ticks:
+              beginAtZero: true
+              ## Integer workaround from https://github.com/chartjs/Chart.js/issues/2539
+              callback: (tick) ->
+                if 0 <= tick.toString().indexOf '.'
+                  null
+                else
+                  tick.toLocaleString()
+          ]
 
 Template.statsGood.helpers
   activeUnit: (which) ->
@@ -129,15 +137,17 @@ Template.statsGood.helpers
       'active'
     else
       ''
+  linkToAuthor: ->
+    linkToAuthor @group, @username
 
 Template.statsGood.events
   'click .unit': (e) ->
     e.preventDefault()
     e.stopPropagation()
     dropdownToggle e
-    Router.go 'stats',
-      group: @group
-      unit: e.target.getAttribute 'data-unit'
+    Router.go Router.current().route.getName(), Router.current().params,
+      query:
+        unit: e.target.getAttribute 'data-unit'
   'click .weekStart': (e) ->
     e.preventDefault()
     e.stopPropagation()

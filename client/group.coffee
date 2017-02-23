@@ -109,6 +109,14 @@ Template.postButtons.helpers
     pathFor 'author',
       group: routeGroup()
       author: Meteor.user().username
+  linkToStats: ->
+    if Meteor.userId()?
+      pathFor 'stats',
+        group: routeGroup()
+        username: Meteor.user().username
+    else
+      pathFor 'stats.userless',
+        group: routeGroup()
 
   disableClass: ->
     if canPost @group
