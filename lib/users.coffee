@@ -12,11 +12,11 @@
   user = findUsername username
   user?.profile?.fullname?.trim?() or username
 
-@linkToAuthor = (group, user) ->
+@linkToAuthor = (group, user, title = "User '#{user}'") ->
   link = pathFor 'author',
     group: group
     author: user
-  """<a class="author" href="#{link}" title="User '#{user}'">#{displayUser user}</a>"""
+  """<a class="author" href="#{link}" title="#{title.replace /"/g, '&#34;'}">#{displayUser user}</a>"""
 
 ## Sort by last name if available
 @userSortKey = (username) ->

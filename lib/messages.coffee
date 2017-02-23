@@ -111,6 +111,19 @@ _submessageLastUpdate = (root) ->
   else
     null
 
+@messageReaders = (msg, options = {}) ->
+  group = message2group msg
+  options.fields.roles = true if options.fields?
+  users = Meteor.users.find
+    username: $in: groupMembers group
+  .fetch()
+  (user for user in users when canSee msg, false, user)
+
+@sortedMessageReaders = (msg, options = {}) ->
+  users = messageReaders msg,
+    fields: username: true
+  _.sortBy (user.username for user in users), userSortKey
+
 if Meteor.isServer
   Meteor.publish 'messages.all', (group) ->
     check group, String

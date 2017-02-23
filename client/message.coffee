@@ -95,13 +95,38 @@ orphans = (message) ->
 
 Template.message.helpers
   subscribers: ->
-    subscribers =
-      for subscriber in sortedMessageSubscribers @_id
-        linkToAuthor @group, subscriber
-    if subscribers.length > 0
-      subscribers.join(', ')
+    users =
+      for user in sortedMessageSubscribers @_id
+        linkToAuthor @group, user
+    if users.length > 0
+      users.join ', '
     else
       '(none)'
+  nonsubscribers: ->
+    subscribers = messageSubscribers @_id,
+      fields: username: true
+    subscribed = {}
+    for user in subscribers
+      subscribed[user.username] = true
+    users = messageReaders @_id,
+      fields:
+        username: true
+        emails: true
+        roles: true
+        'profile.notifications': true
+    (for user in users when user.username not of subscribed
+      unless user.emails?[0]?
+        title = "No email address"
+      else if not user.emails[0].verified
+        title = "Unverified email address #{user.emails[0].address}"
+      else if not (user.profile.notifications?.on ? defaultNotificationsOn)
+        title = "Notifications turned off"
+      else if user.profile.notifications?.autosubscribe == false
+        title = "Not explicitly subscribed to thread, and autosubscribe turned off"
+      else
+        title = "Explicitly unsubscribed from thread"
+      linkToAuthor @group, user.username, title
+    ).join ', '
   orphans: ->
     orphans @_id
   orphanCount: ->

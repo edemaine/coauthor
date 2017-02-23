@@ -9,11 +9,15 @@ template(name="message")
     .col-md-9(role="main")
       +rootHeader
       +submessage
-      if subscribers
-        .subscribers.alert.alert-info
+      .subscribers.alert.alert-info
+        p
+          b Users subscribed to notifications about this thread:
+        p !{subscribers}
+      if nonsubscribers
+        .nonsubscribers.alert.alert-warning
           p
-            b Users subscribed to notifications about this thread:
-          p !{subscribers}
+            b Users who can read this message but are not subscribed to notifications:
+          p !{nonsubscribers}
       if orphanCount
         .orphans.alert.alert-warning
           b
