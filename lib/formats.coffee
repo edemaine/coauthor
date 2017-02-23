@@ -286,7 +286,7 @@ postprocessLinks = (text) ->
 @escapeRe = (string) ->
   string.replace /[\\^$*+?.()|{}\[\]]/g, "\\$&"
 
-@atRe = '[@\\uff20]'  ## FF20 is FULLWIDTH COMMERCIAL AT common in Asian scripts?
+@atRe = '[@\uff20]'  ## FF20 is FULLWIDTH COMMERCIAL AT common in Asian scripts?
 
 postprocessAtMentions = (text) ->
   return text unless 0 <= text.search ///#{atRe}///
