@@ -83,7 +83,7 @@ Template.statsGood.onCreated ->
       else
         lastDate = day
         makeDay()
-      if t.username of msg.authors
+      if escapeUser(t.username) of msg.authors
         @stats.datasets[0].data[@stats.datasets[0].data.length-1] += 1
       if atMentioned msg, t.username
         @stats.datasets[1].data[@stats.datasets[1].data.length-1] += 1
