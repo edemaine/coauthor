@@ -397,7 +397,7 @@ if Meteor.isServer
   message = findMessage message
   return false unless user?.username
   escapeUser(user.username) of (message.authors ? {}) or
-  (message.body and 0 <= message.body.search ///#{atRe}#{user.username}\b///)
+  (message.body and 0 <= message.body.search ///#{atRe}#{user.username}(?!\w)///)
 
 @canPrivate = (message) ->
   message = findMessage message
