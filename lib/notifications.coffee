@@ -44,12 +44,20 @@ if Meteor.isServer
   #user = findUser user if _.isString user
   user.profile.notifications?.self
 
-@autosubscribe = (user = Meteor.user()) ->
-  not user.profile.notifications? or user.profile.notifications?.autosubscribe != false
+@autosubscribeGlobal = (user = Meteor.user()) ->
+  user.profile?.notifications?.autosubscribe?[wildGroup] != false
+
+@autosubscribe = (group, user = Meteor.user()) ->
+  auto = user.profile?.notifications?.autosubscribe
+  if auto?
+    (auto[group] ? auto[wildGroup]) != false
+  else
+    true
 
 ## Checks whether specified user has *requested* notifications about this
 ## message, as desired by client checkbox UI.  It therefore does *not* check
 ## two conditions required for notifications:
+## * memberOfGroup.  On client, this should be implied by view.
 ## * canSee.  On client, this is implied when user = self.
 ##   When generating notification list, we're interested generally about the
 ##   thread, so this is a good approximation.
@@ -60,19 +68,21 @@ if Meteor.isServer
   ## memberOfGroup test prevents users with global permissions from
   ## autosubscribing to everything.  Also easier to find subscribers
   ## by starting with group's members.
-  memberOfGroup(message2group(message), user) and \
-  if autosubscribe user
+  group = message2group message
+  if autosubscribe group, user
     message not in (user.profile.notifications?.unsubscribed ? [])
   else
     message in (user.profile.notifications?.subscribed ? [])
 
-## Mimicks logic of subscribedToMessage above, plus requires verified email
-## and canSee (everything required for notifications).
+## Mimicks logic of subscribedToMessage above, plus requires group membership,
+## verified email, and canSee (everything required for notifications).
 @messageSubscribers = (msg, options = {}) ->
   msg = findMessage msg
   group = msg.group
   root = msg.root ? msg._id
-  options.fields.roles = true if options.fields?
+  if options.fields?
+    options.fields.roles = true
+    options.fields['profile.notifications.autosubscribe'] = true
   users = Meteor.users.find
     username: $in: groupMembers group
     emails: $elemMatch: verified: true
@@ -81,16 +91,9 @@ if Meteor.isServer
         $ne: false
       else
         true
-    $or: [
-      'profile.notifications.autosubscribe': $ne: false
-      'profile.notifications.unsubscribed': $nin: [root]
-    ,
-      'profile.notifications.autosubscribe': false
-      'profile.notifications.subscribed': root
-    ]
   , options
   .fetch()
-  (user for user in users when canSee msg, false, user)
+  (user for user in users when subscribedToMessage(group, user) and canSee msg, false, user)
 
 @sortedMessageSubscribers = (msg) ->
   users = messageSubscribers msg,
@@ -450,3 +453,18 @@ if Meteor.isServer
         notificationSchedule notification
       catch e
         console.warn 'Could not schedule', notification, ':', e
+
+  ## Upgrade from old autosubscribe profile setting format
+  if Meteor.isServer
+    Meteor.users.update
+      'profile.notifications.autosubscribe': true
+    ,
+      $set: 'profile.notifications.autosubscribe': {"#{wildGroup}": true}
+    ,
+      multi: true
+    Meteor.users.update
+      'profile.notifications.autosubscribe': false
+    ,
+      $set: 'profile.notifications.autosubscribe': {"#{wildGroup}": false}
+    ,
+      multi: true

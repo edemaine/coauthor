@@ -52,7 +52,17 @@ template(name="settings")
                     | No
           tr
             th
-              label Subscribe to messages by default:
+              label Subscribe to threads by default (unless overwritten by group subscription):
+            td
+              if autosubscribeGlobal
+                button.btn.btn-success.autosubscribeGlobalButton(type="button", data-toggle="button", autocomplete="off")
+                  | Yes
+              else
+                button.btn.btn-warning.autosubscribeGlobalButton(type="button", data-toggle="button", autocomplete="off")
+                  | No
+          tr
+            th
+              label Subscribe to threads <i>in this group</i> by default:
             td
               if autosubscribe
                 button.btn.btn-success.autosubscribeButton(type="button", data-toggle="button", autocomplete="off")
