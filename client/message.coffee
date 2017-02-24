@@ -701,6 +701,8 @@ Template.messageHistory.onRendered ->
         for own key, value of diffs[i-1]
           unless key of diff
             diff[key] = value
+      ## Remove diff IDs
+      delete diff._id
     @slider?.destroy()
     @slider = new Slider @$('input')[0],
       #min: 0                 ## min and max not needed when using ticks
