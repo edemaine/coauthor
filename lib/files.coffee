@@ -20,7 +20,6 @@ fileUrlPrefix = "/file/"
 ## to the internal file object instead of the file associated with a message.
 ## This lets History work with files.
 @urlToFile = (id) ->
-  console.log id
   id = id._id if id._id?
   if id.file?
     urlToInternalFile id

@@ -249,8 +249,6 @@ latexEscape = (x) ->
 @coauthorLinkRe = "coauthor:#{coauthorLinkBodyRe}"
 
 postprocessCoauthorLinks = (text) ->
-  ## xxx Not reactive, but should be.  E.g. won't update if image replaced.
-  ## xxx More critically, won't load anything outside current subscription...
   text.replace ///(<img\s[^<>]*src\s*=\s*['"])#{coauthorLinkRe}///ig,
     (match, p1, p2) ->
       p1 + urlToFile p2

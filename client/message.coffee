@@ -196,12 +196,38 @@ Template.submessage.onCreated ->
 images = {}
 id2template = {}
 scrollToLater = null
+fileQuery = null
+
+updateFileQuery = ->
+  fileQuery.stop() if fileQuery?
+  fileQuery = Messages.find
+    _id: $in: _.keys images
+  ,
+    fields: file: true
+  .observeChanges
+    added: (id, fields) ->
+      images[id].file = fields.file
+    changed: (id, fields) ->
+      if fields.file? and images[id].file != fields.file
+        forceImgReload urlToFile id
+        images[id].file = fields.file
 
 initImage = (id) ->
   if id not of images
     images[id] =
-      attachment: null
       count: 0
+      file: null
+    updateFileQuery()
+
+checkImage = (id) ->
+  return unless id of images
+  ## Image gets folded if it's referenced at least once.
+  messageFolded.set id, (images[id].count > 0)
+  ## No longer care about this image if it's not referenced and doesn't have
+  ## a rendered template.
+  if images[id].count == 0 and id not of id2template
+    delete images[id]
+    updateFileQuery()
 
 messageDrag = (target, bodyToo = true) ->
   return unless target
@@ -243,28 +269,36 @@ Template.submessage.onRendered ->
   ## Fold referenced attached files by default on initial load.
   #@$.children('.panel').children('.panel-body').find('a[href|="/file/"]')
   #console.log @$ 'a[href|="/file/"]'
-  tid = @data._id
   id2template[@data._id] = @
   scrollToMessage @data._id if scrollToLater == @data._id
-  attachment = @data.file
   #images = Session.get 'images'
-  subimages = @images = []
-  initImage tid
-  images[tid].attachment = tid
-  if images[tid].count > 0 and not messageFolded.get tid
-    messageFolded.set tid, true
-  ## If message is deleted or otherwise default-folded,
-  ## don't check for images it references.
-  unless messageFolded.get @data._id
-    $(@firstNode).children('.panel-body').children('.message-body').find('img[src^="/file/"]')
-    .each ->
-      id = url2file @getAttribute('src')
-      #console.log 'source', id
-      initImage id
-      subimages.push id
-      images[id].count += 1
-      if images[id].attachment? and not messageFolded.get(images[id].attachment)?
-        messageFolded.set images[id].attachment, true
+  @images = {}
+  initImage @data._id
+  images[@data._id].file = @data.file
+  @autorun =>
+    data = Template.currentData()
+    ## If message is deleted, don't count images it references.
+    if data.deleted
+      for id of @images
+        images[id].count -= 1
+        checkImage id
+      @images = {}
+    else
+      newImages = {}
+      $(formatBody data.format, data.body).find('img[src^="/file/"]')
+      .each ->
+        newImages[url2file @getAttribute('src')] = true
+      for id of @images
+        unless id of newImages
+          images[id].count -= 1
+          checkImage id
+      for id of newImages
+        unless id of @images
+          #console.log 'source', id
+          initImage id
+          images[id].count += 1
+          checkImage id
+      @images = newImages
 
 scrollDelay = 750
 
@@ -279,9 +313,12 @@ scrollDelay = 750
     scrollToLater = id
 
 Template.submessage.onDestroyed ->
-  for id in @images ? []
+  delete id2template[@data._id]
+  checkImage @data._id
+  for id of @images ? {}
     if id of images
       images[id].count -= 1
+      checkImage id
 
 historify = (x, post) -> () ->
   history = messageHistory.get @_id
