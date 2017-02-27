@@ -44,13 +44,13 @@ if Meteor.isServer
   #user = findUser user if _.isString user
   user.profile.notifications?.self
 
-@autosubscribeGlobal = (user = Meteor.user()) ->
-  user.profile?.notifications?.autosubscribe?[wildGroup] != false
+@autosubscribeGroup = (group, user = Meteor.user()) ->
+  user.profile?.notifications?.autosubscribe?[escapeGroup group] != false
 
 @autosubscribe = (group, user = Meteor.user()) ->
   auto = user.profile?.notifications?.autosubscribe
   if auto?
-    (auto[group] ? auto[wildGroup]) != false
+    (auto[escapeGroup group] ? auto[wildGroup]) != false
   else
     true
 
@@ -64,25 +64,27 @@ if Meteor.isServer
 ## * The user has a verified email address.  Don't want this for client
 ##   checkboxes.
 @subscribedToMessage = (message, user = Meteor.user()) ->
-  #canSee(message, false, user) and \
-  ## memberOfGroup test prevents users with global permissions from
-  ## autosubscribing to everything.  Also easier to find subscribers
-  ## by starting with group's members.
+  id = message._id ? message
   group = message2group message
+  #canSee(message, false, user) and \
+  #memberOfGroup(group, user) and \
   if autosubscribe group, user
-    message not in (user.profile.notifications?.unsubscribed ? [])
+    id not in (user.profile.notifications?.unsubscribed ? [])
   else
-    message in (user.profile.notifications?.subscribed ? [])
+    id in (user.profile.notifications?.subscribed ? [])
 
 ## Mimicks logic of subscribedToMessage above, plus requires group membership,
 ## verified email, and canSee (everything required for notifications).
+## memberOfGroup test prevents users with global permissions from
+## autosubscribing to everything.  Also easier to find subscribers
+## by starting with group's members.
 @messageSubscribers = (msg, options = {}) ->
   msg = findMessage msg
   group = msg.group
   root = msg.root ? msg._id
   if options.fields?
     options.fields.roles = true
-    options.fields['profile.notifications.autosubscribe'] = true
+    options.fields['profile.notifications'] = true
   users = Meteor.users.find
     username: $in: groupMembers group
     emails: $elemMatch: verified: true
@@ -93,7 +95,7 @@ if Meteor.isServer
         true
   , options
   .fetch()
-  (user for user in users when subscribedToMessage(group, user) and canSee msg, false, user)
+  (user for user in users when subscribedToMessage(root, user) and canSee msg, false, user)
 
 @sortedMessageSubscribers = (msg) ->
   users = messageSubscribers msg,

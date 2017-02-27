@@ -8,7 +8,8 @@ Template.settings.helpers
   notificationsOn: notificationsOn
   notificationsDefault: notificationsDefault
   notifySelf: notifySelf
-  autosubscribe: autosubscribe
+  autosubscribeGroup: -> autosubscribeGroup routeGroup()
+  autosubscribeGlobal: -> autosubscribeGroup wildGroup
   theme: -> capitalize theme()
   dropbox: ->
     'dropbox' of (Meteor.user().services ? {})
@@ -38,11 +39,17 @@ Template.settings.events
     Meteor.users.update Meteor.userId(),
       $set: "profile.notifications.self": not notifySelf()
 
-  'click .autosubscribeButton': (e, t) ->
+  'click .autosubscribeGlobalButton': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
     Meteor.users.update Meteor.userId(),
-      $set: "profile.notifications.autosubscribe": not autosubscribe()
+      $set: "profile.notifications.autosubscribe.#{wildGroup}": not autosubscribeGroup wildGroup
+
+  'click .autosubscribeGroupButton': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    Meteor.users.update Meteor.userId(),
+      $set: "profile.notifications.autosubscribe.#{escapeGroup routeGroup()}": not autosubscribeGroup routeGroup()
 
   'click .themeButton': (e, t) ->
     e.preventDefault()

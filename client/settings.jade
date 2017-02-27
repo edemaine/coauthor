@@ -60,16 +60,17 @@ template(name="settings")
               else
                 button.btn.btn-warning.autosubscribeGlobalButton(type="button", data-toggle="button", autocomplete="off")
                   | No
-          tr
-            th
-              label Subscribe to threads <i>in this group</i> by default:
-            td
-              if autosubscribe
-                button.btn.btn-success.autosubscribeButton(type="button", data-toggle="button", autocomplete="off")
-                  | Yes
-              else
-                button.btn.btn-warning.autosubscribeButton(type="button", data-toggle="button", autocomplete="off")
-                  | No
+          unless wildGroup
+            tr
+              th
+                label Subscribe to threads <i>in this group</i> by default:
+              td
+                if autosubscribeGroup
+                  button.btn.btn-success.autosubscribeGroupButton(type="button", data-toggle="button", autocomplete="off")
+                    | Yes
+                else
+                  button.btn.btn-warning.autosubscribeGroupButton(type="button", data-toggle="button", autocomplete="off")
+                    | No
           tr
             th
               label Notifications for own messages:
