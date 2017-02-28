@@ -73,43 +73,32 @@ Router.route '/:group/-:sortBy?',
     group: @params.group
   fastRender: true
 
-Router.route '/:group/since/:since',
+defaultSince = '1 hour'
+
+Router.route '/:group/since/:since?',
   name: 'since'
   subscriptions: -> [
-    Subscribe.subscribe 'messages.since', @params.group, @params.since
+    Subscribe.subscribe 'messages.since', @params.group, (@params.since ? defaultSince)
     Subscribe.subscribe 'groups.members', @params.group
     Subscribe.subscribe 'files', @params.group
   ]
   data: ->
     group: @params.group
-    since: @params.since
-  fastRender: true
-
-Router.route '/:group/live/:limit',
-  name: 'live'
-  subscriptions: -> [
-    Subscribe.subscribe 'messages.live', @params.group, @params.limit
-    Subscribe.subscribe 'groups.members', @params.group
-    Subscribe.subscribe 'files', @params.group
-  ]
-  data: ->
-    group: @params.group
-    limit: @params.limit
+    since: @params.since ? defaultSince
   fastRender: true
 
 defaultLiveLimit = 50
 
-Router.route '/:group/live',
-  name: 'live.default'
-  template: 'live'
+Router.route '/:group/live/:limit?',
+  name: 'live'
   subscriptions: -> [
-    Subscribe.subscribe 'messages.live', @params.group, defaultLiveLimit
+    Subscribe.subscribe 'messages.live', @params.group, (@params.limit ? defaultLiveLimit)
     Subscribe.subscribe 'groups.members', @params.group
     Subscribe.subscribe 'files', @params.group
   ]
   data: ->
     group: @params.group
-    limit: defaultLiveLimit
+    limit: @params.limit ? defaultLiveLimit
   fastRender: true
 
 Router.route '/:group/author/:author',
@@ -136,22 +125,11 @@ Router.route '/:group/tag/:tag',
     tag: @params.tag
   fastRender: true
 
-Router.route '/:group/stats',
-  name: 'stats.userless'
-  template: 'stats'
-  subscriptions: -> [
-    Subscribe.subscribe 'groups.members', @params.group
-  ]
-  data: ->
-    group: @params.group
-    unit: @params.query.unit
-  fastRender: true
-
-Router.route '/:group/stats/:username',
+Router.route '/:group/stats/:username?',
   name: 'stats'
   template: 'stats'
   subscriptions: -> [
-    Subscribe.subscribe 'messages.author', @params.group, @params.username
+    Subscribe.subscribe 'messages.author', @params.group, @params.username if @params.username
     Subscribe.subscribe 'groups.members', @params.group
   ]
   data: ->

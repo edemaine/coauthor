@@ -2,13 +2,12 @@ Template.registerHelper 'uploading', ->
   value for own key, value of Session.get 'uploading'
 
 linkToRoutes =
-  users: true
+  since: true
   live: true
-  'live.default': true
   author: true
   tag: true
   stats: true
-  'stats.userless': true
+  users: true
   settings: true
 
 Template.layout.helpers
