@@ -240,7 +240,10 @@ Meteor.methods
   options = {} unless options?
   options.sort = [[mongosort, if sort.reverse then 'desc' else 'asc']]
   if options.fields
-    options.fields[mongosort] = 1
+    options.fields[mongosort] = true
+    if sort.key == 'subscribe'  ## fields needed for subscribedToMessage
+      options.fields.group = true
+      options.fields.root = true
   msgs = Messages.find query, options
   switch sort.key
     when 'title'
@@ -248,7 +251,7 @@ Meteor.methods
     when 'creator'
       key = (msg) -> userSortKey msg.creator
     when 'subscribe'
-      key = (msg) -> subscribedToMessage msg._id
+      key = (msg) -> subscribedToMessage msg
     else
       key = null
   if key?

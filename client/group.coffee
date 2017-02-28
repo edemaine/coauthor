@@ -243,13 +243,13 @@ Template.messageShort.helpers
   submessageLastUpdate: ->
     formatDate @submessageLastUpdate
   subscribed: ->
-    subscribedToMessage @_id
+    subscribedToMessage @
 
 Template.messageShort.events
   'click button.subscribe': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
-    if subscribedToMessage @_id
+    if subscribedToMessage @
       Meteor.users.update Meteor.userId(),
         $push: 'profile.notifications.unsubscribed': @_id
         $pull: 'profile.notifications.subscribed': @_id

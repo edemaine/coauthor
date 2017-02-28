@@ -64,14 +64,14 @@ if Meteor.isServer
 ## * The user has a verified email address.  Don't want this for client
 ##   checkboxes.
 @subscribedToMessage = (message, user = Meteor.user()) ->
-  id = message._id ? message
-  group = message2group message
+  message = findMessage message
+  root = message.root ? message._id
   #canSee(message, false, user) and \
-  #memberOfGroup(group, user) and \
-  if autosubscribe group, user
-    id not in (user.profile.notifications?.unsubscribed ? [])
+  #memberOfGroup(message.group, user) and \
+  if autosubscribe message.group, user
+    root not in (user.profile.notifications?.unsubscribed ? [])
   else
-    id in (user.profile.notifications?.subscribed ? [])
+    root in (user.profile.notifications?.subscribed ? [])
 
 ## Mimicks logic of subscribedToMessage above, plus requires group membership,
 ## verified email, and canSee (everything required for notifications).
@@ -80,13 +80,11 @@ if Meteor.isServer
 ## by starting with group's members.
 @messageSubscribers = (msg, options = {}) ->
   msg = findMessage msg
-  group = msg.group
-  root = msg.root ? msg._id
   if options.fields?
     options.fields.roles = true
     options.fields['profile.notifications'] = true
   users = Meteor.users.find
-    username: $in: groupMembers group
+    username: $in: groupMembers msg.group
     emails: $elemMatch: verified: true
     'profile.notifications.on':
       if defaultNotificationsOn
@@ -95,7 +93,7 @@ if Meteor.isServer
         true
   , options
   .fetch()
-  (user for user in users when subscribedToMessage(root, user) and canSee msg, false, user)
+  (user for user in users when subscribedToMessage(msg, user) and canSee msg, false, user)
 
 @sortedMessageSubscribers = (msg) ->
   users = messageSubscribers msg,
