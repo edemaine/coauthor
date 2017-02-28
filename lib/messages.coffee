@@ -844,6 +844,11 @@ Meteor.methods
       creator: Match.Optional String
       created: Match.Optional Date
       #updated and updators added automatically from last diff
+    ## Default content.
+    message.title = "" unless message.title?
+    message.body = "" unless message.body?
+    message.format = Meteor.user()?.profile?.format or defaultFormat unless message.format?
+    message.tags = {} unless message.tags?
     check diffs, [
       title: Match.Optional String
       body: Match.Optional String

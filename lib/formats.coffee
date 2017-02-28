@@ -346,6 +346,7 @@ postprocessKaTeX = (text, math) ->
       out
 
 formatEither = (isTitle, format, text, leaveTeX = false) ->
+  return text unless text?
   ## LaTeX format is special because it does its own math preprocessing at a
   ## specific time during its formatting.  Other formats don't touch math.
   if format == 'latex'
