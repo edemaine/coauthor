@@ -39,10 +39,7 @@ template(name="layout")
               if groupCount
                 each groups
                   li(class="{{activeGroup}}")
-                    if inUsers
-                      a(href="{{pathFor 'users' group=name}}") {{name}}
-                    else
-                      a(href="{{pathFor 'group' group=name}}") {{name}}
+                    a(href=linkToGroup) {{name}}
               else if currentUser
                 li
                   a
