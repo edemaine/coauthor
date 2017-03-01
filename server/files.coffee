@@ -58,7 +58,6 @@ WebApp.rawConnectHandlers.use '/file',
       chunksize = (end - start) + 1
       headers['Content-Range'] = 'bytes ' + start + '-' + end + '/' + req.gridFS.length
       headers['Accept-Ranges'] = 'bytes'
-      headers['Content-Type'] = req.gridFS.contentType
       headers['Content-Length'] = chunksize
       headers['Last-Modified'] = req.gridFS.uploadDate.toUTCString()
       unless req.method is 'HEAD'
@@ -71,14 +70,15 @@ WebApp.rawConnectHandlers.use '/file',
         )
     else
       statusCode = 200
-      headers['Content-Type'] = req.gridFS.contentType
       headers['Content-MD5'] = req.gridFS.md5
       headers['Content-Length'] = req.gridFS.length
       headers['Last-Modified'] = req.gridFS.uploadDate.toUTCString()
       unless req.method is 'HEAD'
         stream = Files.findOneStream { _id: req.gridFS._id }
+    headers['Content-Type'] = req.gridFS.contentType
+    filename = encodeURIComponent(req.query.filename ? req.gridFS.filename)
+    headers['Content-Disposition'] = "inline; filename=\"#{filename}\"; filename*=UTF-8''#{filename}"
     if (req.query.download and req.query.download.toLowerCase() == 'true') or req.query.filename
-      filename = encodeURIComponent(req.query.filename ? req.gridFS.filename)
       headers['Content-Disposition'] = "attachment; filename=\"#{filename}\"; filename*=UTF-8''#{filename}"
     if req.query.cache and not isNaN(parseInt(req.query.cache))
       headers['Cache-Control'] = "max-age=" + parseInt(req.query.cache)+", private"
