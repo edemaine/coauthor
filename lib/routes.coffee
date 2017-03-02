@@ -129,7 +129,8 @@ Router.route '/:group/stats/:username?',
   name: 'stats'
   template: 'stats'
   subscriptions: -> [
-    Subscribe.subscribe 'messages.author', @params.group, @params.username if @params.username
+    #Subscribe.subscribe 'messages.author', @params.group, @params.username if @params.username
+    Subscribe.subscribe 'messages.all', @params.group
     Subscribe.subscribe 'groups.members', @params.group
   ]
   data: ->

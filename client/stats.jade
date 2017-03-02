@@ -47,8 +47,7 @@ template(name='statsGood')
   if username
     h2 !{linkToAuthor}&rsquo;s Statistics
     canvas.userStats(width="800", height="400")
-  //-
-    h2 Global Statistics
-    canvas.globalStats(width="800", height="400")
+  h2 Global Statistics
+  canvas.globalStats(width="800", height="400")
   hr
   p.small * Data represents <b>undeleted</b>, <b>published</b> messages <b>visible to you</b>. Messages are plotted according to their <b>creation date</b>.

@@ -24,16 +24,26 @@ Template.stats.onCreated ->
 
 Template.statsGood.onCreated ->
   @stats =
-    datasets: [
-      label: 'Authored posts',
-      borderWidth: 4
-      colorFunc: purple
-    ,
-      label: 'Posts that @-mention user',
-      borderWidth: 4
-      colorFunc: blue
-    ]
-  for dataset in @stats.datasets
+    user:
+      query: -> messagesByQuery(@group, @username)
+      datasets: [
+        label: 'Authored posts',
+        borderWidth: 4
+        colorFunc: purple
+      ,
+        label: 'Posts that @-mention user',
+        borderWidth: 4
+        colorFunc: blue
+      ]
+    global:
+      query: -> group: @group
+      datasets: [
+        label: 'All posts',
+        borderWidth: 4
+        colorFunc: purple
+      ]
+  datasets = _.flatten (stats.datasets for key, stats of @stats), true
+  for dataset in datasets
     dataset.borderColor = dataset.colorFunc 0.6
     dataset.backgroundColor = dataset.colorFunc 0.1
   @autorun =>
@@ -49,76 +59,88 @@ Template.statsGood.onCreated ->
           'MMM YYYY' #'YYYY-MM'
         when 'year'
           'YYYY'
-    return unless t.username?
-    @stats.labels = []
-    for dataset in @stats.datasets
-      dataset.data = []
-    lastDate = null
-    makeDay = =>
-      @stats.labels.push lastDate.format format
-      for dataset in @stats.datasets
-        dataset.data.push 0
-    Messages.find messagesByQuery(t.group, t.username)
-    ,
-      fields:
-        created: true
-        body: true
-        title: true
-        authors: true
-      sort: created: 1
-    .forEach (msg) =>
-      switch unit
-        when 'week'
-          day = moment(msg.created).startOf 'day'
-          if day.day() < weekDay
-            day.day -7 + weekDay  ## previous week
+    for key, stats of @stats
+      if key == 'user'
+        return unless t.username?
+      stats.labels = []
+      for dataset in stats.datasets
+        dataset.data = []
+      lastDate = null
+      makeDay = =>
+        stats.labels.push lastDate.format format
+        for dataset in stats.datasets
+          dataset.data.push 0
+      Messages.find stats.query.call(t)
+      ,
+        fields:
+          created: true
+          body: true
+          title: true
+          authors: true
+        sort: created: 1
+      .forEach (msg) =>
+        switch unit
+          when 'week'
+            day = moment(msg.created).startOf 'day'
+            if day.day() < weekDay
+              day.day -7 + weekDay  ## previous week
+            else
+              day.day weekDay  ## same week
           else
-            day.day weekDay  ## same week
+            day = moment(msg.created).startOf unit
+        if lastDate?
+          if lastDate.valueOf() > day.valueOf()
+            console.warn "Backwards time travel from #{lastDate} to #{day}"
+            lastDate = day
+            makeDay()
+          else
+            while lastDate.valueOf() != day.valueOf()
+              lastDate = lastDate.add 1, unit
+              makeDay()
         else
-          day = moment(msg.created).startOf unit
-      if lastDate?
-        while lastDate.valueOf() != day.valueOf()
-          lastDate = lastDate.add 1, unit
+          lastDate = day
           makeDay()
-      else
-        lastDate = day
-        makeDay()
-      if escapeUser(t.username) of msg.authors
-        @stats.datasets[0].data[@stats.datasets[0].data.length-1] += 1
-      if atMentioned msg, t.username
-        @stats.datasets[1].data[@stats.datasets[1].data.length-1] += 1
-    for dataset in @stats.datasets
-      dataset.pointBorderColor = []
-    for i in [0...@stats.labels.length]
-      zero = true
-      for dataset in @stats.datasets
-        unless dataset.data[i] == 0
-          zero = false
-          break
-      for dataset in @stats.datasets
-        if zero
-          dataset.pointBorderColor.push 'red'
-        else
-          dataset.pointBorderColor.push dataset.colorFunc 1
-    @chart?.update 1000
+        switch key
+          when 'user'
+            if escapeUser(t.username) of msg.authors
+              stats.datasets[0].data[stats.datasets[0].data.length-1] += 1
+            if atMentioned msg, t.username
+              stats.datasets[1].data[stats.datasets[1].data.length-1] += 1
+          when 'global'
+            stats.datasets[0].data[stats.datasets[0].data.length-1] += 1
+      for dataset in stats.datasets
+        dataset.pointBorderColor = []
+      for i in [0...stats.labels.length]
+        zero = true
+        for dataset in stats.datasets
+          unless dataset.data[i] == 0
+            zero = false
+            break
+        for dataset in stats.datasets
+          if zero
+            dataset.pointBorderColor.push 'red'
+          else
+            dataset.pointBorderColor.push dataset.colorFunc 1
+      stats.chart?.update 1000
 
 Template.statsGood.onRendered ->
-  if @find('.userStats')
-    @chart = new Chart @find('.userStats'),
-      type: 'line'
-      data: @stats
-      options:
-        scales:
-          yAxes: [
-            ticks:
-              beginAtZero: true
-              ## Integer workaround from https://github.com/chartjs/Chart.js/issues/2539
-              callback: (tick) ->
-                if 0 <= tick.toString().indexOf '.'
-                  null
-                else
-                  tick.toLocaleString()
-          ]
+  for key, stats of @stats
+    if dom = @find(".#{key}Stats")
+      stats.chart = new Chart dom,
+        type: 'line'
+        data: stats
+        options:
+          scales:
+            yAxes: [
+              ticks:
+                beginAtZero: true
+                ## Integer workaround from https://github.com/chartjs/Chart.js/issues/2539
+                callback: (tick) ->
+                  if 0 <= tick.toString().indexOf '.'
+                    null
+                  else
+                    tick.toLocaleString()
+            ]
 
 Template.statsGood.helpers
   activeUnit: (which) ->
