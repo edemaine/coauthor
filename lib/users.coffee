@@ -36,6 +36,8 @@ if Meteor.isServer
     @autorun ->
       if groupRoleCheck group, 'admin', findUser @userId
         Meteor.users.find {}
+        , fields:
+            services: false
       else
         @ready()
 

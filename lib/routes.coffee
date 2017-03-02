@@ -146,7 +146,7 @@ Router.route '/:group/users',
     Subscribe.subscribe 'users', @params.group
   ]
   data: ->
-    group: routeGroup()
+    group: @params.group
   fastRender: true
 
 Router.route '/:group/settings',
