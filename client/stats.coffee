@@ -53,6 +53,8 @@ Template.statsGood.onCreated ->
       weekDay = weekStart()
     format =
       switch unit
+        when 'hour'
+          'HH:mm'
         when 'day', 'week'
           'ddd, MMM DD, YYYY' #'YYYY-MM-DD'
         when 'month'
@@ -70,7 +72,7 @@ Template.statsGood.onCreated ->
         stats.labels.push lastDate.format format
         for dataset in stats.datasets
           dataset.data.push 0
-      Messages.find stats.query.call(t)
+      msgs = Messages.find stats.query.call(t)
       ,
         fields:
           created: true
@@ -78,7 +80,9 @@ Template.statsGood.onCreated ->
           title: true
           authors: true
         sort: created: 1
-      .forEach (msg) =>
+      if unit == 'hour'
+        msgs = _.sortBy msgs.fetch(), (msg) -> moment(msg.created).format 'HH:mm'
+      msgs.forEach (msg) =>
         switch unit
           when 'week'
             day = moment(msg.created).startOf 'day'
@@ -86,11 +90,15 @@ Template.statsGood.onCreated ->
               day.day -7 + weekDay  ## previous week
             else
               day.day weekDay  ## same week
+          when 'hour'
+            day = moment(msg.created).startOf unit
+            .year 2000
+            .dayOfYear 1
           else
             day = moment(msg.created).startOf unit
         if lastDate?
           if lastDate.valueOf() > day.valueOf()
-            console.warn "Backwards time travel from #{lastDate} to #{day}"
+            console.warn "Backwards time travel from #{lastDate.format()} to #{day.format()}"
             lastDate = day
             makeDay()
           else
