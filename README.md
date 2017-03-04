@@ -106,6 +106,9 @@ in other fields too.
 * **Search** for posts by a particular user by clicking on their username.
   Search for your own posts in a group by clicking the "My Posts" button.
 
+* **Statistics** about user's and all posts within a group, by day, week
+  (with configurable week start), month, year, or hour within a day.
+
 * **Permanent URLs** for all messages, groups, etc., for easy emailing etc.
   (but other than group name, not revealing, so only those with permission
   can open).  Links to other messages via specical coauthor:xxx syntax.
