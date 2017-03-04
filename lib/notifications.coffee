@@ -15,6 +15,7 @@ if Meteor.isServer
   after:
     after: 1
     unit: 'hour'
+  ## None of the following actually do anything yet:
   batched:
     every: 4
     unit: 'hour'  ## 'hour' or 'day'

@@ -7,11 +7,23 @@ Template.settings.onCreated ->
   @autorun ->
     setTitle 'Settings'
 
+myAfter = (user) -> user.notifications?.after ? defaultNotificationDelays.after
+
 Template.settings.helpers
   profile: -> Meteor.user().profile
   autopublish: autopublish
   notificationsOn: notificationsOn
   notificationsDefault: notificationsDefault
+  notificationsAfter: ->
+    after = myAfter @
+    "#{after.after} #{after.unit}#{if after.after == 1 then '' else 's'}"
+  activeNotificationAfter: (match) ->
+    match = match.hash
+    after = myAfter @
+    if after.after == match.after and after.unit == match.unit
+      'active'
+    else
+      ''
   notifySelf: notifySelf
   autosubscribeGroup: -> autosubscribeGroup routeGroup()
   autosubscribeGlobal: -> autosubscribeGroup wildGroup
@@ -51,6 +63,15 @@ Template.settings.events
     e.stopPropagation()
     Meteor.users.update Meteor.userId(),
       $set: "profile.notifications.self": not notifySelf()
+
+  'click .notificationAfter': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    Meteor.users.update Meteor.userId(),
+      $set: "profile.notifications.after":
+        after: parseFloat e.target.getAttribute 'data-after'
+        unit: e.target.getAttribute 'data-unit'
+    dropdownToggle e
 
   'click .autosubscribeGlobalButton': (e, t) ->
     e.preventDefault()

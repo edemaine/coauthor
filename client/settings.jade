@@ -57,6 +57,35 @@ template(name="settings")
                     | No
           tr
             th
+              label Email notifications after:
+            td
+              .btn-group
+                button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
+                  | #{notificationsAfter}
+                  span.caret
+                ul.dropdown-menu(role="menu")
+                  li.notificationAfter(class="{{activeNotificationAfter after=5 unit='minute'}}")
+                    a(href="#",data-after="5",data-unit="minute") 5 minutes
+                  li.notificationAfter(class="{{activeNotificationAfter after=15 unit='minute'}}")
+                    a(href="#",data-after="15",data-unit="minute") 15 minutes
+                  li.notificationAfter(class="{{activeNotificationAfter after=30 unit='minute'}}")
+                    a(href="#",data-after="30",data-unit="minute") 30 minutes
+                  li.notificationAfter(class="{{activeNotificationAfter after=1 unit='hour'}}")
+                    a(href="#",data-after="1",data-unit="hour") 1 hour
+                  li.notificationAfter(class="{{activeNotificationAfter after=2 unit='hour'}}")
+                    a(href="#",data-after="2",data-unit="hour") 2 hours
+                  li.notificationAfter(class="{{activeNotificationAfter after=3 unit='hour'}}")
+                    a(href="#",data-after="3",data-unit="hour") 3 hours
+                  li.notificationAfter(class="{{activeNotificationAfter after=4 unit='hour'}}")
+                    a(href="#",data-after="4",data-unit="hour") 4 hours
+                  li.notificationAfter(class="{{activeNotificationAfter after=6 unit='hour'}}")
+                    a(href="#",data-after="6",data-unit="hour") 6 hours
+                  li.notificationAfter(class="{{activeNotificationAfter after=8 unit='hour'}}")
+                    a(href="#",data-after="8",data-unit="hour") 8 hours
+                  li.notificationAfter(class="{{activeNotificationAfter after=12 unit='hour'}}")
+                    a(href="#",data-after="12",data-unit="hour") 12 hours
+          tr
+            th
               label Subscribe to threads by default (unless overwritten by group subscription):
             td
               if autosubscribeGlobal
