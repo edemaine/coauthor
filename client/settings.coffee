@@ -1,3 +1,8 @@
+import { defaultFormat } from '../lib/settings.coffee'
+
+Template.registerHelper 'defaultFormat', ->
+  defaultFormat
+
 Template.settings.onCreated ->
   @autorun ->
     setTitle 'Settings'
