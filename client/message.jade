@@ -174,17 +174,7 @@ template(name="submessage")
           if editingRV
             unless root
               +threadPrivacy tabindex=tabindex5
-            .btn-group
-              button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false", tabindex="{{tabindex 6}}")
-                | #{keyboard}
-                span.caret
-              ul.dropdown-menu(role="menu")
-                li.editorKeyboard(class="{{activeKeyboard 'normal'}}")
-                  a(href="#",data-keyboard="normal") Normal
-                li.editorKeyboard(class="{{activeKeyboard 'vim'}}")
-                  a(href="#",data-keyboard="vim") Vim
-                li.editorKeyboard(class="{{activeKeyboard 'emacs'}}")
-                  a(href="#",data-keyboard="emacs") Emacs
+            +keyboardSelector _id=_id tabindex=tabindex6
             +formatSelector format=format tabindex=tabindex7
             button.btn.btn-info.editButton(tabindex="{{tabindex 8}}") Stop Editing
           else
@@ -259,6 +249,19 @@ template(name="replyButtons")
       button.btn.btn-default.replyButton Reply
   if canAttach
     +messageAttach
+
+template(name="keyboardSelector")
+  .btn-group
+    button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false", tabindex=tabindex)
+      | #{keyboard}
+      span.caret
+    ul.dropdown-menu(role="menu")
+      li.editorKeyboard(class="{{activeKeyboard 'normal'}}")
+        a(href="#",data-keyboard="normal") Normal
+      li.editorKeyboard(class="{{activeKeyboard 'vim'}}")
+        a(href="#",data-keyboard="vim") Vim
+      li.editorKeyboard(class="{{activeKeyboard 'emacs'}}")
+        a(href="#",data-keyboard="emacs") Emacs
 
 template(name="formatSelector")
   .btn-group

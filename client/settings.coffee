@@ -20,11 +20,19 @@ Template.settings.helpers
     'dropbox' of (Meteor.user().services ? {})
 
 Template.settings.events
+  'click .editorKeyboard': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    Meteor.users.update Meteor.userId(),
+      $set: "profile.keyboard": e.target.getAttribute 'data-keyboard'
+    dropdownToggle e
+
   'click .editorFormat': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
     Meteor.users.update Meteor.userId(),
       $set: "profile.format": e.target.getAttribute 'data-format'
+    dropdownToggle e
 
   'click .autopublishButton': (e, t) ->
     e.preventDefault()

@@ -448,15 +448,7 @@ Template.submessage.helpers
           #    #    e.dataTransfer.setData('text/plain', "\\href{#{id}}{}")
           #    e.dataTransfer.setData('text/plain', "<IMG SRC='coauthor:#{id}'>")
       editorMode editor, ti.data.format
-      editorKeyboard editor, messageKeyboard.get(ti.data._id) ? defaultKeyboard
-
-  keyboard: ->
-    capitalize messageKeyboard.get(@_id) ? defaultKeyboard
-  activeKeyboard: (match) ->
-    if (messageKeyboard.get(@_id) ? defaultKeyboard) == match
-      'active'
-    else
-      ''
+      editorKeyboard editor, messageKeyboard.get(ti.data._id) ? userKeyboard()
 
   tags: historify 'tags', sortTags
   deleted: historify 'deleted'
@@ -542,6 +534,23 @@ Template.registerHelper 'formatAuthors', ->
         "#{linkToAuthor @group, unescapeUser author} #{formatDate date, 'on '}"
   if a.length > 0
     ', edited by ' + a.join ", "
+
+Template.keyboardSelector.helpers
+  keyboard: ->
+    if @_id?
+      capitalize messageKeyboard.get(@_id) ? userKeyboard()
+    else  ## Settings
+      capitalize (@keyboard ? defaultKeyboard)
+  activeKeyboard: (match) ->
+    active =
+      if @_id?
+        (messageKeyboard.get(@_id) ? userKeyboard()) == match
+      else  ## Settings
+        (@keyboard ? defaultKeyboard) == match
+    if active
+      'active'
+    else
+      ''
 
 Template.submessage.events
   'click .tagRemove': (e, t) ->
