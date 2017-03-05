@@ -176,7 +176,6 @@ messageRaw = new ReactiveDict
 messageFolded = new ReactiveDict
 messageHistory = new ReactiveDict
 messageKeyboard = new ReactiveDict
-defaultKeyboard = 'normal'
 
 Template.submessage.onCreated ->
   @count = submessageCount++

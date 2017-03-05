@@ -9,5 +9,7 @@ export defaultFormat = 'markdown'
 @theme = ->
   Meteor.user()?.profile?.theme ? defaultTheme
 
+@defaultKeyboard = 'normal'
+
 @userKeyboard = ->
   Meteor.user()?.profile?.keyboard ? defaultKeyboard
