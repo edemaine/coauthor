@@ -7,28 +7,33 @@ template(name="settings")
           tr
             th
               label Full name: 
+              .description Your first and last name. This is how your name will generally be displayed to others. Don't forget to click Save after editing.
             td
               +fullNameEditor
           tr
             th
               label Email address:
+              .description A verified email address is necessary if you want email notifications about posts. Don't forget to click Save after editing.
             td
               +emailEditor
               div
                 +_loginButtonsAdditionalLoggedInDropdownActions
           tr
             th
-              label Default <a href="https://github.com/edemaine/coauthor#features-so-far">message format</a> (they all support LaTeX math):
+              label Default message format:
+              .description All formats support LaTeX math like <code>$x+y$</code>. The message format controls e.g. whether you specify italics like <code>*this*</code> (Markdown), <code>\emph{this}</code> (LaTeX), or <code>&lt;i&gt;this&lt;/i&gt;</code> (HTML).  Actually, HTML is always available in all formats.  See the <a href="https://github.com/edemaine/coauthor#features-so-far">detailed list of supported features</a>.
             td
               +formatSelector
           tr
             th
               label Default editor keyboard:
+              .description If you are a fan of VIM or Emacs, set your global default for all editors.  (You can always change the keyboard within an editor for occasional use.)
             td
               +keyboardSelector
           tr
             th
               label Messages initially published:
+              .description If turned off, your messages won't be visible to others until you click the Publish button.
             td
               if autopublish
                 button.btn.btn-success.autopublishButton(type="button", data-toggle="button", autocomplete="off") Yes
@@ -37,11 +42,13 @@ template(name="settings")
           tr
             th
               label Editor theme:
+              .description Black text on white background (Light) or white text on black background (Dark).
             td
               button.btn.btn-default.themeButton(type="button", data-toggle="button", autocomplete="off")= theme
           tr
             th
               label Email notifications:
+              .description Setting to No will globally turn off all your email notifications about all posts.
             td
               if notificationsOn
                 button.btn.btn-success.notificationsButton(type="button", data-toggle="button", autocomplete="off")
@@ -58,6 +65,7 @@ template(name="settings")
           tr
             th
               label Email notifications after:
+              .description How long after a message update before you get an email notification about it, and all other updates during that period. Smaller value means you're more up-to-date, but larger value means fewer email messages.
             td
               .btn-group
                 button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
@@ -87,6 +95,7 @@ template(name="settings")
           tr
             th
               label Subscribe to threads by default (unless overwritten by group subscription):
+              .description Global default for whether to autosubscribe to all threads in all groups that don't specify their own autosubscribe flag below.
             td
               if autosubscribeGlobal
                 button.btn.btn-success.autosubscribeGlobalButton(type="button", data-toggle="button", autocomplete="off")
@@ -97,7 +106,8 @@ template(name="settings")
           unless wildGroup
             tr
               th
-                label Subscribe to threads <i>in this group</i> by default:
+                label Subscribe to threads in group &ldquo;#{routeGroup}&rdquo; by default:
+                .description Group default for whether to autosubscribe to all threads within this group, overriding the global default above.
               td
                 if autosubscribeGroup
                   button.btn.btn-success.autosubscribeGroupButton(type="button", data-toggle="button", autocomplete="off")
@@ -108,6 +118,7 @@ template(name="settings")
           tr
             th
               label Notifications for own messages:
+              .description Do you want notifications about messages that only you create/update? This lets you see what others see, but it is in some sense redundant.
             td
               if notifySelf
                 button.btn.btn-success.notifySelfButton(type="button", data-toggle="button", autocomplete="off")
@@ -118,6 +129,7 @@ template(name="settings")
           tr
             th
               label Dropbox account linking:
+              .description This is not yet functional, but one day, files in Coauthor will be autosynchronized with your Dropbox.
             td
               if dropbox
                 button.btn.btn-danger.unlinkDropbox Unlink Dropbox Account

@@ -1,1 +1,3 @@
-.settings > tbody > tr > th, .settings > tbody > tr > td { vertical-align: middle; }
+/*.settings > tbody > tr > th, .settings > tbody > tr > td { vertical-align: middle; }*/
+.settings td { min-width: 400px; }
+.settings .description { font-size: smaller; font-weight: normal; }

@@ -143,12 +143,14 @@ in other fields too.
   to allow them to see and jointly edit the message.
 
 * **Email notifications** for subscribed threads, clustering together all
-  updates since the last email, with a maximum of 1 hour lag.
+  updates since the last email, with a maximum lag a specified number of
+  hours or minutes (default 1 hour).
   Each user can specify in Settings whether they are, by default, subscribed
-  to all threads or none.  Either way, the default can be overridden in the
-  group view using the checkbox on the right (checked means "subscribed").
-  Users can choose in Settings whether to receive notifications about their
-  own edits.
+  to all threads or none, both globally and local to each group.
+  Either way, the default can be overridden in the group view using the
+  checkbox on the right (checked means "subscribed").
+  Users can choose in Settings whether to receive notifications
+  about their own edits.
 
 * **Time travel**: You can drag through history and see past versions.
   In general, there should be good, automatic history tracking of everything,
