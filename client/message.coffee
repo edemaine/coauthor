@@ -921,10 +921,15 @@ messageParent = (child, parent, index = null) ->
   parentMsg = Messages.findOne parent
   oldParent = findMessageParent child
   oldIndex = oldParent?.children.indexOf child
-  ## Ignore drag to same place
   if parentMsg?._id == oldParent?._id
+    ## Ignore drag to same place
     return if index == oldIndex or
       (not index? and oldIndex == oldParent.children.length - 1)
+    ## If dragging within same parent to a later-numbered child,
+    ## need to decrease index by 1 to account for loss of self.
+    if index? and index > oldIndex
+      index -= 1
+      return if index == oldIndex
   Modal.show 'messageParentConfirm',
     child: childMsg
     parent: parentMsg
