@@ -122,7 +122,7 @@ Template.message.helpers
       else if not (user.profile.notifications?.on ? defaultNotificationsOn)
         title = "Notifications turned off"
       else if autosubscribe @group, user
-        title = "Not explicitly subscribed to thread, and autosubscribe turned off"
+        title = "Autosubscribe turned off, and not explicitly subscribed to thread"
       else
         title = "Explicitly unsubscribed from thread"
       linkToAuthor @group, user.username, title
