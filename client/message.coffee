@@ -284,7 +284,8 @@ Template.submessage.onRendered ->
       @images = {}
     else
       newImages = {}
-      $(formatBody data.format, data.body).find('img[src^="/file/"]')
+      $($.parseHTML(formatBody data.format, data.body))
+      .find 'img[src^="/file/"]'
       .each ->
         newImages[url2file @getAttribute('src')] = true
       for id of @images
