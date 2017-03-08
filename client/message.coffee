@@ -121,7 +121,7 @@ Template.message.helpers
         title = "Unverified email address #{user.emails[0].address}"
       else if not (user.profile.notifications?.on ? defaultNotificationsOn)
         title = "Notifications turned off"
-      else if autosubscribe @group, user
+      else if not autosubscribe @group, user
         title = "Autosubscribe turned off, and not explicitly subscribed to thread"
       else
         title = "Explicitly unsubscribed from thread"
