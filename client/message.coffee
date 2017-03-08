@@ -45,12 +45,12 @@ Template.registerHelper 'children', ->
   children = Messages.find _id: $in: @children
                .fetch()
   children = _.sortBy children, (child) => @children.indexOf child._id
-  ## Use canSee to properly fake non-superuser mode.
-  children = (child for child in children when canSee child)
   for child, index in children
+    ## Use canSee to properly fake non-superuser mode.
+    continue unless canSee child
     child.depth = (@depth ? 0) + 1
     child.index = index
-  children
+    child
 
 Template.registerHelper 'tags', ->
   sortTags @tags
