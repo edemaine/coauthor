@@ -52,7 +52,7 @@ internalFileUrlPrefix = "#{Files.baseURL}/id/"
 
 @fileType = (file) ->
   file = findFile file unless file.contentType?
-  if file?.contentType[...6] == 'image/'
+  if file?.contentType in ['image/gif', 'image/jpeg', 'image/png', 'image/svg+xml', 'image/webp', 'image/x-icon']
     'image'
   else if file?.contentType in ['video/mp4', 'video/ogg', 'video/webm']
     'video'
