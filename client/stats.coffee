@@ -169,6 +169,9 @@ Template.statsGood.helpers
       ''
   linkToAuthor: ->
     linkToAuthor @group, @username
+  postCount: (type) ->
+    Messages.find Template.instance().stats[type].query.call(@)
+    .count()
 
 Template.statsGood.events
   'click .unit': (e) ->
