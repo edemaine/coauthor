@@ -77,8 +77,10 @@ pre { white-space: pre-wrap; }
 
 /* Based on Github's .markdown-body styling e.g.
  * https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet#tables
+ * Also return text-align to left to counteract .message-body's
+ * text-align: justify
  */
-.message-body table { margin-bottom: 16px }
+.message-body table { margin-bottom: 16px; text-align: left; }
 .message-body table td, .message-body table th { padding: 6px 13px; border: 1px solid #ddd }
 .message-body table tr { background-color: #ffffff; }
 .message-body table tr:nth-child(2n) { background-color: #f8f8f8; }
