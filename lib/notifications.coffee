@@ -327,8 +327,7 @@ if Meteor.isServer
     html = ''
     text = ''
     bygroup = _.groupBy messageUpdates, (notification) -> notification.msg.group
-    if messageUpdates.length != 1
-      subject = "#{messageUpdates.length} updates in #{_.keys(bygroup).sort().join ', '}"
+    subject = "#{messageUpdates.length} updates in #{_.keys(bygroup).sort().join ', '}"
     bygroup = _.pairs bygroup
     bygroup = _.sortBy bygroup, (pair) -> pair[0]
     for [group, groupUpdates] in bygroup
@@ -374,6 +373,13 @@ if Meteor.isServer
           authorsHTML = (linkToAuthor msg.group, user for user in authors).join ', '
           if messageUpdates.length == 1
             subject = "#{authorsText} #{verb} '#{titleOrUntitled msg}' in #{msg.group}"
+          else
+            if pastAuthors?
+              unless pastAuthors == authorsText
+                pastAuthors = false
+            else
+              pastAuthors = authorsText
+              authorsSubject = "#{authorsText} made #{subject}" ## n updates in ...
           #if diffs.length > 1
           #  dates = "between #{diffs[0].updated} and #{diffs[diffs.length-1].updated}"
           #else
@@ -437,6 +443,8 @@ if Meteor.isServer
             html += "</UL>\n"
           html += '\n'
           text += '\n'
+    if pastAuthors
+      subject = authorsSubject
 
     Email.send
       from: Accounts.emailTemplates.from
