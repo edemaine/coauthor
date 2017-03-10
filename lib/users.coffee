@@ -13,7 +13,7 @@
   user?.profile?.fullname?.trim?() or username
 
 @linkToAuthor = (group, user, title = "User '#{user}'") ->
-  link = pathFor 'author',
+  link = urlFor 'author',
     group: group
     author: user
   """<a class="author" href="#{link}" title="#{title.replace /"/g, '&#34;'}">#{displayUser user}</a>"""
