@@ -25,7 +25,7 @@ Template.layout.helpers
     route = Router.current().route.getName()
     if linkToRoutes[route]
       pathFor route,
-        _.extend _.clone(router.params),
+        _.extend _.omit(router.params, 'length'),
           group: @name
     else
       pathFor 'group',

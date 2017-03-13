@@ -8,6 +8,7 @@ wild =
       route: route
       data: _.extend data, wild
       hash: hash
+    0: '*'
 
 @urlFor = (route, data, hash) ->
   Blaze._globalHelpers.urlFor
