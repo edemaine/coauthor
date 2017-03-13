@@ -63,7 +63,7 @@ Template.statsGood.onCreated ->
           'YYYY'
     for key, stats of @stats
       if key == 'user'
-        return unless t.username?
+        continue unless t.username?
       stats.labels = []
       for dataset in stats.datasets
         dataset.data = []
@@ -133,24 +133,29 @@ Template.statsGood.onCreated ->
 
 Template.statsGood.onRendered ->
   for key, stats of @stats
-    if dom = @find(".#{key}Stats")
-      stats.chart = new Chart dom,
-        type: 'line'
-        data: stats
-        options:
-          scales:
-            yAxes: [
-              ticks:
-                beginAtZero: true
-                ## Integer workaround from https://github.com/chartjs/Chart.js/issues/2539
-                callback: (tick) ->
-                  if 0 <= tick.toString().indexOf '.'
-                    null
-                  else
-                    tick.toLocaleString()
-            ]
+    dom = @find "canvas.#{key}Stats"
+    stats.chart = new Chart dom,
+      type: 'line'
+      data: stats
+      options:
+        scales:
+          yAxes: [
+            ticks:
+              beginAtZero: true
+              ## Integer workaround from https://github.com/chartjs/Chart.js/issues/2539
+              callback: (tick) ->
+                if 0 <= tick.toString().indexOf '.'
+                  null
+                else
+                  tick.toLocaleString()
+          ]
 
 Template.statsGood.helpers
+  hideIfNoUser: ->
+    if @username
+      ''
+    else
+      'hidden'
   activeUnit: (which) ->
     if which == currentUnit()
       'active'

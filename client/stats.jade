@@ -46,7 +46,7 @@ template(name='statsGood')
               a(href="#",data-day="6") Saturday
       else
         span.small #{weekStart}
-  if username
+  .userStats(class=hideIfNoUser)
     h2 !{linkToAuthor}&rsquo;s Statistics: {{postCount 'user'}} posts
     canvas.userStats(width="800", height="400")
   h2 Global Statistics: {{postCount 'global'}} posts
