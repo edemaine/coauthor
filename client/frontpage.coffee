@@ -1,3 +1,6 @@
+Template.frontpage.onCreated ->
+  setTitle null
+
 Template.frontpage.events
   'click .groupNewButton': ->
     Modal.show 'groupNew'

@@ -1,7 +1,7 @@
 @setTitle = (thing) ->
-  if thing?
-    title = thing + " - "
-  else
-    title = ""
-  title += routeGroup() + " - Coauthor"
+  title = thing ? ''
+  title += ' - ' if thing
+  title += routeGroup() ? ''
+  title += ' - ' if routeGroup()
+  title += "Coauthor"
   document.title = title
