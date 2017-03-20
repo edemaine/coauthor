@@ -5,14 +5,18 @@ rsync -a ubuntu@coauthor:dump/coauthor/ coauthor-backup/
 acd_cli sync
 acd_cli mkdir /coauthor-backup/`date +%Y-%m-%d`
 count=0
+limit=20
 while ! acd_cli ul -q -o coauthor-backup/* /coauthor-backup/`date +%Y-%m-%d`
 do
   echo Trying again... $count
   acd_cli sync
-  acd_cli ul -q -o coauthor-backup/* /coauthor-backup/`date +%Y-%m-%d`
   count=`expr $count + 1`
-  if [ $count > 20 ]
+  if [ $count > $limit ]
   then
     break
   fi
 done
+if [ $count <= $limit ]
+then
+  echo SUCCESS\!\!
+fi
