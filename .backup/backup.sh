@@ -11,12 +11,12 @@ do
   echo Trying again... $count
   acd_cli sync
   count=`expr $count + 1`
-  if [ $count > $limit ]
+  if [ $count -gt $limit ]
   then
     break
   fi
 done
-if [ $count <= $limit ]
+if [ $count -le $limit ]
 then
   echo SUCCESS\!\!
 fi
