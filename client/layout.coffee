@@ -18,7 +18,7 @@ Template.layout.helpers
     else
       ''
   showUsers: ->
-    Router.current().route.getName() != 'users' and
+    Router.current().route?.getName() != 'users' and
     canAdmin routeGroupOrWild()
   linkToGroup: ->
     router = Router.current()
