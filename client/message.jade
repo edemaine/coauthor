@@ -248,7 +248,11 @@ template(name="messageAuthor")
       | (posted by
     else
       | (created by
-    | !{formatCreator} {{formatDate created prefix='on '}}!{formatAuthors})
+    | !{formatCreator}
+    if published
+      {{formatDate published prefix='on '}}!{formatAuthors})
+    else
+      {{formatDate created prefix='on '}}!{formatAuthors})
 
 template(name="threadPrivacy")
   if canSuper
