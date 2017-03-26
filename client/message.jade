@@ -250,9 +250,9 @@ template(name="messageAuthor")
       | (created by
     | !{formatCreator}
     if published
-      {{formatDate published prefix='on '}}!{formatAuthors})
+      | {{formatDate published prefix='on '}}!{formatAuthors})
     else
-      {{formatDate created prefix='on '}}!{formatAuthors})
+      | {{formatDate created prefix='on '}}!{formatAuthors})
 
 template(name="threadPrivacy")
   if canSuper
