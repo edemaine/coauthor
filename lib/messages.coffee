@@ -391,9 +391,10 @@ if Meteor.isServer
 @canDelete = canEdit
 @canUndelete = canEdit
 @canPublish = canEdit
-
-@canUnpublish = (message) ->
-  canSuper message2group message
+@canUnpublish = canEdit
+## Older behavior: only superusers can unpublish once published
+#@canUnpublish = (message) ->
+#  canSuper message2group message
 
 @canSuper = (group, client = Meteor.isClient, user = Meteor.user()) ->
   ## If client is true, we use the session variable 'super' to fake whether

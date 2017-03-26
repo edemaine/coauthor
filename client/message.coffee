@@ -471,7 +471,8 @@ Template.submessage.helpers
     history = messageHistory.get(@_id) ? @
     body = history.body
     return body unless body
-    if messageRaw.get @_id
+    ## Don't show raw view if editing (editor is a raw view)
+    if messageRaw.get(@_id) and not Template.instance().editing?.get()
       "<PRE CLASS='raw'>#{_.escape body}</PRE>"
     else
       formatBody history.format, body
@@ -486,6 +487,9 @@ Template.submessage.helpers
     formatFileDescription @  ## always editing so not in history
 
   canEdit: -> canEdit @_id
+  canAction: ->
+    canEdit @_id
+    #canDelete(@_id) or canUndelete(@_id) or canPublish(@_id) or canUnpublish(@_id) or canSuperdelete(@_id) or canPrivate(@_id)
   canDelete: -> canDelete @_id
   canUndelete: -> canUndelete @_id
   canPublish: -> canPublish @_id
@@ -628,6 +632,7 @@ Template.submessage.events
       Meteor.call 'messageEditStop', message
     Meteor.call 'messageUpdate', message,
       published: not @published
+    dropdownToggle e
 
   'click .deleteButton': (e, t) ->
     e.preventDefault()
@@ -638,6 +643,7 @@ Template.submessage.events
       Meteor.call 'messageEditStop', message
     Meteor.call 'messageUpdate', message,
       deleted: not @deleted
+    dropdownToggle e
 
   'click .privateButton': (e, t) ->
     e.preventDefault()
@@ -645,6 +651,7 @@ Template.submessage.events
     message = t.data._id
     Meteor.call 'messageUpdate', message,
       private: not @private
+    dropdownToggle e
 
   'click .editorKeyboard': (e, t) ->
     e.preventDefault()
@@ -848,6 +855,11 @@ Template.threadPrivacy.helpers
       ''
 
 Template.threadPrivacy.events
+  #'click .threadPrivacyToggle': (e, t) ->
+  #  e.preventDefault()
+  #  e.stopPropagation()  ## prevent propagation to top-level dropdown
+  #  console.log e.target
+  #  $(e.target).dropdown 'toggle'
   'click .threadPrivacy': (e, t) ->
     e.preventDefault()
     e.stopPropagation()

@@ -32,6 +32,10 @@ input.title ~ .message-right-buttons { margin: 0px; }
   cursor: auto; padding: 0px 5px; } /* normally 3px 20px */
 .dropdown-menu.tagMenu > li > a { font-size: 75%; } /* matches label */
 
+.dropdown-menu.actionMenu { min-width: 100px; background: rgb(217,237,247); }
+.dropdown-menu.actionMenu > li > a { padding: 2px 10px; }
+.dropdown-menu.actionMenu > li > a:hover { min-width: 100px; background: white; }
+
 img, video { max-width: 100%; max-height: 100vh; }
 
 .historySlider { margin-left: 5em; margin-right: 5em; }
