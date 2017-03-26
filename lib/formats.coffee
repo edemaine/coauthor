@@ -383,7 +383,7 @@ formatEither = (isTitle, format, text, leaveTeX = false) ->
 @formatFileDescription = (msg, file = null) ->
   file = findFile msg.file unless file?
   return formatBadFile msg.file unless file?
-  """<i class="odd-file"><a href="#{urlToFile msg}">&lt;#{file.length}-byte #{file.contentType} file &ldquo;#{file.filename}&rdquo;&gt;</a></i>"""
+  """<i class="odd-file"><a href="#{urlToFile msg}">&lt;#{s.numberFormat file.length}-byte #{file.contentType} file &ldquo;#{file.filename}&rdquo;&gt;</a></i>"""
 
 @formatFile = (msg, file = null) ->
   file = findFile msg.file unless file?
