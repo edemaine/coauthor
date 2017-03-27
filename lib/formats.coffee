@@ -146,17 +146,17 @@ defaultFontFamily = 'Merriweather'
   .replace /\\(BY|YEAR)\s*{([^{}]*)}/g, '<span style="border: thin solid; margin-left: 0.5em; padding: 0px 4px; font-variant:small-caps">$2</span>'
   .replace /\\protect\b\s*/g, ''
   .replace /\\par\b\s*/g, '<p>'
-  .replace /\\emph\s*{((?:[^{}]|{[^{}]*})*)}/g, '<em>$1</em>'
-  .replace /\\textit\s*{((?:[^{}]|{[^{}]*})*)}/g, '<span style="font-style: italic">$1</span>'
-  .replace /\\textup\s*{((?:[^{}]|{[^{}]*})*)}/g, '<span style="font-style: normal">$1</span>'
-  .replace /\\textlf\s*{((?:[^{}]|{[^{}]*})*)}/g, '<span style="font-weight: 100">$1</span>'
-  .replace /\\textmd\s*{((?:[^{}]|{[^{}]*})*)}/g, '<span style="font-weight: 500">$1</span>'
-  .replace /\\textbf\s*{((?:[^{}]|{[^{}]*})*)}/g, '<span style="font-weight: bold">$1</span>'
+  .replace /\\emph\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<em>$1</em>'
+  .replace /\\textit\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="font-style: italic">$1</span>'
+  .replace /\\textup\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="font-style: normal">$1</span>'
+  .replace /\\textlf\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="font-weight: 100">$1</span>'
+  .replace /\\textmd\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="font-weight: 500">$1</span>'
+  .replace /\\textbf\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="font-weight: bold">$1</span>'
   .replace /\\(textrm|textnormal)\s*{((?:[^{}]|{[^{}]*})*)}/g, """<span style="font-family: #{defaultFontFamily}">$2</span>"""
-  .replace /\\textsf\s*{((?:[^{}]|{[^{}]*})*)}/g, '<span style="font-family: sans-serif">$1</span>'
-  .replace /\\texttt\s*{((?:[^{}]|{[^{}]*})*)}/g, '<span style="font-family: monospace">$1</span>'
-  .replace /\\textsc\s*{((?:[^{}]|{[^{}]*})*)}/g, '<span style="font-variant: small-caps">$1</span>'
-  .replace /\\textsl\s*{((?:[^{}]|{[^{}]*})*)}/g, '<span style="font-style: oblique">$1</span>'
+  .replace /\\textsf\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="font-family: sans-serif">$1</span>'
+  .replace /\\texttt\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="font-family: monospace">$1</span>'
+  .replace /\\textsc\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="font-variant: small-caps">$1</span>'
+  .replace /\\textsl\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="font-style: oblique">$1</span>'
   loop ## Repeat until done to support overlapping matches, e.g. \rm x \it y
     old = tex
     tex = tex
@@ -182,23 +182,23 @@ defaultFontFamily = 'Merriweather'
     .replace /\\sc\b\s*((?:[^{}]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-variant: small-caps">$1</span>"""
     break if old == tex
   tex = tex
-  .replace /\\(uppercase|MakeTextUppercase)\s*{((?:[^{}]|{[^{}]*})*)}/g, '<span style="text-transform: uppercase">$2</span>'
-  .replace /\\(lowercase|MakeTextLowercase)\s*{((?:[^{}]|{[^{}]*})*)}/g, '<span style="text-transform: lowercase">$2</span>'
-  .replace /\\underline\s*{((?:[^{}]|{[^{}]*})*)}/g, '<u>$1</u>'
-  .replace /\\textcolor\s*{([^{}]*)}\s*{([^{}]*)}/g, '<span style="color: $1">$2</a>'
-  .replace /\\colorbox\s*{([^{}]*)}\s*{([^{}]*)}/g, '<span style="background-color: $1">$2</a>'
+  .replace /\\(uppercase|MakeTextUppercase)\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="text-transform: uppercase">$2</span>'
+  .replace /\\(lowercase|MakeTextLowercase)\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="text-transform: lowercase">$2</span>'
+  .replace /\\underline\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<u>$1</u>'
+  .replace /\\textcolor\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="color: $1">$2</a>'
+  .replace /\\colorbox\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="background-color: $1">$2</a>'
   .replace /\\begin\s*{enumerate}/g, '<ol>'
   .replace /\\begin\s*{itemize}/g, '<ul>'
   .replace /\\item\b\s*/g, '<li>'
   .replace /\\end\s*{enumerate}/g, '</ol>'
   .replace /\\end\s*{itemize}/g, '</ul>'
-  .replace /\\chapter\s*\*?\s*{((?:[^{}]|{[^{}]*})*)}/g, '<h1>$1</h1>'
-  .replace /\\section\s*\*?\s*{((?:[^{}]|{[^{}]*})*)}/g, '<h2>$1</h2>'
-  .replace /\\subsection\s*\*?\s*{((?:[^{}]|{[^{}]*})*)}/g, '<h3>$1</h3>'
-  .replace /\\subsubsection\s*\*?\s*{((?:[^{}]|{[^{}]*})*)}/g, '<h4>$1</h4>'
-  .replace /\\paragraph\s*\*?\s*{((?:[^{}]|{[^{}]*})*)}\s*/g, '<p><b>$1</b> '
-  .replace /\\footnote\s*{((?:[^{}]|{[^{}]*})*)}/g, '[$1]'
-  .replace /\\includegraphics\s*(\[[^\[\]]*\]\s*)?{((?:[^{}]|{[^{}]*})*)}/g,
+  .replace /\\chapter\s*\*?\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<h1>$1</h1>'
+  .replace /\\section\s*\*?\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<h2>$1</h2>'
+  .replace /\\subsection\s*\*?\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<h3>$1</h3>'
+  .replace /\\subsubsection\s*\*?\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<h4>$1</h4>'
+  .replace /\\paragraph\s*\*?\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}\s*/g, '<p><b>$1</b> '
+  .replace /\\footnote\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '[$1]'
+  .replace /\\includegraphics\s*(\[[^\[\]]*\]\s*)?{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g,
     (match, optional = '', graphic) ->
       style = ''
       optional.replace /width\s*=\s*([-0-9.]+)\s*([a-zA-Z]*)/g,
@@ -213,7 +213,7 @@ defaultFontFamily = 'Merriweather'
       """<img src="#{graphic}"#{style}>"""
   .replace /\\pdftooltip\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g,
     (match, p1, p2) -> """<span title="#{(putMathBack p2, math).replace /"/g, '&#34;'}">#{p1}</span>"""
-  .replace /\\raisebox\s*{\s*([-0-9.]+)\s*([a-zA-Z]*)\s*}{((?:[^{}]|{[^{}]*})*)}/g,
+  .replace /\\raisebox\s*{\s*([-0-9.]+)\s*([a-zA-Z]*)\s*}{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g,
     (match, value, unit, arg) ->
       if value[0] == '-'
         value = value[1..]
