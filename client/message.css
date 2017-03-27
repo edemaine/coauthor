@@ -88,3 +88,9 @@ pre { white-space: pre-wrap; }
 .message-body table td, .message-body table th { padding: 6px 13px; border: 1px solid #ddd }
 .message-body table tr { background-color: #ffffff; }
 .message-body table tr:nth-child(2n) { background-color: #f8f8f8; }
+
+em em { font-style: normal }
+em em em { font-style: italic }
+em em em em { font-style: normal }
+em em em em em { font-style: italic }
+em em em em em em { font-style: normal }

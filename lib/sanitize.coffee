@@ -23,11 +23,8 @@ sanitizeHtml.defaults.allowedTags.push 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'
 sanitizeHtml.defaults.allowedTags.push 'del'  ## ~~strikethrough~~
 
 ## Additional HTML features
-sanitizeHtml.defaults.allowedTags.push 's'
+sanitizeHtml.defaults.allowedTags.push 's', 'u', 'tt'
 sanitizeHtml.defaults.allowedAttributes.ol = ['start']
-
-## LaTeX features
-sanitizeHtml.defaults.allowedTags.push 'u'  ## \underline
 
 ## KaTeX/MathML
 ## (tag list from https://developer.mozilla.org/en-US/docs/Web/MathML/Element)
