@@ -33,7 +33,7 @@ template(name="settings")
           tr
             th
               label Messages initially published:
-              .description If turned off, your messages won't be visible to others until you click the Publish button.
+              .description If turned off, your messages won't be visible to others until you click the Publish button (in the Action menu).
             td
               if autopublish
                 button.btn.btn-success.autopublishButton(type="button", data-toggle="button", autocomplete="off") Yes
@@ -95,7 +95,7 @@ template(name="settings")
           tr
             th
               label Subscribe to threads by default (unless overwritten by group subscription):
-              .description Global default for whether to autosubscribe to all threads in all groups that don't specify their own autosubscribe flag below.
+              .description Global default for whether to autosubscribe to all threads in all groups that don't specify their own autosubscribe flag below. <i>If set to No, you will not be notified about new threads.</i>
             td
               if autosubscribeGlobal
                 button.btn.btn-success.autosubscribeGlobalButton(type="button", data-toggle="button", autocomplete="off")
