@@ -98,6 +98,9 @@ latexEscape = (x) ->
   x.replace /[-`'~\\$%&<>]/g, (char) -> "&##{char.charCodeAt 0};"
 
 defaultFontFamily = 'Merriweather'
+lightWeight = 300
+mediumWeight = 700
+boldWeight = 900
 
 @latex2html = (tex) ->
   ## Parse verbatim first (to avoid contents getting mangled by other parsing).
@@ -149,9 +152,9 @@ defaultFontFamily = 'Merriweather'
   .replace /\\emph\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<em>$1</em>'
   .replace /\\textit\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="font-style: italic">$1</span>'
   .replace /\\textup\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="font-style: normal">$1</span>'
-  .replace /\\textlf\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="font-weight: 100">$1</span>'
-  .replace /\\textmd\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="font-weight: 500">$1</span>'
-  .replace /\\textbf\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="font-weight: bold">$1</span>'
+  .replace /\\textlf\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, """<span style="font-weight: #{lightWeight}">$1</span>"""
+  .replace /\\textmd\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, """<span style="font-weight: #{mediumWeight}">$1</span>"""
+  .replace /\\textbf\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, """<span style="font-weight: #{boldWeight}">$1</span>"""
   .replace /\\(textrm|textnormal)\s*{((?:[^{}]|{[^{}]*})*)}/g, """<span style="font-family: #{defaultFontFamily}">$2</span>"""
   .replace /\\textsf\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="font-family: sans-serif">$1</span>'
   .replace /\\texttt\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="font-family: monospace">$1</span>'
@@ -163,9 +166,9 @@ defaultFontFamily = 'Merriweather'
     .replace /\\em\b\s*((?:[^{}]|{[^{}]*})*)/g, '<em>$1</em>'
     .replace /\\itshape\b\s*((?:[^{}]|{[^{}]*})*)/g, '<span style="font-style: italic">$1</span>'
     .replace /\\upshape\b\s*((?:[^{}]|{[^{}]*})*)/g, '<span style="font-style: normal">$1</span>'
-    .replace /\\lfseries\b\s*((?:[^{}]|{[^{}]*})*)/g, '<span style="font-weight: 100">$1</span>'
-    .replace /\\mdseries\b\s*((?:[^{}]|{[^{}]*})*)/g, '<span style="font-weight: 500">$1</span>'
-    .replace /\\bfseries\b\s*((?:[^{}]|{[^{}]*})*)/g, '<span style="font-weight: bold">$1</span>'
+    .replace /\\lfseries\b\s*((?:[^{}]|{[^{}]*})*)/g, """<span style="font-weight: #{lightWeight}">$1</span>"""
+    .replace /\\mdseries\b\s*((?:[^{}]|{[^{}]*})*)/g, """<span style="font-weight: #{mediumWeight}">$1</span>"""
+    .replace /\\bfseries\b\s*((?:[^{}]|{[^{}]*})*)/g, """<span style="font-weight: #{boldWeight}">$1</span>"""
     .replace /\\rmfamily\b\s*((?:[^{}]|{[^{}]*})*)/g, """<span style="font-family: #{defaultFontFamily}">$1</span>"""
     .replace /\\sffamily\b\s*((?:[^{}]|{[^{}]*})*)/g, '<span style="font-family: sans-serif">$1</span>'
     .replace /\\ttfamily\b\s*((?:[^{}]|{[^{}]*})*)/g, '<span style="font-family: monospace">$1</span>'
@@ -173,8 +176,8 @@ defaultFontFamily = 'Merriweather'
     .replace /\\slshape\b\s*((?:[^{}]|{[^{}]*})*)/g, '<span style="font-style: oblique">$1</span>'
     ## Resetting font commands
     .replace /\\(?:rm|normalfont)\b\s*((?:[^{}]|{[^{}]*})*)/g, """<span style="font-family: #{defaultFontFamily}; font-style: normal; font-weight: normal; font-variant: normal">$1</span>"""
-    .replace /\\md\b\s*((?:[^{}]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-weight: 500">$1</span>"""
-    .replace /\\bf\b\s*((?:[^{}]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-weight: bold">$1</span>"""
+    .replace /\\md\b\s*((?:[^{}]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-weight: #{mediumWeight}">$1</span>"""
+    .replace /\\bf\b\s*((?:[^{}]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-weight: #{boldWeight}">$1</span>"""
     .replace /\\it\b\s*((?:[^{}]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-style: italic">$1</span>"""
     .replace /\\sl\b\s*((?:[^{}]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-style: oblique">$1</span>"""
     .replace /\\sf\b\s*((?:[^{}]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-family: sans-serif">$1</span>"""
