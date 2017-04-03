@@ -22,7 +22,7 @@ Template.layout.helpers
     canAdmin routeGroupOrWild()
   linkToGroup: ->
     router = Router.current()
-    route = Router.current().route.getName()
+    route = Router.current().route?.getName()
     if linkToRoutes[route]
       pathFor route,
         _.extend _.omit(router.params, 'length'),
@@ -31,7 +31,7 @@ Template.layout.helpers
       pathFor 'group',
         group: @name
   creditsWide: ->
-    Router.current().route.getName() != 'message'
+    Router.current().route?.getName() != 'message'
 
 Template.registerHelper 'couldSuper', ->
   canSuper routeGroupOrWild(), false

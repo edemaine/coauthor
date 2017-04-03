@@ -349,8 +349,8 @@ Template.submessage.helpers
   tabindex7: -> tabindex 7
   tabindex9: -> tabindex 9
   here: ->
-    Router.current().route.getName() == 'message' and
-    Router.current().params.message == @_id
+    Router.current().route?.getName() == 'message' and
+    Router.current().params?.message == @_id
   nothing: {}
   editingRV: -> Template.instance().editing.get()
   editingNR: -> Tracker.nonreactive -> Template.instance().editing.get()
