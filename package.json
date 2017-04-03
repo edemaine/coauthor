@@ -29,7 +29,7 @@
     "cookie": "^0.3.1",
     "diff": "^3.2.0",
     "katex": "^0.7.0",
-    "markdown-it": "^8.2.2",
+    "markdown-it": "^8.3.1",
     "meteor-node-stubs": "^0.2.5",
     "sanitize-html": "^1.14.1"
   },
