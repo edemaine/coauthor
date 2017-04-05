@@ -24,7 +24,7 @@
     "babel-runtime": "^6.22.0",
     "bcrypt": "^0.8.7",
     "chart.js": "^2.5.0",
-    "codemirror": "^5.22.2",
+    "codemirror": "^5.25.0",
     "codemirror-spell-checker": "^1.1.2",
     "cookie": "^0.3.1",
     "diff": "^3.2.0",
