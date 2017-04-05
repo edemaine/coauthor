@@ -16,6 +16,7 @@ switch markdownMode
       html: true
       linkify: true
       typographer: true
+    .use require 'markdown-it-replacements'
     markdownIt.linkify
     .add 'coauthor:', validate: ///^#{coauthorLinkBodyRe}///
     @markdown = (text) -> markdownIt.render text
