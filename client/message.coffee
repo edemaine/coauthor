@@ -284,7 +284,7 @@ Template.submessage.onRendered ->
       @images = {}
     else
       newImages = {}
-      $($.parseHTML(formatBody data.format, data.body))
+      $($.parseHTML("<div>#{formatBody data.format, data.body}</div>"))
       .find 'img[src^="/file/"]'
       .each ->
         newImages[url2file @getAttribute('src')] = true
