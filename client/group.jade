@@ -112,11 +112,7 @@ template(name="messageShort")
         each tags
           span.label.label-default #{key}
           |  
-        if deleted
-          span.label.label-danger Deleted
-        else
-          unless published
-            span.label.label-warning Unpublished
+        +messageLabels
     td.author
       a(href=messageLink)= creator
     td

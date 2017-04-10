@@ -7,7 +7,11 @@ input.title { width: 100%; }
 .message-body { text-align: justify; }
 .message-footer { width: 100%; padding: 0ex 1em; margin-top: -15px; }
 .message-deleted > .message-body, .message-unpublished > .message-body { opacity: 0.6; }
-.message-right-buttons { margin: -5px -10px -5px 5px; } /* cf. panel-heading's padding of 10px 15px */
+/*.message-right-buttons { margin: -5px -10px -5px 5px; }*/ /* cf. panel-heading's padding of 10px 15px */
+.message > .panel-heading { padding: 5px 5px 5px 10px; }
+.root > .panel-heading { padding: 5px 5px 5px 10px; border-bottom: 0px; }
+.messageTitle { display: inline-block; padding: 5px 5px 5px 0px; }
+.messageTags > a:first-child, .messageLabels > span:first-child { margin-left: 0.5em; }
 input.title ~ .message-right-buttons { margin: 0px; }
 .message-reply-buttons { margin-right: 1em; }
 .fileDescription { padding: 0.5ex 0.5em; border-bottom: 1px solid #337ab7;

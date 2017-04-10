@@ -35,17 +35,8 @@ template(name='readMessage')
       span.space
       span.title.panel-title.tex2jax !{formatTitle}
       span.space
-      each tags
-        a(href=linkToTag).tagLink
-          span.tag.label.label-default= key
-        |  
-      if deleted
-        span.label.label-danger Deleted
-      else
-        unless published
-          span.label.label-warning Unpublished
-      if private
-        span.label.label-info Private
+      +messageTags
+      +messageLabels
     unless folded
       .panel-body
         .message-body.tex2jax !{formatBody}

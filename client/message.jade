@@ -77,73 +77,70 @@ template(name="submessage")
           input.form-control.title(type="text", placeholder="Title", value=title, tabindex="{{tabindex 18}}")
       //-unless editingRV
       span(class=hideIfEditing)
-        .message-left-buttons.btn-group.btn-group-xs
-          button.btn.btn-info.foldButton(aria-label="Fold")
-            if folded
-              span.glyphicon.glyphicon-plus(aria-hidden="true")
-            else
-              span.glyphicon.glyphicon-minus(aria-hidden="true")
-          unless here
-            a.btn.btn-info.focusButton(aria-label="Focus", href="{{pathFor 'message' group=group message=_id}}", draggable="true")
-              span.glyphicon.glyphicon-arrow-right(aria-hidden="true")
-          if here
-            unless root
-              if prev
-                with prev
-                  a.btn.btn-info(href="{{pathFor 'message' group=group message=_id}}", title=title)
+        .messageTitle
+          span.message-left-buttons.btn-group.btn-group-xs
+            button.btn.btn-info.foldButton(aria-label="Fold")
+              if folded
+                span.glyphicon.glyphicon-plus(aria-hidden="true")
+              else
+                span.glyphicon.glyphicon-minus(aria-hidden="true")
+            unless here
+              a.btn.btn-info.focusButton(aria-label="Focus", href="{{pathFor 'message' group=group message=_id}}", draggable="true")
+                span.glyphicon.glyphicon-arrow-right(aria-hidden="true")
+            if here
+              unless root
+                if prev
+                  with prev
+                    a.btn.btn-info(href="{{pathFor 'message' group=group message=_id}}", title=title)
+                      span.glyphicon.glyphicon-backward(aria-hidden="true")
+                else
+                  a.btn.btn-info.disabled
                     span.glyphicon.glyphicon-backward(aria-hidden="true")
-              else
-                a.btn.btn-info.disabled
-                  span.glyphicon.glyphicon-backward(aria-hidden="true")
-              if next
-                with next
-                  a.btn.btn-info(href="{{pathFor 'message' group=group message=_id}}", title=title)
+                if next
+                  with next
+                    a.btn.btn-info(href="{{pathFor 'message' group=group message=_id}}", title=title)
+                      span.glyphicon.glyphicon-forward(aria-hidden="true")
+                else
+                  a.btn.btn-info.disabled
                     span.glyphicon.glyphicon-forward(aria-hidden="true")
-              else
-                a.btn.btn-info.disabled
-                  span.glyphicon.glyphicon-forward(aria-hidden="true")
-        span.space
-        if file
-          span.glyphicon.glyphicon-paperclip
-        span.title.panel-title.tex2jax !{formatTitle}
-        span.space
+          span.space
+          if file
+            span.glyphicon.glyphicon-paperclip
+          span.title.panel-title.tex2jax !{formatTitle}&#8203;
+          +messageTags
+          +messageLabels
       //- http://stackoverflow.com/questions/22390272/how-to-create-a-label-with-close-icon-in-bootstrap
-      span.tags
-        each tags
-          if editingRV
-            span.label.label-default.tag.tagWithRemove
-              | #{key}
-              if editingRV
-                span.tagRemove.glyphicon.glyphicon-remove-sign(aria-label="Remove",data-tag=key)
-          else
-            a(href=linkToTag).tagLink
-              span.tag.label.label-default= key
-          |  
       if editingRV
-        .btn-group
-          button.btn.btn-default.label.label-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
-            span.glyphicon.glyphicon-plus
-            | Tag
-          ul.dropdown-menu(role="menu").tagMenu
-            li.disabled
-              a
-                form.input-group.input-group-sm
-                  input.tagAddText.form-control(type="text", placeholder="New Tag...")
-                  .input-group-btn
-                    button.btn.btn-default.tagAddNew(type="submit")
-                      span.glyphicon.glyphicon-plus
-            if absentTagsCount
-              li.divider(role="separator")
-            each absentTags
-              li
-                a.tagAdd(href="#",data-tag=key) #{key}
-      if deleted
-        span.label.label-danger Deleted
-      else
-        unless published
-          span.label.label-warning Unpublished
-      if private
-        span.label.label-info Private
+        .messageTitle
+          span.tags
+            each tags
+              if editingRV
+                span.label.label-default.tag.tagWithRemove
+                  | #{key}
+                  if editingRV
+                    span.tagRemove.glyphicon.glyphicon-remove-sign(aria-label="Remove",data-tag=key)
+              else
+                a(href=linkToTag).tagLink
+                  span.tag.label.label-default= key
+              |  
+          span.btn-group
+            button.btn.btn-default.label.label-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
+              span.glyphicon.glyphicon-plus
+              | Tag
+            ul.dropdown-menu(role="menu").tagMenu
+              li.disabled
+                a
+                  form.input-group.input-group-sm
+                    input.tagAddText.form-control(type="text", placeholder="New Tag...")
+                    .input-group-btn
+                      button.btn.btn-default.tagAddNew(type="submit")
+                        span.glyphicon.glyphicon-plus
+              if absentTagsCount
+                li.divider(role="separator")
+              each absentTags
+                li
+                  a.tagAdd(href="#",data-tag=key) #{key}
+          +messageLabels
       .message-right-buttons.btn-group.pull-right.hidden-print
         unless folded
           unless editingRV
@@ -241,6 +238,23 @@ template(name="submessage")
       if children
         .panel-body.panel-secondbody.btn-group.hidden-print
           +replyButtons
+
+template(name="messageTags")
+  span.messageTags
+    each tags
+      a(href=linkToTag).tagLink
+        span.tag.label.label-default= key
+      |  
+
+template(name="messageLabels")
+  span.messageLabels
+    if deleted
+      span.label.label-danger Deleted
+    else
+      unless published
+        span.label.label-warning Unpublished
+    if private
+      span.label.label-info Private
 
 template(name="messageAuthor")
   .author.text-right
