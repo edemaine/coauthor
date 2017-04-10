@@ -30,7 +30,7 @@
     "diff": "^3.2.0",
     "katex": "^0.7.0",
     "markdown-it": "^8.3.1",
-    "markdown-it-replacements": "^1.0.0",
+    "markdown-it-replacements": "^1.0.1",
     "meteor-node-stubs": "^0.2.5",
     "sanitize-html": "^1.14.1"
   },
