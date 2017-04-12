@@ -79,7 +79,7 @@ template(name="submessage")
       span(class=hideIfEditing)
         .messageTitle
           span.message-left-buttons.btn-group.btn-group-xs
-            button.btn.btn-info.foldButton(aria-label="Fold")
+            button.btn.btn-info.foldButton.hidden-print(aria-label="Fold")
               if folded
                 span.glyphicon.glyphicon-plus(aria-hidden="true")
               else
