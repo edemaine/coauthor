@@ -98,3 +98,6 @@ em em em { font-style: italic }
 em em em em { font-style: normal }
 em em em em em { font-style: italic }
 em em em em em em { font-style: normal }
+
+/* Author search highlighting */
+.highlight { background: yellow; }

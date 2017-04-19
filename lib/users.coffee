@@ -16,7 +16,12 @@
   link = urlFor 'author',
     group: group
     author: user
-  """<a class="author" href="#{link}" title="#{title.replace /"/g, '&#34;'}">#{displayUser user}</a>"""
+  link = """<a class="author" href="#{link}" title="#{title.replace /"/g, '&#34;'}">#{displayUser user}</a>"""
+  if Meteor.isClient and
+     Router.current()?.route?.getName() == 'author' and
+     Router.current()?.params?.author == user
+    link = """<span class="highlight">#{link}</span>"""
+  link
 
 ## Sort by last name if available
 @userSortKey = (username) ->
