@@ -165,10 +165,12 @@ idle = 1000   ## one second
 Template.registerHelper 'deletedClass', ->
   if @deleted
     'deleted'
-  else if @published
-    'published'
-  else
+  else if not @published
     'unpublished'
+  else if @private
+    'private'
+  else
+    'published'
 
 submessageCount = 0
 
