@@ -87,11 +87,12 @@ if Meteor.isServer
 ## by starting with group's members.
 @messageSubscribers = (msg, options = {}) ->
   msg = findMessage msg
+  group = findGroup msg.group
   if options.fields?
     options.fields.roles = true
     options.fields['profile.notifications'] = true
   users = Meteor.users.find
-    username: $in: groupMembers msg.group
+    username: $in: groupMembers group
     emails: $elemMatch: verified: true
     'profile.notifications.on':
       if defaultNotificationsOn
@@ -100,7 +101,7 @@ if Meteor.isServer
         true
   , options
   .fetch()
-  (user for user in users when subscribedToMessage(msg, user) and canSee msg, false, user)
+  (user for user in users when subscribedToMessage(msg, user) and canSee msg, false, user, group)
 
 @sortedMessageSubscribers = (msg) ->
   users = messageSubscribers msg,

@@ -112,12 +112,12 @@ _submessageLastUpdate = (root) ->
     null
 
 @messageReaders = (msg, options = {}) ->
-  group = message2group msg
+  group = findGroup message2group msg
   options.fields.roles = true if options.fields?
   users = Meteor.users.find
     username: $in: groupMembers group
   .fetch()
-  (user for user in users when canSee msg, false, user)
+  (user for user in users when canSee msg, false, user, group)
 
 @sortedMessageReaders = (msg, options = {}) ->
   users = messageReaders msg,
@@ -356,14 +356,14 @@ if Meteor.isServer
   onExit ->
     console.log 'EXITING'
 
-@canSee = (message, client = Meteor.isClient, user = Meteor.user()) ->
+@canSee = (message, client = Meteor.isClient, user = Meteor.user(), group) ->
   ## Visibility of a message is implied by its existence in the Meteor.publish
   ## above, so we don't need to check this in the client.  But this function
   ## is still needed in the server for messages.diff subscription above,
   ## and when simulating non-superuser mode in client/message.coffee.
   message = findMessage message
   return false unless message?
-  group = message.group #message2group message
+  group = findGroup message.group unless group?
   if canSuper group, client, user #groupRoleCheck group, 'super', user
     ## Super-user can see all messages, even unpublished/deleted messages.
     true

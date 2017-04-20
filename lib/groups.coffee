@@ -35,12 +35,15 @@ if Meteor.isServer
   findGroup(group)?.anonymous ? []
 
 @groupRoleCheck = (group, role, user = Meteor.user()) ->
+  ###
+  `group` can be a string (which will incur a findGroup) or a group object.
+  Also, `group` may be `wildGroup` to check specifically for global role.
+  If e.g. in Meteor.publish handler, pass in user: findUser userId
+  ###
   if user == readAllUser
     return role == 'read'
-  ## Note that group may be wildGroup to check specifically for global role.
-  ## If e.g. in Meteor.publish handler, pass in user: findUser userId
   role in (user?.roles?[wildGroup] ? []) or
-  role in (user?.roles?[escapeGroup group] ? []) or
+  role in (user?.roles?[escapeGroup(group.name ? group)] ? []) or
   role in groupAnonymousRoles group
 
 @memberOfGroup = (group, user = Meteor.user()) ->
@@ -135,9 +138,10 @@ if Meteor.isServer
   Meteor.publish 'groups.members', (group) ->
     check group, String
     @autorun ->
-      if groupRoleCheck group, 'read', findUser @userId
+      groupData = findGroup group
+      if groupRoleCheck groupData, 'read', findUser @userId
         Meteor.users.find
-          username: $in: groupMembers group
+          username: $in: groupMembers groupData
         ,
           fields:
             username: true
