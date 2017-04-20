@@ -48,31 +48,6 @@ if Meteor.isServer
     query.group = group
   Messages.find query
 
-_submessageCount = (root) ->
-  root = root._id if root._id?
-  Messages.find
-    root: root
-    published: $ne: false    ## published is false or Date
-    deleted: $ne: true
-    private: $ne: true
-  .count()
-
-_submessageLastUpdate = (root) ->
-  root = findMessage root
-  return null unless root?
-  updated = root.updated
-  Messages.find
-    root: root._id
-    published: $ne: false    ## published is false or Date
-    deleted: $ne: true
-    private: $ne: true
-  ,
-    fields:
-      updated: true
-  .forEach (submessage) ->
-    updated = dateMax updated, submessage.updated
-  updated
-
 ## Works from nonroot messages via recursion.  Doesn't include message itself.
 @descendantMessageIds = (message) ->
   descendants = []
@@ -473,12 +448,50 @@ _noLongerRoot = (message) ->
       submessageCount: ''
       submessageLastUpdate: ''
 
+#_submessageCount = (root) ->
+#  root = root._id if root._id?
+#  Messages.find
+#    root: root
+#    published: $ne: false    ## published is false or Date
+#    deleted: $ne: true
+#    private: $ne: true
+#  .count()
+#
+#_submessageLastUpdate = (root) ->
+#  root = findMessage root
+#  return null unless root?
+#  updated = root.updated
+#  Messages.find
+#    root: root._id
+#    published: $ne: false    ## published is false or Date
+#    deleted: $ne: true
+#    private: $ne: true
+#  ,
+#    fields:
+#      updated: true
+#  .forEach (submessage) ->
+#    updated = dateMax updated, submessage.updated
+#  updated
+
 _submessagesChanged = (root) ->
   return unless root?
+  root = findMessage root
+  return null unless root?
+  updated = root.updated
+  query = Messages.find
+    root: root._id
+    published: $ne: false    ## published is false or Date
+    deleted: $ne: true
+    private: $ne: true
+  ,
+    fields:
+      updated: true
+  query.forEach (submessage) ->
+    updated = dateMax updated, submessage.updated
   Messages.update root,
     $set:
-      submessageCount: _submessageCount root
-      submessageLastUpdate: _submessageLastUpdate root
+      submessageCount: query.count() #_submessageCount root
+      submessageLastUpdate: updated #_submessageLastUpdate root
 
 if Meteor.isServer
   rootMessages().forEach _submessagesChanged
