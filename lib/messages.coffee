@@ -477,6 +477,7 @@ _submessagesChanged = (root) ->
   return unless root?
   root = findMessage root
   return null unless root?
+  count = 0
   updated = root.updated
   query = Messages.find
     root: root._id
@@ -487,10 +488,24 @@ _submessagesChanged = (root) ->
     fields:
       updated: true
   query.forEach (submessage) ->
+    count += 1
     updated = dateMax updated, submessage.updated
+  ## When Meteor.Collection supports aggregate...
+  #Messages.aggregate [
+  #  $match:
+  #    root: root._id
+  #    published: $ne: false    ## published is false or Date
+  #    deleted: $ne: true
+  #    private: $ne: true
+  #,
+  #  $group:
+  #    _id: null          ## aggregate all matches into one document
+  #    submessageCount: $sum: 1
+  #    submessageLastUpdate: $max: 'updated'
+  #].fetch()[0]
   Messages.update root,
     $set:
-      submessageCount: query.count() #_submessageCount root
+      submessageCount: count #_submessageCount root
       submessageLastUpdate: updated #_submessageLastUpdate root
 
 if Meteor.isServer
