@@ -45,10 +45,16 @@ if Meteor.isServer
   #user = findUser user if _.isString user
   user.profile.notifications?.self
 
-@autosubscribeGroup = (group, user = Meteor.user()) ->
-  user.profile?.notifications?.autosubscribe?[escapeGroup group] != false
+#@autosubscribeGroup = (group, user = Meteor.user()) ->
+#  user.profile?.notifications?.autosubscribe?[escapeGroup group] != false
 
 @autosubscribe = (group, user = Meteor.user()) ->
+  ###
+  Return whether the user is autosubscribed to the specified group.
+  If the user hasn't specified whether they are autosubscribed to that group,
+  the default is whether they are globally autosubscribed, and if that
+  hasn't been specified either, the default is true.
+  ###
   auto = user.profile?.notifications?.autosubscribe
   if auto?
     (auto[escapeGroup group] ? auto[wildGroup]) != false
