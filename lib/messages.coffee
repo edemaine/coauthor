@@ -473,6 +473,11 @@ _noLongerRoot = (message) ->
 #    updated = dateMax updated, submessage.updated
 #  updated
 
+_consideredSubmessage = (msg1, msg2 = {}) ->
+  (msg1.published ? msg2.published) != false and
+  (msg1.deleted ? msg2.deleted) != true and
+  (msg1.private ? msg2.private) != true
+
 _submessagesChanged = (root) ->
   return unless root?
   root = findMessage root
@@ -481,6 +486,7 @@ _submessagesChanged = (root) ->
   updated = root.updated
   query = Messages.find
     root: root._id
+    ## Mimicking _consideredSubmessage above
     published: $ne: false    ## published is false or Date
     deleted: $ne: true
     private: $ne: true
@@ -575,7 +581,18 @@ _messageUpdate = (id, message, authors = null, old = null) ->
   message.id = id
   diffid = MessagesDiff.insert message
   message._id = diffid
-  _submessagesChanged old.root ? id
+  #_submessagesChanged old.root ? id
+  ## In this special case, we can efficiently simulate the behavior of
+  ## _submessagesChanged via a direct update to the root:
+  if _consideredSubmessage message, old
+    rootUpdate = $max: submessageLastUpdate: message.updated
+    if old.root? and not _consideredSubmessage old
+      rootUpdate.$inc = submessageCount: 1  ## considered a new submessage
+    Messages.update (old.root ? id), rootUpdate
+  else if _consideredSubmessage old
+    ## If this message is no longer considered a submessage, we need to
+    ## recompute from scratch in order to find the new last update.
+    _submessagesChanged old.root ? id
   notifyMessageUpdate message if Meteor.isServer  ## client in simulation
   diffid
 
@@ -790,9 +807,16 @@ Meteor.methods
     if parent?
       #_messageParent id, parent, position, null  ## there's no old parent
       _messageAddChild id, parent, position
-      ## Because we preset root, even _messageParent won't call this for us.
-      ## We already simulated the effect when message is its own root.
-      _submessagesChanged message.root
+      ## Because we preset root, even _messageParent won't call
+      ## _submessagesChanged for us.
+      ## (We already simulated the effect when message is its own root.)
+      #_submessagesChanged message.root
+      ## In fact, in this special case, we can efficiently simulate the
+      ## behavior of _submessagesChanged via a direct update to the root:
+      if _consideredSubmessage message
+        Messages.update message.root,
+          $inc: submessageCount: 1
+          $max: submessageLastUpdate: message.updated
     ## Prepare for MessagesDiff
     delete message.creator
     delete message.created
