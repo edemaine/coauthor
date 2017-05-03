@@ -217,8 +217,10 @@ To deploy to a public server, we recommend
 [meteor-up](https://github.com/kadirahq/meteor-up).
 
 1. Edit `.deploy/mup.js` to point to your SSH key (for accessing the server),
-   your SSL certificate (for an https server), and your SMTP server
-   (see below).
+   your SSL certificate (for an https server), and your SMTP server in the
+   [`MAIL_URL` environment variable](https://docs.meteor.com/api/email.html)
+   (for sending email notifications &mdash; to run a local SMTP server,
+   see below, and use e.g. `smtp://localhost:25/`).
 2. `mup setup` to install all necessary software on the server
 3. `mup deploy` each time you want to deploy code to server
    (initially and after each `git pull`)
