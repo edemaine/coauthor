@@ -220,7 +220,8 @@ To deploy to a public server, we recommend
    your SSL certificate (for an https server), and your SMTP server in the
    [`MAIL_URL` environment variable](https://docs.meteor.com/api/email.html)
    (for sending email notifications &mdash; to run a local SMTP server,
-   see below, and use e.g. `smtp://localhost:25/`).
+   see below, and use e.g. `smtp://yourhostname.org:25/`).
+   [`smtp://localhost:25/` may not work because of mup's use of docker.]
 2. `mup setup` to install all necessary software on the server
 3. `mup deploy` each time you want to deploy code to server
    (initially and after each `git pull`)
