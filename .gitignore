@@ -4,3 +4,4 @@
 node_modules
 client/katex.min.css
 public/fonts
+server/kadira.js
