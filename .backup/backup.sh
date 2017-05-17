@@ -9,7 +9,12 @@ method=rclone
 case $method in
 
 rclone)
-  rclone copy coauthor-backup amazon:coauthor-backup/`date +%Y-%m-%d`
+  if rclone copy coauthor-backup amazon:coauthor-backup/`date +%Y-%m-%d`
+  then
+    echo SUCCESS\!\!
+  else
+    echo FAILURE...
+  fi
   ;;
 
 acd_cli)
