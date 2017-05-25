@@ -103,10 +103,12 @@ if Meteor.isServer
   .fetch()
   (user for user in users when subscribedToMessage(msg, user) and canSee msg, false, user, group)
 
-@sortedMessageSubscribers = (msg) ->
-  users = messageSubscribers msg,
-    fields: username: true
-  _.sortBy (user.username for user in users), userSortKey
+@sortedMessageSubscribers = (msg, options = {}) ->
+  if options.fields?
+    options.fields.username = true
+    options.fields['profile.fullname'] = true  ## for sorting by fullname
+  users = messageSubscribers msg, options
+  _.sortBy users, userSortKey
 
 @notificationTime = (notification) ->
   user = findUsername notification.to

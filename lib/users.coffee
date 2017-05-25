@@ -5,21 +5,24 @@
     {}
 
 @findUsername = (username) ->
+  return username if username.username?
   Meteor.users.findOne
     username: username
 
 @displayUser = (username) ->
   user = findUsername username
-  user?.profile?.fullname?.trim?() or username
+  user?.profile?.fullname?.trim?() or user?.username or username
 
-@linkToAuthor = (group, user, title = "User '#{user}'") ->
+@linkToAuthor = (group, user, title) ->
+  username = user.username ? user
+  title = "User '#{username}'" unless title?
   link = urlFor 'author',
     group: group
-    author: user
+    author: username
   link = """<a class="author" href="#{link}" title="#{title.replace /"/g, '&#34;'}">#{displayUser user}</a>"""
   if Meteor.isClient and
      Router.current()?.route?.getName() == 'author' and
-     Router.current()?.params?.author == user
+     Router.current()?.params?.author == username
     link = """<span class="highlight">#{link}</span>"""
   link
 

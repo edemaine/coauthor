@@ -108,7 +108,7 @@ Template.message.helpers
     subscribed = {}
     for user in subscribers
       subscribed[user.username] = true
-    users = messageReaders @_id,
+    users = sortedMessageReaders @_id,
       fields:
         username: true
         emails: true

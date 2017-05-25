@@ -95,9 +95,11 @@ if Meteor.isServer
   (user for user in users when canSee msg, false, user, group)
 
 @sortedMessageReaders = (msg, options = {}) ->
-  users = messageReaders msg,
-    fields: username: true
-  _.sortBy (user.username for user in users), userSortKey
+  if options.fields?
+    options.fields.username = true
+    options.fields['profile.fullname'] = true  ## for sorting by fullname
+  users = messageReaders msg, options
+  _.sortBy users, userSortKey
 
 if Meteor.isServer
   Meteor.publish 'messages.all', (group) ->
