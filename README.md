@@ -185,36 +185,39 @@ in other fields too.
 
 ## Installation and Permissions ##
 
-Here is how to get a local test server running:
+Here is how to get a **local test server** running:
 
-1. `curl https://install.meteor.com/ | sh` on UNIX, or use the
-   [Windows installer](https://www.meteor.com/install)
-2. `git clone https://github.com/edemaine/coauthor.git`
-3. `cd coauthor`
-4. `meteor npm install`
-5. `meteor`
-6. Open the website [http://localhost:3000/](http://localhost:3000/)
-7. Create an account
-8. `meteor mongo`
-9. Give your account permissions as follows:
+1. **Install Meteor:** `curl https://install.meteor.com/ | sh` on UNIX, or use
+   the [Windows installer](https://www.meteor.com/install)
+2. **Download Coauthor:** `git clone https://github.com/edemaine/coauthor.git`
+3. **Run meteor:**
+  a. `cd coauthor`
+  b. `meteor npm install`
+  c. `meteor`
+4. **Make a superuser account:**
+  a. Open the website [http://localhost:3000/](http://localhost:3000/)
+  b. Create an account
+  c. `meteor mongo`
+  d. Give your account permissions as follows:
 
-```
-meteor:PRIMARY> db.users.update({username: 'edemaine'}, {$set: {'roles.*': ['read', 'post', 'edit', 'super', 'admin']}})
-WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
-```
+    ```
+    meteor:PRIMARY> db.users.update({username: 'edemaine'}, {$set: {'roles.*': ['read', 'post', 'edit', 'super', 'admin']}})
+    WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+    ```
 
-`*` means all groups, so this user gets the following permissions globally:
+    `*` means all groups, so this user gets the following permissions globally:
 
-* read: see the group and read the messages (otherwise invisible)
-* post: create new messages, replies, etc. in the group
-* edit: modify other people's messages
-* super: somewhat dangerous "super" operations like history-destroying
-  superdelete, history-creating import, and the ability to see other users'
-  deleted messages
-* admin: administer over other users, in particular setting permissions
+    * read: see the group and read the messages (otherwise invisible)
+    * post: create new messages, replies, etc. in the group
+    * edit: modify other people's messages
+    * super: somewhat dangerous "super" operations like history-destroying
+      superdelete, history-creating import, and the ability to see other users'
+      deleted messages
+    * admin: administer over other users, in particular setting permissions
 
-To deploy to a public server, we recommend
+To deploy to a **public server**, we recommend
 [meteor-up](https://github.com/kadirahq/meteor-up).
+Installation instructions:
 
 1. Edit `.deploy/mup.js` to point to your SSH key (for accessing the server),
    your SSL certificate (for an https server), and your SMTP server in the
@@ -222,8 +225,9 @@ To deploy to a public server, we recommend
    (for sending email notifications &mdash; to run a local SMTP server,
    see below, and use e.g. `smtp://yourhostname.org:25/`).
    [`smtp://localhost:25/` may not work because of mup's use of docker.]
-2. `mup setup` to install all necessary software on the server
-3. `mup deploy` each time you want to deploy code to server
+2. `cd .deploy`
+3. `mup setup` to install all necessary software on the server
+4. `mup deploy` each time you want to deploy code to server
    (initially and after each `git pull`)
 
 You'll also need an SMTP server to send email notifications.
@@ -240,6 +244,6 @@ If you want `coauthor@yourhostname.com` to receive email,
 add an alias like `coauthor: edemaine@mit.edu` to `/etc/aliases`
 and then run `sudo newaliases`.
 
-If you want to use [Kadira](https://kadira.io/) to monitor the performance,
-errors, etc., the package is already installed; just add credentials to a
-`server/kadira.js` file.
+To monitor server performance, you can install an
+[open-source Kadira server](https://github.com/kadira-open/kadira-server),
+and set the `KADIRA_OPTIONS_ENDPOINT` environment variable in `.deploy/mup.js`.
