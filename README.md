@@ -191,29 +191,29 @@ Here is how to get a **local test server** running:
    the [Windows installer](https://www.meteor.com/install)
 2. **Download Coauthor:** `git clone https://github.com/edemaine/coauthor.git`
 3. **Run meteor:**
-  a. `cd coauthor`
-  b. `meteor npm install`
-  c. `meteor`
+   * `cd coauthor`
+   * `meteor npm install`
+   * `meteor`
 4. **Make a superuser account:**
-  a. Open the website [http://localhost:3000/](http://localhost:3000/)
-  b. Create an account
-  c. `meteor mongo`
-  d. Give your account permissions as follows:
+   * Open the website [http://localhost:3000/](http://localhost:3000/)
+   * Create an account
+   * `meteor mongo`
+   * Give your account permissions as follows:
 
-    ```
-    meteor:PRIMARY> db.users.update({username: 'edemaine'}, {$set: {'roles.*': ['read', 'post', 'edit', 'super', 'admin']}})
-    WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
-    ```
+     ```
+     meteor:PRIMARY> db.users.update({username: 'edemaine'}, {$set: {'roles.*': ['read', 'post', 'edit', 'super', 'admin']}})
+     WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+     ```
 
-    `*` means all groups, so this user gets the following permissions globally:
+     `*` means all groups, so this user gets the following permissions globally:
 
-    * read: see the group and read the messages (otherwise invisible)
-    * post: create new messages, replies, etc. in the group
-    * edit: modify other people's messages
-    * super: somewhat dangerous "super" operations like history-destroying
-      superdelete, history-creating import, and the ability to see other users'
-      deleted messages
-    * admin: administer over other users, in particular setting permissions
+     * read: see the group and read the messages (otherwise invisible)
+     * post: create new messages, replies, etc. in the group
+     * edit: modify other people's messages
+     * super: somewhat dangerous "super" operations like history-destroying
+       superdelete, history-creating import, and the ability to see other users'
+       deleted messages
+     * admin: administer over other users, in particular setting permissions
 
 To deploy to a **public server**, we recommend
 [meteor-up](https://github.com/kadirahq/meteor-up).
