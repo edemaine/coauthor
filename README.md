@@ -13,8 +13,8 @@ in other fields too.
   If you're looking at a problem and someone posts/edits something,
   you see it as quickly as they see their preview (roughly 1-second delay).
 
-* **Real-time editing** of messages in the style of EtherPad (Operational
-  Transforms), if people feel like editing together
+* **Real-time editing** of messages in the style of Google Docs/EtherPad
+  (Operational Transforms), if people feel like editing together
   (useful if e.g. working on a proof together).
   When editing, you see near-instant updates from the other side(s).
   Keep track of authorship by who is in edit mode at the time.
@@ -53,7 +53,7 @@ in other fields too.
     `\chapter`, `\section`, `\subsection`, `\subsubsection`, `\footnote`,
     `\includegraphics[width/height]{url}`, `\"`, `\'`, ```\` ```,
     `\^`, `\~`, `\=`, `\c`, `\v`, `\u`, `\H`, ``` `` ```, `''`,
-    `\&`, `\$`, `\{`, `\}`, `~`, `--`, `---`, `{`, `}`, `\\`, `\item`,
+    `\&`, `\$`, `\{`, `\}`, `~`, `--`, `---`, `{`, `}`, `\\`, `\item`;
     `\begin/\end` for environments `verbatim`, `enumerate`, `itemize`,
     `equation`, `eqnarray`, `align`,
     `problem`, `theorem`, `conjecture`, `lemma`, `corollary`, `fact`,
@@ -65,8 +65,8 @@ in other fields too.
     `<strong>`, `<i>`, `<em>`, `<u>`, `<s>`, `<strike>`, `<del>`, `<code>`,
     `<hr>`, `<br>`, `<table>`, `<thead>`, `<caption>`,
     `<tbody>`, `<tr>`, `<th>`, `<td>`, `<pre>`,
-    `<img src/alt/width/height>`, `<video controls>`, `<source src>`
-    attributes `title/style/class/aria-*`.
+    `<img src/alt/width/height>`, `<video controls>`, `<source src>`;
+    attributes `title`, `style`, `class`, `aria-*`.
 
 * [CodeMirror editor](http://codemirror.net/) supports syntax highlighting,
   block folding, bracket matching, line numbering, light and dark themes,
@@ -96,7 +96,7 @@ in other fields too.
 * **Threaded** message organization, with arbitrary tree structure (root
   messages, replies with arbitrary depth).  You can focus on the subthread
   rooted at any message (click on the arrow), or fold away the contents of a
-  subthread to focus on the rest.
+  subthread to focus on the rest (click on the minus sign).
   (Currently the folds are not preserved across sessions / rerenders.)
 
 * **Dragging** messages to change the parentage/hierarchy, or move their
@@ -107,7 +107,7 @@ in other fields too.
   while dragging onto the slot before a message makes the dragged message the
   immediately preceding sibling.  Dialog confirms move.
 
-* **Tags**: attached an arbitrary set of strings to a message.  Find other
+* **Tags**: attach an arbitrary set of strings to a message.  Find other
   messages with the same tag by clicking on a tag.
 
 * **Search** for posts by a particular user by clicking on their username.
@@ -131,8 +131,9 @@ in other fields too.
   (In the future, they and other visual file types such as PDF will be
   rendered by some kind of thumbnails.)
 
-* Messages can start **Unpublished**, or after publication, **Deleted**;
-  in either state, the message is hidden from people who are not authors
+* Messages can start/be marked **Unpublished** (not yet finished) or
+  **Deleted** (mistake / no longer useful).
+  In either state, the message is hidden from people who are not authors
   (an *author* is someone who has edited the message), @-mentioned
   (via `@username`), or superusers.
   The default published state is initially true (so everyone sees the new
@@ -141,7 +142,7 @@ in other fields too.
 
 * Threads can be marked as allowing **public** replies only (the default, for
   maximum collaboration), **private** replies only (useful for solved
-  problems/puzzles, to prevent accidentally spoiling of the fun), or
+  problems/puzzles, to prevent accidentally spoiling the fun), or
   **public and private** replies (useful for feedback on lectures, for example,
   which can have varying relevance to the entire group).  Replies to replies
   inherit the public/private state of their parent.  Superusers can
@@ -160,8 +161,7 @@ in other fields too.
   about their own edits.
 
 * **Time travel**: You can drag through history and see past versions.
-  In general, there should be good, automatic history tracking of everything,
-  including a not-yet-visible reparenting feature.
+  In general, there should be good, automatic history tracking of everything.
 
 * **Superuser operations** (only for superusers):
   * Import from LaTeX document with figures attached as a ZIP file
