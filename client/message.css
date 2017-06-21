@@ -19,6 +19,7 @@ input.title ~ .message-right-buttons { margin: 0px; }
   justify-content: space-between; align-items: center; }
 .fileDescriptionText { flex-grow: 1; }
 
+.previewButtons { padding: 15px 0px; }
 .ace_editor { width: 100%; height: 20em; }
 
 .children { margin-top: 1.5ex; margin-left: 1em; }
