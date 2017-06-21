@@ -17,8 +17,8 @@ template(name="group")
     +badGroup
 
 template(name="postButtons")
-  //button.btn.btn-default.postButton(class=disablePost,name="problem") Pose New Problem
-  //button.btn.btn-default.postButton(class=disablePost,name="discussion") Start Discussion Thread
+  //- button.btn.btn-default.postButton(class=disablePost,name="problem") Pose New Problem
+  //- button.btn.btn-default.postButton(class=disablePost,name="discussion") Start Discussion Thread
   .pull-right
     if super
       button.btn.btn-warning.sortSetDefault Set Group Default Sort
@@ -29,7 +29,7 @@ template(name="postButtons")
       a.btn.btn-default.liveButton(href="{{pathFor 'live'}}", title="Show the last n messages, updating live", data-toggle="tooltip") Live Feed
       a.btn.btn-default.sinceButton(href="{{pathFor 'since'}}", title="Show all messages since a specified time in the past", data-toggle="tooltip") Catchup Since...
       a.btn.btn-default.statsButton(href=linkToStats) Statistics
-  //---replaced by clicking columns to trigger sort
+  //- Replaced by clicking columns to trigger sort
     span.space
     .btn-group
       if super
@@ -48,7 +48,7 @@ template(name="postButtons")
             a(href=linkToSort)= capitalizedKey
 
 template(name="messageList")
-  //div.list-group
+  //-div.list-group
   table.table.table-striped
     thead
       tr
@@ -79,7 +79,7 @@ template(name="messageList")
     tbody
       each topMessages
         if canSee
-          //a.list-group-item(href=messageLink)
+          //-a.list-group-item(href=messageLink)
           +messageShort
 
 template(name="importButtons")
@@ -119,17 +119,17 @@ template(name="messageShort")
       a(href=messageLink)
         if published
           | {{formatDate published}}
-          //span.author (posed by #{creator} {{formatDate published}})
+          //- span.author (posed by #{creator} {{formatDate published}})
         else
           | {{formatDate created}}
-          //span.author (created by #{creator} {{formatDate created}})
+          //- span.author (created by #{creator} {{formatDate created}})
     td
       a(href=messageLink)= submessageLastUpdate
     td
       a(href=messageLink)
         span.badge(class=zeroClass)= submessageCount
     td.subscribe
-      //a(href=messageLink)
+      //- a(href=messageLink)
       button.btn.btn-default.btn-xs.subscribe
         if subscribed
           span.glyphicon.glyphicon-ok
