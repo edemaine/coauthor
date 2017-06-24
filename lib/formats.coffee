@@ -227,6 +227,7 @@ boldWeight = 900
   .replace /\\end\s*{(problem|theorem|conjecture|lemma|corollary|fact|observation|proposition|claim)}/g, '</blockquote>'
   .replace /\\begin\s*{(proof|pf)}(\s*\[([^\]]*)\])?/g, (m, env, x, opt) -> "<b>Proof#{if opt then " (#{opt})" else ''}:</b> "
   .replace /\\end\s*{(proof|pf)}/g, ' <span class="pull-right">&#8718;</span></p><p class="clearfix">'
+  .replace /\\(dots|ldots)\b\s*/g, '&hellip;'
   .replace /\\"{(.)}/g, '&$1uml;'
   .replace /\\"(.)/g, '&$1uml;'
   .replace /\\'c|\\'{c}/g, '&#263;'
