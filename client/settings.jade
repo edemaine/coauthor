@@ -47,6 +47,24 @@ template(name="settings")
               button.btn.btn-default.themeButton(type="button", data-toggle="button", autocomplete="off")= theme
           tr
             th
+              label Preview while editing (by default):
+              .description Whether to show (by default) a rendered version of the message while editing it. Turn off for slow computers (or long messages).
+            td
+              if previewOn
+                button.btn.btn-success.previewButton(type="button", data-toggle="button", autocomplete="off") Yes
+              else
+                button.btn.btn-warning.previewButton(type="button", data-toggle="button", autocomplete="off") No
+          tr
+            th
+              label Preview below or right of editor:
+              .description Default for whether editor and preview are arranged top-on-bottom or side-by-side.
+            td
+              if previewSideBySide
+                button.btn.btn-default.sideBySideButton(type="button", data-toggle="button", autocomplete="off") Side-by-Side
+              else
+                button.btn.btn-default.sideBySideButton(type="button", data-toggle="button", autocomplete="off") Top-on-Bottom
+          tr
+            th
               label Email notifications:
               .description Setting to No will globally turn off all your email notifications about all posts.
             td

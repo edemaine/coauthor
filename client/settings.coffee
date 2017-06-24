@@ -28,6 +28,8 @@ Template.settings.helpers
   autosubscribeGroup: -> autosubscribe routeGroup()
   autosubscribeGlobal: -> autosubscribe wildGroup
   theme: -> capitalize theme()
+  previewOn: -> messagePreviewDefault().on
+  previewSideBySide: -> messagePreviewDefault().sideBySide
   dropbox: ->
     'dropbox' of (Meteor.user().services ? {})
 
@@ -94,6 +96,20 @@ Template.settings.events
           'light'
         else
           'dark'
+
+  'click .previewButton': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    Meteor.users.update Meteor.userId(),
+      $set: "profile.preview.on":
+        not messagePreviewDefault().on
+
+  'click .sideBySideButton': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    Meteor.users.update Meteor.userId(),
+      $set: "profile.preview.sideBySide":
+        not messagePreviewDefault().sideBySide
 
   'click .linkDropbox': (e, t) ->
     e.preventDefault()

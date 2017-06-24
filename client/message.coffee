@@ -179,17 +179,18 @@ messageFolded = new ReactiveDict
 messageHistory = new ReactiveDict
 messageKeyboard = new ReactiveDict
 messagePreview = new ReactiveDict
-messagePreviewDefault =
-  on: true
-  sideBySide: false
+@messagePreviewDefault = ->
+  profile = Meteor.user().profile?.preview
+  on: profile?.on ? true
+  sideBySide: profile?.sideBySide ? false
 messagePreviewGet = ->
   id = Template.instance().editing.get()
   return unless id
-  messagePreview.get(id) ? messagePreviewDefault
+  messagePreview.get(id) ? messagePreviewDefault()
 messagePreviewSet = (change) ->
   id = Template.instance().editing.get()
   return unless id
-  preview = messagePreview.get(id) ? messagePreviewDefault
+  preview = messagePreview.get(id) ? messagePreviewDefault()
   messagePreview.set id, change preview
 
 Template.submessage.onCreated ->
