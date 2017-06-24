@@ -163,26 +163,26 @@ boldWeight = 900
   loop ## Repeat until done to support overlapping matches, e.g. \rm x \it y
     old = tex
     tex = tex
-    .replace /\\em\b\s*((?:[^{}]|{[^{}]*})*)/g, '<em>$1</em>'
-    .replace /\\itshape\b\s*((?:[^{}]|{[^{}]*})*)/g, '<span style="font-style: italic">$1</span>'
-    .replace /\\upshape\b\s*((?:[^{}]|{[^{}]*})*)/g, '<span style="font-style: normal">$1</span>'
-    .replace /\\lfseries\b\s*((?:[^{}]|{[^{}]*})*)/g, """<span style="font-weight: #{lightWeight}">$1</span>"""
-    .replace /\\mdseries\b\s*((?:[^{}]|{[^{}]*})*)/g, """<span style="font-weight: #{mediumWeight}">$1</span>"""
-    .replace /\\bfseries\b\s*((?:[^{}]|{[^{}]*})*)/g, """<span style="font-weight: #{boldWeight}">$1</span>"""
-    .replace /\\rmfamily\b\s*((?:[^{}]|{[^{}]*})*)/g, """<span style="font-family: #{defaultFontFamily}">$1</span>"""
-    .replace /\\sffamily\b\s*((?:[^{}]|{[^{}]*})*)/g, '<span style="font-family: sans-serif">$1</span>'
-    .replace /\\ttfamily\b\s*((?:[^{}]|{[^{}]*})*)/g, '<span style="font-family: monospace">$1</span>'
-    .replace /\\scshape\b\s*((?:[^{}]|{[^{}]*})*)/g, '<span style="font-variant: small-caps">$1</span>'
-    .replace /\\slshape\b\s*((?:[^{}]|{[^{}]*})*)/g, '<span style="font-style: oblique">$1</span>'
+    .replace /\\em\b\s*((?:[^{}<>]|{[^{}]*})*)/g, '<em>$1</em>'
+    .replace /\\itshape\b\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-style: italic">$1</span>'
+    .replace /\\upshape\b\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-style: normal">$1</span>'
+    .replace /\\lfseries\b\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font-weight: #{lightWeight}">$1</span>"""
+    .replace /\\mdseries\b\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font-weight: #{mediumWeight}">$1</span>"""
+    .replace /\\bfseries\b\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font-weight: #{boldWeight}">$1</span>"""
+    .replace /\\rmfamily\b\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font-family: #{defaultFontFamily}">$1</span>"""
+    .replace /\\sffamily\b\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-family: sans-serif">$1</span>'
+    .replace /\\ttfamily\b\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-family: monospace">$1</span>'
+    .replace /\\scshape\b\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-variant: small-caps">$1</span>'
+    .replace /\\slshape\b\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-style: oblique">$1</span>'
     ## Resetting font commands
-    .replace /\\(?:rm|normalfont)\b\s*((?:[^{}]|{[^{}]*})*)/g, """<span style="font-family: #{defaultFontFamily}; font-style: normal; font-weight: normal; font-variant: normal">$1</span>"""
-    .replace /\\md\b\s*((?:[^{}]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-weight: #{mediumWeight}">$1</span>"""
-    .replace /\\bf\b\s*((?:[^{}]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-weight: #{boldWeight}">$1</span>"""
-    .replace /\\it\b\s*((?:[^{}]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-style: italic">$1</span>"""
-    .replace /\\sl\b\s*((?:[^{}]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-style: oblique">$1</span>"""
-    .replace /\\sf\b\s*((?:[^{}]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-family: sans-serif">$1</span>"""
-    .replace /\\tt\b\s*((?:[^{}]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-family: monospace">$1</span>"""
-    .replace /\\sc\b\s*((?:[^{}]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-variant: small-caps">$1</span>"""
+    .replace /\\(?:rm|normalfont)\b\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font-family: #{defaultFontFamily}; font-style: normal; font-weight: normal; font-variant: normal">$1</span>"""
+    .replace /\\md\b\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-weight: #{mediumWeight}">$1</span>"""
+    .replace /\\bf\b\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-weight: #{boldWeight}">$1</span>"""
+    .replace /\\it\b\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-style: italic">$1</span>"""
+    .replace /\\sl\b\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-style: oblique">$1</span>"""
+    .replace /\\sf\b\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-family: sans-serif">$1</span>"""
+    .replace /\\tt\b\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-family: monospace">$1</span>"""
+    .replace /\\sc\b\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-variant: small-caps">$1</span>"""
     break if old == tex
   tex = tex
   .replace /\\(uppercase|MakeTextUppercase)\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="text-transform: uppercase">$2</span>'
