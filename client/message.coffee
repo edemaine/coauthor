@@ -178,6 +178,19 @@ messageRaw = new ReactiveDict
 messageFolded = new ReactiveDict
 messageHistory = new ReactiveDict
 messageKeyboard = new ReactiveDict
+messagePreview = new ReactiveDict
+messagePreviewDefault =
+  on: true
+  sideBySide: false
+messagePreviewGet = ->
+  id = Template.instance().editing.get()
+  return unless id
+  messagePreview.get(id) ? messagePreviewDefault
+messagePreviewSet = (change) ->
+  id = Template.instance().editing.get()
+  return unless id
+  preview = messagePreview.get(id) ? messagePreviewDefault
+  messagePreview.set id, change preview
 
 Template.submessage.onCreated ->
   @count = submessageCount++
@@ -509,6 +522,14 @@ Template.submessage.helpers
   prev: -> messageNeighbors(@)?.prev
   next: -> messageNeighbors(@)?.next
 
+  preview: -> (messagePreviewGet() ? on: true).on  ## on if not editing
+  sideBySide: -> messagePreviewGet()?.sideBySide
+  sideBySideClass: ->
+    if messagePreviewGet()?.sideBySide
+      'sideBySide'
+    else
+      ''
+
   absentTags: absentTags
   absentTagsCount: ->
     absentTags().count()
@@ -624,6 +645,18 @@ Template.submessage.events
       Meteor.call 'messageEditStop', message
     else
       Meteor.call 'messageEditStart', message
+
+  'click .togglePreview': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    messagePreviewSet (preview) -> _.extend {}, preview,
+      on: not preview.on
+
+  'click .sideBySidePreview': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    messagePreviewSet (preview) -> _.extend {}, preview,
+      sideBySide: not preview.sideBySide
 
   'click .publishButton': (e, t) ->
     e.preventDefault()

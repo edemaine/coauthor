@@ -19,7 +19,8 @@ input.title ~ .message-right-buttons { margin: 0px; }
   justify-content: space-between; align-items: center; }
 .fileDescriptionText { flex-grow: 1; }
 
-.previewButtons { padding: 15px 0px; }
+.previewButtons { padding: 0px 15px; }
+.sideBySide { width: calc(50% - 10px); display: inline-block; vertical-align: top; }
 .ace_editor { width: 100%; height: 20em; }
 
 .children { margin-top: 1.5ex; margin-left: 1em; }

@@ -211,28 +211,34 @@ template(name="submessage")
       else
         with nothing
           if editingRV
-            .editorContainer
+            .editorContainer(class=sideBySideClass)
               +sharejsCM docid=editingNR onRender=config
               //- +sharejsAce docid=editingNR onRender=config
-              .previewButtons.text-right
+              .previewButtons.text-right.clearfix
                 .btn-group
-                  button.btn.btn-default Side-by-Side Preview
-                  button.btn.btn-default Disable Preview
-                .space
-        .bodyContainer
-          if file
-            if editingRV
-              .fileDescription.clearfix
-                .fileDescriptionText
-                  span.glyphicon.glyphicon-paperclip
-                  | !{formatFileDescription}
-                .file-right-buttons.btn-group.hidden-print
-                  //- In future, support basic image editing.  For now, just:
-                  +messageReplace _id=_id group=group tabindex=tabindex9
-          .panel-body
-            .message-body(class=tex2jax) !{formatBody}
+                  if preview
+                    if sideBySide
+                      button.btn.btn-default.sideBySidePreview Top-Bottom Preview
+                    else
+                      button.btn.btn-default.sideBySidePreview Side-by-Side Preview
+                    button.btn.btn-default.togglePreview Disable Preview
+                  else
+                    button.btn.btn-default.togglePreview Enable Preview
+        if preview
+          .bodyContainer(class=sideBySideClass)
             if file
-              p.message-file !{formatFile}
+              if editingRV
+                .fileDescription.clearfix
+                  .fileDescriptionText
+                    span.glyphicon.glyphicon-paperclip
+                    | !{formatFileDescription}
+                  .file-right-buttons.btn-group.hidden-print
+                    //- In future, support basic image editing.  For now, just:
+                    +messageReplace _id=_id group=group tabindex=tabindex9
+            .panel-body
+              .message-body(class=tex2jax) !{formatBody}
+              if file
+                p.message-file !{formatFile}
       .message-footer.clearfix
         .message-reply-buttons.btn-group.pull-left.hidden-print
           if editingRV
