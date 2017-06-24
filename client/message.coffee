@@ -525,7 +525,8 @@ Template.submessage.helpers
   preview: -> (messagePreviewGet() ? on: true).on  ## on if not editing
   sideBySide: -> messagePreviewGet()?.sideBySide
   sideBySideClass: ->
-    if messagePreviewGet()?.sideBySide
+    preview = messagePreviewGet()
+    if preview? and preview.on and preview.sideBySide
       'sideBySide'
     else
       ''

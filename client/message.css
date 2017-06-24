@@ -5,7 +5,8 @@
 input.title { width: 100%; }
 .author { font-style: italic; }
 .message-body { text-align: justify; }
-.message-footer { width: 100%; padding: 0ex 1em; margin-top: -15px; }
+.message-footer { width: 100%; padding: 0ex 1em; }
+.panel-body { padding-bottom: 0px; } /* always have a footer right below */
 .message-deleted > .message-body, .message-unpublished > .message-body { opacity: 0.6; }
 /*.message-right-buttons { margin: -5px -10px -5px 5px; }*/ /* cf. panel-heading's padding of 10px 15px */
 .message > .panel-heading { padding: 5px 5px 5px 10px; }
@@ -20,7 +21,9 @@ input.title ~ .message-right-buttons { margin: 0px; }
 .fileDescriptionText { flex-grow: 1; }
 
 .previewButtons { padding: 0px 15px; }
-.sideBySide { width: calc(50% - 10px); display: inline-block; vertical-align: top; }
+.sideBySide { width: 50%; margin: 0px; display: inline-block; }
+.previewButtons.sideBySide { float: left; }
+.bodyContainer.sideBySide { float: right; }
 .ace_editor { width: 100%; height: 20em; }
 
 .children { margin-top: 1.5ex; margin-left: 1em; }

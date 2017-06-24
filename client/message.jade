@@ -209,43 +209,44 @@ template(name="submessage")
       if history
         +messageHistory forHistory
       else
-        with nothing
-          if editingRV
-            .editorContainer(class=sideBySideClass)
-              +sharejsCM docid=editingNR onRender=config
-              //- +sharejsAce docid=editingNR onRender=config
-              .previewButtons.text-right.clearfix
-                .btn-group
-                  if preview
-                    if sideBySide
-                      button.btn.btn-default.sideBySidePreview Top-Bottom Preview
+        .editorAndBody.clearfix
+          with nothing
+            if editingRV
+              .editorContainer(class=sideBySideClass)
+                +sharejsCM docid=editingNR onRender=config
+                //- +sharejsAce docid=editingNR onRender=config
+                .previewButtons.text-right
+                  .btn-group
+                    if preview
+                      if sideBySide
+                        button.btn.btn-default.sideBySidePreview Top-Bottom Preview
+                      else
+                        button.btn.btn-default.sideBySidePreview Side-by-Side Preview
+                      button.btn.btn-default.togglePreview Disable Preview
                     else
-                      button.btn.btn-default.sideBySidePreview Side-by-Side Preview
-                    button.btn.btn-default.togglePreview Disable Preview
-                  else
-                    button.btn.btn-default.togglePreview Enable Preview
-        if preview
-          .bodyContainer(class=sideBySideClass)
-            if file
-              if editingRV
-                .fileDescription.clearfix
-                  .fileDescriptionText
-                    span.glyphicon.glyphicon-paperclip
-                    | !{formatFileDescription}
-                  .file-right-buttons.btn-group.hidden-print
-                    //- In future, support basic image editing.  For now, just:
-                    +messageReplace _id=_id group=group tabindex=tabindex9
-            .panel-body
-              .message-body(class=tex2jax) !{formatBody}
+                      button.btn.btn-default.togglePreview Enable Preview
+          if preview
+            .bodyContainer(class=sideBySideClass)
               if file
-                p.message-file !{formatFile}
+                if editingRV
+                  .fileDescription
+                    .fileDescriptionText
+                      span.glyphicon.glyphicon-paperclip
+                      | !{formatFileDescription}
+                    .file-right-buttons.btn-group.hidden-print
+                      //- In future, support basic image editing.  For now, just:
+                      +messageReplace _id=_id group=group tabindex=tabindex9
+              .panel-body
+                .message-body(class=tex2jax) !{formatBody}
+                if file
+                  p.message-file !{formatFile}
       .message-footer.clearfix
         .message-reply-buttons.btn-group.pull-left.hidden-print
           if editingRV
             button.btn.btn-info.editButton(tabindex="{{tabindex 8}}") Stop Editing
           +replyButtons
         +messageAuthor
-      .children
+      .children.clearfix
         each children
           +submessage
       if children
