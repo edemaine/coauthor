@@ -523,7 +523,9 @@ Template.submessage.helpers
   prev: -> messageNeighbors(@)?.prev
   next: -> messageNeighbors(@)?.next
 
-  preview: -> (messagePreviewGet() ? on: true).on  ## on if not editing
+  preview: ->
+    messageHistory.get(@_id)? or
+    (messagePreviewGet() ? on: true).on  ## on if not editing
   sideBySide: -> messagePreviewGet()?.sideBySide
   sideBySideClass: ->
     preview = messagePreviewGet()

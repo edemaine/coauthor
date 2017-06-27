@@ -208,8 +208,8 @@ template(name="submessage")
     unless folded
       if history
         +messageHistory forHistory
-      else
-        .editorAndBody.clearfix
+      .editorAndBody.clearfix
+        unless history
           with nothing
             if editingRV
               .editorContainer(class=sideBySideClass)
@@ -225,21 +225,21 @@ template(name="submessage")
                       button.btn.btn-default.togglePreview Disable Preview
                     else
                       button.btn.btn-default.togglePreview Enable Preview
-          if preview
-            .bodyContainer(class=sideBySideClass)
+        if preview
+          .bodyContainer(class=sideBySideClass)
+            if file
+              if editingRV
+                .fileDescription
+                  .fileDescriptionText
+                    span.glyphicon.glyphicon-paperclip
+                    | !{formatFileDescription}
+                  .file-right-buttons.btn-group.hidden-print
+                    //- In future, support basic image editing.  For now, just:
+                    +messageReplace _id=_id group=group tabindex=tabindex9
+            .panel-body
+              .message-body(class=tex2jax) !{formatBody}
               if file
-                if editingRV
-                  .fileDescription
-                    .fileDescriptionText
-                      span.glyphicon.glyphicon-paperclip
-                      | !{formatFileDescription}
-                    .file-right-buttons.btn-group.hidden-print
-                      //- In future, support basic image editing.  For now, just:
-                      +messageReplace _id=_id group=group tabindex=tabindex9
-              .panel-body
-                .message-body(class=tex2jax) !{formatBody}
-                if file
-                  p.message-file !{formatFile}
+                p.message-file !{formatFile}
       .message-footer.clearfix
         .message-reply-buttons.btn-group.pull-left.hidden-print
           if editingRV
