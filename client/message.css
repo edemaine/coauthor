@@ -50,7 +50,7 @@ img, video { max-width: 100%; max-height: 100vh; }
 .historySlider { margin-left: 5em; margin-right: 5em; }
 .slider.slider-horizontal { width: 100%; }
 
-.panel-secondbody { padding-top: 0px; }
+.panel-secondbody { margin-top: -5px; padding-top: 0px; padding-bottom: 15px; }
 
 nav.contents { overflow-y: scroll; padding-bottom: 5px; }
 .contents > li > a { padding: 5px 5px; }
