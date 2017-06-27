@@ -725,20 +725,21 @@ if Meteor.isServer
   docs.find().forEach (doc) ->
     ShareJS.model.delete doc._id
 
-  editor2messageUpdate = (id) ->
+  editor2messageUpdate = (id, editors) ->
     Meteor.clearTimeout editorTimers[id]
     doc = Meteor.wrapAsync(ShareJS.model.getSnapshot) id
     #console.log id, 'changed to', doc.snapshot
-    msg = Messages.findOne id
+    msg = findMessage id
     unless msg.body == doc.snapshot
       _messageUpdate id,
         body: doc.snapshot
-      , msg.editing, msg
+      , editors, msg
 
   delayedEditor2messageUpdate = (id) ->
     Meteor.clearTimeout editorTimers[id]
+    editors = findMessage(id).editing
     editorTimers[id] = Meteor.setTimeout ->
-      editor2messageUpdate id
+      editor2messageUpdate id, editors
     , idle
 
 Meteor.methods
@@ -876,7 +877,7 @@ Meteor.methods
       Messages.update id,
         $pull: editing: Meteor.user().username
       unless Messages.findOne(id).editing?.length
-        editor2messageUpdate id
+        editor2messageUpdate id, [Meteor.user().username]
         ShareJS.model.delete id
     ## xxx should add to last MessagesDiff (possibly just made) that
     ## Meteor.user().username just committed this version.
