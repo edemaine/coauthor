@@ -3,13 +3,17 @@ cd "`dirname "$0"`"
 ssh ubuntu@coauthor mongodump --db coauthor
 rsync -a ubuntu@coauthor:dump/coauthor/ coauthor-backup/
 
-#method=acd_cli
+## rclone is the recommended system to copy backups to a cloud service.
+## Just setup a remote called `coauthor-backup` using `rclone setup`.
+## (acd_cli is another option, but it sadly was turned off by Amazon.)
+
 method=rclone
+#method=acd_cli
 
 case $method in
 
 rclone)
-  if rclone copy coauthor-backup amazon:coauthor-backup/`date +%Y-%m-%d`
+  if rclone copy coauthor-backup coauthor-backup:coauthor-backup/`date +%Y-%m-%d`
   then
     echo SUCCESS\!\!
   else
