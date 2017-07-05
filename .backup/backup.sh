@@ -4,7 +4,7 @@ ssh ubuntu@coauthor mongodump --db coauthor
 rsync -a ubuntu@coauthor:dump/coauthor/ coauthor-backup/
 
 ## rclone is the recommended system to copy backups to a cloud service.
-## Just setup a remote called `coauthor-backup` using `rclone setup`.
+## Just setup a remote called `coauthor-backup` using `rclone config`.
 ## (acd_cli is another option, but it sadly was turned off by Amazon.)
 
 method=rclone
