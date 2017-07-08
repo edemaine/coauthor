@@ -1,8 +1,12 @@
 unless process.env['MAIL_URL']?
-  console.warn "MAIL_URL not sent -- email notifications won't work!"
+  console.warn "MAIL_URL not set -- email notifications won't work!"
 
+## Email notifications are marked as From the email address given by
+## environment variable MAIL_FROM or, if that doesn't exist,
+## coauthor@<host> where ROOT_URL is of the form https://<host>
+Accounts.emailTemplates.from = process.env['MAIL_FROM'] ?
+  "coauthor@#{require('url').parse(process.env['ROOT_URL']).hostname}"
 Accounts.emailTemplates.siteName = 'Coauthor'
-Accounts.emailTemplates.from = 'coauthor@coauthor.csail.mit.edu'
 Accounts.emailTemplates.verifyEmail.subject = (user) ->
   "Email confirmation for Coauthor"
 Accounts.emailTemplates.verifyEmail.text = (user, link) -> """
@@ -22,9 +26,3 @@ Accounts.emailTemplates.verifyEmail.text = (user, link) -> """
 
 Accounts.config
   sendVerificationEmail: true
-
-#Email.send
-#  from: 'coauthor@coauthor.csail.mit.edu'
-#  to: 'edemaine@mit.edu'
-#  subject: 'Testing...'
-#  html: '<p>Welcome to Coauthor!</p>We hope you like your stay :)'

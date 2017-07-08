@@ -225,6 +225,8 @@ Installation instructions:
    (for sending email notifications &mdash; to run a local SMTP server,
    see below, and use e.g. `smtp://yourhostname.org:25/`).
    [`smtp://localhost:25/` may not work because of mup's use of docker.]
+   If you want the "From" address in email notifications to be something
+   other than coauthor@*deployed-host-name*, set the `MAIL_FROM` variable.
 2. `cd .deploy`
 3. `mup setup` to install all necessary software on the server
 4. `mup deploy` each time you want to deploy code to server
