@@ -27,7 +27,7 @@ module.exports = {
     env: {
       ROOT_URL: 'https://coauthor2.csail.mit.edu',
       PORT: 80,
-      MAIL_URL: 'smtp://localhost:25',
+      //MAIL_URL: 'smtp://localhost:25',
       MONGO_URL: 'mongodb://localhost/meteor'
     },
     ssl: {
