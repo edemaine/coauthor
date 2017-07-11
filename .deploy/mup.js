@@ -33,8 +33,8 @@ module.exports = {
     },
     ssl: {
       // pem: '../coauthor_csail_mit_edu.ssl/coauthor_csail_mit_edu.pem'
-      crt: '../coauthor_csail_mit_edu.ssl/coauthor_csail_mit_edu.pem',
-      key: '../coauthor_csail_mit_edu.ssl/coauthor_csail_mit_edu.key',
+      crt: '../../coauthor_csail_mit_edu.ssl/coauthor_csail_mit_edu.pem',
+      key: '../../coauthor_csail_mit_edu.ssl/coauthor_csail_mit_edu.key',
       port: 443
     },
     deployCheckWaitTime: 150
