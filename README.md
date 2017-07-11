@@ -188,7 +188,7 @@ in other fields too.
 Here is how to get a **local test server** running:
 
 1. **Install Meteor:** `curl https://install.meteor.com/ | sh` on UNIX, or use
-   the [Windows installer](https://www.meteor.com/install)
+   the [Windows installer](https://www.meteor.com/install).
 2. **Download Coauthor:** `git clone https://github.com/edemaine/coauthor.git`
 3. **Run meteor:**
    * `cd coauthor`
