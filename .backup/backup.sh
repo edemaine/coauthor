@@ -1,7 +1,16 @@
 #!/bin/sh
+## Trigger mongodump on the server (given by $REMOTE) and copy dump here
+## and optionally to the cloud.
+##
+## You'll obviously first need to install mongodump on the server.
+## On Ubuntu: sudo apt-get install mongodb-clients
+## On Debian: sudo apt-get install mongo-tools
+
+REMOTE=ubuntu@coauthor
+
 cd "`dirname "$0"`"
-ssh ubuntu@coauthor mongodump --db coauthor
-rsync -a ubuntu@coauthor:dump/coauthor/ coauthor-backup/
+ssh $REMOTE mongodump --db coauthor
+rsync -a $REMOTE:dump/coauthor/ coauthor-backup/
 
 ## rclone is the recommended system to copy backups to a cloud service.
 ## Just setup a remote called `coauthor-backup` using `rclone config`.
