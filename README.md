@@ -231,6 +231,9 @@ Installation instructions:
 3. `mup setup` to install all necessary software on the server
 4. `mup deploy` each time you want to deploy code to server
    (initially and after each `git pull`)
+5. If you proxy the resulting server from another web server,
+   you'll probably want to `meteor remove force-ssl` to remove the automatic
+   redirection from `http` to `https`.
 
 You'll also need an SMTP server to send email notifications.
 In Postfix, modify the `/etc/postfix/main.cf` configuration as follows
