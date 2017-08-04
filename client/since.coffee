@@ -3,8 +3,7 @@ Template.since.onCreated ->
     setTitle "Since #{Template.currentData()?.since}"
 
 messagesSince = (group, since) ->
-  #console.log parseSince since
-  msgs = Messages.find
+  Messages.find
     group: group
     updated: $gte: parseSince since
     published: $ne: false
@@ -12,6 +11,10 @@ messagesSince = (group, since) ->
     private: $ne: true
   ,
     sort: [['updated', 'asc']]
+
+topMessagesSince = (group, since) ->
+  #console.log parseSince since
+  msgs = messagesSince group, since
   .fetch()
   ## xxx should use default sort, not title sort?
   msgs = _.sortBy msgs, (msg) ->
@@ -38,9 +41,9 @@ messagesSince = (group, since) ->
 
 Template.since.helpers
   messages: ->
-    messagesSince @group, @since
+    topMessagesSince @group, @since
   messageCount: ->
-    pluralize messagesSince(@group, @since).length, 'message'
+    pluralize messagesSince(@group, @since).count(), 'message'
   valid: ->
     parseSince(@since)?
   parseSince: ->
