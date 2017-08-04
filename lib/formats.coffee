@@ -388,6 +388,21 @@ postprocessKaTeX = (text, math) ->
 
 formatEither = (isTitle, format, text, leaveTeX = false) ->
   return text unless text?
+
+  ## Search highlighting
+  if Meteor.isClient and Router.current()?.route?.getName() == 'search' and
+     (search = Router.current()?.params?.search)?
+    recurse = (query) ->
+      if (query.title and isTitle) or (query.body and not isTitle)
+        pattern = (query.title ? query.body).$regex
+        text = text.replace new RegExp(pattern), '<span class="highlight">$&</span>'
+      for list in [query.$and, query.$or]
+        continue unless list
+        for part in list
+          recurse part
+      null
+    recurse parseSearch search
+
   ## LaTeX format is special because it does its own math preprocessing at a
   ## specific time during its formatting.  Other formats don't touch math.
   if format == 'latex'

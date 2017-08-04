@@ -1,0 +1,16 @@
+template(name='search')
+  if groupData
+    .panel.panel-primary
+      .panel-heading.clearfix
+        form.form-inline
+          span.title.panel-title= group
+          span.space
+          | search
+      .panel-body
+        each messages
+          +readMessageHeader
+      .panel-footer.clearfix
+        i= messageCount
+        | since #{parseSince}
+  else
+    +badGroup

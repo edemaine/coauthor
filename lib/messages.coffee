@@ -148,7 +148,7 @@ if Meteor.isServer
   ## true if the root is deleted/unpublished and not authored by the user,
   ## in which case we reveal the message to the user (but seems better than
   ## having a dangling root pointer...).
-  addRootsToQuery = (query, options = {}) ->
+  @addRootsToQuery = (query, options = {}) ->
     #options = _.clone options  ## avoid modifying caller's options
     options.fields = root: 1  ## just get (and depend on) root and _id
     messages = Messages.find query, options

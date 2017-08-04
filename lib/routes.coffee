@@ -141,6 +141,18 @@ Router.route '/:group/stats/:username?',
 
 @wildGroupRoute = 'GLOBAL'
 
+Router.route '/:group/search/:search',
+  name: 'search'
+  subscriptions: -> [
+    Subscribe.subscribe 'messages.search', @params.group, @params.search
+    Subscribe.subscribe 'groups.members', @params.group
+    Subscribe.subscribe 'files', @params.group
+  ]
+  data: ->
+    group: @params.group
+    search: @params.search
+  fastRender: true
+
 Router.route '/:group/users',
   name: 'users'
   subscriptions: -> [
