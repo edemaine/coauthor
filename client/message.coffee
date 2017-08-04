@@ -40,17 +40,28 @@ switch sharejsEditor
 #Template.registerHelper 'titleOrUntitled', ->
 #  titleOrUntitled @
 
-Template.registerHelper 'children', ->
-  return @children unless @children
-  children = Messages.find _id: $in: @children
-               .fetch()
-  children = _.sortBy children, (child) => @children.indexOf child._id
-  for child, index in children
-    ## Use canSee to properly fake non-superuser mode.
-    continue unless canSee child
-    child.depth = (@depth ? 0) + 1
-    child.index = index
-    child
+Template.registerHelper 'childLookup', (index) ->
+  ## Usage:
+  ##   each children
+  ##     with childLookup @index
+  ## Assumes `this` is a String object whose value is a message ID,
+  ## and the argument is the index of interation.  Fetches the message,
+  ## and populates it with additional `index` and `parent` fields.
+  ## In this careful usage, we don't spill reactive dependencies
+  ## between parents and children.
+  #console.log 'looking up', @valueOf()
+  msg = Messages.findOne @valueOf()
+  return msg unless msg
+  ## Use canSee to properly fake non-superuser mode.
+  return unless canSee msg
+  ## Import _id information from parent nonreactively.
+  ## If we get reparented, a totally new template should get created,
+  ## so we don't need to be reactive to changes to parentData.
+  parentData = Tracker.nonreactive -> Template.parentData()
+  msg.parent = parentData._id
+  #msg.depth = parentData.depth
+  msg.index = index
+  msg
 
 Template.registerHelper 'tags', ->
   sortTags @tags
@@ -197,11 +208,11 @@ Template.submessage.onCreated ->
   @count = submessageCount++
   @editing = new ReactiveVar null
   @autorun =>
-    #console.log 'editing autorun', Template.currentData()?._id, editing Template.currentData()
-    return unless Template.currentData()?
-    #@myid = Template.currentData()._id
-    if editing Template.currentData()
-      @editing.set Template.currentData()._id
+    data = Template.currentData()
+    return unless data?
+    #@myid = data._id
+    if editing data
+      @editing.set data._id
     else
       @editing.set null
     #console.log 'automathjax'
@@ -539,6 +550,7 @@ Template.submessage.helpers
     absentTags().count()
 
 Template.registerHelper 'messagePanelClass', ->
+  #console.log 'rendering', @_id, @
   editingClass =
     if Template.instance().editing?.get()
       ' editing'
@@ -911,10 +923,6 @@ Template.replyButtons.helpers
   canAttach: -> canPost @group, @_id
   canPublicReply: -> 'public' in (@threadPrivacy ? ['public'])
   canPrivateReply: -> 'private' in (@threadPrivacy ? ['public'])
-
-Template.tableOfContentsMessage.helpers
-  parentId: ->
-    Template.parentData()._id
 
 Template.tableOfContentsMessage.onRendered ->
   messageDrag.call @, @find('a'), false

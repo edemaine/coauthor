@@ -47,14 +47,15 @@ template(name="tableOfContentsRoot")
     +tableOfContents
 
 template(name="tableOfContents")
-  if children
+  if children.length
     ul.nav.subcontents
       each children
-        +tableOfContentsMessage
+        with childLookup @index
+          +tableOfContentsMessage
 
 template(name="tableOfContentsMessage")
   li.btn-group-xs
-    div.beforeMessageDrop(data-parent=parentId, data-index=index)
+    div.beforeMessageDrop(data-parent=parent, data-index=index)
     a(href="#{{_id}}", data-id=_id, class=deletedClass).tex2jax.onMessageDrop
       if file
         span.glyphicon.glyphicon-paperclip
@@ -246,10 +247,11 @@ template(name="submessage")
             button.btn.btn-info.editButton(tabindex="{{tabindex 8}}") Stop Editing
           +replyButtons
         +messageAuthor
-      .children.clearfix
-        each children
-          +submessage
-      if children
+      if children.length
+        .children.clearfix
+          each children
+            with childLookup @index
+              +submessage
         .panel-body.panel-secondbody.btn-group.hidden-print
           +replyButtons
 
