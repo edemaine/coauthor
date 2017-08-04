@@ -3,7 +3,6 @@ Template.search.onCreated ->
     setTitle "Search #{Template.currentData()?.search}"
 
 messagesSearch = (group, search) ->
-  console.log parseSearch search
   Messages.find
     $and: [
       group: group
@@ -11,7 +10,6 @@ messagesSearch = (group, search) ->
     ]
 
 topMessagesSearch = (group, search) ->
-  #console.log parseSearch search
   msgs = messagesSearch group, search
   .fetch()
   ## xxx should use default sort, not title sort?
