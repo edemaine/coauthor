@@ -5,8 +5,7 @@ template(name='search')
         form.form-inline
           span.title.panel-title= group
           span.space
-          | search:
-          code= search
+          | search for &ldquo;#{search}&rdquo;
       .panel-body
         each messages
           +readMessageHeader

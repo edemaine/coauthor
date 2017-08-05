@@ -44,3 +44,19 @@ Template.layout.events
     e.preventDefault()
     e.stopPropagation()
     Session.set 'super', not Session.get 'super'
+  'submit .searchForm': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    Router.go 'search',
+      group: routeGroup()
+      search: t.find('.searchText').value
+      0: '*'
+      1: '*'
+      2: '*'
+      3: '*'
+      4: '*'
+      5: '*'
+      6: '*'
+      7: '*'
+      8: '*'
+      9: '*'

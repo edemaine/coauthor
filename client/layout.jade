@@ -52,6 +52,8 @@ template(name="layout")
                 li.divider
                 li
                   a(href="#") Request Access
+        form.navbar-form.navbar-left.input-group.searchForm
+          input.form-control.searchText(type="text", placeholder="Search", value=search)
         ul.nav.navbar-nav.navbar-right
           +loginButtons
         ul.nav.navbar-nav.navbar-right.navbar-btn
