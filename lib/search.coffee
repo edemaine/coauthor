@@ -14,9 +14,11 @@ SEARCH LANGUAGE:
   while upper-case letters are case sensitive.
 * regex:... matches using a regular expression instead of a word.
   Case sensitive.
+* Prefix any of the above with a minus (`-`) to negate the match.
 * Connecting queries via spaces does an implicit AND (like Google)
 * Use quotes ('...' or "...") to prevent this behavior.  For example,
-  search for "this phrase" or title:"this phrase" or regex:"this regex".
+  search for "this phrase" or title:"this phrase" or regex:"this regex"
+  or title:regex:"this regex" or -title:"this phrase".
 ###
 
 escapeRegExp = (s) ->
@@ -32,12 +34,9 @@ escapeRegExp = (s) ->
   wants = []
   while (token = tokenRe.exec search)?
     continue if token[1]  ## ignore whitespace tokens
-    ## Check for leading command followed by colon
-    colon = /^(?:[a-zA-Z]+:)+/.exec token[0]
-    if colon?
-      colon = colon[0]
-    else
-      colon = ''
+    ## Check for negation and/or leading commands followed by colon
+    colon = /^-?(?:[a-zA-Z]+:)*/.exec token[0]
+    colon = colon[0]
     ## Remove quotes (which are just used for avoiding space parsing).
     if token[4]
       token = token[4]  ## unterminated initial '
@@ -69,18 +68,33 @@ escapeRegExp = (s) ->
       regex = regex.replace /\*/g, '\\S*'
       regex = "\\b#{regex}" unless starStart
       regex = "#{regex}\\b" unless starEnd
+    regex = new RegExp regex
+    ## Check for negation
+    negate = colon[0] == '-'
+    if negate
+      colon = colon.substring 1
+    ## Colon commands
     switch colon
       when ''
-        wants.push
-          $or: [
-            title: $regex: regex
+        if negate
+          wants.push title: $not: regex
+          wants.push body: $not: regex
+        else
+          wants.push $or: [
+            title: regex
           ,
-            body: $regex: regex
+            body: regex
           ]
       when 'title:'
-        wants.push title: $regex: regex
+        if negate
+          wants.push title: $not: regex
+        else
+          wants.push title: regex
       when 'body:'
-        wants.push body: $regex: regex
+        if negate
+          wants.push body: $not: regex
+        else
+          wants.push body: regex
   if wants.length == 1
     wants[0]
   else

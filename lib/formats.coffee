@@ -394,8 +394,9 @@ formatEither = (isTitle, format, text, leaveTeX = false) ->
      (search = Router.current()?.params?.search)?
     recurse = (query) ->
       if (query.title and isTitle) or (query.body and not isTitle)
-        pattern = (query.title ? query.body).$regex
-        text = text.replace new RegExp(pattern), '<span class="highlight">$&</span>'
+        pattern = (query.title ? query.body)
+        unless pattern.$not
+          text = text.replace pattern, '<span class="highlight">$&</span>'
       for list in [query.$and, query.$or]
         continue unless list
         for part in list
