@@ -1,3 +1,24 @@
+###
+SEARCH LANGUAGE:
+
+* If you write a word, the default behavior is to search as a whole word
+  in message's title or body.
+* title:... matches in the title only
+* body:... matches in the body only
+* Use asterisks to search for partial words instead of full words:
+  * `word*` to search for prefix word
+  * `*word` to search for suffix word
+  * `*word*` to search for infix word
+  * `word*word` to search for words starting and ending in particular way, etc.
+* Lower-case letters are case insensitive,
+  while upper-case letters are case sensitive.
+* regex:... matches using a regular expression instead of a word.
+  Case sensitive.
+* Connecting queries via spaces does an implicit AND (like Google)
+* Use quotes ('...' or "...") to prevent this behavior.  For example,
+  search for "this phrase" or title:"this phrase" or regex:"this regex".
+###
+
 escapeRegExp = (s) ->
   ## https://stackoverflow.com/questions/3446170/escape-string-for-use-in-javascript-regex
   #s.replace /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&"
