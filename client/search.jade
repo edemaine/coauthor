@@ -5,12 +5,13 @@ template(name='search')
         form.form-inline
           span.title.panel-title= group
           span.space
-          | search
+          | search:
+          code= search
       .panel-body
         each messages
           +readMessageHeader
       .panel-footer.clearfix
         i= messageCount
-        | since #{parseSince}
+        | match search query
   else
     +badGroup
