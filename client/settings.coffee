@@ -168,19 +168,20 @@ Template.emailEditor.events
       Meteor.call 'userEditEmail', email
 
 Template.timezoneSelector.onRendered ->
-  timezoneMenu = @$('.timezoneMenu')
-  ## Discard top-level alias timezones with no / in them.
-  tzs = (tz for tz in moment.tz.names() when 0 <= tz.indexOf '/')
-  ## Convert _s to spaces.
-  tzs = (tz.replace(/_/g, ' ') for tz in tzs)
-  groups = _.groupBy tzs, (tz) -> tz.split('/')[0]
-  for category, subtzs of groups
-    $("""<li class="dropdown-submenu"><a href="#" tabindex="-1">#{category} <span class="glyphicon glyphicon-chevron-right"></span></a></li>""")
-    .append submenu = $('<ul class="dropdown-menu" role="menu">')
-    .appendTo timezoneMenu
-    for tz in subtzs
-      $("""<li><a href="#" tabindex="-1">#{tz[tz.indexOf('/')+1..]}</a></li>""")
-      .appendTo submenu
+  Meteor.http.get '/timezones.json', (error, result) ->
+    return console.error "Failed to load timezones: #{error}" if error
+    timezones = JSON.parse result.content
+    timezoneMenu = @$('.timezoneMenu')
+    countries = (country for countryCode, country of timezones.countries)
+    countries = countries
+    for country in _.sortBy countries, 'name'
+      $("""<li class="dropdown-submenu"><a href="#" tabindex="-1">#{country.name} <span class="glyphicon glyphicon-chevron-right"></span></a></li>""")
+      .append submenu = $('<ul class="dropdown-menu" role="menu">')
+      .appendTo timezoneMenu
+      for zone in country.zones
+        short = zone[zone.indexOf('/')+1..].replace /_/g, ' '
+        $("""<li><a href="#" tabindex="-1" data-zone="#{zone}">#{short}</a></li>""")
+        .appendTo submenu
 
 ## based on https://www.w3schools.com/bootstrap/tryit.asp?filename=trybs_ref_js_dropdown_multilevel_css&stacked=h
 Template.timezoneSelector.events

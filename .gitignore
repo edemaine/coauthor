@@ -3,6 +3,7 @@
 .backup/coauthor-backup
 node_modules
 client/katex.min.css
+public/timezones.json
 public/fonts
 server/kadira.js
 server/kadira.coffee

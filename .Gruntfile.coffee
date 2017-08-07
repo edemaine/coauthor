@@ -17,6 +17,9 @@ module.exports = (grunt) ->
           'node_modules/codemirror/addon/fold/foldgutter.css'
         ]
         dest: 'client/codemirror/'
+      timezones:
+        src: 'node_modules/moment-timezone/data/meta/latest.json'
+        dest: 'public/timezones.json'
     replace:
       katex:
         options:
