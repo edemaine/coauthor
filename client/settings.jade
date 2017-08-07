@@ -146,6 +146,12 @@ template(name="settings")
                   | No
           tr
             th
+              label Notification timezone:
+              .description Email notifications will report times in this timezone. Web UI always uses local timezone.
+            td
+              +timezoneSelector
+          tr
+            th
               label Dropbox account linking:
               .description This is not yet functional, but one day, files in Coauthor will be autosynchronized with your Dropbox.
             td
@@ -179,3 +185,10 @@ template(name="emailEditor")
         button.btn.btn-info.saveButton Save
       else
         button.btn.btn-info.editButton Edit
+
+template(name="timezoneSelector")
+  .btn-group
+    button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
+      | #{timezone}
+      span.caret
+    ul.dropdown-menu(role="menu").timezoneMenu

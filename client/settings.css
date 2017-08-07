@@ -1,3 +1,7 @@
 /*.settings > tbody > tr > th, .settings > tbody > tr > td { vertical-align: middle; }*/
 .settings td { min-width: 400px; }
 .settings .description { font-size: smaller; font-weight: normal; }
+
+/* https://www.w3schools.com/bootstrap/tryit.asp?filename=trybs_ref_js_dropdown_multilevel_css&stacked=h */
+.dropdown-submenu { position: relative; }
+.dropdown-submenu .dropdown-menu { top: 0; left: 100%; margin-top: -1px; }

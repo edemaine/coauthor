@@ -32,6 +32,7 @@
     "markdown-it": "^8.3.1",
     "markdown-it-replacements": "^1.0.1",
     "meteor-node-stubs": "^0.2.5",
+    "moment-timezone": "^0.5.13",
     "sanitize-html": "^1.14.1"
   },
   "devDependencies": {
