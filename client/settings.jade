@@ -187,8 +187,7 @@ template(name="emailEditor")
         button.btn.btn-info.editButton Edit
 
 template(name="timezoneSelector")
-  .btn-group
-    button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
-      | #{timezone}
-      span.caret
-    ul.dropdown-menu(role="menu").timezoneMenu
+  form.input-group
+    input.form-control.typeahead(type="text", placeholder="Country / city / IANA timezone")
+    span.input-group-btn
+      button.btn.btn-info.saveButton(disabled=disableSave) Save

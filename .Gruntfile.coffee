@@ -17,9 +17,6 @@ module.exports = (grunt) ->
           'node_modules/codemirror/addon/fold/foldgutter.css'
         ]
         dest: 'client/codemirror/'
-      timezones:
-        src: 'node_modules/moment-timezone/data/meta/latest.json'
-        dest: 'public/timezones.json'
     replace:
       katex:
         options:
@@ -79,3 +76,17 @@ module.exports = (grunt) ->
     'copy'
     'replace'
   ]
+
+  ## Convert timezones into autocompletion list
+  fs = require 'fs'
+  meta = JSON.parse fs.readFileSync 'node_modules/moment-timezone/data/meta/latest.json', encoding: 'utf8'
+  zones = JSON.parse fs.readFileSync 'node_modules/moment-timezone/data/unpacked/latest.json', encoding: 'utf8'
+  timezones =
+    for zone in zones.zones
+      name = zone.name
+      if name of meta.zones
+        countries = meta.zones[name].countries
+        countries = (meta.countries[country].name for country in countries)
+        name += " (#{countries.join ', '})"
+      name
+  fs.writeFileSync 'public/timezones.json', JSON.stringify timezones

@@ -42,7 +42,6 @@ http@1.2.12
 force-ssl@1.0.13
 natestrauser:jquery-scrollto
 underscorestring:underscore.string
-momentjs:moment
 standard-minifier-css@1.3.4
 standard-minifier-js@1.2.3
 reactive-dict@1.1.8
@@ -55,3 +54,4 @@ meteorhacks:subs-manager
 twbs:bootstrap
 meteorhacks:kadira
 webapp@1.3.14
+sergeyt:typeahead

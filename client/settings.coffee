@@ -167,30 +167,27 @@ Template.emailEditor.events
     if email != currentEmail()
       Meteor.call 'userEditEmail', email
 
-Template.timezoneSelector.onRendered ->
+timezones = []
+#timezoneSource = new Bloodhound
+#  datumTokenizer: Bloodhound.tokenizers.whitespace
+#  queryTokenizer: Bloodhound.tokenizers.whitespace
+#  #prefetch: '/timezones.json'
+#  #local: timezones
+timezoneSource = (q, callback) ->
+  callback(timezone for timezone in timezones when 0 <= timezone.toLowerCase().indexOf q.toLowerCase())
+
+Template.timezoneSelector.onCreated ->
   Meteor.http.get '/timezones.json', (error, result) ->
     return console.error "Failed to load timezones: #{error}" if error
     timezones = JSON.parse result.content
-    timezoneMenu = @$('.timezoneMenu')
-    countries = (country for countryCode, country of timezones.countries)
-    countries = countries
-    for country in _.sortBy countries, 'name'
-      $("""<li class="dropdown-submenu"><a href="#" tabindex="-1">#{country.name} <span class="glyphicon glyphicon-chevron-right"></span></a></li>""")
-      .append submenu = $('<ul class="dropdown-menu" role="menu">')
-      .appendTo timezoneMenu
-      for zone in country.zones
-        short = zone[zone.indexOf('/')+1..].replace /_/g, ' '
-        $("""<li><a href="#" tabindex="-1" data-zone="#{zone}">#{short}</a></li>""")
-        .appendTo submenu
+    console.log "Loaded #{timezones.length} timezones."
 
-## based on https://www.w3schools.com/bootstrap/tryit.asp?filename=trybs_ref_js_dropdown_multilevel_css&stacked=h
-Template.timezoneSelector.events
-  'click .dropdown-submenu a': (e, t) ->
-    e.preventDefault()
-    e.stopPropagation()
-    submenu = $(e.target).parent('.dropdown-submenu').find('.dropdown-menu')
-    old = submenu.css 'display'
-    t.$('.dropdown-submenu > .dropdown-menu').hide()
-    submenu.css 'display', old
-    submenu.toggle()
-    #$(e.target).next('ul').dropdown 'toggle'
+Template.timezoneSelector.onRendered ->
+  $('.typeahead').typeahead
+    hint: true
+    highlight: true
+    minLength: 1
+  ,
+    name: 'timezones'
+    limit: 50
+    source: timezoneSource
