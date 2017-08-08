@@ -94,10 +94,10 @@ in other fields too.
   Useful for progress reports since the last meeting.
 
 * **Threaded** message organization, with arbitrary tree structure (root
-  messages, replies with arbitrary depth).  You can focus on the subthread
-  rooted at any message (click on the arrow), or fold away the contents of a
-  subthread to focus on the rest (click on the minus sign).
-  Folding with the plus/minus sign are local and temporary (reset when
+  messages, replies with arbitrary depth).  You can **focus** on the subthread
+  rooted at any message (click on the arrow), or **fold** away the contents of
+  a subthread to focus on the rest (click on the minus sign).
+  Folding with the minus/plus sign is a local and temporary change (resets when
   reloading the page), while **minimizing** the message makes it start out
   folded for all users (e.g., when a discussion/question resolves and is
   no longer important, but you want to preserve it for future reference).
