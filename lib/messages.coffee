@@ -369,6 +369,8 @@ if Meteor.isServer
 @canUndelete = canEdit
 @canPublish = canEdit
 @canUnpublish = canEdit
+@canMinimize = canEdit
+@canUnminimize = canEdit
 ## Older behavior: only superusers can unpublish once published
 #@canUnpublish = (message) ->
 #  canSuper message2group message
@@ -556,6 +558,7 @@ _messageUpdate = (id, message, authors = null, old = null) ->
     published: Match.Optional Boolean
     deleted: Match.Optional Boolean
     private: Match.Optional Boolean
+    minimized: Match.Optional Boolean
   checkPrivacy message.private, id
 
   ## Don't update if there aren't any actual differences.  Compare with 'old'
@@ -761,6 +764,7 @@ Meteor.methods
       published: Match.Optional Boolean
       deleted: Match.Optional Boolean
       private: Match.Optional Boolean
+      minimized: Match.Optional Boolean
     unless canPost group, parent
       throw new Meteor.Error 'messageNew.unauthorized',
         "Insufficient permissions to post new message in group '#{group}' under parent '#{parent}'"
@@ -897,6 +901,7 @@ Meteor.methods
       published: Match.Optional Match.OneOf Date, Boolean
       deleted: Match.Optional Boolean
       #private: Match.Optional Boolean
+      #minimized: Match.Optional Boolean
       creator: Match.Optional String
       created: Match.Optional Date
       #updated and updators added automatically from last diff
@@ -913,6 +918,7 @@ Meteor.methods
       tags: Match.Optional Match.Where validTags
       deleted: Match.Optional Boolean
       #private: Match.Optional Boolean
+      #minimized: Match.Optional Boolean
       updated: Match.Optional Date
       updators: Match.Optional [String]
       published: Match.Optional Match.OneOf Date, Boolean

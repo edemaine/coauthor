@@ -247,8 +247,8 @@ initImage = (id) ->
 
 checkImage = (id) ->
   return unless id of images
-  ## Image gets folded if it's referenced at least once.
-  messageFolded.set id, (images[id].count > 0)
+  ## Image gets unnaturally folded if it's referenced at least once.
+  messageFolded.set id, (images[id].count > 0) or images[id].naturallyFolded
   ## No longer care about this image if it's not referenced and doesn't have
   ## a rendered template.
   if images[id].count == 0 and id not of id2template
@@ -278,6 +278,11 @@ messageDrag = (target, bodyToo = true) ->
         elt.addEventListener 'dragstart', onDragStart
   target.addEventListener 'dragstart', onDragStart
 
+## A message is "naturally" folded if it is flagged as minimized or deleted.
+## It still will be default-folded if it's an image referenced in another
+## message that is not naturally folded.
+naturallyFolded = (data) -> data.minimized or data.deleted
+
 Template.submessage.onRendered ->
   ## Random message background color (to show nesting).
   #@firstNode.style.backgroundColor = '#' +
@@ -289,8 +294,9 @@ Template.submessage.onRendered ->
   focusButton = $(@find '.message-left-buttons').find('.focusButton')[0]
   messageDrag.call @, focusButton
 
-  ## Fold deleted messages by default on initial load.
-  messageFolded.set @data._id, true if @data.deleted
+  ## Fold naturally folded (minimized and deleted) messages
+  ## by default on initial load.
+  messageFolded.set @data._id, true if naturallyFolded @data
 
   ## Fold referenced attached files by default on initial load.
   #@$.children('.panel').children('.panel-body').find('a[href|="/file/"]')
@@ -303,8 +309,9 @@ Template.submessage.onRendered ->
   images[@data._id].file = @data.file
   @autorun =>
     data = Template.currentData()
-    ## If message is deleted, don't count images it references.
-    if data.deleted
+    ## If message is naturally folded, don't count images it references.
+    images[@data._id].naturallyFolded = naturallyFolded data
+    if images[@data._id].naturallyFolded
       for id of @images
         images[id].count -= 1
         checkImage id
@@ -521,6 +528,8 @@ Template.submessage.helpers
   canUndelete: -> canUndelete @_id
   canPublish: -> canPublish @_id
   canUnpublish: -> canUnpublish @_id
+  canMinimize: -> canMinimize @_id
+  canUnminimize: -> canUnminimize @_id
   canSuperdelete: -> canSuperdelete @_id
   canPrivate: -> canPrivate @_id
 
@@ -689,6 +698,7 @@ Template.submessage.events
     e.preventDefault()
     e.stopPropagation()
     message = t.data._id
+    messageFolded.set message, not @deleted or @minimized or images[@_id]?.count > 0
     ## Stop editing if we are deleting.
     if not @deleted and editing @
       Meteor.call 'messageEditStop', message
@@ -702,6 +712,15 @@ Template.submessage.events
     message = t.data._id
     Meteor.call 'messageUpdate', message,
       private: not @private
+    dropdownToggle e
+
+  'click .minimizeButton': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    message = t.data._id
+    messageFolded.set message, @deleted or not @minimized or images[@_id]?.count > 0
+    Meteor.call 'messageUpdate', message,
+      minimized: not @minimized
     dropdownToggle e
 
   'click .editorKeyboard': (e, t) ->

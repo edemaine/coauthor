@@ -165,6 +165,16 @@ template(name="submessage")
                 | Action
                 span.caret
               ul.dropdown-menu.dropdown-menu-right.actionMenu(role="menu")
+                if minimized
+                  if canUnminimize
+                    li
+                      a.minimizeButton(href="#")
+                        button.btn.btn-success.btn-block Unminimize
+                else
+                  if canMinimize
+                    li
+                      a.minimizeButton(href="#")
+                        button.btn.btn-danger.btn-block Minimize
                 if deleted
                   if canUndelete
                     li
