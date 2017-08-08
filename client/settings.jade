@@ -147,7 +147,7 @@ template(name="settings")
           tr
             th
               label Notification timezone:
-              .description Email notifications will report times in this timezone. Web UI always uses local timezone.
+              .description Email notifications will report times in this timezone (or by default, the server's timezone). The web UI always uses the browser's local timezone, not this.
             td
               +timezoneSelector
           tr
@@ -188,6 +188,6 @@ template(name="emailEditor")
 
 template(name="timezoneSelector")
   form.input-group
-    input.form-control.typeahead(type="text", placeholder="Country / city / IANA timezone")
+    input.form-control.timezone.typeahead(type="text", placeholder="Country / city / IANA timezone", value=timezone)
     span.input-group-btn
       button.btn.btn-info.saveButton(disabled=disableSave) Save

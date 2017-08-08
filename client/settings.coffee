@@ -191,3 +191,36 @@ Template.timezoneSelector.onRendered ->
     name: 'timezones'
     limit: 50
     source: timezoneSource
+    templates: notFound: '<i style="margin: 0ex 1em">No matching timezones found.</i>'
+  ## Update disabled state now and whenever profile changes
+  @autorun => timezoneEdit null, @
+
+timezoneValid = (zone) ->
+  #canon = timezoneCanon zone
+  #return true if zone == ''
+  #_.any (canon == timezoneCanon goodZone for goodZone in timezones)
+  zone == '' or _.contains timezones, zone
+
+timezoneEdit = (e, t) ->
+  e.preventDefault() if e?
+  e.stopPropagation() if e?
+  zone = t.find('.tt-input').value
+  enable = Template.currentData().timezone != zone and timezoneValid zone
+  t.$('.saveButton').attr 'disabled', not enable
+
+Template.timezoneSelector.events
+  'changed .timezone': timezoneEdit
+  'keyup .timezone': timezoneEdit
+  'propertychange .timezone': timezoneEdit
+  'typeahead:select .timezone': timezoneEdit
+  'typeahead:autocomplete .timezone': timezoneEdit
+
+  'click .saveButton': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    zone = t.find('.tt-input').value
+    return unless timezoneValid zone
+    #t.$('.tt-input').typeahead 'val', zone
+    Meteor.users.update Meteor.userId(),
+      $set: "profile.timezone": zone
+    #, -> Meteor.defer -> timezoneEdit e, t

@@ -378,8 +378,8 @@ if Meteor.isServer
           verb = 'updated'
           verb = 'created' if notification.created
           authors = _.sortBy _.keys(authors), userSortKey
-          authorsText = (displayUser user for user in authors).join ', '
-          authorsHTML = (linkToAuthor msg.group, user for user in authors).join ', '
+          authorsText = (displayUser author for author in authors).join ', '
+          authorsHTML = (linkToAuthor msg.group, author for author in authors).join ', '
           if messageUpdates.length == 1
             subject = "#{authorsText} #{verb} '#{titleOrUntitled msg}' in #{msg.group}"
           else
@@ -392,16 +392,16 @@ if Meteor.isServer
           #if diffs.length > 1
           #  dates = "between #{diffs[0].updated} and #{diffs[diffs.length-1].updated}"
           #else
-          dates = "on #{diffs[diffs.length-1].updated}"
+          updated = momentInUserTimezone diffs[diffs.length-1].updated, user
+          dates = "on #{updated.format 'ddd, MMMM D, YYYY [at] H:mm z'}"
           if msg.root?
-            html += "<P><B>#{authorsHTML}</B> #{verb} message #{linkToMessage msg, true, true} in the thread #{linkToMessage rootmsg, true, true} #{dates}"
-            text += "#{authorsText} #{verb} message #{linkToMessage msg, false, true} in the thread #{linkToMessage rootmsg, false, true} #{dates}"
+            html += "<P><B>#{authorsHTML}</B> #{verb} message #{linkToMessage msg, true, true} in the thread #{linkToMessage rootmsg, true, true} #{dates}:"
+            text += "#{authorsText} #{verb} message #{linkToMessage msg, false, true} in the thread #{linkToMessage rootmsg, false, true} #{dates}:"
           else
-            html += "<P><B>#{authorsHTML}</B> #{verb} root message in the thread #{linkToMessage msg, true, true} #{dates}"
-            text += "#{authorsText} #{verb} root message in the thread #{linkToMessage msg, false, true} #{dates}"
+            html += "<P><B>#{authorsHTML}</B> #{verb} root message in the thread #{linkToMessage msg, true, true} #{dates}:"
+            text += "#{authorsText} #{verb} root message in the thread #{linkToMessage msg, false, true} #{dates}:"
           html += '\n\n'
           text += '\n\n'
-          ## xxx currently no notification of title changed
           ## xxx also could use diff on body
           if changed.body
             body = formatBody msg.format, msg.body, true
