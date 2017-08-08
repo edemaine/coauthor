@@ -112,6 +112,12 @@ template(name="settings")
                     a(href="#",data-after="12",data-unit="hour") 12 hours
           tr
             th
+              label Notification timezone:
+              .description Email notifications will report times in this timezone (or by default, the server's timezone). The web UI always uses the browser's local timezone, not this.
+            td
+              +timezoneSelector
+          tr
+            th
               label Subscribe to threads by default (unless overwritten by group subscription):
               .description Global default for whether to autosubscribe to all threads in all groups that don't specify their own autosubscribe flag below. <i>If set to No, you will not be notified about new threads.</i>
             td
@@ -144,12 +150,6 @@ template(name="settings")
               else
                 button.btn.btn-warning.notifySelfButton(type="button", data-toggle="button", autocomplete="off")
                   | No
-          tr
-            th
-              label Notification timezone:
-              .description Email notifications will report times in this timezone (or by default, the server's timezone). The web UI always uses the browser's local timezone, not this.
-            td
-              +timezoneSelector
           tr
             th
               label Dropbox account linking:
