@@ -64,7 +64,7 @@ escapeRegExp = (s) ->
         continue unless token
       regex = escapeRegExp token
       ## Outside regex mode, lower-case letters are case-insensitive
-      .replace /[a-z]/, (char) -> "[#{char}#{char.toUpperCase()}]"
+      .replace /[a-z]/g, (char) -> "[#{char}#{char.toUpperCase()}]"
       regex = regex.replace /\*/g, '\\S*'
       regex = "\\b#{regex}" unless starStart
       regex = "#{regex}\\b" unless starEnd
