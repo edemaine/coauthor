@@ -220,6 +220,7 @@ Template.submessage.onCreated ->
 
 #Session.setDefault 'images', {}
 images = {}
+imagesInternal = {}
 id2template = {}
 scrollToLater = null
 fileQuery = null
@@ -233,10 +234,13 @@ updateFileQuery = ->
   .observeChanges
     added: (id, fields) ->
       images[id].file = fields.file
+      initImageInternal images[id].file, id if images[id].file?
     changed: (id, fields) ->
       if fields.file? and images[id].file != fields.file
         forceImgReload urlToFile id
+        imagesInternal[images[id].file].image = null if images[id].file?
         images[id].file = fields.file
+        initImageInternal images[id].file, id if images[id].file?
 
 initImage = (id) ->
   if id not of images
@@ -245,15 +249,30 @@ initImage = (id) ->
       file: null
     updateFileQuery()
 
+initImageInternal = (id, image = null) ->
+  if id not of imagesInternal
+    imagesInternal[id] =
+      count: 0
+      image: image
+  else if image?
+    imagesInternal[id].image = image
+
 checkImage = (id) ->
   return unless id of images
   ## Image gets unnaturally folded if it's referenced at least once.
-  messageFolded.set id, (images[id].count > 0) or images[id].naturallyFolded
+  messageFolded.set id, images[id].naturallyFolded or
+    images[id].count > 0 or
+    (imagesInternal[images[id].file]? and
+     imagesInternal[images[id].file].count > 0)
   ## No longer care about this image if it's not referenced and doesn't have
   ## a rendered template.
   if images[id].count == 0 and id not of id2template
     delete images[id]
     updateFileQuery()
+
+checkImageInternal = (id) ->
+  image = imagesInternal[id].image
+  checkImage image if image?
 
 messageDrag = (target, bodyToo = true) ->
   return unless target
@@ -305,8 +324,11 @@ Template.submessage.onRendered ->
   scrollToMessage @data._id if scrollToLater == @data._id
   #images = Session.get 'images'
   @images = {}
+  @imagesInternal = {}
   initImage @data._id
-  images[@data._id].file = @data.file
+  ## initImage calls updateFileQuery which will do this:
+  #images[@data._id].file = @data.file
+  #initImageInternal @data.file if @data.file?
   @autorun =>
     data = Template.currentData()
     ## If message is naturally folded, don't count images it references.
@@ -316,12 +338,20 @@ Template.submessage.onRendered ->
         images[id].count -= 1
         checkImage id
       @images = {}
+      for id of @imagesInternal
+        imagesInternal[id].count -= 1
+        checkImageInternal id
+      @imagesInternal = {}
     else
       newImages = {}
-      $($.parseHTML("<div>#{formatBody data.format, data.body}</div>"))
-      .find 'img[src^="/file/"]'
+      body = $($.parseHTML("<div>#{formatBody data.format, data.body}</div>"))
+      body.find 'img[src^="/file/"]'
       .each ->
         newImages[url2file @getAttribute('src')] = true
+      newImagesInternal = {}
+      body.find 'img[src^="/gridfs/"]'
+      .each ->
+        newImagesInternal[url2internalFile @getAttribute('src')] = true
       for id of @images
         unless id of newImages
           images[id].count -= 1
@@ -333,6 +363,17 @@ Template.submessage.onRendered ->
           images[id].count += 1
           checkImage id
       @images = newImages
+      for id of @imagesInternal
+        unless id of newImagesInternal
+          imagesInternal[id].count -= 1
+          checkImageInternal id
+      for id of newImagesInternal
+        unless id of @imagesInternal
+          #console.log 'source', id
+          initImageInternal id
+          imagesInternal[id].count += 1
+          checkImageInternal id
+      @imagesInternal = newImagesInternal
 
 scrollDelay = 750
 
