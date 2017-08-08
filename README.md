@@ -113,7 +113,22 @@ in other fields too.
 * **Tags**: attach an arbitrary set of strings to a message.  Find other
   messages with the same tag by clicking on a tag.
 
-* **Search** for posts by a particular user by clicking on their username.
+* **Search** across an entire group for posts by keywords using the search bar
+  at the top.  Search for a word as a (whole) `word`, `prefix*`, `*suffix`,
+  `*substring*`, or `prefix*suffix`.
+  Lower-case letters are case insensitive,
+  while upper-case letters are case sensitive.
+  Restrict search to title or body via `title:...` or `body:...`
+  (default is to search both).
+  Negative match with minus sign
+  (e.g., `-word` excludes documents with whole `word`).
+  Search for a regular expression via `regex:...`.
+  Use quotes (`'...'` or `"..."`) to search for phrases or `regex:"..."`
+  to search for regular expressions with spaces in them; normally,
+  spaces act as an AND query.
+
+* **User search**:
+  find posts by a particular user by clicking on their username.
   Search for your own posts in a group by clicking the "My Posts" button.
 
 * **Statistics** about user's and all posts within a group, by day, week
