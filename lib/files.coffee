@@ -14,7 +14,7 @@ if Meteor.isServer
     ['metadata._Resumable', 1]
   ]
 
-fileUrlPrefix = "/file/"
+@fileUrlPrefix = "/file/"
 
 ## If given object has a `file` but no `_id` field, then we make a link
 ## to the internal file object instead of the file associated with a message.
@@ -30,10 +30,14 @@ fileUrlPrefix = "/file/"
   if url[...fileUrlPrefix.length] == fileUrlPrefix
     url[fileUrlPrefix.length..]
   else
-    throw new Meteor.Error 'url2file.invalid',
-      "Bad file URL #{url}"
+    absolutePrefix = Meteor.absoluteUrl fileUrlPrefix[1..]
+    if url[...absolutePrefix.length] == absolutePrefix
+      url[absolutePrefix.length..]
+    else
+      throw new Meteor.Error 'url2file.invalid',
+        "Bad file URL #{url}"
 
-internalFileUrlPrefix = "#{Files.baseURL}/id/"
+@internalFileUrlPrefix = "#{Files.baseURL}/id/"
 @urlToInternalFile = (id) ->
   id = id.file if id.file?
   "#{internalFileUrlPrefix}#{id}"
@@ -42,8 +46,12 @@ internalFileUrlPrefix = "#{Files.baseURL}/id/"
   if url[...internalFileUrlPrefix.length] == internalFileUrlPrefix
     url[internalFileUrlPrefix.length..]
   else
-    throw new Meteor.Error 'url2internalFile.invalid',
-      "Bad file URL #{url}"
+    absolutePrefix = Meteor.absoluteUrl internalFileUrlPrefix[1..]
+    if url[...absolutePrefix.length] == absolutePrefix
+      url[absolutePrefix.length..]
+    else
+      throw new Meteor.Error 'url2internalFile.invalid',
+        "Bad file URL #{url}"
 
 @findFile = (id) ->
   Files.findOne new Meteor.Collection.ObjectID id

@@ -344,14 +344,20 @@ Template.submessage.onRendered ->
       @imagesInternal = {}
     else
       newImages = {}
-      body = $($.parseHTML("<div>#{formatBody data.format, data.body}</div>"))
-      body.find 'img[src^="/file/"]'
-      .each ->
-        newImages[url2file @getAttribute('src')] = true
       newImagesInternal = {}
-      body.find 'img[src^="/gridfs/"]'
+      $($.parseHTML("<div>#{formatBody data.format, data.body}</div>"))
+      .find """
+        img[src^="#{fileUrlPrefix}"],
+        img[src^="#{Meteor.absoluteUrl fileUrlPrefix[1..]}"],
+        img[src^="#{internalFileUrlPrefix}"],
+        img[src^="#{Meteor.absoluteUrl internalFileUrlPrefix[1..]}"]
+      """
       .each ->
-        newImagesInternal[url2internalFile @getAttribute('src')] = true
+        src = @getAttribute('src')
+        if 0 <= src.indexOf 'gridfs'
+          newImagesInternal[url2internalFile src] = true
+        else
+          newImages[url2file src] = true
       for id of @images
         unless id of newImages
           images[id].count -= 1
