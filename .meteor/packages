@@ -48,7 +48,6 @@ reactive-dict@1.1.9
 ecmascript@0.8.1
 edemaine:bootstrap-slider
 mizzao:sharejs-codemirror
-mizzao:sharejs-ace
 shell-server@0.2.4
 meteorhacks:subs-manager
 twbs:bootstrap
