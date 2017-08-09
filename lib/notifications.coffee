@@ -393,7 +393,7 @@ if Meteor.isServer
           #  dates = "between #{diffs[0].updated} and #{diffs[diffs.length-1].updated}"
           #else
           updated = momentInUserTimezone diffs[diffs.length-1].updated, user
-          dates = "on #{updated.format 'ddd, MMMM D, YYYY [at] H:mm z'}"
+          dates = "on #{updated.format 'ddd, MMM D, YYYY [at] H:mm z'}"
           if msg.root?
             html += "<P><B>#{authorsHTML}</B> #{verb} message #{linkToMessage msg, true, true} in the thread #{linkToMessage rootmsg, true, true} #{dates}:"
             text += "#{authorsText} #{verb} message #{linkToMessage msg, false, true} in the thread #{linkToMessage rootmsg, false, true} #{dates}:"
