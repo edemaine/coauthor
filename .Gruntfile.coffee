@@ -43,6 +43,9 @@ module.exports = (grunt) ->
           #,
           #  match: /}\);\s*$/
           #  replacement: ''
+          ,
+            match: /\|coap\|/
+            replacement: '|coap|coauthor|'
           ]
         files: [
           expand: true
