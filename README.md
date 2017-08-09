@@ -245,11 +245,14 @@ Installation instructions:
    [`smtp://localhost:25/` may not work because of mup's use of docker.]
    If you want the "From" address in email notifications to be something
    other than coauthor@*deployed-host-name*, set the `MAIL_FROM` variable.
-2. `cd .deploy`
-3. `mup setup` to install all necessary software on the server
-4. `mup deploy` each time you want to deploy code to server
+2. Edit `settings.json` to set the server's
+   [timezone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
+   (used as the default email notification timezone for all users).
+3. `cd .deploy`
+4. `mup setup` to install all necessary software on the server
+5. `mup deploy` each time you want to deploy code to server
    (initially and after each `git pull`)
-5. If you proxy the resulting server from another web server,
+6. If you proxy the resulting server from another web server,
    you'll probably want to `meteor remove force-ssl` to remove the automatic
    redirection from `http` to `https`.
 
