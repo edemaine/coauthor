@@ -1,4 +1,7 @@
 {
+  "coauthor": {
+    "timezone": "US/Eastern"
+  },
   "sharejs": {
     "options": {
       "db": {
