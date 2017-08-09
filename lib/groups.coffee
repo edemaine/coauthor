@@ -43,7 +43,7 @@ if Meteor.isServer
   if user == readAllUser
     return role == 'read'
   role in (user?.roles?[wildGroup] ? []) or
-  role in (user?.roles?[escapeGroup(group.name ? group)] ? []) or
+  role in (user?.roles?[escapeGroup(group?.name ? group)] ? []) or
   role in groupAnonymousRoles group
 
 @memberOfGroup = (group, user = Meteor.user()) ->
