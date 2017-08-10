@@ -194,12 +194,24 @@ messagePreview = new ReactiveDict
   profile = Meteor.user().profile?.preview
   on: profile?.on ? true
   sideBySide: profile?.sideBySide ? false
+## The following helpers should only be called when editing.
+## They can be called in two settings:
+##   * Within the submessage template, and possibly within a `with nothing`
+##     data environment.  In this case, we use the `editing` ReactiveVar
+##     to get the message ID, because we should be editing.
+##   * From the betweenEditorAndBody subtemplate.  Then we can use `_id` data.
 messagePreviewGet = ->
-  id = Template.instance().editing.get()
+  if Template.instance().editing?
+    id = Template.instance().editing.get()
+  else
+    id = Template.currentData()._id
   return unless id
   messagePreview.get(id) ? messagePreviewDefault()
 messagePreviewSet = (change) ->
-  id = Template.instance().editing.get()
+  if Template.instance().editing?
+    id = Template.instance().editing.get()
+  else
+    id = Template.currentData()._id
   return unless id
   preview = messagePreview.get(id) ? messagePreviewDefault()
   messagePreview.set id, change preview
@@ -594,16 +606,26 @@ Template.submessage.helpers
     messageHistory.get(@_id)? or
     (messagePreviewGet() ? on: true).on  ## on if not editing
   sideBySide: -> messagePreviewGet()?.sideBySide
-  sideBySideClass: ->
+  previewSideBySide: ->
     preview = messagePreviewGet()
-    if preview? and preview.on and preview.sideBySide
-      'sideBySide'
+    preview?.on and preview?.sideBySide
+  sideBySideClass: ->
+    if Template.instance().editing
+      preview = messagePreviewGet()
+      if preview? and preview.on and preview.sideBySide
+        'sideBySide'
+      else
+        ''
     else
-      ''
+      ''  ## no side-by-side if we're not editing
 
   absentTags: absentTags
   absentTagsCount: ->
     absentTags().count()
+
+Template.belowEditor.helpers
+  preview: -> messagePreviewGet()?.on
+  sideBySide: -> messagePreviewGet()?.sideBySide
 
 Template.registerHelper 'messagePanelClass', ->
   #console.log 'rendering', @_id, @
