@@ -1,10 +1,3 @@
-import Chart from 'chart.js'
-
-Chart.defaults.global.hover.intersect = false
-Chart.defaults.global.hover.mode = 'index'
-Chart.defaults.global.tooltips.intersect = false
-Chart.defaults.global.tooltips.mode = 'index'
-
 defaultUnit = 'week'
 currentUnit = ->
   Template.currentData().unit or defaultUnit
@@ -132,23 +125,29 @@ Template.statsGood.onCreated ->
       stats.chart?.update 1000
 
 Template.statsGood.onRendered ->
-  for key, stats of @stats
-    dom = @find "canvas.#{key}Stats"
-    stats.chart = new Chart dom,
-      type: 'line'
-      data: stats
-      options:
-        scales:
-          yAxes: [
-            ticks:
-              beginAtZero: true
-              ## Integer workaround from https://github.com/chartjs/Chart.js/issues/2539
-              callback: (tick) ->
-                if 0 <= tick.toString().indexOf '.'
-                  null
-                else
-                  tick.toLocaleString()
-          ]
+  `import('chart.js')`.then (Chart) =>
+    Chart.defaults.global.hover.intersect = false
+    Chart.defaults.global.hover.mode = 'index'
+    Chart.defaults.global.tooltips.intersect = false
+    Chart.defaults.global.tooltips.mode = 'index'
+
+    for key, stats of @stats
+      dom = @find "canvas.#{key}Stats"
+      stats.chart = new Chart.Chart dom,
+        type: 'line'
+        data: stats
+        options:
+          scales:
+            yAxes: [
+              ticks:
+                beginAtZero: true
+                ## Integer workaround from https://github.com/chartjs/Chart.js/issues/2539
+                callback: (tick) ->
+                  if 0 <= tick.toString().indexOf '.'
+                    null
+                  else
+                    tick.toLocaleString()
+            ]
 
 Template.statsGood.helpers
   hideIfNoUser: ->
