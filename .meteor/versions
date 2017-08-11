@@ -109,7 +109,6 @@ service-configuration@1.0.11
 session@1.1.7
 sha@1.0.9
 shell-server@0.2.4
-silentcicero:jszip@0.0.4
 spacebars@1.0.15
 spacebars-compiler@1.1.2
 srp@1.0.10
