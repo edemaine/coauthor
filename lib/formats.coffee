@@ -1,3 +1,6 @@
+#katex = require 'katex'
+katex = require 'katex/dist/katex.min.js'
+
 @availableFormats = ['markdown', 'latex', 'html']
 @mathjaxFormats = availableFormats
 
@@ -338,8 +341,6 @@ postprocessAtMentions = (text) ->
   users = (escapeRe user for user in users)
   text.replace ///#{atRe}(#{users.join '|'})(?!\w)///g, (match, user) ->
     "@#{linkToAuthor (routeGroup?() ? wildGroup), user}"
-
-katex = require 'katex'
 
 preprocessKaTeX = (text) ->
   math = []
