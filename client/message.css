@@ -53,6 +53,8 @@ img, video { max-width: 100%; max-height: 100vh; }
 
 .panel-secondbody { margin-top: -5px; padding-top: 0px; padding-bottom: 15px; }
 
+.save-alert { padding: 6px 15px; margin-left: 1px; margin-bottom: 0px; }
+
 nav.contents { overflow-y: scroll; padding-bottom: 5px; }
 .contents > li > a { padding: 5px 5px; }
 .subcontents > li > a { font-size: small; padding: 5px 10px; }

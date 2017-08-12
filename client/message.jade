@@ -111,7 +111,7 @@ template(name="submessage")
           +messageTags
           +messageLabels
       //- http://stackoverflow.com/questions/22390272/how-to-create-a-label-with-close-icon-in-bootstrap
-      if editingRV
+      if editing
         .messageTitle
           span.tags
             each tags
@@ -228,7 +228,7 @@ template(name="submessage")
                 //- +sharejsAce docid=editingNR onRender=config
             if editingRV
               unless previewSideBySide
-                +belowEditor
+                +belowEditor editData
         if preview
           .bodyContainer(class=sideBySideClass)
             if file
@@ -246,7 +246,7 @@ template(name="submessage")
                 p.message-file !{formatFile}
       if editingRV
         if previewSideBySide
-          +belowEditor
+          +belowEditor editData
       .message-footer.clearfix
         .message-reply-buttons.btn-group.pull-left.hidden-print
           if editingRV
@@ -272,6 +272,10 @@ template(name="belowEditor")
         button.btn.btn-default.togglePreview Disable Preview
       else
         button.btn.btn-default.togglePreview Enable Preview
+    if saved
+      .alert.alert-success.save-alert All changes saved
+    else
+      .alert.alert-danger.save-alert Unsaved changes
 
 template(name="messageTags")
   span.messageTags

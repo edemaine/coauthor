@@ -219,12 +219,16 @@ messagePreviewSet = (change) ->
 Template.submessage.onCreated ->
   @count = submessageCount++
   @editing = new ReactiveVar null
+  @editTitle = new ReactiveVar null
+  @editBody = new ReactiveVar null
   @autorun =>
     data = Template.currentData()
     return unless data?
     #@myid = data._id
     if editing data
       @editing.set data._id
+      @editTitle.set data.title
+      @editBody.set data.body
     else
       @editing.set null
     #console.log 'automathjax'
@@ -447,6 +451,13 @@ Template.submessage.helpers
   nothing: {}
   editingRV: -> Template.instance().editing.get()
   editingNR: -> Tracker.nonreactive -> Template.instance().editing.get()
+  editData: ->
+    #_.extend @,
+    _id: @_id
+    title: @title
+    body: @body
+    editTitle: Template.instance().editTitle.get()
+    editBody: Template.instance().editBody.get()
   hideIfEditing: ->
     if Template.instance().editing.get()
       'hidden'
@@ -540,6 +551,9 @@ Template.submessage.helpers
           #    #  when 'latex'
           #    #    e.dataTransfer.setData('text/plain', "\\href{#{id}}{}")
           #    e.dataTransfer.setData('text/plain', "<IMG SRC='coauthor:#{id}'>")
+      editor.on 'change',
+        _.debounce => ti.editBody.set editor.getDoc().getValue()
+      , 100
       editorMode editor, ti.data.format
       editorKeyboard editor, messageKeyboard.get(ti.data._id) ? userKeyboard()
 
@@ -626,6 +640,8 @@ Template.submessage.helpers
 Template.belowEditor.helpers
   preview: -> messagePreviewGet()?.on
   sideBySide: -> messagePreviewGet()?.sideBySide
+  saved: ->
+    @title == @editTitle and @body == @editBody
 
 Template.registerHelper 'messagePanelClass', ->
   #console.log 'rendering', @_id, @
@@ -811,6 +827,7 @@ Template.submessage.events
     e.stopPropagation()
     message = t.data._id
     Meteor.clearTimeout t.timer
+    t.editTitle.set e.target.value
     t.timer = Meteor.setTimeout ->
       Meteor.call 'messageUpdate', message,
         title: e.target.value
