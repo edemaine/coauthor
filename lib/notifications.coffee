@@ -1,5 +1,10 @@
 @Notifications = new Mongo.Collection 'notifications'
 
+autoHeaders =
+  'Auto-Submitted': 'auto-generated'
+  Precedence: 'bulk'
+  #'X-Auto-Response-Suppress': 'OOF'
+
 if Meteor.isServer
   Notifications._ensureIndex [['to', 1], ['seen', 1], ['message', 1]]
 
@@ -468,6 +473,7 @@ if Meteor.isServer
       subject: '[Coauthor] ' + subject
       html: html
       text: text
+      headers: autoHeaders
 
   ## Reschedule any leftover notifications from last server run.
   Meteor.startup ->
