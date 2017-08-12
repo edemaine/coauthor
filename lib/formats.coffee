@@ -381,8 +381,9 @@ postprocessKaTeX = (text, math) ->
       .replace /</g, '&lt;'
       .replace />/g, '&gt;'
       out = """<span class="katex-error" title="#{title}">#{latex}</span>"""
-    if punct
-      '<span class="nobr">' + out + punct + '</span>'
+    out += punct
+    if punct and not block.display
+      '<span class="nobr">' + out + '</span>'
     else
       out
 
