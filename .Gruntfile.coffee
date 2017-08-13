@@ -2,11 +2,16 @@ module.exports = (grunt) ->
   grunt.initConfig
     pkg: grunt.file.readJSON 'package.json'
     copy:
-      fonts:
+      katex_fonts:
         expand: true
         cwd: 'node_modules/katex/dist/fonts/'
         src: '**'
-        dest: 'public/fonts/'
+        dest: 'public/katex/fonts/'
+      katex_images:
+        expand: true
+        cwd: 'node_modules/katex/dist/images/'
+        src: '**'
+        dest: 'public/katex/images/'
       codemirror:
         expand: true
         flatten: true
@@ -22,7 +27,10 @@ module.exports = (grunt) ->
         options:
           patterns: [
             match: /url\(fonts/g
-            replacement: 'url(/fonts'
+            replacement: 'url(/katex/fonts'
+          ,
+            match: /url\(images/g
+            replacement: 'url(/katex/images'
           ]
         files: [
           expand: true

@@ -4,6 +4,6 @@
 node_modules
 client/katex.min.css
 public/timezones.json
-public/fonts
+public/katex
 server/kadira.js
 server/kadira.coffee
