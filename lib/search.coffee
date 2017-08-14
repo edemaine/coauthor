@@ -66,8 +66,11 @@ escapeRegExp = (s) ->
       ## Outside regex mode, lower-case letters are case-insensitive
       .replace /[a-z]/g, (char) -> "[#{char}#{char.toUpperCase()}]"
       regex = regex.replace /\*/g, '\\S*'
-      regex = "\\b#{regex}" unless starStart
-      regex = "#{regex}\\b" unless starEnd
+      if regex.length > 0
+        if not starStart and regex.match /^\w/
+          regex = "\\b#{regex}"
+        if not starEnd and regex.match /\w$/
+          regex = "#{regex}\\b"
     regex = new RegExp regex
     ## Check for negation
     negate = colon[0] == '-'
