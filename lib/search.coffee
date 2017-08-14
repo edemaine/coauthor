@@ -35,7 +35,7 @@ escapeRegExp = (s) ->
   while (token = tokenRe.exec search)?
     continue if token[1]  ## ignore whitespace tokens
     ## Check for negation and/or leading commands followed by colon
-    colon = /^-?(?:[a-zA-Z]+:)*/.exec token[0]
+    colon = /^-?(?:(?:regex|title|body):)*/.exec token[0]
     colon = colon[0]
     ## Remove quotes (which are just used for avoiding space parsing).
     if token[4]
