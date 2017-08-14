@@ -3,7 +3,7 @@ head
 
 template(name="layout")
   .container-fluid
-    nav.navbar.navbar-default(role="navigation")#top
+    nav.navbar.navbar-default.navbar-flex(role="navigation")#top
       .navbar-header
         button.navbar-toggle.collapsed(type="button", data-toggle="collapse", data-target="#navbar")
           span.sr-only Toggle navigation
@@ -52,11 +52,11 @@ template(name="layout")
                 li.divider
                 li
                   a(href="#") Request Access
-        form.navbar-form.navbar-left.input-group.searchForm
+        form.navbar-form.input-group.searchForm
           input.form-control.searchText(type="text", placeholder="Search", value=search)
-        ul.nav.navbar-nav.navbar-right
+        ul.nav.navbar-nav
           +loginButtons
-        ul.nav.navbar-nav.navbar-right.navbar-btn
+        ul.nav.navbar-nav.navbar-btn
           if couldSuper
             if super
               button.superButton.btn.btn-normal Leave Superuser

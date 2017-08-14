@@ -1,5 +1,14 @@
 body { font-family: 'Merriweather', serif; }
 
+.navbar-flex .searchForm { width: 100%; }
+.navbar-flex .searchText { width: 100%; }
+@media (min-width: 768px) {
+  .navbar-flex .navbar-collapse.collapse { display: flex !important; flex-flow: row wrap; justify-content: flex-end; }
+  .navbar-flex .navbar-nav, .navbar-flex .navbar-form { display: inline-block; float: none; }
+  .navbar-flex .searchForm { width: auto; flex-grow: 1; }
+  a.navbar-brand { padding-right: 0px; }
+}
+
 .footer { position: fixed; bottom: 0px; right: 0px; width: 50%; margin: 1ex }
 .credits { font-style: italic; font-size: small; margin-top: 1.5ex; padding: 6px }
 
