@@ -348,8 +348,8 @@ Template.submessage.onRendered ->
   @autorun =>
     data = Template.currentData()
     ## If message is naturally folded, don't count images it references.
-    images[@data._id].naturallyFolded = naturallyFolded data
-    if images[@data._id].naturallyFolded
+    images[data._id].naturallyFolded = naturallyFolded data
+    if images[data._id].naturallyFolded
       for id of @images
         images[id].count -= 1
         checkImage id
