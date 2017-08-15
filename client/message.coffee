@@ -348,8 +348,8 @@ Template.submessage.onRendered ->
   @autorun =>
     data = Template.currentData()
     ## If message is naturally folded, don't count images it references.
-    images[@data._id].naturallyFolded = naturallyFolded data
-    if images[@data._id].naturallyFolded
+    images[data._id].naturallyFolded = naturallyFolded data
+    if images[data._id].naturallyFolded
       for id of @images
         images[id].count -= 1
         checkImage id
@@ -503,14 +503,17 @@ Template.submessage.helpers
           editor.display.dragFunctions.drop = (e) ->
             #text = e.dataTransfer.getData 'text'
             id = e.dataTransfer?.getData 'application/coauthor-id'
-            if id
-              type = e.dataTransfer.getData 'application/coauthor-type'
+            username = e.dataTransfer?.getData 'application/coauthor-username'
+            type = e.dataTransfer?.getData 'application/coauthor-type'
+            if id or username
               e.preventDefault()
               e = _.omit e, 'dataTransfer', 'preventDefault'
               e.defaultPrevented = false
               e.preventDefault = ->
               e.dataTransfer =
                 getData: ->
+                  if username
+                    return "@#{username}"
                   switch type
                     when 'image'
                       switch ti.data.format

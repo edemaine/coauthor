@@ -19,7 +19,7 @@
   link = urlFor 'author',
     group: group
     author: username
-  link = """<a class="author" href="#{link}" title="#{title.replace /"/g, '&#34;'}">#{displayUser user}</a>"""
+  link = """<a class="author" data-username="#{username}" href="#{link}" title="#{title.replace /"/g, '&#34;'}">#{displayUser user}</a>"""
   if Meteor.isClient and
      Router.current()?.route?.getName() == 'author' and
      Router.current()?.params?.author == username
@@ -36,7 +36,7 @@
     display
 
 @validUsername = (username) ->
-  validKey(username) and '@' not in username
+  validKey(username) and not username.match /[\s@]/
 
 ## Need to escape dots in usernames.
 @escapeUser = escapeKey

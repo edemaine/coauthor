@@ -54,8 +54,6 @@ template(name="layout")
                   a(href="#") Request Access
         form.navbar-form.input-group.searchForm
           input.form-control.searchText(type="text", placeholder="Search", value=search)
-        ul.nav.navbar-nav
-          +loginButtons
         ul.nav.navbar-nav.navbar-btn
           if couldSuper
             if super
@@ -66,6 +64,8 @@ template(name="layout")
             a.btn.btn-warning(href="{{pathFor 'users' data=routeGroupOrWildData}}") Users
           if currentUser
             a.btn.btn-default(href="{{pathFor 'settings' data=routeGroupOrWildData}}") Settings
+        ul.nav.navbar-nav.navbar-right
+          +loginButtons
     #main.row-fluid
       +yield
     if creditsWide
