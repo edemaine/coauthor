@@ -1,3 +1,11 @@
+###
+IronRouter routes
+
+When adding a new route here, consider adding it to the `linkToRoutes`
+in ../client/layout.coffee, so that changing the group will preserve
+the details of the route.
+###
+
 #@Subscribe = Meteor
 @Subscribe = new SubsManager
 

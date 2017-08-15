@@ -9,6 +9,7 @@ linkToRoutes =
   stats: true
   users: true
   settings: true
+  search: true
 
 Template.layout.helpers
   activeGroup: ->
