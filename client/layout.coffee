@@ -60,3 +60,15 @@ Template.layout.events
       7: '*'
       8: '*'
       9: '*'
+  'dragstart a.author': (e) ->
+    username = e.target.getAttribute 'data-username'
+    dataTransfer = e.originalEvent.dataTransfer
+    dataTransfer.effectAllowed = 'linkCopy'
+    dataTransfer.setData 'text/plain', e.target.getAttribute 'href'
+    dataTransfer.setData 'application/coauthor-username', username
+  'dragenter a.author': (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+  'dragover a.author': (e) ->
+    e.preventDefault()
+    e.stopPropagation()

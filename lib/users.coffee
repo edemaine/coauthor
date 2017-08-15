@@ -19,7 +19,7 @@
   link = urlFor 'author',
     group: group
     author: username
-  link = """<a class="author" href="#{link}" title="#{title.replace /"/g, '&#34;'}">#{displayUser user}</a>"""
+  link = """<a class="author" data-username="#{username}" href="#{link}" title="#{title.replace /"/g, '&#34;'}">#{displayUser user}</a>"""
   if Meteor.isClient and
      Router.current()?.route?.getName() == 'author' and
      Router.current()?.params?.author == username
