@@ -43,7 +43,7 @@ template(name="tableOfContentsRoot")
   nav.contents
     ul.nav.contents
       li
-        a(href="#{{_id}}", data-id=_id, class=deletedClass).title.tex2jax.onMessageDrop !{formatTitle} [#{creator}]
+        a(href="#{{_id}}", data-id=_id, class=messageClass).title.tex2jax.onMessageDrop !{formatTitle} [#{creator}]
     +tableOfContents
 
 template(name="tableOfContents")
@@ -56,7 +56,7 @@ template(name="tableOfContents")
 template(name="tableOfContentsMessage")
   li.btn-group-xs
     div.beforeMessageDrop(data-parent=parent, data-index=index)
-    a(href="#{{_id}}", data-id=_id, class=deletedClass).tex2jax.onMessageDrop
+    a(href="#{{_id}}", data-id=_id, class=messageClass).tex2jax.onMessageDrop
       if file
         span.glyphicon.glyphicon-paperclip
       | !{formatTitle} [#{creator}]
@@ -288,11 +288,13 @@ template(name="messageLabels")
   span.messageLabels
     if deleted
       span.label.label-danger Deleted
-    else
-      unless published
-        span.label.label-warning Unpublished
+    //-else
+    unless published
+      span.label.label-warning Unpublished
     if private
       span.label.label-info Private
+    if minimized
+      span.label.label-success Minimized
 
 template(name="messageAuthor")
   .author.text-right

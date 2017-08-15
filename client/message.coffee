@@ -173,15 +173,19 @@ editing = (self) ->
 
 idle = 1000   ## one second
 
-Template.registerHelper 'deletedClass', ->
+messageClass = ->
   if @deleted
     'deleted'
   else if not @published
     'unpublished'
   else if @private
     'private'
+  else if @minimized
+    'minimized'
   else
     'published'
+
+Template.registerHelper 'messageClass', messageClass
 
 submessageCount = 0
 
@@ -646,22 +650,20 @@ Template.belowEditor.helpers
   saved: ->
     @title == @editTitle and @body == @editBody
 
+panelClass =
+  deleted: 'panel-danger'
+  unpublished: 'panel-warning'
+  private: 'panel-info'
+  minimized: 'panel-success'
+  published: 'panel-primary'
 Template.registerHelper 'messagePanelClass', ->
   #console.log 'rendering', @_id, @
-  editingClass =
-    if Template.instance().editing?.get()
-      ' editing'
-    else
-      ''
-  if @deleted
-    "panel-danger message-deleted #{editingClass}"
-  else
-    unless @published
-      "panel-warning message-unpublished #{editingClass}"
-    else if @private
-      "panel-info message-private #{editingClass}"
-    else
-      "panel-primary message-public #{editingClass}"
+  classes = []
+  classes.push mclass = messageClass.call @
+  classes.push panelClass[mclass]
+  if Template.instance().editing?.get()
+    classes.push 'editing'
+  classes.join ' '
 
 Template.registerHelper 'formatCreator', ->
   linkToAuthor @group, @creator
