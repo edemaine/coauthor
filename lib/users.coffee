@@ -36,7 +36,7 @@
     display
 
 @validUsername = (username) ->
-  validKey(username) and '@' not in username
+  validKey(username) and not username.match /[\s@]/
 
 ## Need to escape dots in usernames.
 @escapeUser = escapeKey
