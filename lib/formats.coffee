@@ -1,5 +1,4 @@
-#katex = require 'katex'
-katex = require 'katex/dist/katex.min.js'
+katex = require 'katex'
 
 @availableFormats = ['markdown', 'latex', 'html']
 @mathjaxFormats = availableFormats
@@ -370,7 +369,6 @@ postprocessKaTeX = (text, math) ->
         macros:
           '\\dots': '\\ldots'
           '\\epsilon': '\\varepsilon'
-      .replace /<math>.*<\/math>/, ''  ## remove MathML
     catch e
       throw e unless e instanceof katex.ParseError
       #console.warn "KaTeX failed to parse $#{content}$: #{e}"
