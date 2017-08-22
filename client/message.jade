@@ -253,7 +253,7 @@ template(name="submessage")
             button.btn.btn-info.editButton(tabindex="{{tabindex 8}}") Stop Editing
           +replyButtons
         +messageAuthor
-      if children.length
+      if childrenCount
         .children.clearfix
           each children
             with childLookup @index

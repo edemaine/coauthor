@@ -40,6 +40,15 @@ switch sharejsEditor
 #Template.registerHelper 'titleOrUntitled', ->
 #  titleOrUntitled @
 
+Template.registerHelper 'childrenCount', ->
+  console.log @_id
+  return 0 unless @children and @children.length > 0
+  msgs = Messages.find
+    _id: $in: @children
+  .fetch()
+  msgs = (msg for msg in msgs when canSee msg)
+  msgs.length
+
 Template.registerHelper 'childLookup', (index) ->
   ## Usage:
   ##   each children
