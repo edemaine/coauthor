@@ -95,7 +95,7 @@ Router.route '/:group/since/:since?',
     since: @params.since ? defaultSince
   fastRender: true
 
-defaultLiveLimit = 50
+defaultLiveLimit = 10
 
 Router.route '/:group/live/:limit?',
   name: 'live'
