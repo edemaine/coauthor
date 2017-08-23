@@ -119,13 +119,17 @@ if Meteor.isServer
   users = messageSubscribers msg, options
   _.sortBy users, userSortKey
 
-@notificationTime = (notification, user = notification.to) ->
-  ## Currently notification timing doesn't depend on the notification
-  ## itself, only on the user that it's addressed to.
+@notificationTime = (base, user) ->
+  ## base = dateMin(notification.dates...)
   user = findUsername user
   delays = user.profile?.notifications?.after ?
            defaultNotificationDelays.after
-  moment(dateMin(notification.dates...)).add(delays.after, delays.unit).toDate()
+  try
+    moment(base).add(delays.after, delays.unit).toDate()
+  catch e
+    ## Handle buggy specification of user.profile.notifications.after
+    delays = defaultNotificationDelays.after
+    moment(base).add(delays.after, delays.unit).toDate()
   ## Old settle dynamics:
   #settleTime = moment(dateMax(notification.dates...)).add(delays.settle, delays.unit).toDate()
   #maximumTime = moment(dateMin(notification.dates...)).add(delays.maximum, delays.unit).toDate()
@@ -257,7 +261,7 @@ if Meteor.isServer
   minSchedule = 1000
 
   notificationSchedule = (notification, user = notification.to) ->
-    time = notificationTime notification, user
+    base = dateMin(notification.dates...)
     username = user.username ? user
     ## If a batch notification is already scheduled earlier than this one
     ## would be, then that will cover this notification, so we don't need to
@@ -267,15 +271,29 @@ if Meteor.isServer
     ## we also don't need to do anything, because at the end of running the
     ## notifier will check for any new notifications to schedule.
     if username of notifiers
-      if notifiers[username].running or notifiers[username].time.getTime() <= time.getTime()
-        return
-      else
+      return if notifiers[username].running
+      return if notifiers[username].base.getTime() <= base.getTime()
+    else
+      notifiers[username] =
+        base: base
+    notificationReschedule user
+
+  notificationReschedule = (user) ->
+    ## Call this once notifiers[username].base has been set,
+    ## and either the timeout hasn't been scheduled yet (notifiactionSchedule)
+    ## or the user's notification parameters have changed so the timeout
+    ## might need to be rescheduled.
+    username = user.username ? user
+    if username of notifiers
+      return if notifiers[username].running
+      time = notificationTime notifiers[username].base, user
+      return if time.getTime() == notifiers[username].time?.getTime()
+      if notifiers[username].timeout?
         Meteor.clearTimeout notifiers[username].timeout
-    now = new Date()
-    #console.log notification, '@', time.getTime() - now.getTime()
-    notifiers[username] =
-      time: time
-      timeout:
+      notifiers[username].time = time
+      now = new Date()
+      #console.log username, '@', time.getTime() - now.getTime()
+      notifiers[username].timeout =
         Meteor.setTimeout ->
           notificationDo username
         , Math.max(minSchedule, time.getTime() - now.getTime())
@@ -502,15 +520,22 @@ if Meteor.isServer
       text: text
       headers: autoHeaders
 
-  ## Reschedule any leftover notifications from last server run.
   Meteor.startup ->
+    ## Reschedule any leftover notifications from last server run.
     Notifications.find
       seen: false
     .forEach (notification) ->
       try
+        #console.log 'Scheduling leftover notification', notification
         notificationSchedule notification
       catch e
         console.warn 'Could not schedule', notification, ':', e
 
-  ## Watch for change in notification frequency.
-  
+    ## Watch for change in notification frequency, and reschedule timeouts.
+    Meteor.users.find {},
+      fields:
+        'username': true
+        'profile.notifications.after': true  ## for @notificationTime
+    .observe
+      changed: (user) ->
+        notificationReschedule user
