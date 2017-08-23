@@ -496,61 +496,58 @@ if Meteor.isServer
           ## xxx also could use diff on body
           if changed.body
             body = formatBody msg.format, msg.body, true
-            html += "<BLOCKQUOTE>\n#{body}\n</BLOCKQUOTE>"
-            text += indentLines(msg.body, '    ')
-            html += '\n'
-            text += '\n'
-          if changed.title or changed.published or changed.deleted or changed.private or changed.minimized or changed.format or changed.tags or changed.file
+            html += "<BLOCKQUOTE>\n#{body}\n</BLOCKQUOTE>\n"
+            text += indentLines(msg.body, '    ') + "\n"
+            text += '\n' unless msg.body and msg.body[msg.body.length-1] == '\n'
+          textBullets = []
+          htmlBullets = []
+          bullet = (textBullet, htmlBullet = textBullet) ->
+            textBullets.push "  * #{textBullet}\n"
+            htmlBullets.push "<LI>#{htmlBullet}\n"
+          if changed.title
+            if old.title
+              bullet "Title changed from \"#{titleOrUntitled old}\"",
+                     "Title changed from &ldquo;#{formatTitleOrFilename old, true, true}&rdquo;"
+            else
+              bullet "Title added"
+          if changed.published
+            if msg.published
+              bullet "PUBLISHED"
+            else
+              bullet "UNPUBLISHED"
+          if changed.deleted
+            if msg.deleted
+              bullet "DELETED"
+            else
+              bullet "UNDELETED"
+          if changed.private
+            if msg.private
+              bullet "PRIVATE"
+            else
+              bullet "PUBLIC"
+          if changed.minimized
+            if msg.minimized
+              bullet "MINIMIZED"
+            else
+              bullet "UNMINIMIZED"
+          if changed.format
+            bullet "Format: #{msg.format}"
+          if changed.tags
+            ## xxx diff tags
+            bullet "Tags: #{linkToTags msg.group, msg.tags, false}",
+                   "Tags: #{linkToTags msg.group, msg.tags, true}"
+          if changed.file
+            file = findFile msg.file
+            if file?
+              bullet """File upload: "#{file.filename}" (#{file.length} bytes)""",
+                     "File upload: &ldquo;#{file.filename}&rdquo; (#{file.length} bytes)"
+            else
+              bullet "File upload: #{msg.file}?"
+          if textBullets.length > 0
+            text += textBullets.join ''
+          if htmlBullets.length > 0
             html += "<UL>\n"
-            if changed.title
-              if old.title
-                text += "  * Title changed from \"#{titleOrUntitled old}\"\n"
-                html += "<LI>Title changed from \"#{formatTitleOrFilename old, true, true}\"\n"
-              else
-                text += "  * Title added\n"
-                html += "<LI>Title added\n"
-            if changed.published
-              if msg.published
-                text += "  * PUBLISHED\n"
-                html += "<LI>PUBLISHED\n"
-              else
-                text += "  * UNPUBLISHED\n"
-                html += "<LI>UNPUBLISHED\n"
-            if changed.deleted
-              if msg.deleted
-                text += "  * DELETED\n"
-                html += "<LI>DELETED\n"
-              else
-                text += "  * UNDELETED\n"
-                html += "<LI>UNDELETED\n"
-            if changed.private
-              if msg.private
-                text += "  * PRIVATE\n"
-                html += "<LI>PRIVATE\n"
-              else
-                text += "  * PUBLIC\n"
-                html += "<LI>PUBLIC\n"
-            if changed.minimized
-              if msg.minimized
-                text += "  * MINIMIZED\n"
-                html += "<LI>MINIMIZED\n"
-              else
-                text += "  * UNMINIMIZED\n"
-                html += "<LI>UNMINIMIZED\n"
-            if changed.format
-              text += "  * Format: #{msg.format}\n"
-              html += "<LI>Format: #{msg.format}\n"
-            if changed.tags
-              text += "  * Tags: #{linkToTags msg.group, msg.tags, false}\n"
-              html += "<LI>Tags: #{linkToTags msg.group, msg.tags, true}\n"
-            if changed.file
-              file = findFile msg.file
-              if file?
-                text += """  * File upload: "#{file.filename}" (#{file.length} bytes)\n"""
-                html += "<LI>File upload: &ldquo;#{file.filename}&rdquo; (#{file.length} bytes)\n"
-              else
-                text += "  * File upload: #{msg.file}?\n"
-                html += "<LI>File upload: #{msg.file}?\n"
+            html += htmlBullets.join ''
             html += "</UL>\n"
           html += '\n'
           text += '\n'
