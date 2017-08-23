@@ -1,4 +1,4 @@
-import { profiling } from './profiling.coffee'
+import { profiling, isProfiling } from './profiling.coffee'
 
 @Notifications = new Mongo.Collection 'notifications'
 
@@ -119,11 +119,12 @@ if Meteor.isServer
   users = messageSubscribers msg, options
   _.sortBy users, userSortKey
 
-@notificationTime = (notification) ->
-  user = findUsername notification.to
-  notification.level = 'after'
-  delays = user.profile?.notifications?[notification.level] ?
-           defaultNotificationDelays[notification.level]
+@notificationTime = (notification, user = notification.to) ->
+  ## Currently notification timing doesn't depend on the notification
+  ## itself, only on the user that it's addressed to.
+  user = findUsername user
+  delays = user.profile?.notifications?.after ?
+           defaultNotificationDelays.after
   moment(dateMin(notification.dates...)).add(delays.after, delays.unit).toDate()
   ## Old settle dynamics:
   #settleTime = moment(dateMax(notification.dates...)).add(delays.settle, delays.unit).toDate()
@@ -173,6 +174,7 @@ if Meteor.isServer
     ## Currently superuser can see everything, so they get notified about
     ## everything in the groups they are members of.
     #subscribers = (to for to in subscribers when canSee msg, false, to)
+    ## Check if filters have completely emptied subscriber list.
     return unless subscribers.length > 0
     ## Coallesce past notification (if it exists) into this notification,
     ## if they regard the same message and haven't yet been seen by user.
@@ -184,8 +186,9 @@ if Meteor.isServer
       seen: false
     .fetch()
     after = new Date
-    console.log 'find old notifications', after.getTime()-before.getTime()
+    console.log 'find old notifications', after.getTime()-before.getTime() if isProfiling
     if notifications.length > 0
+      before = new Date
       Notifications.update
         _id: $in: (notification._id for notification in notifications)
       ,
@@ -194,16 +197,21 @@ if Meteor.isServer
           diffs: diff._id
       ,
         multi: true
+      after = new Date
+      console.log 'update old notifications', after.getTime()-before.getTime() if isProfiling
       byUsername = {}
       for notification in notifications
         byUsername[notification.to] = notification
-        notification.dates.push diff.updated
-        notification.diffs.push diff._id
-        notificationSchedule notification
+        ## Given that we're updating past notifications, they should already
+        ## be scheduled with an earlier date.  So no need to reschedule.
+        #notification.dates.push diff.updated
+        #notification.diffs.push diff._id
+        #notificationSchedule notification
         ## Assuming we don't need to check `created` here, as message existed.
       ## Reduce to the "new" subscribers which had no prior notification.
       subscribers = (to for to in subscribers when to.username not of byUsername)
     if subscribers.length > 0
+      before = new Date
       notifications =
         for to in subscribers
           notification =
@@ -217,9 +225,16 @@ if Meteor.isServer
             notification.created = created
           notification
       ids = Notifications.insertMany notifications
+      after = new Date
+      console.log 'add new notifications', after.getTime()-before.getTime() if isProfiling
+      before = new Date
+      ## The following code is from when scheduling depended on the
+      ## notification, not just the user.
       for notification, i in notifications
         notification._id = ids[i]
-        notificationSchedule notification
+        notificationSchedule notification, subscribers[i]
+      after = new Date
+      console.log 'scheduling', after.getTime()-before.getTime() if isProfiling
   @notifyMessageUpdate =
     profiling @notifyMessageUpdate, 'notifications.notifyMessageUpdate'
 
@@ -241,9 +256,9 @@ if Meteor.isServer
   ## except the last one.  There Can Be Only One.
   minSchedule = 1000
 
-  notificationSchedule = (notification) ->
-    notification = Notifications.findOne notification unless notification._id?
-    time = notificationTime notification
+  notificationSchedule = (notification, user = notification.to) ->
+    time = notificationTime notification, user
+    username = user.username ? user
     ## If a batch notification is already scheduled earlier than this one
     ## would be, then that will cover this notification, so we don't need to
     ## schedule anything new.  But if this notification is more urgent (this
@@ -251,18 +266,18 @@ if Meteor.isServer
     ## we should reschedule.  Finally, if a notification is already running,
     ## we also don't need to do anything, because at the end of running the
     ## notifier will check for any new notifications to schedule.
-    if notification.to of notifiers
-      if notifiers[notification.to].running or notifiers[notification.to].time.getTime() <= time.getTime()
+    if username of notifiers
+      if notifiers[username].running or notifiers[username].time.getTime() <= time.getTime()
         return
       else
-        Meteor.clearTimeout notifiers[notification.to].timeout
+        Meteor.clearTimeout notifiers[username].timeout
     now = new Date()
     #console.log notification, '@', time.getTime() - now.getTime()
-    notifiers[notification.to] =
+    notifiers[username] =
       time: time
       timeout:
         Meteor.setTimeout ->
-          notificationDo notification.to
+          notificationDo username
         , Math.max(minSchedule, time.getTime() - now.getTime())
 
   notificationDo = (to) ->
@@ -283,11 +298,14 @@ if Meteor.isServer
     ## Now we relinquish the 'lock' set by notifiers[to].
     delete notifiers[to]
     ## In the meantime, new notifications may have appeared; schedule them.
-    Notifications.find
+    notifications = Notifications.find
       to: to
       seen: false
-    .forEach (notification) ->
-      notificationSchedule notification
+    .fetch()
+    if notifications.length > 0
+      user = findUsername to
+      for notification in notifications
+        notificationSchedule notification, user
 
   linkToGroup = (group, html) ->
     #url = Meteor.absoluteUrl "#{group}"
@@ -494,17 +512,5 @@ if Meteor.isServer
       catch e
         console.warn 'Could not schedule', notification, ':', e
 
-  ## Upgrade from old autosubscribe profile setting format
-  if Meteor.isServer
-    Meteor.users.update
-      'profile.notifications.autosubscribe': true
-    ,
-      $set: 'profile.notifications.autosubscribe': {"#{wildGroup}": true}
-    ,
-      multi: true
-    Meteor.users.update
-      'profile.notifications.autosubscribe': false
-    ,
-      $set: 'profile.notifications.autosubscribe': {"#{wildGroup}": false}
-    ,
-      multi: true
+  ## Watch for change in notification frequency.
+  

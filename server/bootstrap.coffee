@@ -18,3 +18,17 @@ MessagesDiff.find
       title: ''
       body: ''
       file: diff.body
+
+## Upgrade from old autosubscribe profile setting format
+Meteor.users.update
+  'profile.notifications.autosubscribe': true
+,
+  $set: 'profile.notifications.autosubscribe': {"#{wildGroup}": true}
+,
+  multi: true
+Meteor.users.update
+  'profile.notifications.autosubscribe': false
+,
+  $set: 'profile.notifications.autosubscribe': {"#{wildGroup}": false}
+,
+  multi: true
