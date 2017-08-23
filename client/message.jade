@@ -111,18 +111,13 @@ template(name="submessage")
           +messageTags
           +messageLabels
       //- http://stackoverflow.com/questions/22390272/how-to-create-a-label-with-close-icon-in-bootstrap
-      if editing
+      if editingRV
         .messageTitle
           span.tags
             each tags
-              if editingRV
-                span.label.label-default.tag.tagWithRemove
-                  | #{key}
-                  if editingRV
-                    span.tagRemove.glyphicon.glyphicon-remove-sign(aria-label="Remove",data-tag=key)
-              else
-                a(href=linkToTag).tagLink
-                  span.tag.label.label-default= key
+              span.label.label-default.tag.tagWithRemove
+                | #{key}
+                span.tagRemove.glyphicon.glyphicon-remove-sign(aria-label="Remove",data-tag=key)
               |  
           span.btn-group
             button.btn.btn-default.label.label-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
