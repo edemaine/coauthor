@@ -32,3 +32,16 @@ Meteor.users.update
   $set: 'profile.notifications.autosubscribe': {"#{wildGroup}": false}
 ,
   multi: true
+
+## Upgrade from old notification format which listed all dates and diffs
+Notifications.find
+  dates: $exists: true
+.forEach (notification) ->
+  Notifications.update notification._id,
+    $set:
+      dateMin: dateMin(notification.dates...)
+      dateMax: dateMax(notification.dates...)
+    $unset:
+      dates: ''
+      ## leaving diffs for posterity
+      ## not creating old/new for now... could be built from dateMin/dateMax

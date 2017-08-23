@@ -537,6 +537,32 @@ checkPrivacy = (privacy, root) ->
             "Cannot make message public in thread '#{root._id}'"
   null
 
+export messageContentFields = [
+  'title'
+  'body'
+  'format'
+  'file'
+  'tags'
+  'published'
+  'deleted'
+  'private'
+  'minimized'
+]
+
+export messageExtraFields = [
+  'editing'
+  'submessageCount'
+  'submessageLastUpdated'
+  #'children'
+  #'root'
+]
+
+export messageFilterExtraFields = (msg) ->
+  if msg?  ## important to preserve null, to represent "no old" (created)
+    _.omit msg, messageExtraFields
+  else
+    msg
+
 ## The following should be called directly only on the server;
 ## clients should use the corresponding method.
 _messageUpdate = (id, message, authors = null, old = null) ->
@@ -565,27 +591,26 @@ _messageUpdate = (id, message, authors = null, old = null) ->
   ## if provided (in cases when it's already been fetched by the server);
   ## otherwise, load id from Messages.
   old = Messages.findOne id unless old?
-  diff = false
+  difference = false
   for own key of message
     if old[key] != message[key]
-      diff = true
+      difference = true
       break
-  return unless diff
+  return unless difference
 
   now = new Date
   if message.published == true
     message.published = now
   message.updated = now
   message.updators = authors
+  diff = _.clone message
   for author in authors
     message["authors." + escapeUser author] = now
   Messages.update id,
     $set: message
-  for author in authors
-    delete message["authors." + escapeUser author]
-  message.id = id
-  diffid = MessagesDiff.insert message
-  message._id = diffid
+  diff.id = id
+  diffid = MessagesDiff.insert diff
+  diff._id = diffid
   #_submessagesChanged old.root ? id
   ## In this special case, we can efficiently simulate the behavior of
   ## _submessagesChanged via a direct update to the root:
@@ -598,7 +623,7 @@ _messageUpdate = (id, message, authors = null, old = null) ->
     ## If this message is no longer considered a submessage, we need to
     ## recompute from scratch in order to find the new last update.
     _submessagesChanged old.root ? id
-  notifyMessageUpdate message if Meteor.isServer  ## client in simulation
+  notifyMessageUpdate message, old if Meteor.isServer  ## client in simulation
   diffid
 
 _messageAddChild = (child, parent, position = null) ->
@@ -783,13 +808,7 @@ Meteor.methods
       #  message.private = true
     now = new Date
     username = Meteor.user().username
-    message.creator = username
-    message.created = now
-    message.authors =
-      "#{escapeUser username}": now
     message.group = group
-    #message.parent: parent         ## use children, not parent
-    message.children = []
     ## Default content.
     message.title = "" unless message.title?
     message.body = "" unless message.body?
@@ -801,6 +820,14 @@ Meteor.methods
     if message.published == true
       message.published = now
     message.deleted = false unless message.deleted?
+    ## Content specific to Messages, not MessagesDiff
+    diff = _.clone message
+    message.creator = username
+    message.created = now
+    message.authors =
+      "#{escapeUser username}": now
+    #message.parent: parent         ## use children, not parent
+    message.children = []
     ## Speed up _messageParent by presetting root
     if parent?
       message.root = root._id
@@ -810,6 +837,7 @@ Meteor.methods
       message.submessageLastUpdate = now
     ## Actual insertion
     id = Messages.insert message
+    message._id = id
     ## Parenting
     if parent?
       #_messageParent id, parent, position, null  ## there's no old parent
@@ -824,18 +852,11 @@ Meteor.methods
         Messages.update message.root,
           $inc: submessageCount: 1
           $max: submessageLastUpdate: message.updated
-    ## Prepare for MessagesDiff
-    delete message.creator
-    delete message.created
-    delete message.authors
-    delete message.children
-    delete message.root
-    delete message.submessageCount
-    delete message.submessageLastUpdate
-    message.id = id
-    diffid = MessagesDiff.insert message
-    message._id = diffid
-    notifyMessageUpdate message, true if Meteor.isServer  ## created = true
+    ## Store diff
+    diff.id = id
+    diffid = MessagesDiff.insert diff
+    diff._id = diffid
+    notifyMessageUpdate message, null if Meteor.isServer  ## null means created
     id
 
     ## Initial URL (short name) is the Mongo-provided ID.  User can edit later.

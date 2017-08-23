@@ -1,4 +1,5 @@
 import { profiling, isProfiling } from './profiling.coffee'
+import { messageContentFields, messageFilterExtraFields } from './messages.coffee'
 
 @Notifications = new Mongo.Collection 'notifications'
 
@@ -120,7 +121,7 @@ if Meteor.isServer
   _.sortBy users, userSortKey
 
 @notificationTime = (base, user) ->
-  ## base = dateMin(notification.dates...)
+  ## base = notification.dateMin
   user = findUsername user
   delays = user.profile?.notifications?.after ?
            defaultNotificationDelays.after
@@ -137,13 +138,18 @@ if Meteor.isServer
 
 ## Notification consists of
 ##   - to: username to notify
-##   - level: one of notificationLevels ('batched', 'settled', or 'instant')
-##   - dates: list of Dates of updates
+##   - dateMin: earliest date of update
+##   - dateMax: latest date of update (set only when seen becomes true)
+##   [- dates: list of dates of all updates]
 ##   - type: 'messageUpdate'
 ##     - message: ID of relevant message
-##     - diffs: list of IDs of MessagesDiff (in bijection with dates list)
+##     - old: Copy of message before this batch of updates
+##     - new: Copy of message after this batch of updates
+##            (set only when seen becomes true)
+##     [- diffs: list of IDs of MessagesDiff (in bijection with dates list)]
 ##   - possible future types: 'import', 'superdelete', 'users', 'settings'
 ##   - seen: true/false (whether notification has been delivered/deleted)
+##   - [level: one of notificationLevels ('batched', 'settled', or 'instant')]
 
 if Meteor.isServer
   Meteor.publish 'notifications', () ->
@@ -166,13 +172,26 @@ if Meteor.isServer
 
   notifiers = {}
 
-  @notifyMessageUpdate = (diff, created = false) ->
-    msg = Messages.findOne diff.id
+  @notifyMessageUpdate = (updates, old) ->
+    ## Compute current state of message from old + msg, to find subscribers.
+    ## Updates in msg might look like "authors.USERNAME": ..., so handle dots.
+    if old?
+      msg = _.clone old
+      for key, value of updates
+        where = msg
+        while (dot = key.indexOf '.') >= 0
+          subkey = key[...dot]
+          where[subkey] = {} unless subkey of where
+          where = msg[subkey]
+          key = key[dot+1..]
+        where[key] = value
+    else
+      msg = updates
     subscribers = messageSubscribers msg
     ## Don't send notifications to myself, if so requested.
     subscribers = (to for to in subscribers when not
-      (diff.updators.length == 1 and
-       diff.updators[0] == to.username and not notifySelf to))
+      (msg.updators.length == 1 and
+       msg.updators[0] == to.username and not notifySelf to))
     ## Only notify people who can read the message!  Already checked by
     ## messageSubscribers, and checked again during notification.
     ## Currently superuser can see everything, so they get notified about
@@ -186,23 +205,24 @@ if Meteor.isServer
     notifications = Notifications.find
       type: 'messageUpdate'
       to: $in: (to.username for to in subscribers)
-      message: diff.id
+      message: msg._id
       seen: false
+    ,
+      fields: to: true
     .fetch()
     after = new Date
     console.log 'find old notifications', after.getTime()-before.getTime() if isProfiling
     if notifications.length > 0
-      before = new Date
-      Notifications.update
-        _id: $in: (notification._id for notification in notifications)
-      ,
-        $push:
-          dates: diff.updated
-          diffs: diff._id
-      ,
-        multi: true
-      after = new Date
-      console.log 'update old notifications', after.getTime()-before.getTime() if isProfiling
+      ## No longer store entire list of dates and diffs, so don't need to
+      ## update old notifications.
+      #Notifications.update
+      #  _id: $in: (notification._id for notification in notifications)
+      #,
+      #  $push:
+      #    dates: diff.updated
+      #    diffs: diff._id
+      #,
+      #  multi: true
       byUsername = {}
       for notification in notifications
         byUsername[notification.to] = notification
@@ -221,19 +241,16 @@ if Meteor.isServer
           notification =
             type: 'messageUpdate'
             to: to.username
-            message: diff.id
-            dates: [diff.updated]
-            diffs: [diff._id]
+            message: msg._id
+            dateMin: msg.updated
+            #diffs: [diff._id]
             seen: false
-          if created
-            notification.created = created
+            old: messageFilterExtraFields old
           notification
       ids = Notifications.insertMany notifications
       after = new Date
       console.log 'add new notifications', after.getTime()-before.getTime() if isProfiling
       before = new Date
-      ## The following code is from when scheduling depended on the
-      ## notification, not just the user.
       for notification, i in notifications
         notification._id = ids[i]
         notificationSchedule notification, subscribers[i]
@@ -261,7 +278,7 @@ if Meteor.isServer
   minSchedule = 1000
 
   notificationSchedule = (notification, user = notification.to) ->
-    base = dateMin(notification.dates...)
+    base = notification.dateMin
     username = user.username ? user
     ## If a batch notification is already scheduled earlier than this one
     ## would be, then that will cover this notification, so we don't need to
@@ -274,8 +291,8 @@ if Meteor.isServer
       return if notifiers[username].running
       return if notifiers[username].base.getTime() <= base.getTime()
     else
-      notifiers[username] =
-        base: base
+      notifiers[username] = {}
+    notifiers[username].base = base
     notificationReschedule user
 
   notificationReschedule = (user) ->
@@ -284,19 +301,19 @@ if Meteor.isServer
     ## or the user's notification parameters have changed so the timeout
     ## might need to be rescheduled.
     username = user.username ? user
-    if username of notifiers
-      return if notifiers[username].running
-      time = notificationTime notifiers[username].base, user
-      return if time.getTime() == notifiers[username].time?.getTime()
-      if notifiers[username].timeout?
-        Meteor.clearTimeout notifiers[username].timeout
-      notifiers[username].time = time
-      now = new Date()
-      #console.log username, '@', time.getTime() - now.getTime()
-      notifiers[username].timeout =
-        Meteor.setTimeout ->
-          notificationDo username
-        , Math.max(minSchedule, time.getTime() - now.getTime())
+    return unless username of notifiers
+    return if notifiers[username].running
+    time = notificationTime notifiers[username].base, user
+    return if time.getTime() == notifiers[username].time?.getTime()
+    if notifiers[username].timeout?
+      Meteor.clearTimeout notifiers[username].timeout
+    notifiers[username].time = time
+    now = new Date()
+    #console.log username, '@', time.getTime() - now.getTime()
+    notifiers[username].timeout =
+      Meteor.setTimeout ->
+        notificationDo username
+      , Math.max(minSchedule, time.getTime() - now.getTime())
 
   notificationDo = (to) ->
     ## During this callback, prevent other notifications from scheduling.
@@ -307,12 +324,11 @@ if Meteor.isServer
       seen: false
     .fetch()
     notificationEmail notifications
-    Notifications.update
-      _id: $in: (notification._id for notification in notifications)
-    ,
-      $set: seen: true
-    ,
-      multi: true
+    for notification in notifications
+      Notifications.update notification._id,
+        $set:
+          seen: true
+          new: notification.new
     ## Now we relinquish the 'lock' set by notifiers[to].
     delete notifiers[to]
     ## In the meantime, new notifications may have appeared; schedule them.
@@ -373,25 +389,45 @@ if Meteor.isServer
 
     messageUpdates = (notification for notification in notifications when notification.type =='messageUpdate')
     for notification in messageUpdates
-      notification.msg = Messages.findOne notification.message
+      notification.new =
+        messageFilterExtraFields Messages.findOne notification.message
     ## Some messages may have been superdeleted by now; don't email about them.
-    messageUpdates = (notification for notification in messageUpdates when notification.msg?)
+    messageUpdates = (notification for notification in messageUpdates when notification.new?)
     ## Ignore messages that have been hidden from this user since (e.g. deleted)
-    messageUpdates = (notification for notification in messageUpdates when canSee notification.msg, false, user)
+    messageUpdates = (notification for notification in messageUpdates when canSee notification.new, false, user)
     ## Don't notify about empty messages (e.g. initial creation without
     ## follow-up) -- wait for content.  xxx should check if diff is version 1!
-    messageUpdates = (notification for notification in messageUpdates when not messageEmpty notification.msg)
+    messageUpdates = (notification for notification in messageUpdates when not messageEmpty notification.new)
+    ## Compute notifications authors and changed tables.
+    for notification in messageUpdates
+      notification.changed = {}
+      notification.authors = _.keys(notification.new.authors ? {})
+      if notification.old?
+        ## Filter authors to those who modified since old update time.
+        oldUpdated = notification.old.updated.getTime()
+        notification.authors = (author for author in notification.authors \
+          when notification.new.authors[author].getTime() > oldUpdated)
+        for key in messageContentFields
+          unless _.isEqual notification.new[key], notification.old[key]
+            notification.changed[key] = true
+      else
+        for key in messageContentFields
+          notification.changed[key] = true if key of notification.new
+    ## Ignore messages that ended up not changing since the old version
+    ## (e.g., changed then unchanged).
+    messageUpdates = (notification for notification in messageUpdates when 0 < _.size notification.changed)
+
     return if messageUpdates.length == 0
 
     html = ''
     text = ''
-    bygroup = _.groupBy messageUpdates, (notification) -> notification.msg.group
+    bygroup = _.groupBy messageUpdates, (notification) -> notification.new.group
     subject = "#{messageUpdates.length} updates in #{_.keys(bygroup).sort().join ', '}"
     bygroup = _.pairs bygroup
     bygroup = _.sortBy bygroup, (pair) -> pair[0]
     for [group, groupUpdates] in bygroup
       bythread = _.groupBy groupUpdates,
-        (notification) -> notification.msg.root ? notification.msg._id
+        (notification) -> notification.new.root ? notification.new._id
       bythread = _.pairs bythread
       for pair in bythread
         pair.push Messages.findOne pair[0]  ## root id -> root msg
@@ -402,22 +438,27 @@ if Meteor.isServer
         html += "<H2>#{linkToMessage rootmsg, true}</H2>\n\n"
         text += "--- #{linkToMessage rootmsg, false} ---\n\n"
         rootUpdates = _.sortBy rootUpdates, (notification) ->
-          if notification.msg.root?
-            dateMin(notification.dates...).getTime()
+          if notification.new.root?
+            notification.dateMin.getTime()
           else
             0  ## put root at top
         for notification in rootUpdates
-          msg = notification.msg
-          diffs = (MessagesDiff.findOne diff for diff in notification.diffs)
-          authors = {}
+          msg = notification.new
+          old = notification.old
+          authors = _.keys msg.authors
           changed = {}
-          for diff in diffs
-            for author in diff.updators
-              authors[author] = (authors[author] ? 0) + 1
-            for key of diff
+          if old?
+            ## Filter authors to those who modified since old update time.
+            authors = (author for author in authors when \
+                       msg.authors[author].getTime() > old.updated.getTime())
+            for key, value of msg
+              unless _.isEqual value, old[key]
+                #console.log key, 'changed from', old[key], 'to', value
+                changed[key] = true
+          else
+            for key of msg
               changed[key] = true
-          ## Ignore some initial values during creation of message.
-          if notification.created
+            ## Ignore some initial values during creation of message.
             delete changed.published if msg.published
             delete changed.deleted unless msg.deleted
             delete changed.body unless 0 < msg.body.trim().length
@@ -426,8 +467,8 @@ if Meteor.isServer
             delete changed.title
             delete changed.format
           verb = 'updated'
-          verb = 'created' if notification.created
-          authors = _.sortBy _.keys(authors), userSortKey
+          verb = 'created' unless old?
+          authors = _.sortBy authors, userSortKey
           authorsText = (displayUser author for author in authors).join ', '
           authorsHTML = (linkToAuthor msg.group, author for author in authors).join ', '
           if messageUpdates.length == 1
@@ -442,7 +483,7 @@ if Meteor.isServer
           #if diffs.length > 1
           #  dates = "between #{diffs[0].updated} and #{diffs[diffs.length-1].updated}"
           #else
-          updated = momentInUserTimezone diffs[diffs.length-1].updated, user
+          updated = momentInUserTimezone msg.updated, user
           dates = "on #{updated.format 'ddd, MMM D, YYYY [at] H:mm z'}"
           if msg.root?
             html += "<P><B>#{authorsHTML}</B> #{verb} message #{linkToMessage msg, true, true} in the thread #{linkToMessage rootmsg, true, true} #{dates}:"
@@ -462,8 +503,8 @@ if Meteor.isServer
           if changed.title or changed.published or changed.deleted or changed.private or changed.minimized or changed.format or changed.tags or changed.file
             html += "<UL>\n"
             if changed.title
-              text += "  * Title changed\n"
-              html += "<LI>Title changed\n"
+              text += "  * Title changed from \"#{titleOrUntitled old}\"\n"
+              html += "<LI>Title changed from \"#{formatTitleOrFilename old, true, true}\"\n"
             if changed.published
               if msg.published
                 text += "  * PUBLISHED\n"
