@@ -1,3 +1,5 @@
+import { profiling } from './profiling.coffee'
+
 @Notifications = new Mongo.Collection 'notifications'
 
 autoHeaders =
@@ -107,6 +109,8 @@ if Meteor.isServer
   , options
   .fetch()
   (user for user in users when subscribedToMessage(msg, user) and canSee msg, false, user, group)
+@messageSubscribers =
+  profiling @messageSubscribers, 'notifications.messageSubscribers'
 
 @sortedMessageSubscribers = (msg, options = {}) ->
   if options.fields?
@@ -172,12 +176,15 @@ if Meteor.isServer
     return unless subscribers.length > 0
     ## Coallesce past notification (if it exists) into this notification,
     ## if they regard the same message and haven't yet been seen by user.
+    before = new Date
     notifications = Notifications.find
       type: 'messageUpdate'
       to: $in: (to.username for to in subscribers)
       message: diff.id
       seen: false
     .fetch()
+    after = new Date
+    console.log 'find old notifications', after.getTime()-before.getTime()
     if notifications.length > 0
       Notifications.update
         _id: $in: (notification._id for notification in notifications)
@@ -213,6 +220,8 @@ if Meteor.isServer
       for notification, i in notifications
         notification._id = ids[i]
         notificationSchedule notification
+  @notifyMessageUpdate =
+    profiling @notifyMessageUpdate, 'notifications.notifyMessageUpdate'
 
   ## No longer used directly; instead use insertMany()
   #notificationInsert = (notification) ->

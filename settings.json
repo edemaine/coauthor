@@ -1,6 +1,7 @@
 {
   "coauthor": {
-    "timezone": "US/Eastern"
+    "timezone": "US/Eastern",
+    "profiling": false
   },
   "sharejs": {
     "options": {
