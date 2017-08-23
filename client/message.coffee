@@ -41,7 +41,6 @@ switch sharejsEditor
 #  titleOrUntitled @
 
 Template.registerHelper 'childrenCount', ->
-  console.log @_id
   return 0 unless @children and @children.length > 0
   msgs = Messages.find
     _id: $in: @children
