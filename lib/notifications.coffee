@@ -503,8 +503,12 @@ if Meteor.isServer
           if changed.title or changed.published or changed.deleted or changed.private or changed.minimized or changed.format or changed.tags or changed.file
             html += "<UL>\n"
             if changed.title
-              text += "  * Title changed from \"#{titleOrUntitled old}\"\n"
-              html += "<LI>Title changed from \"#{formatTitleOrFilename old, true, true}\"\n"
+              if old.title
+                text += "  * Title changed from \"#{titleOrUntitled old}\"\n"
+                html += "<LI>Title changed from \"#{formatTitleOrFilename old, true, true}\"\n"
+              else
+                text += "  * Title added\n"
+                html += "<LI>Title added\n"
             if changed.published
               if msg.published
                 text += "  * PUBLISHED\n"
