@@ -413,6 +413,7 @@ if Meteor.isServer
       else
         for key in messageContentFields
           notification.changed[key] = true if key of notification.new
+      notification.authors = (unescapeUser author for author in notification.authors)
     ## Ignore messages that ended up not changing since the old version
     ## (e.g., changed then unchanged).
     messageUpdates = (notification for notification in messageUpdates when 0 < _.size notification.changed)
@@ -445,30 +446,20 @@ if Meteor.isServer
         for notification in rootUpdates
           msg = notification.new
           old = notification.old
-          authors = _.keys msg.authors
-          changed = {}
           if old?
-            ## Filter authors to those who modified since old update time.
-            authors = (author for author in authors when \
-                       msg.authors[author].getTime() > old.updated.getTime())
-            for key, value of msg
-              unless _.isEqual value, old[key]
-                #console.log key, 'changed from', old[key], 'to', value
-                changed[key] = true
+            verb = 'updated'
           else
-            for key of msg
-              changed[key] = true
+            verb = 'created'
+          changed = notification.changed
+          unless old?
             ## Ignore some initial values during creation of message.
             delete changed.published if msg.published
             delete changed.deleted unless msg.deleted
-            delete changed.body unless 0 < msg.body.trim().length
             delete changed.tags unless 0 < _.size msg.tags
             ## Don't notify about title or format change when brand new
             delete changed.title
             delete changed.format
-          verb = 'updated'
-          verb = 'created' unless old?
-          authors = _.sortBy authors, userSortKey
+          authors = _.sortBy notification.authors, userSortKey
           authorsText = (displayUser author for author in authors).join ', '
           authorsHTML = (linkToAuthor msg.group, author for author in authors).join ', '
           if messageUpdates.length == 1
@@ -495,9 +486,13 @@ if Meteor.isServer
           text += '\n\n'
           ## xxx also could use diff on body
           if changed.body
-            body = formatBody msg.format, msg.body, true
-            html += "<BLOCKQUOTE>\n#{body}\n</BLOCKQUOTE>\n"
-            text += indentLines(msg.body, '    ') + "\n"
+            if msg.body.trim().length > 0
+              bodyHtml = formatBody msg.format, msg.body, true
+              bodyText = msg.body
+            else
+              bodyHtml = bodyText = '(empty body)'
+            html += "<BLOCKQUOTE>\n#{bodyHtml}\n</BLOCKQUOTE>\n"
+            text += indentLines(bodyText, '    ') + "\n"
             text += '\n' unless msg.body and msg.body[msg.body.length-1] == '\n'
           textBullets = []
           htmlBullets = []

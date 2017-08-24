@@ -11,7 +11,7 @@ DOLLAR = '[DOLLAR]'
   return key unless key
   key
   .replace /\[DOT\]/g, '.'
-  .replace /\[DOLLAR\]/g, '.'
+  .replace /\[DOLLAR\]/g, '$'
 
 @validKey = (key) ->
   key and key.indexOf(DOT) < 0 and key.indexOf(DOLLAR) < 0
