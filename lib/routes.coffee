@@ -147,7 +147,8 @@ Router.route '/:group/stats/:username?',
     unit: @params.query.unit
   fastRender: true
 
-@wildGroupRoute = 'GLOBAL'
+## GLOBAL used to be in some URLs rather than *, but don't see why.
+@wildGroupRoute = wildGroup #'GLOBAL'
 
 Router.route '/:group/search/:search',
   name: 'search'

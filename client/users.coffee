@@ -68,13 +68,9 @@ Template.users.helpers
   anonAdminRole: -> anonRole 'admin', @group
 
   wildLink: -> @group != wildGroup and groupRoleCheck wildGroup, 'admin'
+  wildHref: -> pathFor 'users', group: wildGroupRoute
 
 Template.users.events
-  'click .globalUsersButton': (e) ->
-    e.preventDefault()
-    e.stopPropagation()
-    Router.go 'users', group: wildGroupRoute
-
   'click .roleButton': (e, t) ->
     td = e.target
     while td.nodeName.toLowerCase() != 'td'
