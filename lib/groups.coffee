@@ -1,6 +1,7 @@
 @wildGroup = '*'
 @anonymousUser = '*'
 @readAllUser = '[READ-ALL]'
+@allRoles = ['read', 'post', 'edit', 'super', 'admin']
 
 @escapeGroup = escapeKey
 @unescapeGroup = unescapeKey
@@ -177,9 +178,8 @@ Meteor.methods
           name: group
         , $pull: anonymous: role
     else
-      key = 'roles.' + escapeGroup group
-      op = {}
-      op[key] = role
+      op =
+        "roles.#{escapeGroup group}": role
       if yesno
         Meteor.users.update
           username: user
@@ -214,6 +214,8 @@ Meteor.methods
        $set: weekStart: weekStart
 
   groupNew: (group) ->
+    check Meteor.userId(), String
+    username = Meteor.user().username
     check group, String
     unless groupRoleCheck wildGroup, 'super'
       throw new Meteor.Error 'groupNew.unauthorized',
@@ -226,9 +228,14 @@ Meteor.methods
         "Attempt to create group '#{group}' which already exists"
     Groups.insert
       name: group
-      members: []
+      members: []  ## will be updated by role change below
       created: new Date
-      creator: Meteor.user().username
+      creator: username
+    ## Give the group creator full access rights to the group,
+    ## so that they don't need global admin permissions to tweak it.
+    Meteor.users.update
+      username: username
+    , $addToSet: "roles.#{escapeGroup group}": $each: allRoles
 
 @groupSortedBy = (group, sort, options, user = Meteor.user()) ->
   query = accessibleMessagesQuery group, user
