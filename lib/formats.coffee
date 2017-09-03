@@ -327,18 +327,24 @@ postprocessLinks = (text) ->
 @escapeRe = (string) ->
   string.replace /[\\^$*+?.()|{}\[\]]/g, "\\$&"
 
-@atRe = '[@\uff20]'  ## FF20 is FULLWIDTH COMMERCIAL AT common in Asian scripts?
+atRePrefix = '[@\uff20]'
+@atRe = (users) ->
+  users = [users] unless _.isArray users
+  users = for user in users
+    user = user.username if user.username?
+    escapeRe user
+  ## FF20 is FULLWIDTH COMMERCIAL AT common in Asian scripts
+  ///#{atRePrefix}(#{users.join '|'})(?!\w)///
 
 postprocessAtMentions = (text) ->
-  return text unless 0 <= text.search ///#{atRe}///
+  return text unless ///#{atRePrefix}///.test text
   users = Meteor.users.find {}, fields: username: 1
   .map (user) -> user.username
   return text unless 0 < users.length
   ## Reverse-sort by length to ensure maximum-length match
   ## (to handle when one username is a prefix of another).
-  _.sortBy users, (name) -> -name.length
-  users = (escapeRe user for user in users)
-  text.replace ///#{atRe}(#{users.join '|'})(?!\w)///g, (match, user) ->
+  users = _.sortBy users, (name) -> -name.length
+  text.replace (atRe users), (match, user) ->
     "@#{linkToAuthor (routeGroup?() ? wildGroup), user}"
 
 preprocessKaTeX = (text) ->
