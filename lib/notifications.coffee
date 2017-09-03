@@ -63,7 +63,7 @@ if Meteor.isServer
   the default is whether they are globally autosubscribed, and if that
   hasn't been specified either, the default is true.
   ###
-  auto = user.profile?.notifications?.autosubscribe
+  auto = user?.profile?.notifications?.autosubscribe
   if auto?
     (auto[escapeGroup group] ? auto[wildGroup]) != false
   else
