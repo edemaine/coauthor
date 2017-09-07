@@ -76,6 +76,8 @@ if Meteor.isServer
       ,
         "authors.#{escapeUser user.username}": $exists: true
       ,
+        title: atRe user
+      ,
         body: atRe user
       ]
     else
@@ -170,6 +172,7 @@ if Meteor.isServer
   if group == wildGroup
     delete query.group
   if atMentions
+    query.$or.push title: atRe author
     query.$or.push body: atRe author
   query
 
@@ -390,6 +393,7 @@ if Meteor.isServer
   message = findMessage message
   return false unless user?.username
   escapeUser(user.username) of (message.authors ? {}) or
+  (message.title and atRe(user).test message.title) or
   (message.body and atRe(user).test message.body)
 
 @canPrivate = (message) ->
