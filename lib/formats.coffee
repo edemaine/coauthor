@@ -334,7 +334,7 @@ atRePrefix = '[@\uff20]'
     user = user.username if user.username?
     escapeRe user
   ## FF20 is FULLWIDTH COMMERCIAL AT common in Asian scripts
-  ///#{atRePrefix}(#{users.join '|'})(?!\w)///
+  ///#{atRePrefix}(#{users.join '|'})(?!\w)///g
 
 postprocessAtMentions = (text) ->
   return text unless ///#{atRePrefix}///.test text
