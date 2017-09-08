@@ -1,4 +1,4 @@
-parseXML = (zipdata) ->
+parseXML = (xml) ->
   xml = xml.replace /\x0C/g, 'fi'  ## must be from some LaTeX copy/paste...
   xml = $($.parseXML xml)
 
@@ -49,7 +49,7 @@ importOSQA = (group, zip) ->
           type: type
           lastModified: content.date
 
-  await parseXML zip.file('users.xml').async('string').then defer users
+  await zip.file('users.xml').async('string').then defer users
   users = parseXML users
   usermap = {}
   for user in users.find 'user'
@@ -65,7 +65,7 @@ importOSQA = (group, zip) ->
       console.error 'no mapping for user', author
       author
 
-  await parseXML zip.file('actions.xml').async('string').then defer actions
+  await zip.file('actions.xml').async('string').then defer actions
   actions = parseXML actions
   deleted = {}
   for action in actions.find 'action'
@@ -93,11 +93,11 @@ importOSQA = (group, zip) ->
         tags = tagsNode.text().split /\s*,\s*/
     listToTags tags
 
-  await parseXML zip.file('actions.xml').async('string').then defer nodes
+  await zip.file('actions.xml').async('string').then defer nodes
   nodes = parseXML nodes
   idmap = {}
   count = 0
-  for node in nodes.find('node')
+  for node in nodes.find('action')
     node = $(node)
     id = node.children('id').text()
     parent = node.children('parent').text()
