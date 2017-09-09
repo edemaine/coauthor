@@ -209,9 +209,7 @@ timezoneEdit = (e, t) ->
   t.$('.saveButton').attr 'disabled', not enable
 
 Template.timezoneSelector.events
-  'changed .timezone': timezoneEdit
-  'keyup .timezone': timezoneEdit
-  'propertychange .timezone': timezoneEdit
+  'input .timezone': timezoneEdit
   'typeahead:select .timezone': timezoneEdit
   'typeahead:autocomplete .timezone': timezoneEdit
 

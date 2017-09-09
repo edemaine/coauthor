@@ -836,7 +836,7 @@ Template.submessage.events
     editorMode Template.instance().editor, format
     dropdownToggle e
 
-  'keyup input.title': (e, t) ->
+  'input input.title': (e, t) ->
     e.stopPropagation()
     message = t.data._id
     Meteor.clearTimeout t.timer
