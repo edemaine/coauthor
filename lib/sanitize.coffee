@@ -41,6 +41,13 @@ sanitizeHtml.defaults.allowedAttributes.mo = ['fence', 'separator']
 sanitizeHtml.defaults.allowedAttributes.mstyle = ['mathcolor']
 sanitizeHtml.defaults.allowedTags.push 'nobr'
 
+sanitizeHtml.defaults.transformTags =
+  '*': (tagName, attribs) ->
+    if attribs.style? and /\bposition\s*:/i.test attribs.style
+      delete attribs.style
+    tagName: tagName
+    attribs: attribs
+
 jsdiff = require 'diff'
 
 maxDiffSize = 200
