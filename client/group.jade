@@ -78,9 +78,9 @@ template(name="messageList")
             span.glyphicon(class=sortingGlyph)
     tbody
       each topMessages
-        if canSee
-          //-a.list-group-item(href=messageLink)
-          +messageShort
+        //-if canSee
+        //-a.list-group-item(href=messageLink)
+        +messageShort
 
 template(name="importButtons")
   if canImport

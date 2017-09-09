@@ -240,33 +240,35 @@ Meteor.methods
 @groupSortedBy = (group, sort, options, user = Meteor.user()) ->
   query = accessibleMessagesQuery group, user
   query.root = null
-  mongosort =
-    switch sort.key
-      when 'posts'
-        'submessageCount'
-      when 'updated'
-        'submessageLastUpdate'
-      else
-        sort.key
   options = {} unless options?
-  options.sort = [[mongosort, if sort.reverse then 'desc' else 'asc']]
-  if options.fields
-    options.fields[mongosort] = true
-    if sort.key == 'subscribe'  ## fields needed for subscribedToMessage
-      options.fields.group = true
-      options.fields.root = true
+  if sort?
+    mongosort =
+      switch sort.key
+        when 'posts'
+          'submessageCount'
+        when 'updated'
+          'submessageLastUpdate'
+        else
+          sort.key
+    options.sort = [[mongosort, if sort.reverse then 'desc' else 'asc']]
+    if options.fields
+      options.fields[mongosort] = true
+      if sort.key == 'subscribe'  ## fields needed for subscribedToMessage
+        options.fields.group = true
+        options.fields.root = true
   msgs = Messages.find query, options
-  switch sort.key
-    when 'title'
-      key = (msg) -> titleSort msg.title
-    when 'creator'
-      key = (msg) -> userSortKey msg.creator
-    when 'subscribe'
-      key = (msg) -> subscribedToMessage msg
-    else
-      key = null
-  if key?
-    msgs = msgs.fetch()
-    msgs = _.sortBy msgs, key
-    msgs.reverse() if sort.reverse
+  if sort?
+    switch sort.key
+      when 'title'
+        key = (msg) -> titleSort msg.title
+      when 'creator'
+        key = (msg) -> userSortKey msg.creator
+      when 'subscribe'
+        key = (msg) -> subscribedToMessage msg
+      else
+        key = null
+    if key?
+      msgs = msgs.fetch()
+      msgs = _.sortBy msgs, key
+      msgs.reverse() if sort.reverse
   msgs

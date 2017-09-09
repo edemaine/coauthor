@@ -59,9 +59,9 @@ if Meteor.isServer
   recurse message
   descendants
 
-@accessibleMessagesQuery = (group, user = Meteor.user()) ->
+@accessibleMessagesQuery = (group, user = Meteor.user(), client = Meteor.isClient) ->
   ## Mimic logic of `canSee` below.
-  if groupRoleCheck group, 'super', user
+  if canSuper group, client, user #groupRoleCheck group, 'super', user
     ## Super-user can see all messages, even unpublished/deleted messages.
     group: group
   else if groupRoleCheck group, 'read', user
