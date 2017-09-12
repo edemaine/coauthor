@@ -28,12 +28,13 @@ importOSQA = (group, zip) ->
 
   files = {}
   for content in zip.file /^upfiles\//
-    filename = content.name[8..]
-    continue unless filename.length > 0
-    continue if filename == 'README'  ## extra file
-    dot = filename.lastIndexOf '.'
+    filename = content.name
+    basename = filename[8..]
+    continue unless basename.length > 0
+    continue if basename == 'README'  ## extra file
+    dot = basename.lastIndexOf '.'
     if dot >= 0
-      ext = filename[dot..].toLowerCase()
+      ext = basename[dot..].toLowerCase()
     else
       ext = ''
     if ext not of ext2type
@@ -42,12 +43,11 @@ importOSQA = (group, zip) ->
     ## JSZip's ZipObjects don't seem to behave enough like a File.
     #content.type = ext2type[ext]
     #files[filename] = content
-    do (filename, content, type = ext2type[ext]) ->
-      files[filename] = ->
-        await zip.file(filename).async 'arraybuffer', defer buffer
-        new File [buffer], filename,
-          type: type
-          lastModified: content.date
+    #do (basename, filename, content, type = ext2type[ext]) ->
+    await zip.file(filename).async('arraybuffer').then defer buffer
+    files[basename] = new File [buffer], basename,
+      type: type
+      lastModified: content.date
 
   await zip.file('users.xml').async('string').then defer users
   users = parseXML users
@@ -143,21 +143,23 @@ importOSQA = (group, zip) ->
     attachFiles = []
     await
       for filename, revision of usedFiles
-        if typeof files[filename] == 'function'
-          file = files[filename]()
-          ## Assume file created by same person and roughly same time
-          ## as the first post that contains them.  OSQA doesn't seem to
-          ## keep any record of files, so that's the best we can do.
-          file.creator = revision.updators[0]
-          file.created = revision.updated
-          file.group = group
-          do (d = defer files[filename]) ->
-            file.callback = (file2) ->
-              attachFiles.push file2
-              d file2.uniqueIdentifier
-          Files.resumable.addFile file
+        #if typeof files[filename] == 'function'
+        #  await files[filename] defer file
+        file = files[filename]
+        ## Assume file created by same person and roughly same time
+        ## as the first post that contains them.  OSQA doesn't seem to
+        ## keep any record of files, so that's the best we can do.
+        file.creator = revision.updators[0]
+        file.created = revision.updated
+        file.group = group
+        do (d = defer files[filename]) ->
+          file.callback = (file2) ->
+            attachFiles.push file2
+            d file2.uniqueIdentifier
+        Files.resumable.addFile file
 
     for revision in revisions
+      revision.body ?= ''
       revision.body = revision.body.replace upfile_url, (match, p1) ->
         if p1 of files
           urlToInternalFile files[p1]
