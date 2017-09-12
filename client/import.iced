@@ -93,11 +93,11 @@ importOSQA = (group, zip) ->
         tags = tagsNode.text().split /\s*,\s*/
     listToTags tags
 
-  await zip.file('actions.xml').async('string').then defer nodes
+  await zip.file('nodes.xml').async('string').then defer nodes
   nodes = parseXML nodes
   idmap = {}
   count = 0
-  for node in nodes.find('action')
+  for node in nodes.find('node')
     node = $(node)
     id = node.children('id').text()
     parent = node.children('parent').text()
