@@ -786,8 +786,8 @@ Template.submessage.events
     e.stopPropagation()
     message = t.data._id
     ## Stop editing if we are publishing.
-    if not @published and editing @
-      Meteor.call 'messageEditStop', message
+    #if not @published and editing @
+    #  Meteor.call 'messageEditStop', message
     Meteor.call 'messageUpdate', message,
       published: not @published
     dropdownToggle e
