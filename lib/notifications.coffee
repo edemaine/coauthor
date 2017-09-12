@@ -459,6 +459,8 @@ if Meteor.isServer
             ## Don't notify about title or format change when brand new
             delete changed.title
             delete changed.format
+            ## Don't notify about empty body on new file message
+            delete changed.body if msg.file
           authors = _.sortBy notification.authors, userSortKey
           authorsText = (displayUser author for author in authors).join ', '
           authorsHTML = (linkToAuthor msg.group, author for author in authors).join ', '
