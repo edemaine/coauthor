@@ -49,6 +49,9 @@ if Meteor.isServer
   else
     Meteor.user().profile.notifications.on
 
+@notificationsSeparate = ->
+  user.profile.notifications?.separate
+
 @notifySelf = (user = Meteor.user()) ->
   #user = findUser user if _.isString user
   user.profile.notifications?.self

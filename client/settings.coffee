@@ -14,6 +14,7 @@ Template.settings.helpers
   autopublish: autopublish
   notificationsOn: notificationsOn
   notificationsDefault: notificationsDefault
+  notificationsSeparate: notificationsSeparate
   notificationsAfter: ->
     after = myAfter @
     "#{after.after} #{after.unit}#{if after.after == 1 then '' else 's'}"
@@ -59,6 +60,12 @@ Template.settings.events
     e.stopPropagation()
     Meteor.users.update Meteor.userId(),
       $set: "profile.notifications.on": not notificationsOn()
+
+  'click .notificationsSeparateButton': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    Meteor.users.update Meteor.userId(),
+      $set: "profile.notifications.separate": not notificationsSeparate()
 
   'click .notifySelfButton': (e, t) ->
     e.preventDefault()

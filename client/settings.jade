@@ -63,9 +63,12 @@ template(name="settings")
                 button.btn.btn-default.sideBySideButton(type="button", data-toggle="button", autocomplete="off") Side-by-Side
               else
                 button.btn.btn-default.sideBySideButton(type="button", data-toggle="button", autocomplete="off") Top-on-Bottom
+      h2 Email Notifications
+      table.table.table-striped.settings
+        tbody
           tr
             th
-              label Email notifications:
+              label Enable:
               .description Setting to No will globally turn off all your email notifications about all posts.
             td
               if notificationsOn
@@ -82,7 +85,17 @@ template(name="settings")
                     | No
           tr
             th
-              label Email notifications after:
+              label Separate by group:
+              .description If enabled (Yes), each notification email will notify about only one group at a time. "No" generates fewer email messages.
+            td
+              button.btn.btn-warning.notificationsSeparateButton(type="button", data-toggle="button", autocomplete="off")
+                if notificationsSeparated
+                  | Yes
+                else
+                  | No
+          tr
+            th
+              label Notify after:
               .description How long after a message update before you get an email notification about it, and all other updates during that period. Smaller value means you're more up-to-date, but larger value means fewer email messages.
             td
               .btn-group
@@ -112,7 +125,7 @@ template(name="settings")
                     a(href="#",data-after="12",data-unit="hour") 12 hours
           tr
             th
-              label Notification timezone:
+              label Timezone:
               .description Email notifications will report times in this timezone (or by default, the server's timezone). The web UI always uses the browser's local timezone, not this.
             td
               +timezoneSelector
@@ -141,7 +154,7 @@ template(name="settings")
                     | No
           tr
             th
-              label Notifications for own messages:
+              label Notify about own messages:
               .description Do you want notifications about messages that only you create/update? This lets you see what others see, but it is in some sense redundant.
             td
               if notifySelf
@@ -150,6 +163,7 @@ template(name="settings")
               else
                 button.btn.btn-warning.notifySelfButton(type="button", data-toggle="button", autocomplete="off")
                   | No
+        //-
           tr
             th
               label Dropbox account linking:
