@@ -105,9 +105,10 @@ Meteor.methods
     unless canPost group, null
       throw new Meteor.Error 'tagDelete.unauthorized',
         "Insufficient permissions to untag message in group '#{group}'"
+    return if @isSimulation  ## can't check for global message existence
     any = Messages.findOne
       group: group
-      tags: "#{escapeTag key}": $exists: true
+      "tags.#{escapeTag key}": $exists: true
     if any
       if maybe
         return
