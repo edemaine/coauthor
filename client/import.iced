@@ -110,7 +110,6 @@ importOSQA = (group, zip) ->
         break
     else
       parent = null
-    console.log node.children('title').text(), node.children('body').text()
     revisions = for revision in node.children('revisions').children('revision')
       revision = $(revision)
       updated: new Date revision.children('date').text()
