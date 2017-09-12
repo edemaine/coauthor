@@ -86,10 +86,10 @@ template(name="settings")
           tr
             th
               label Separate by group:
-              .description If enabled (Yes), each notification email will notify about only one group at a time. "No" generates fewer email messages.
+              .description If enabled (Yes), each notification email is about only one group at a time. "No" generates fewer email messages.
             td
-              button.btn.btn-warning.notificationsSeparateButton(type="button", data-toggle="button", autocomplete="off")
-                if notificationsSeparated
+              button.btn.btn-success.notificationsSeparateButton(type="button", data-toggle="button", autocomplete="off")
+                if notificationsSeparate
                   | Yes
                 else
                   | No

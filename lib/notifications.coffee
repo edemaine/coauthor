@@ -49,7 +49,7 @@ if Meteor.isServer
   else
     Meteor.user().profile.notifications.on
 
-@notificationsSeparate = ->
+@notificationsSeparate = (user = Meteor.user()) ->
   user.profile.notifications?.separate
 
 @notifySelf = (user = Meteor.user()) ->
@@ -141,6 +141,7 @@ if Meteor.isServer
 
 ## Notification consists of
 ##   - to: username to notify
+##   - group: group relevant to notification (if any)
 ##   - dateMin: earliest date of update
 ##   - dateMax: latest date of update (set only when seen becomes true)
 ##   [- dates: list of dates of all updates]
@@ -244,6 +245,7 @@ if Meteor.isServer
           notification =
             type: 'messageUpdate'
             to: to.username
+            group: msg.group
             message: msg._id
             dateMin: msg.updated
             #diffs: [diff._id]
@@ -296,11 +298,12 @@ if Meteor.isServer
     else
       notifiers[username] = {}
     notifiers[username].base = base
+    notifiers[username].group = notification.group
     notificationReschedule user
 
   notificationReschedule = (user) ->
     ## Call this once notifiers[username].base has been set,
-    ## and either the timeout hasn't been scheduled yet (notifiactionSchedule)
+    ## and either the timeout hasn't been scheduled yet (notificationSchedule)
     ## or the user's notification parameters have changed so the timeout
     ## might need to be rescheduled.
     username = user.username ? user
@@ -322,9 +325,13 @@ if Meteor.isServer
     ## During this callback, prevent other notifications from scheduling.
     notifiers[to].running = true
     Meteor.clearTimeout notifiers[to].timeout
-    notifications = Notifications.find
+    query =
       to: to
       seen: false
+    user = findUsername to
+    if notificationsSeparate user
+      query.group = notifiers[to].group
+    notifications = Notifications.find query
     .fetch()
     notificationEmail notifications
     for notification in notifications
@@ -335,12 +342,13 @@ if Meteor.isServer
     ## Now we relinquish the 'lock' set by notifiers[to].
     delete notifiers[to]
     ## In the meantime, new notifications may have appeared; schedule them.
+    ## Or, if we just notified about one group, other groups' notifications
+    ## might remain.
     notifications = Notifications.find
       to: to
       seen: false
     .fetch()
     if notifications.length > 0
-      user = findUsername to
       for notification in notifications
         notificationSchedule notification, user
 

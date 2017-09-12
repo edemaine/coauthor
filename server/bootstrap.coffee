@@ -45,3 +45,12 @@ Notifications.find
       dates: ''
       ## leaving diffs for posterity
       ## not creating old/new for now... could be built from dateMin/dateMax
+
+## Upgrade from old notification format which lacked group field
+Notifications.find
+  group: $exists: false
+  message: $exists: true
+.forEach (notification) ->
+  Notifications.update notification._id,
+    $set:
+      group: message2group notification.message
