@@ -1,5 +1,6 @@
 parseXML = (xml) ->
   xml = xml.replace /\x0C/g, 'fi'  ## must be from some LaTeX copy/paste...
+  xml = xml.replace /â€™/g, '’'    ## CP-1253 encoding
   xml = $($.parseXML xml)
 
 bodymap = (body) ->
@@ -109,6 +110,7 @@ importOSQA = (group, zip) ->
         break
     else
       parent = null
+    console.log node.children('title').text(), node.children('body').text()
     revisions = for revision in node.children('revisions').children('revision')
       revision = $(revision)
       updated: new Date revision.children('date').text()
