@@ -37,7 +37,10 @@ module.exports = {
       key: '../../coauthor_csail_mit_edu.ssl/coauthor_csail_mit_edu.key',
       port: 443
     },
-    deployCheckWaitTime: 150
+    deployCheckWaitTime: 200,
+    nginx: {
+      clientUploadLimit: '0', // disable upload limit
+    },
   },
 
   mongo: {
