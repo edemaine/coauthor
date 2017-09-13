@@ -7,6 +7,9 @@ sanitizeHtml.defaults.allowedAttributes['*'] = [
   'style', 'class', 'title', 'aria-*'
 ]
 
+## For author links + drag support
+sanitizeHtml.defaults.allowedAttributes.a.push 'data-username'
+
 sanitizeHtml.defaults.allowedTags.push 'img'
 sanitizeHtml.defaults.allowedAttributes.img.push 'alt', 'width', 'height'
 
