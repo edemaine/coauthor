@@ -54,3 +54,5 @@ Notifications.find
   Notifications.update notification._id,
     $set:
       group: message2group notification.message
+
+console.log 'Upgraded database as necessary.'
