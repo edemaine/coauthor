@@ -237,6 +237,30 @@ Meteor.methods
       username: username
     , $addToSet: "roles.#{escapeGroup group}": $each: allRoles
 
+  groupRename: (groupOld, groupNew) ->
+    check groupOld, String
+    check groupNew, String
+    unless groupRoleCheck wildGroup, 'super'
+      throw new Meteor.Error 'groupRename.unauthorized',
+        "You need global 'super' permissions to rename a group '#{groupOld}'"
+    unless validGroup groupOld
+      throw new Meteor.Error 'groupRename.invalid',
+        "Group name '#{groupOld}' is invalid"
+    if findGroup(groupNew)?
+      throw new Meteor.Error 'groupRename.exists',
+        "Attempt to rename group into '#{groupNew}' which already exists"
+    Groups.update
+      name: groupOld
+    , $set:
+      name: groupNew
+    , multi: true
+    for db in [Messages, MessagesDiff, Notifications]
+      Groups.update
+        group: groupOld
+      , $set:
+        group: groupNew
+      , multi: true
+
 @groupSortedBy = (group, sort, options, user = Meteor.user()) ->
   query = accessibleMessagesQuery group, user
   query.root = null
