@@ -3,7 +3,7 @@ template(name="group")
     .panel.panel-primary
       .panel-heading.clearfix
         span.title.panel-title= group
-        +postButtons
+        +groupButtons
       +messageList
       .panel-footer.clearfix
         p
@@ -16,13 +16,14 @@ template(name="group")
   else
     +badGroup
 
-template(name="postButtons")
+template(name="groupButtons")
   //- button.btn.btn-default.postButton(class=disablePost,name="problem") Pose New Problem
   //- button.btn.btn-default.postButton(class=disablePost,name="discussion") Start Discussion Thread
   .pull-right
     if super
       button.btn.btn-warning.sortSetDefault Set Group Default Sort
-      button.btn.btn-danger.groupRenameButton Rename Group
+      if globalSuper
+        button.btn.btn-danger.groupRenameButton Rename Group
       span.space
     button.btn.btn-info.postButton(class=disableClass, data-original-title=disableTitle, data-toggle='tooltip') Pose New Problem / Discussion
     .btn-group
@@ -47,6 +48,24 @@ template(name="postButtons")
         each sortKeys
           li.sortKey(class="{{activeSort}}")
             a(href=linkToSort)= capitalizedKey
+
+template(name="groupRename")
+  .modal
+    .modal-dialog.groupRename
+      .modal-content
+        .modal-header
+          h2 Rename Group &ldquo;#{routeGroup}&rdquo;
+        .modal-body
+          .alert.alert-warning <b>Warning:</b> Group renaming is dangerous. Old links will not be preserved.
+          form
+            .form-group
+              label(for="groupInput") New group name:
+              input.form-control(id="groupInput", placeholder="Group")
+            .row
+              .col-xs-6
+                button.btn.btn-block.btn-danger.groupRenameButton Rename Group
+              .col-xs-6
+                button.btn.btn-block.btn-success.cancelButton Cancel
 
 template(name="messageList")
   //-div.list-group

@@ -73,7 +73,7 @@ Template.group.helpers
     else
       '(none)'
 
-Template.postButtons.helpers
+Template.groupButtons.helpers
   sortBy: ->
     capitalize sortBy().key
   sortReverse: ->
@@ -128,14 +128,17 @@ Template.postButtons.helpers
     else
       'You need to be logged in to post a message.'
 
-Template.postButtons.onRendered ->
+Template.groupButtons.onRendered ->
   $('[data-toggle="tooltip"]').tooltip()
 
-Template.postButtons.events
+Template.groupButtons.events
   'click .sortSetDefault': (e) ->
     e.stopPropagation()
     console.log "Setting default sort for #{routeGroup()} to #{if sortBy().reverse then '-' else '+'}#{sortBy().key}"
     Meteor.call 'groupDefaultSort', routeGroup(), sortBy()
+
+  'click .groupRenameButton': (e) ->
+    Modal.show 'groupRename'
 
   'click .postButton': (e) ->
     e.preventDefault()
@@ -153,6 +156,25 @@ Template.postButtons.events
           Router.go 'message', {group: group, message: result}
         else
           console.error "messageNew did not return problem -- not authorized?"
+
+Template.groupRename.events
+  'click .groupRenameButton': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    groupOld = routeGroup()
+    groupNew = t.find('#groupInput').value
+    Modal.hide()
+    return unless validGroup groupNew  ## ignore blank or otherwise invalid name
+    Meteor.call 'groupRename', groupOld, groupNew, (error, result) ->
+      if error
+        console.error 'groupRename:', error
+      else
+        Router.go 'group',
+          group: groupNew
+  'click .cancelButton': (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+    Modal.hide()
 
 Template.importButtons.events
   'click .importButton': (e, t) ->

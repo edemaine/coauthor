@@ -40,6 +40,9 @@ Template.registerHelper 'couldSuper', ->
 Template.registerHelper 'super', ->
   Session.get 'super'
 
+Template.registerHelper 'globalSuper', ->
+  Session.get('super') and canSuper wildGroup
+
 Template.layout.events
   'click .superButton': (e) ->
     e.preventDefault()

@@ -25,6 +25,7 @@ if Meteor.isServer
   Groups._ensureIndex [['name', 1]]
 
 @findGroup = (group) ->
+  return group unless group?
   return group if group.name?
   Groups.findOne
     name: group
@@ -153,7 +154,7 @@ if Meteor.isServer
         @ready()
 
 @groupMembers = (group) ->
-  findGroup(group).members ? []
+  findGroup(group)?.members ? []
 
 @sortedGroupMembers = (group) ->
   _.sortBy groupMembers(group), userSortKey
@@ -251,15 +252,33 @@ Meteor.methods
         "Attempt to rename group into '#{groupNew}' which already exists"
     Groups.update
       name: groupOld
-    , $set:
-      name: groupNew
+    ,
+      $set: name: groupNew
     , multi: true
-    for db in [Messages, MessagesDiff, Notifications]
-      Groups.update
+    for db in [Messages, MessagesDiff, Notifications, Tags]
+      db.update
         group: groupOld
-      , $set:
-        group: groupNew
+      ,
+        $set: group: groupNew
       , multi: true
+    for copy in ['old', 'new']
+      Notifications.update
+        "#{copy}.group": groupOld
+      ,
+        $set: "#{copy}.group": groupNew
+      , multi: true
+    Files.update
+      'metadata.group': groupOld
+    ,
+      $set: "metadata.group": groupNew
+    , multi: true
+    Meteor.users.find
+      "roles.#{escapeGroup groupOld}": $exists: true
+    .forEach (user) ->
+      roles = user.roles[escapeGroup groupOld]
+      Meteor.users.update user._id,
+        $unset: "roles.#{escapeGroup groupOld}": ''
+        $set: "roles.#{escapeGroup groupNew}": roles
 
 @groupSortedBy = (group, sort, options, user = Meteor.user()) ->
   query = accessibleMessagesQuery group, user
