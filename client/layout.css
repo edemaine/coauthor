@@ -17,3 +17,9 @@ body { font-family: 'Merriweather', serif; }
  */
 li.dropdown.halflink > a { display: inline-block }
 li.dropdown.halflink > a.link:first-child { padding-right: 0px; }
+
+/* Hack small navbar into the header */
+.navbar-header .navbar-nav { display: inline-block; padding-left: 15px; }
+@media (min-width: 768px) {
+  .navbar-header + .navbar-collapse { padding-left: 0px; }
+}

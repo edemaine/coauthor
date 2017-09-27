@@ -19,7 +19,6 @@ template(name="layout")
               a.navbar-brand(href="{{pathFor 'group' group=routeGroup}}") Coauthor
           else
             a.navbar-brand(href="{{pathFor 'frontpage'}}") Coauthor
-      .collapse.navbar-collapse#navbar
         ul.nav.navbar-nav
           li.dropdown.halflink
             //- Repetition is necessary to avoid space between links
@@ -52,9 +51,10 @@ template(name="layout")
                 li.divider
                 li
                   a(href="#") Request Access
+      .collapse.navbar-collapse#navbar
         form.navbar-form.input-group.searchForm
           input.form-control.searchText(type="text", placeholder="Search", value=search)
-        ul.nav.navbar-nav.navbar-btn
+        .navbar-btn.btn-group
           if couldSuper
             if super
               button.superButton.btn.btn-normal Leave Superuser
