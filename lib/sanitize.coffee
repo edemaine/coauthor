@@ -44,9 +44,15 @@ sanitizeHtml.defaults.allowedAttributes.mo = ['fence', 'separator']
 sanitizeHtml.defaults.allowedAttributes.mstyle = ['mathcolor']
 sanitizeHtml.defaults.allowedTags.push 'nobr'
 
+## https://stackoverflow.com/questions/9329552/explain-regex-that-finds-css-comments
+cssCommentRegex = "\\/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*\\/"
+cssBlankRegex = "(?:\\s|#{cssCommentRegex})*"
+
 sanitizeHtml.defaults.transformTags =
   '*': (tagName, attribs) ->
-    if attribs.style? and /\bposition\s*:/i.test attribs.style
+    if attribs.style? and
+       ///\bposition#{cssBlankRegex}:#{cssBlankRegex}(absolute|fixed)///i.test(
+         attribs.style)
       delete attribs.style
     tagName: tagName
     attribs: attribs
