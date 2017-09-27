@@ -7,11 +7,6 @@ module.exports = (grunt) ->
         cwd: 'node_modules/katex/dist/fonts/'
         src: '**'
         dest: 'public/katex/fonts/'
-      katex_images:
-        expand: true
-        cwd: 'node_modules/katex/dist/images/'
-        src: '**'
-        dest: 'public/katex/images/'
       codemirror:
         expand: true
         flatten: true
@@ -28,9 +23,6 @@ module.exports = (grunt) ->
           patterns: [
             match: /url\(fonts/g
             replacement: 'url(/katex/fonts'
-          ,
-            match: /url\(images/g
-            replacement: 'url(/katex/images'
           ]
         files: [
           expand: true
