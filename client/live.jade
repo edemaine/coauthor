@@ -16,34 +16,3 @@ template(name='live')
           .alert.alert-danger(role="alert") Invalid number of last messages.
   else
     +badGroup
-
-template(name='readMessageHeader')
-  +rootHeader
-  +readMessage
-
-template(name='readMessage')
-  .panel.message(class=messagePanelClass, data-message=_id, id=_id)
-    .panel-heading.clearfix
-      .message-left-buttons.btn-group.btn-group-xs
-        //-button.btn.btn-info.foldButton(aria-label="Fold")
-          if folded
-            span.glyphicon.glyphicon-plus(aria-hidden="true")
-          else
-            span.glyphicon.glyphicon-minus(aria-hidden="true")
-        a.btn.btn-info.focusButton(aria-label="Focus", href="{{pathFor 'message' group=group message=_id}}")
-          span.glyphicon.glyphicon-arrow-right(aria-hidden="true")
-      span.space
-      span.title.panel-title.tex2jax !{formatTitle}
-      span.space
-      +messageTags
-      +messageLabels
-    unless folded
-      .panel-body
-        .message-body.tex2jax !{formatBody}
-        if file
-          p.message-file !{formatFile}
-      .message-footer
-        +messageAuthor
-      .children
-        each readChildren
-          +readMessage

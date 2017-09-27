@@ -79,6 +79,9 @@ Template.registerHelper 'linkToTag', ->
     group: Template.parentData().group
     tag: @key
 
+Template.registerHelper 'folded', ->
+  messageFolded.get @_id
+
 Template.rootHeader.helpers
   root: ->
     if @root
@@ -198,7 +201,7 @@ Template.registerHelper 'messageClass', messageClass
 submessageCount = 0
 
 messageRaw = new ReactiveDict
-messageFolded = new ReactiveDict
+export messageFolded = new ReactiveDict
 messageHistory = new ReactiveDict
 messageKeyboard = new ReactiveDict
 messagePreview = new ReactiveDict
@@ -227,6 +230,11 @@ messagePreviewSet = (change) ->
   return unless id
   preview = messagePreview.get(id) ? messagePreviewDefault()
   messagePreview.set id, change preview
+
+export messageFoldHandler = (e, t) ->
+  e.preventDefault()
+  e.stopPropagation()
+  messageFolded.set @_id, not messageFolded.get @_id
 
 Template.submessage.onCreated ->
   @count = submessageCount++
@@ -328,7 +336,7 @@ messageDrag = (target, bodyToo = true) ->
 ## A message is "naturally" folded if it is flagged as minimized or deleted.
 ## It still will be default-folded if it's an image referenced in another
 ## message that is not naturally folded.
-naturallyFolded = (data) -> data.minimized or data.deleted
+export naturallyFolded = (data) -> data.minimized or data.deleted
 
 Template.submessage.onRendered ->
   ## Random message background color (to show nesting).
@@ -343,7 +351,7 @@ Template.submessage.onRendered ->
 
   ## Fold naturally folded (minimized and deleted) messages
   ## by default on initial load.
-  messageFolded.set @data._id, true if naturallyFolded @data
+  messageFolded.set @data._id, true if natural = naturallyFolded @data
 
   ## Fold referenced attached files by default on initial load.
   #@$.children('.panel').children('.panel-body').find('a[href|="/file/"]')
@@ -627,7 +635,6 @@ Template.submessage.helpers
     _id: @_id
     history: messageHistory.get @_id
 
-  folded: -> messageFolded.get @_id
   raw: -> messageRaw.get @_id
   prev: -> messageNeighbors(@)?.prev
   next: -> messageNeighbors(@)?.next
@@ -751,10 +758,7 @@ Template.submessage.events
     dropdownToggle e
     false  ## prevent form from submitting
 
-  'click .foldButton': (e, t) ->
-    e.preventDefault()
-    e.stopPropagation()
-    messageFolded.set @_id, not messageFolded.get @_id
+  'click .foldButton': messageFoldHandler
 
   'click .rawButton': (e, t) ->
     e.preventDefault()
