@@ -359,6 +359,7 @@ Template.submessage.onRendered ->
   #initImageInternal @data.file if @data.file?
   @autorun =>
     data = Template.currentData()
+    return unless data._id
     ## If message is naturally folded, don't count images it references.
     images[data._id].naturallyFolded = naturallyFolded data
     if images[data._id].naturallyFolded
