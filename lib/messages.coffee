@@ -361,13 +361,15 @@ if Meteor.isServer
   user? and
   groupRoleCheck group, 'post', user
 
-@canEdit = (msg) ->
+@canEdit = (msg, user = Meteor.user()) ->
   ## Can edit message if an "author" (the creator or edited in the past),
   ## or if we have global edit privileges in this group.
   msg = findMessage msg
   return false unless msg?
-  escapeUser(Meteor.user()?.username) of (msg.authors ? {}) or
-  groupRoleCheck msg.group, 'edit'
+  user? and (
+    escapeUser(user?.username) of (msg.authors ? {}) or
+    groupRoleCheck msg.group, 'edit', user
+  )
 
 @canDelete = canEdit
 @canUndelete = canEdit
@@ -571,12 +573,22 @@ export messageFilterExtraFields = (msg) ->
 ## The following should be called directly only on the server;
 ## clients should use the corresponding method.
 _messageUpdate = (id, message, authors = null, old = null) ->
+  ## Compare with 'old' if provided (in cases when it's already been
+  ## fetched by the server); otherwise, load id from Messages.
+  old = Messages.findOne id unless old?
+
   ## authors is set only when internal to server, in which case we bypass
   ## authorization checks, which already happened in messageEditStart.
   unless authors?
-    check Meteor.userId(), String  ## should be done by 'canEdit'
-    authors = [Meteor.user().username]
-    return unless canEdit id
+    ## If authors == null, we're guaranteed to be in a method, so we
+    ## can use Meteor.user().
+    user = Meteor.user()
+    #check Meteor.userId(), String  ## should be done by 'canEdit'
+    authors = [user.username]
+    unless canEdit old, user
+      throw new Meteor.Error 'messageUpdate.unauthorized',
+        "Insufficient permissions to edit message '#{id}' in group '#{old.group}'"
+    checkPrivacy message.private, old, user
   check message,
     #url: Match.Optional String
     title: Match.Optional String
@@ -590,12 +602,8 @@ _messageUpdate = (id, message, authors = null, old = null) ->
     deleted: Match.Optional Boolean
     private: Match.Optional Boolean
     minimized: Match.Optional Boolean
-  checkPrivacy message.private, id
 
-  ## Don't update if there aren't any actual differences.  Compare with 'old'
-  ## if provided (in cases when it's already been fetched by the server);
-  ## otherwise, load id from Messages.
-  old = Messages.findOne id unless old?
+  ## Don't update if there aren't any actual differences.
   difference = false
   for own key of message
     if old[key] != message[key]

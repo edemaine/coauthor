@@ -1,7 +1,7 @@
 @defaultAutopublish = true
 
-@autopublish = ->
-  Meteor.user()?.profile?.autopublish ? defaultAutopublish
+@autopublish = (user = Meteor.user()) ->
+  user?.profile?.autopublish ? defaultAutopublish
 
 export defaultFormat = 'markdown'
 
