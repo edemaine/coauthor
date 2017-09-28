@@ -355,10 +355,11 @@ if Meteor.isServer
   else
     false
 
-@canPost = (group, parent) ->
+@canPost = (group, parent, user = Meteor.user()) ->
   ## parent actually ignored
-  Meteor.userId()? and
-  groupRoleCheck group, 'post'
+  #Meteor.userId()? and
+  user? and
+  groupRoleCheck group, 'post', user
 
 @canEdit = (msg) ->
   ## Can edit message if an "author" (the creator or edited in the past),
@@ -525,11 +526,11 @@ _submessagesChanged = (root) ->
 if Meteor.isServer
   rootMessages().forEach _submessagesChanged
 
-checkPrivacy = (privacy, root) ->
+checkPrivacy = (privacy, root, user = Meteor.user()) ->
   return unless privacy?
   root = findMessageRoot root  ## can pass message or message ID
   return unless root?
-  unless canSuper root.group
+  unless canSuper root.group, false, user
     switch privacy
       when true
         unless root.threadPrivacy? and 'private' in root.threadPrivacy
@@ -794,11 +795,12 @@ Meteor.methods
       deleted: Match.Optional Boolean
       private: Match.Optional Boolean
       minimized: Match.Optional Boolean
-    unless canPost group, parent
+    user = Meteor.user()
+    unless canPost group, parent, user
       throw new Meteor.Error 'messageNew.unauthorized',
         "Insufficient permissions to post new message in group '#{group}' under parent '#{parent}'"
     root = findMessageRoot parent
-    checkPrivacy message.private, root
+    checkPrivacy message.private, root, user
     unless message.private?
       ## If root says private only, default is to be private.
       ## Otherwise, match parent.
@@ -811,25 +813,24 @@ Meteor.methods
       #if root?.threadPrivacy? and 'public' not in root.threadPrivacy
       #  message.private = true
     now = new Date
-    username = Meteor.user().username
     message.group = group
     ## Default content.
     message.title = "" unless message.title?
     message.body = "" unless message.body?
-    message.format = Meteor.user()?.profile?.format or defaultFormat unless message.format?
+    message.format = user?.profile?.format or defaultFormat unless message.format?
     message.tags = {} unless message.tags?
-    message.published = autopublish() unless message.published?
-    message.updators = [Meteor.user().username]
+    message.published = autopublish user unless message.published?
+    message.updators = [user.username]
     message.updated = now
     if message.published == true
       message.published = now
     message.deleted = false unless message.deleted?
     ## Content specific to Messages, not MessagesDiff
     diff = _.clone message
-    message.creator = username
+    message.creator = user.username
     message.created = now
     message.authors =
-      "#{escapeUser username}": now
+      "#{escapeUser user.username}": now
     #message.parent: parent         ## use children, not parent
     message.children = []
     ## Speed up _messageParent by presetting root
