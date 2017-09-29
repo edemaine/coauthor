@@ -22,7 +22,7 @@ method=rclone
 case $method in
 
 rclone)
-  if rclone copy coauthor-backup coauthor-backup:coauthor-backup/`date +%Y-%m-%d`
+  if rclone --retries 10 copy coauthor-backup coauthor-backup:coauthor-backup/`date +%Y-%m-%d`
   then
     echo SUCCESS\!\!
   else
