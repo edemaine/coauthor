@@ -69,6 +69,9 @@ To monitor server performance, you can install an
 [open-source Kadira server](https://github.com/kadira-open/kadira-server),
 and set the `KADIRA_OPTIONS_ENDPOINT` environment variable in `.deploy/mup.js`.
 
+To get open-source Kadira running (on a different server), I recommend
+[kadira-compose](https://github.com/edemaine/kadira-compose).
+
 ## MongoDB
 
 `mup`'s MongoDB stores data in `/var/lib/mongodb`.  MongoDB prefers an XFS
