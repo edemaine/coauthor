@@ -356,18 +356,18 @@ Template.submessage.onRendered ->
   ## Fold referenced attached files by default on initial load.
   #@$.children('.panel').children('.panel-body').find('a[href|="/file/"]')
   #console.log @$ 'a[href|="/file/"]'
-  id2template[@data._id] = @
   scrollToMessage @data._id if scrollToLater == @data._id
   #images = Session.get 'images'
   @images = {}
   @imagesInternal = {}
-  initImage @data._id
-  ## initImage calls updateFileQuery which will do this:
-  #images[@data._id].file = @data.file
-  #initImageInternal @data.file if @data.file?
   @autorun =>
     data = Template.currentData()
     return unless data._id
+    initImage data._id
+    ## initImage calls updateFileQuery which will do this:
+    #images[data._id].file = data.file
+    #initImageInternal data.file if data.file?
+    id2template[data._id] = @
     ## If message is naturally folded, don't count images it references.
     images[data._id].naturallyFolded = naturallyFolded data
     if images[data._id].naturallyFolded
