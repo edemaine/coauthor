@@ -10,7 +10,7 @@ REMOTE=ubuntu@coauthor
 
 cd "`dirname "$0"`"
 ssh $REMOTE mongodump --db coauthor
-rsync -a $REMOTE:dump/coauthor/ coauthor-backup/
+rsync -e ssh -a $REMOTE:dump/coauthor/ coauthor-backup/
 
 ## rclone is the recommended system to copy backups to a cloud service.
 ## Just setup a remote called `coauthor-backup` using `rclone config`.
