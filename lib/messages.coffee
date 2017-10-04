@@ -422,7 +422,8 @@ idle = 1000   ## one second
   findMessage(message)?.group
 
 @findMessage = (message, options) ->
-  message = Messages.findOne message, options unless message._id?
+  if message? and not message.id?
+    message = Messages.findOne message, options
   message
 
 @findMessageParent = (message) ->

@@ -98,6 +98,7 @@ if Meteor.isServer
 ## by starting with group's members.
 @messageSubscribers = (msg, options = {}) ->
   msg = findMessage msg
+  return [] unless msg?
   group = findGroup msg.group
   if options.fields?
     options.fields.roles = true
