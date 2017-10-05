@@ -93,4 +93,4 @@ Instructions for building the Coauthor Android app:
 2. `meteor build ../build --server=https://coauthor.csail.mit.edu`
 3. `cd ../build/android`
 4. `jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 release-unsigned.apk coauthor`
-5. `zipalign 4 release-unsigned.apk coauthor.apk`
+5. `zipalign -f 4 release-unsigned.apk coauthor.apk`
