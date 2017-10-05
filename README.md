@@ -6,6 +6,8 @@ collaboration on unsolved problems in theoretical computer science, so
 e.g. you'll find LaTeX math support; hopefully it will have applications
 in other fields too.
 
+![Coauthor screenshot](http://erikdemaine.org/software/coauthor_large.png)
+
 ## Features So Far ##
 
 * **Live updates**/redraw of everything, thanks to
