@@ -85,10 +85,12 @@ and mount or link it there.
 
 Instructions for building the Coauthor Android app:
 
-0. Install [Android Studio](https://developer.android.com/studio/)
-   and add `gradle/gradle-x.x/bin` and `jre/bin` to PATH
+0. Install [Android Studio](https://developer.android.com/studio/);
+   add `gradle/gradle-N.N/bin`, `jre/bin`,
+   `AppData/local/android/sdk/build-tools/26.0.2` to PATH
 1. `keytool -genkey -alias coauthor -keyalg RSA -keysize 2048 -validity 10000`
    (if you don't already have a key for the app)
 2. `meteor build ../build --server=https://coauthor.csail.mit.edu`
 3. `cd ../build/android`
 4. `jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 release-unsigned.apk coauthor`
+5. `zipalign 4 release-unsigned.apk coauthor.apk`
