@@ -101,6 +101,7 @@ if Meteor.isServer
       file.metadata?.uploader in [userId, null]
 else
   Tracker.autorun ->
+    Meteor.userId()  ## rerun when userId changes
     $.cookie 'X-Auth-Token', Accounts._storedLoginToken(),
       path: '/'
 
