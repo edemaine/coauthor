@@ -55,4 +55,15 @@ Notifications.find
     $set:
       group: message2group notification.message
 
+## This code would add version numbers to MessageDiff objects, instead of
+## relying on sorting by 'updated'...  (code not finished)
+#if true
+#  Messages.find().forEach (msg) ->
+#    olds = MessagesDiff.find
+#      id: msg._id
+#    ,
+#      sort: [
+#    .fetch()
+#    console.log olds
+
 console.log 'Upgraded database as necessary.'
