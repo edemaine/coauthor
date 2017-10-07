@@ -38,9 +38,9 @@ template(name="groupButtons")
         button.btn.btn-warning.sortSetDefault Set Group Default
       a.btn.btn-default.sortReverse(href=linkToReverse)
         if sortReverse
-          span.glyphicon.glyphicon-sort-by-alphabet-alt(aria-hidden="true")
+          span.fa.fa-sort-alpha-desc(aria-hidden="true")
         else
-          span.glyphicon.glyphicon-sort-by-alphabet(aria-hidden="true")
+          span.fa.fa-sort-alpha-asc(aria-hidden="true")
       button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
         | #{sortBy}
         span.caret
@@ -75,27 +75,27 @@ template(name="messageList")
         th
           a(href="{{linkToSort 'title'}}") Title
           if sortingBy 'title'
-            span.glyphicon(class=sortingGlyph)
+            span.fa(class=sortingGlyph)
         th
           a(href="{{linkToSort 'creator'}}", data-toggle="tooltip", title="Username who initially started thread") Creator
           if sortingBy 'creator'
-            span.glyphicon(class=sortingGlyph)
+            span.fa(class=sortingGlyph)
         th
           a(href="{{linkToSort 'published'}}", data-toggle="tooltip", title="Date original thread was published/created") Published
           if sortingBy 'published'
-            span.glyphicon(class=sortingGlyph)
+            span.fa(class=sortingGlyph)
         th
           a(href="{{linkToSort 'updated'}}", data-toggle="tooltip", title="Last update of submessage in thread") Updated
           if sortingBy 'updated'
-            span.glyphicon(class=sortingGlyph)
+            span.fa(class=sortingGlyph)
         th
           a(href="{{linkToSort 'posts'}}", data-toggle="tooltip", title="Number of submessages in thread") Posts
           if sortingBy 'posts'
-            span.glyphicon(class=sortingGlyph)
+            span.fa(class=sortingGlyph)
         th
           a(href="{{linkToSort 'subscribe'}}", data-toggle="tooltip", title="Whether you subscribe to notifications about this thread (see Settings for default)") Sub
           if sortingBy 'subscribe'
-            span.glyphicon(class=sortingGlyph)
+            span.fa(class=sortingGlyph)
     tbody
       each topMessages
         //-if canSee
@@ -152,9 +152,9 @@ template(name="messageShort")
       //- a(href=messageLink)
       button.btn.btn-default.btn-sm.subscribe
         if subscribed
-          span.glyphicon.glyphicon-ok
+          span.fa.fa-check
         else
-          span.glyphicon.glyphicon-remove
+          span.fa.fa-times
 
 template(name="badGroup")
   if ready

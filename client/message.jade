@@ -33,9 +33,9 @@ template(name="rootHeader")
     with root
       .card.root(data-message=_id).card-default
         .card-heading.title
-          .message-left-buttons.btn-group.btn-group-xs
+          .message-left-buttons.btn-group.btn-group-sm
             a.btn.btn-info.focusButton(aria-label="Focus", href="{{pathFor 'message' group=group message=_id}}")
-              span.glyphicon.glyphicon-arrow-right(aria-hidden="true")
+              span.fa.fa-arrow-right(aria-hidden="true")
           span.space
           span.title.card-title.tex2jax !{formatTitleOrUntitled}
 
@@ -54,11 +54,11 @@ template(name="tableOfContents")
           +tableOfContentsMessage
 
 template(name="tableOfContentsMessage")
-  li.btn-group-xs
+  li.btn-group-sm
     div.beforeMessageDrop(data-parent=parent, data-index=index)
     a(href="#{{_id}}", data-id=_id, class=messageClass).tex2jax.onMessageDrop
       if file
-        span.glyphicon.glyphicon-paperclip
+        span.fa.fa-paperclip
       | !{formatTitle} [#{creator}]
     +tableOfContents
 
@@ -79,34 +79,34 @@ template(name="submessage")
       //-unless editingRV
       span(class=hideIfEditing)
         .messageTitle
-          span.message-left-buttons.btn-group.btn-group-xs
+          span.message-left-buttons.btn-group.btn-group-sm
             button.btn.btn-info.foldButton.d-print-none(aria-label="Fold")
               if folded
-                span.glyphicon.glyphicon-plus(aria-hidden="true")
+                span.fa.fa-plus(aria-hidden="true")
               else
-                span.glyphicon.glyphicon-minus(aria-hidden="true")
+                span.fa.fa-minus(aria-hidden="true")
             unless here
               a.btn.btn-info.focusButton(aria-label="Focus", href="{{pathFor 'message' group=group message=_id}}", draggable="true")
-                span.glyphicon.glyphicon-arrow-right(aria-hidden="true")
+                span.fa.fa-arrow-right(aria-hidden="true")
             if here
               unless root
                 if prev
                   with prev
                     a.btn.btn-info(href="{{pathFor 'message' group=group message=_id}}", title=title)
-                      span.glyphicon.glyphicon-backward(aria-hidden="true")
+                      span.fa.fa-backward(aria-hidden="true")
                 else
                   a.btn.btn-info.disabled
-                    span.glyphicon.glyphicon-backward(aria-hidden="true")
+                    span.fa.fa-backward(aria-hidden="true")
                 if next
                   with next
                     a.btn.btn-info(href="{{pathFor 'message' group=group message=_id}}", title=title)
-                      span.glyphicon.glyphicon-forward(aria-hidden="true")
+                      span.fa.fa-forward(aria-hidden="true")
                 else
                   a.btn.btn-info.disabled
-                    span.glyphicon.glyphicon-forward(aria-hidden="true")
+                    span.fa.fa-forward(aria-hidden="true")
           span.space
           if file
-            span.glyphicon.glyphicon-paperclip
+            span.fa.fa-paperclip
           span.title.card-title.tex2jax !{formatTitle}&#8203;
           +messageTags
           +messageLabels
@@ -117,11 +117,11 @@ template(name="submessage")
             each tags
               span.badge.badge-default.tag.tagWithRemove
                 | #{key}
-                span.tagRemove.glyphicon.glyphicon-remove-sign(aria-label="Remove",data-tag=key)
+                span.tagRemove.fa.fa-times(aria-label="Remove",data-tag=key)
               |  
           span.btn-group
             button.btn.btn-default.badge.badge-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
-              span.glyphicon.glyphicon-plus
+              span.fa.fa-plus
               | Tag
             ul.dropdown-menu(role="menu").tagMenu
               li.disabled
@@ -130,7 +130,7 @@ template(name="submessage")
                     input.tagAddText.form-control(type="text", placeholder="New Tag...")
                     .input-group-btn
                       button.btn.btn-default.tagAddNew(type="submit")
-                        span.glyphicon.glyphicon-plus
+                        span.fa.fa-plus
               if absentTagsCount
                 li.dropdown-divider(role="separator")
               each absentTags
@@ -230,7 +230,7 @@ template(name="submessage")
               if editingRV
                 .fileDescription
                   .fileDescriptionText
-                    span.glyphicon.glyphicon-paperclip
+                    span.fa.fa-paperclip
                     | !{formatFileDescription}
                   .file-right-buttons.btn-group.d-print-none
                     //- In future, support basic image editing.  For now, just:
@@ -398,9 +398,9 @@ template(name="messageParentConfirm")
           .row
             .col-xs-12.parentArrow
               .parentArrow1
-              span.glyphicon.glyphicon-remove
+              span.fa.fa-times
               |<div class="parentArrow2"></div><div class="parentArrow3"></div>
-              span.glyphicon.glyphicon-ok
+              span.fa.fa-check
               .parentArrow4
           .row
             .col-xs-12.halfHeight

@@ -240,9 +240,9 @@ Template.messageList.helpers
     sortBy().key == key
   sortingGlyph: ->
     if sortBy().reverse
-      'glyphicon-sort-by-alphabet-alt'
+      'fa-sort-alpha-desc'
     else
-      'glyphicon-sort-by-alphabet'
+      'fa-sort-alpha-asc'
   topMessages: ->
     groupSortedBy @group, sortBy()
 

@@ -42,6 +42,7 @@ ejson@1.0.14
 email@1.2.3
 force-ssl@1.0.15
 force-ssl-common@1.0.15
+fortawesome:fontawesome@4.7.0
 gcampax:accounts-dropbox@1.0.0
 gcampax:dropbox-oauth@1.0.0
 geojson-utils@1.0.10
@@ -62,12 +63,9 @@ iron:router@1.1.2
 iron:url@1.1.0
 jquery@1.11.10
 launch-screen@1.1.1
-less@2.7.9
 livedata@1.0.18
 localstorage@1.1.1
 logging@1.1.17
-matb33:bootstrap-base@10.0.0
-matb33:bootstrap-glyphicons@10.0.0
 meteor@1.7.2
 meteor-base@1.1.0
 meteorhacks:kadira@2.30.3
