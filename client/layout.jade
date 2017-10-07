@@ -3,54 +3,51 @@ head
 
 template(name="layout")
   .container-fluid
-    nav.navbar.navbar-default.navbar-flex(role="navigation")#top
-      .navbar-header
-        button.navbar-toggle.collapsed(type="button", data-toggle="collapse", data-target="#navbar")
-          span.sr-only Toggle navigation
-          span.icon-bar
-          span.icon-bar
-          span.icon-bar
-        a.navbar-brand(href="{{pathFor 'frontpage'}}") Coauthor
-        //- Old Coauthor link was to current group, if any:
-          if routeGroup
-            if wildGroup
-              a.navbar-brand(href="{{pathFor 'frontpage'}}") Coauthor
-            else
-              a.navbar-brand(href="{{pathFor 'group' group=routeGroup}}") Coauthor
-          else
+    nav.navbar.navbar-expand-lg.navbar-light.bg-light(role="navigation")#top
+      a.navbar-brand(href="{{pathFor 'frontpage'}}") Coauthor
+      //- Old Coauthor link was to current group, if any:
+        if routeGroup
+          if wildGroup
             a.navbar-brand(href="{{pathFor 'frontpage'}}") Coauthor
-        ul.nav.navbar-nav
-          li.dropdown.halflink
-            //- Repetition is necessary to avoid space between links
-            if groupData
-              a.link(href="{{pathFor 'group' group=routeGroup}}") #{routeGroup}
-              a.dropdown-toggle(href="#", data-toggle="dropdown", role="button", aria-expanded="false")
-                span.caret
-            else if routeGroup
-              a.link(href="{{pathFor 'group' group=routeGroup}}") #{routeGroup}?
-              a.dropdown-toggle(href="#", data-toggle="dropdown", role="button", aria-expanded="false")
-                span.caret
+          else
+            a.navbar-brand(href="{{pathFor 'group' group=routeGroup}}") Coauthor
+        else
+          a.navbar-brand(href="{{pathFor 'frontpage'}}") Coauthor
+      ul.nav.navbar-nav
+        li.nav-item.dropdown.halflink
+          //- Repetition is necessary to avoid space between links
+          if groupData
+            a.link(href="{{pathFor 'group' group=routeGroup}}") #{routeGroup}
+            a.dropdown-toggle(href="#", data-toggle="dropdown", role="button", aria-expanded="false")
+              span.caret
+          else if routeGroup
+            a.link(href="{{pathFor 'group' group=routeGroup}}") #{routeGroup}?
+            a.dropdown-toggle(href="#", data-toggle="dropdown", role="button", aria-expanded="false")
+              span.caret
+          else
+            a.dropdown-toggle(href="#", data-toggle="dropdown", role="button", aria-expanded="false")
+              i Select Group
+              span.caret
+          ul.dropdown-menu(role="menu")
+            if groupCount
+              each groups
+                li(class="{{activeGroup}}")
+                  a(href=linkToGroup) {{name}}
+            else if currentUser
+              li
+                a
+                  i No groups available to you...
             else
-              a.dropdown-toggle(href="#", data-toggle="dropdown", role="button", aria-expanded="false")
-                i Select Group
-                span.caret
-            ul.dropdown-menu(role="menu")
-              if groupCount
-                each groups
-                  li(class="{{activeGroup}}")
-                    a(href=linkToGroup) {{name}}
-              else if currentUser
-                li
-                  a
-                    i No groups available to you...
-              else
-                li
-                  a
-                    i No groups available &mdash; should you sign in?
-              //-
-                li.dropdown-divider
-                li
-                  a(href="#") Request Access
+              li
+                a
+                  i No groups available &mdash; should you sign in?
+            //-
+              li.dropdown-divider
+              li
+                a(href="#") Request Access
+      button.navbar-toggler(type="button", data-toggle="collapse", data-target="#navbar")
+        span.sr-only Toggle navigation
+        span.navbar-toggler-icon
       .collapse.navbar-collapse#navbar
         form.navbar-form.input-group.searchForm
           input.form-control.searchText(type="text", placeholder="Search", value=search)
