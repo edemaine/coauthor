@@ -35,7 +35,7 @@ template(name="rootHeader")
         .card-heading.title
           .message-left-buttons.btn-group.btn-group-sm
             a.btn.btn-info.focusButton(aria-label="Focus", href="{{pathFor 'message' group=group message=_id}}")
-              span.fa.fa-arrow-right(aria-hidden="true")
+              span.fa.fa-external-link(aria-hidden="true")
           span.space
           span.title.card-title.tex2jax !{formatTitleOrUntitled}
 
@@ -87,7 +87,7 @@ template(name="submessage")
                 span.fa.fa-minus(aria-hidden="true")
             unless here
               a.btn.btn-info.focusButton(aria-label="Focus", href="{{pathFor 'message' group=group message=_id}}", draggable="true")
-                span.fa.fa-arrow-right(aria-hidden="true")
+                span.fa.fa-external-link(aria-hidden="true")
             if here
               unless root
                 if prev
