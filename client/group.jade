@@ -19,7 +19,7 @@ template(name="group")
 template(name="groupButtons")
   //- button.btn.btn-default.postButton(class=disablePost,name="problem") Pose New Problem
   //- button.btn.btn-default.postButton(class=disablePost,name="discussion") Start Discussion Thread
-  .pull-right
+  .float-right
     if super
       button.btn.btn-warning.sortSetDefault Set Group Default Sort
       if globalSuper
@@ -104,7 +104,7 @@ template(name="messageList")
 
 template(name="importButtons")
   if canImport
-    .btn-group.pull-right
+    .btn-group.float-right
       input.importInput(type="file", style="display:none", data-format="osqa", accept=".zip")
       button.btn.btn-default.importButton(data-format="osqa") Import OSQA
       input.importInput(type="file", style="display:none", data-format="latex", accept=".zip")
@@ -130,7 +130,7 @@ template(name="messageShort")
       a(href=messageLink)
         | !{formatTitleOrUntitled}
         each tags
-          span.label.label-default #{key}
+          span.badge.badge-default #{key}
           |  
         +messageLabels
     td.author
@@ -150,7 +150,7 @@ template(name="messageShort")
         span.badge(class=zeroClass)= submessageCount
     td.subscribe
       //- a(href=messageLink)
-      button.btn.btn-default.btn-xs.subscribe
+      button.btn.btn-default.btn-sm.subscribe
         if subscribed
           span.glyphicon.glyphicon-ok
         else

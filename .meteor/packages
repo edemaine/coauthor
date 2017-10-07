@@ -49,9 +49,10 @@ edemaine:bootstrap-slider
 mizzao:sharejs-codemirror
 shell-server@0.2.4
 meteorhacks:subs-manager
-twbs:bootstrap
 meteorhacks:kadira
 webapp@1.3.19
 sergeyt:typeahead
 dynamic-import@0.1.3
 browser-policy
+alexwine:bootstrap-4
+matb33:bootstrap-glyphicons

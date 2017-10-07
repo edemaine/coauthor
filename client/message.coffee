@@ -666,20 +666,21 @@ Template.belowEditor.helpers
   saved: ->
     @title == @editTitle and @body == @editBody
 
-panelClass =
-  deleted: 'panel-danger'
-  unpublished: 'panel-warning'
-  private: 'panel-info'
-  minimized: 'panel-success'
-  published: 'panel-primary'
-Template.registerHelper 'messagePanelClass', ->
-  #console.log 'rendering', @_id, @
+cardClass =
+  deleted: 'danger'
+  unpublished: 'warning'
+  private: 'info'
+  minimized: 'success'
+  published: 'primary'
+Template.registerHelper 'messageCardClass', ->
   classes = []
   classes.push mclass = messageClass.call @
-  classes.push panelClass[mclass]
-  if Template.instance().editing?.get()
-    classes.push 'editing'
+  classes.push "border-#{cardClass[mclass]}"
   classes.join ' '
+
+Template.registerHelper 'messageHeadingClass', ->
+  mclass = messageClass.call @
+  "bg-#{cardClass[mclass]} text-white"
 
 Template.registerHelper 'formatCreator', ->
   linkToAuthor @group, @creator
