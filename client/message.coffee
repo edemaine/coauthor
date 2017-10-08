@@ -477,6 +477,8 @@ Template.submessage.helpers
     _id: @_id
     title: @title
     body: @body
+    group: @group
+    editing: @editing  ## to list other editors
     editTitle: Template.instance().editTitle.get()
     editBody: Template.instance().editBody.get()
   hideIfEditing: ->
@@ -665,6 +667,12 @@ Template.belowEditor.helpers
   sideBySide: -> messagePreviewGet()?.sideBySide
   saved: ->
     @title == @editTitle and @body == @editBody
+  otherEditors: ->
+    others = _.without @editing, Meteor.user()?.username
+    if others.length > 0
+      " Editing with #{(linkToAuthor @group, other for other in others).join ', '}."
+    else
+      ''
 
 panelClass =
   deleted: 'panel-danger'

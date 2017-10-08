@@ -268,9 +268,9 @@ template(name="belowEditor")
       else
         button.btn.btn-default.togglePreview Enable Preview
     if saved
-      .alert.alert-success.save-alert All changes saved
+      .alert.alert-success.save-alert All changes saved.!{otherEditors}
     else
-      .alert.alert-danger.save-alert Unsaved changes
+      .alert.alert-danger.save-alert Unsaved changes.!{otherEditors}
 
 template(name="messageTags")
   span.messageTags
