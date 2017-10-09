@@ -29,7 +29,8 @@ module.exports = {
       PORT: 80,
       MAIL_URL: 'smtp://coauthor.csail.mit.edu:25?ignoreTLS=true',
       //MAIL_FROM: 'coauthor@coauthor.csail.mit.edu',
-      MONGO_URL: 'mongodb://localhost/meteor'
+      MONGO_URL: 'mongodb://mongodb/meteor',
+      MONGO_OPLOG_URL: 'mongodb://mongodb/local'
     },
     ssl: {
       // pem: '../coauthor_csail_mit_edu.ssl/coauthor_csail_mit_edu.pem'
