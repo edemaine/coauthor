@@ -382,17 +382,17 @@ template(name="messageReplace")
 
 template(name="messageParentConfirm")
   .modal
-    .modal-dialog.messageParentConfirm
-      .modal-content
+    .modal-dialog.modal-lg.messageParentConfirm
+      .modal-content.flexColumn
         .modal-header
           h2 Confirm Message Reparenting
-        .modal-body
+        .modal-body.flexColumn
           p Are you sure you want to reparent as follows?
-          .row
-            .col-xs-6.halfHeight
+          .row.flexShrink.flexRow
+            .col-xs-6.scrollbars
               with oldParent
                 +readMessage
-            .col-xs-6.halfHeight
+            .col-xs-6.scrollbars
               with parent
                 +readMessage
           .row
@@ -402,8 +402,8 @@ template(name="messageParentConfirm")
               |<div class="parentArrow2"></div><div class="parentArrow3"></div>
               span.glyphicon.glyphicon-ok
               .parentArrow4
-          .row
-            .col-xs-12.halfHeight
+          .row.flexShrink.flexRow
+            .col-xs-12.scrollbars
               with child
                 +readMessage
         .modal-footer
