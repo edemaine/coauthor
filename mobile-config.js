@@ -7,3 +7,4 @@ App.info({
 });
 
 App.accessRule('*');
+App.accessRule('blob:*');
