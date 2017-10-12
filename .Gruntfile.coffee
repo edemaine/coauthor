@@ -34,12 +34,12 @@ module.exports = (grunt) ->
         options:
           patterns: [
             match: /require\(".\/codemirror"\)/
-            replacement: 'require("meteor/mizzao:sharejs-codemirror/node_modules/codemirror/lib/codemirror.js")'
+            replacement: 'require("meteor/edemaine:sharejs-codemirror/node_modules/codemirror/lib/codemirror.js")'
           ,
             match: /require\("[^"]*\//g
             replacement: 'require("./'
           #  match: /\(function[^]*?function\(CodeMirror\) {/
-          #  replacement: 'const CodeMirror = require("meteor/mizzao:sharejs-codemirror/node_modules/codemirror/lib/codemirror.js");'
+          #  replacement: 'const CodeMirror = require("meteor/edemaine:sharejs-codemirror/node_modules/codemirror/lib/codemirror.js");'
           #,
           #  match: /}\);\s*$/
           #  replacement: ''

@@ -1,5 +1,5 @@
 import { defaultFormat } from './settings.coffee'
-import { ShareJS } from 'meteor/mizzao:sharejs'
+import { ShareJS } from 'meteor/edemaine:sharejs'
 
 @untitledMessage = '(untitled)'
 
