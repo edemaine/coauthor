@@ -4,7 +4,7 @@ template(name='author')
       .panel-heading.clearfix
         span.title.panel-title Author &ldquo;#{displayUser}&rdquo; (username &lsquo;#{author}&rsquo;, email !{email})
         .message-right-buttons.btn-group.pull-right.hidden-print
-          a.btn.btn-default.statsButton(href="{{pathFor 'stats' username=author}}") Statistics
+          a.btn.btn-default.statsButton(href="{{pathFor 'stats' group=group username=author}}") Statistics
       .panel-body
         each messages
           +readMessageHeader
