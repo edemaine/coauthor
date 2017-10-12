@@ -1,3 +1,9 @@
+corsHandler = (req, res, next) ->
+  if req.headers?.origin
+    res.setHeader 'Access-Control-Allow-Origin', req.headers.origin
+    res.setHeader 'Access-Control-Allow-Credentials', true
+  next()
+
 @Files = FileCollection
   resumable: true
   resumableIndexName: 'files'
@@ -6,6 +12,29 @@
     path: '/id/:_id'
     lookup: (params, query) ->
       _id: params._id
+    handler: corsHandler
+  ,
+    method: 'post'
+    path: '/_resumable'
+    lookup: -> {}
+    handler: corsHandler
+  ,
+    method: 'head'
+    path: '/_resumable'
+    lookup: -> {}
+    handler: corsHandler
+  ,
+    method: 'options'
+    path: '/_resumable'
+    lookup: -> {}
+    handler: (req, res, next) ->
+      res.writeHead 200,
+        'Content-Type': 'text/plain'
+        'Access-Control-Allow-Origin': req.headers.origin
+        'Access-Control-Allow-Credentials': true
+        'Access-Control-Allow-Headers': 'x-auth-token, user-agent'
+        'Access-Control-Allow-Methods': 'GET, POST, HEAD, OPTIONS'
+      res.end()
   ]
 
 if Meteor.isServer
