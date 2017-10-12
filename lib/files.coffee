@@ -24,7 +24,7 @@ if Meteor.isServer
   if id.file?
     urlToInternalFile id
   else
-    "#{fileUrlPrefix}#{id}"
+    Meteor.absoluteUrl "#{fileUrlPrefix[1..]}#{id}"
 
 @url2file = (url) ->
   if url[...fileUrlPrefix.length] == fileUrlPrefix
@@ -38,9 +38,10 @@ if Meteor.isServer
         "Bad file URL #{url}"
 
 @internalFileUrlPrefix = "#{Files.baseURL}/id/"
+
 @urlToInternalFile = (id) ->
   id = id.file if id.file?
-  "#{internalFileUrlPrefix}#{id}"
+  Meteor.absoluteUrl "#{internalFileUrlPrefix[1..]}#{id}"
 
 @url2internalFile = (url) ->
   if url[...internalFileUrlPrefix.length] == internalFileUrlPrefix
@@ -102,8 +103,12 @@ if Meteor.isServer
 else
   Tracker.autorun ->
     Meteor.userId()  ## rerun when userId changes
-    $.cookie 'X-Auth-Token', Accounts._storedLoginToken(),
-      path: '/'
+    if Meteor.isCordova
+      window.cookieEmperor.setCookie Meteor.absoluteUrl(),
+        'X-Auth-Token', Accounts._storedLoginToken()
+    else
+      $.cookie 'X-Auth-Token', Accounts._storedLoginToken(),
+        path: '/'
 
   Session.set 'uploading', {}
   updateUploading = (changer) =>
