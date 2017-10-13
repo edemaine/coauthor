@@ -121,7 +121,7 @@ if Meteor.isServer
       check file.metadata,
         group: Match.Optional String
       file.metadata.uploader = userId
-      groupRoleCheck file.metadata.group ? wildGroup, 'post'
+      groupRoleCheck file.metadata.group ? wildGroup, 'post', findUser userId
     remove: (userId, file) ->
       file.metadata?.uploader in [userId, null]
     read: (userId, file) ->
