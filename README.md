@@ -53,9 +53,12 @@ in other fields too.
     `\raisebox{amount}{text}`, `\par`,
     `\BY{...}`, `\YEAR{...}`,
     `\chapter`, `\section`, `\subsection`, `\subsubsection`, `\footnote`,
-    `\includegraphics[width/height]{url}`, `\"`, `\'`, ```\` ```,
-    `\^`, `\~`, `\=`, `\c`, `\v`, `\u`, `\H`, ``` `` ```, `''`,
-    `\&`, `\$`, `\{`, `\}`, `~`, `--`, `---`, `{`, `}`, `\\`, `\item`;
+    `\includegraphics[width/height]{url}`,
+    `\"`, `\'`, ```\` ```, `\^`, `\~`, `\=`, `\c`, `\v`, `\u`, `\H`,
+    `\textasciitilde`, `\textasciicircum`, `\textbackslash`,
+    `\textellipsis`, `\dots`, `\ldots`,
+    `\&`, `\$`, `\{`, `\}`, `\%`, ``` `` ```, `''`,
+    `~`, `--`, `---`, `{`, `}`, `\\`, `\item`;
     `\begin/\end` for environments `verbatim`, `enumerate`, `itemize`,
     `equation`, `eqnarray`, `align`,
     `problem`, `theorem`, `conjecture`, `lemma`, `corollary`, `fact`,

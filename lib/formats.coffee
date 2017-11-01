@@ -232,8 +232,10 @@ boldWeight = 900
   .replace /\\end\s*{(problem|theorem|conjecture|lemma|corollary|fact|observation|proposition|claim)}/g, '</blockquote>'
   .replace /\\begin\s*{(proof|pf)}(\s*\[([^\]]*)\])?/g, (m, env, x, opt) -> "<b>Proof#{if opt then " (#{opt})" else ''}:</b> "
   .replace /\\end\s*{(proof|pf)}/g, ' <span class="pull-right">&#8718;</span></p><p class="clearfix">'
-  .replace /\\(dots|ldots)\b\s*/g, '&hellip;'
+  .replace /\\(dots|ldots|textellipsis)\b\s*/g, '&hellip;'
   .replace /\\textasciitilde\b\s*/g, '&Tilde;'  ## Avoid ~ -> \nbsp
+  .replace /\\textasciicircum\b\s*/g, '&Hat;'
+  .replace /\\textbackslash\b\s*/g, '&backslash;'  ## Avoid \ processing
   .replace /\\"{(.)}/g, '&$1uml;'
   .replace /\\"(.)/g, '&$1uml;'
   .replace /\\'c|\\'{c}/g, '&#263;'
@@ -242,9 +244,11 @@ boldWeight = 900
   .replace /\\'(.)/g, '&$1acute;'
   .replace /\\`{(.)}/g, '&$1grave;'
   .replace /\\`(.)/g, '&$1grave;'
-  .replace /\\^{(.)}/g, '&$1circ;'
-  .replace /\\^(.)/g, '&$1circ;'
+  .replace /\\\^{(.)}/g, '&$1circ;'
+  .replace /\\\^{}/g, '&Hat;'
+  .replace /\\\^(.)/g, '&$1circ;'
   .replace /\\~{(.)}/g, '&$1tilde;'
+  .replace /\\~{}/g, '&tilde;'
   .replace /\\~(.)/g, '&$1tilde;'
   .replace /\\=a|\\={a}/g, '&#257;'
   .replace /\\=e|\\={e}/g, '&#275;'
