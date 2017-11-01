@@ -21,10 +21,10 @@ template(name="groupButtons")
   //- button.btn.btn-default.postButton(class=disablePost,name="discussion") Start Discussion Thread
   .pull-right
     if super
-      button.btn.btn-warning.sortSetDefault Set Group Default Sort
-      if globalSuper
-        button.btn.btn-danger.groupRenameButton Rename Group
-      span.space
+      .btn-group
+        button.btn.btn-warning.sortSetDefault Set Group Default Sort
+        if globalSuper
+          button.btn.btn-danger.groupRenameButton Rename Group
     button.btn.btn-info.postButton(class=disableClass, data-original-title=disableTitle, data-toggle='tooltip') Pose New Problem / Discussion
     .btn-group
       a.btn.btn-default.myPostsButton(class=disableMyPosts,href=linkToMyPosts) My Posts
