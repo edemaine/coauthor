@@ -174,7 +174,6 @@ formatParsedSearch = (query) ->
     "#{formatParsedSearch query.body} in body"
   else if _.isRegExp query
     simplify = unbreakRegExp uncaseInsensitiveRegExp query.source
-    console.log simplify, realRegExp simplify
     if realRegExp simplify
       query.toString()
     else
@@ -183,6 +182,14 @@ formatParsedSearch = (query) ->
         s += ' case-sensitive'
       #else
       #  s += ' case-insensitive'
+      if /^\\b/.test(query.source) and /\\b$/.test query.source
+        s += ' whole-word'
+      else if /^\\b/.test query.source
+        s += ' prefix'
+      else if /\\b$/.test query.source
+        s += ' suffix'
+      #else
+      #  s += ' substring'
       s
   else
     query.toString()
