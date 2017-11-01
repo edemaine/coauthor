@@ -114,7 +114,7 @@ boldWeight = 900
   .replace /\\href\s*{([^{}]*)}\s*{((?:[^{}]|{[^{}]*})*)}/g, '<a href="$1">$2</a>'
   ## Now remove comments, stripping newlines from the input.
   comments = (text) ->
-    text = text.replace /%.*$\n?/mg, (match, offset, string) ->
+    text = text.replace /(^|[^\\])%.*$\n?/mg, (match, prefix, offset, string) ->
       if inTag string, offset
         ## Potential unclosed HTML tag: leave alone, but process other
         ## %s on the same line after tag closes.
@@ -124,7 +124,7 @@ boldWeight = 900
         else
           match
       else
-        ''
+        prefix
   tex = comments tex
   ## Paragraph detection must go before any macro expansion (which eat \n's)
   tex = tex.replace /\n\n+/g, '\n\\par\n'
@@ -259,7 +259,7 @@ boldWeight = 900
   .replace /\\v\s*{a}/g, '&#462;'
   .replace /\\H\s*{o}/g, '&#337;'
   .replace /\\&/g, '&amp;'
-  .replace /\\([${}])/g, '$1'
+  .replace /\\([${}%])/g, '$1'
   .replace /\\\s+/g, ' '
   .replace latexSymbolsRe, (match, offset, string) ->
     if inTag string, offset  ## potential unclosed HTML tag; leave alone
