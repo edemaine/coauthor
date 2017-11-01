@@ -462,6 +462,14 @@ if Meteor.isServer
             verb = 'updated'
           else
             verb = 'created'
+          unless msg.published
+            verb += ' unpublished'
+          if msg.deleted
+            verb += ' deleted'
+          if msg.private
+            verb += ' private'
+          if msg.minimized
+            verb += ' minimized'
           changed = notification.changed
           unless old?
             ## Ignore some initial values during creation of message.
