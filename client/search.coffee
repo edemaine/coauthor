@@ -42,8 +42,8 @@ Template.search.helpers
     pluralize messagesSearch(@group, @search).count(), 'message'
   valid: ->
     parseSearch(@search)?
-  parseSearch: ->
-    formatDate parseSearch @search
+  formatSearch: ->
+    formatSearch @search
 
 Template.search.events
   'change #searchInput': (e, t) ->

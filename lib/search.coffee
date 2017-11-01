@@ -21,11 +21,32 @@ SEARCH LANGUAGE:
   or title:regex:"this regex" or -title:"this phrase".
 ###
 
-escapeRegExp = (s) ->
+escapeRegExp = (regex) ->
   ## https://stackoverflow.com/questions/3446170/escape-string-for-use-in-javascript-regex
   #s.replace /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&"
   ## Intentionally omitting * which we're defining in parseSearch
-  s.replace /[\-\[\]\/\{\}\(\)\+\?\.\\\^\$\|]/g, "\\$&"
+  regex.replace /[\-\[\]\/\{\}\(\)\+\?\.\\\^\$\|]/g, "\\$&"
+
+caseInsensitiveRegExp = (regex) ->
+  regex.replace /[a-z]/g, (char) -> "[#{char}#{char.toUpperCase()}]"
+
+uncaseInsensitiveRegExp = (regex) ->
+  regex.replace /\[([a-z])([A-Z])\]/g, (match, lower, upper) ->
+    if lower.toUpperCase() == upper
+      lower
+    else
+      match
+
+unbreakRegExp = (regex) ->
+  regex.replace /^\\b|\\b$/g, ''
+
+realRegExp = (regex) ->
+  ## Returns whether s uses any "real" regex features, i.e.,
+  ## whether it can be unescaped to return to a string.
+  /[^\\]([\-\[\]\/\{\}\(\)\*\+\?\.\^\$\|]|\\[a-zA-Z])/.test regex
+
+unescapeRegExp = (regex) ->
+  regex.replace /\\(.)/g, "$1"
 
 @parseSearch = (search) ->
   ## Quoted strings turn off separation by spaces.
@@ -64,7 +85,7 @@ escapeRegExp = (s) ->
         continue unless token
       regex = escapeRegExp token
       ## Outside regex mode, lower-case letters are case-insensitive
-      .replace /[a-z]/g, (char) -> "[#{char}#{char.toUpperCase()}]"
+      regex = caseInsensitiveRegExp regex
       regex = regex.replace /\*/g, '\\S*'
       if not starStart and regex.match /^[\[\w]/  ## a or [aA]
         regex = "\\b#{regex}"
@@ -101,6 +122,70 @@ escapeRegExp = (s) ->
     wants[0]
   else
     $and: wants
+
+@formatSearch = (search) ->
+  query = parseSearch search
+  if query?
+    formatted = formatParsedSearch query
+  else
+    "invalid query &ldquo;#{search}&rdquo;"
+
+formatParsedSearch = (query) ->
+  keys = _.keys query
+  if _.isEqual keys, ['$and']
+    parts = (formatParsedSearch part for part in query.$and)
+    if parts.length > 1
+      parts =
+        for part in parts
+          part = "(#{part})" if 0 <= part.indexOf ' OR '
+          part
+    for i in [parts.length-1..1]
+      if _.isEqual(['title'], _.keys query.$and[i-1]) and
+         _.isEqual(['$not'], _.keys query.$and[i-1].title) and
+         _.isEqual(['body'], _.keys query.$and[i]) and
+         _.isEqual(['$not'], _.keys query.$and[i].body) and
+         _.isEqual query.$and[i-1].title.$not, query.$and[i].body.$not
+        parts[i-1..i] = parts[i-1].replace /in title$/, 'in title nor body'
+    for i in [1...parts.length]
+      if parts[i-1][-17..] == ' in title or body' and
+         parts[i][-17..] == ' in title or body'
+        parts[i-1] = parts[i-1][...-17]
+      else if parts[i-1][-9..] == ' in title' and
+              parts[i][-9..] == ' in title'
+        parts[i-1] = parts[i-1][...-9]
+      else if parts[i-1][-8..] == ' in body' and
+              parts[i][-8..] == ' in body'
+        parts[i-1] = parts[i-1][...-8]
+    parts.join ' AND '
+  else if _.isEqual keys, ['$or']
+    parts = (formatParsedSearch part for part in query.$or)
+    if parts.length == 2 and
+       _.isEqual(['title'], _.keys query.$or[0]) and
+       _.isEqual(['body'], _.keys query.$or[1]) and
+       _.isEqual query.$or[0].title, query.$or[1].body
+      parts[0].replace /in title$/, 'in title or body'
+    else
+      parts.join ' OR '
+  else if _.isEqual keys, ['$not']
+    "#{formatParsedSearch query.$not} not"
+  else if _.isEqual keys, ['title']
+    "#{formatParsedSearch query.title} in title"
+  else if _.isEqual keys, ['body']
+    "#{formatParsedSearch query.body} in body"
+  else if _.isRegExp query
+    simplify = unbreakRegExp uncaseInsensitiveRegExp query.source
+    console.log simplify, realRegExp simplify
+    if realRegExp simplify
+      query.toString()
+    else
+      s = "“#{unescapeRegExp simplify}”"
+      if /[A-Z]/.test s
+        s += ' case-sensitive'
+      #else
+      #  s += ' case-insensitive'
+      s
+  else
+    query.toString()
 
 ## Pure regex searching
 #@searchQuery = (search) ->
