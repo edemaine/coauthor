@@ -5,19 +5,26 @@
 
 lastURL = null
 pastTops = {}
+transitioning = false
 
 $(window).scroll ->
+  return if transitioning
   lastURL = document.URL
-  pastTops[lastURL] = $('body').scrollTop()
+  pastTops[lastURL] = $(window).scrollTop()
+  #console.log lastURL, $(window).scrollTop()
 
-## Find all templates that correspond to routes
-for route in Router.routes
-  template = route.options.template ? route.options.name
-  Template[template].onRendered ->
+Router.onBeforeAction ->
+  transitioning = true
+  @next()
+
+Router.onAfterAction ->
+  Meteor.setTimeout ->
+    transitioning = false
     url = document.URL
     #console.log url, lastURL, pastTops[url] or 0
     return if url == lastURL
     lastURL = url
-    $('body').animate
+    $('html, body').animate
       scrollTop: pastTops[url] or 0
     , 200
+  , 100
