@@ -1,0 +1,78 @@
+/* Based on highlight.js's Tomorrow theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+  color: #8e908c;
+}
+
+/* Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+  /* color: #c82829; -- Tomorrow Red */
+  color: #bc2d2d;
+}
+
+/* Pink */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-meta,
+.hljs-link {
+  color: #d635c6;
+}
+
+/* Orange */
+.hljs-attr,
+.hljs-attribute {
+  color: #d66a0c;
+}
+
+/* Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+  /* color: #718c00; -- Tomorrow Green */
+  color: #009614;
+}
+
+/* Blue */
+.hljs-title,
+.hljs-section,
+.hljs-params {
+  /* color: #4271ae; -- Tomorrow Blue */
+  color: #1c78bf;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+  color: #8959a8;
+}
+
+.hljs {
+  display: block;
+  overflow-x: auto;
+  background: white;
+  color: #4d4d4c;
+  padding: 0.5em;
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong,
+.hljs-name,
+.hljs-keyword {
+  font-weight: bold;
+}

@@ -12,10 +12,16 @@ switch markdownMode
     @markdownInline = (text) -> marked.inlineLexer text, {}, marked.defaults
 
   when 'markdown-it'
+    @hljs = require 'highlight.js'
     @markdownIt = require('markdown-it')
       html: true
       linkify: true
       typographer: true
+      highlight: (str, lang) ->
+        if lang and hljs.getLanguage lang
+          try
+            return hljs.highlight(lang, str).value
+        ''  ## default escaping
     .use require 'markdown-it-replacements'
     markdownIt.linkify
     .add 'coauthor:', validate: ///^#{coauthorLinkBodyRe}///
