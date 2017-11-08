@@ -16,9 +16,8 @@ module.exports = {
     servers: {
       one: {}
     },
-    dockerImage: 'abernix/meteord:base', 
     docker: {
-      image: 'abernix/meteord:base', 
+      image: 'abernix/meteord:node-8.4.0-base', 
     },
     buildOptions: {
       serverOnly: true,
@@ -37,7 +36,10 @@ module.exports = {
       key: '../../coauthor_csail_mit_edu.ssl/coauthor_csail_mit_edu.key',
       port: 443
     },
-    deployCheckWaitTime: 150
+    deployCheckWaitTime: 200,
+    nginx: {
+      clientUploadLimit: '0', // disable upload limit
+    },
   },
 
   mongo: {
@@ -46,5 +48,11 @@ module.exports = {
     servers: {
       one: {},
     },
+  },
+
+  hooks: {
+    'pre.deploy': {
+      localCommand: 'meteor npm install'
+    }
   },
 };

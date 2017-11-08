@@ -16,9 +16,8 @@ module.exports = {
     servers: {
       one: {}
     },
-    dockerImage: 'abernix/meteord:base', 
     docker: {
-      image: 'abernix/meteord:base', 
+      image: 'abernix/meteord:node-8.4.0-base', 
     },
     buildOptions: {
       serverOnly: true,
@@ -50,5 +49,11 @@ module.exports = {
     servers: {
       one: {},
     },
+  },
+
+  hooks: {
+    'pre.deploy': {
+      localCommand: 'meteor npm install'
+    }
   },
 };
