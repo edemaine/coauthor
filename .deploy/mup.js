@@ -53,7 +53,7 @@ module.exports = {
 
   hooks: {
     'pre.deploy': {
-      localCommand: 'meteor npm install'
+      localCommand: 'npm install'
     }
   },
 };
