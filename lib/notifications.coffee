@@ -462,14 +462,15 @@ if Meteor.isServer
             verb = 'updated'
           else
             verb = 'created'
+          adjectives = ''
           unless msg.published
-            verb += ' unpublished'
+            adjectives += 'unpublished '
           if msg.deleted
-            verb += ' deleted'
+            adjectives += 'deleted '
           if msg.private
-            verb += ' private'
+            adjectives += 'private '
           if msg.minimized
-            verb += ' minimized'
+            adjectives += 'minimized '
           changed = notification.changed
           unless old?
             ## Ignore some initial values during creation of message.
@@ -499,11 +500,11 @@ if Meteor.isServer
           updated = momentInUserTimezone msg.updated, user
           dates = "on #{updated.format 'ddd, MMM D, YYYY [at] H:mm z'}"
           if msg.root?
-            html += "<P><B>#{authorsHTML}</B> #{verb} message #{linkToMessage msg, true, true} in the thread #{linkToMessage rootmsg, true, true} #{dates}:"
-            text += "#{authorsText} #{verb} message #{linkToMessage msg, false, true} in the thread #{linkToMessage rootmsg, false, true} #{dates}:"
+            html += "<P><B>#{authorsHTML}</B> #{verb} #{adjectives}message #{linkToMessage msg, true, true} in the thread #{linkToMessage rootmsg, true, true} #{dates}:"
+            text += "#{authorsText} #{verb} #{adjectives}message #{linkToMessage msg, false, true} in the thread #{linkToMessage rootmsg, false, true} #{dates}:"
           else
-            html += "<P><B>#{authorsHTML}</B> #{verb} root message in the thread #{linkToMessage msg, true, true} #{dates}:"
-            text += "#{authorsText} #{verb} root message in the thread #{linkToMessage msg, false, true} #{dates}:"
+            html += "<P><B>#{authorsHTML}</B> #{verb} #{adjectives}root message in the thread #{linkToMessage msg, true, true} #{dates}:"
+            text += "#{authorsText} #{verb} #{adjectives}root message in the thread #{linkToMessage msg, false, true} #{dates}:"
           html += '\n\n'
           text += '\n\n'
           ## xxx also could use diff on body
