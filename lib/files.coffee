@@ -4,7 +4,7 @@ corsHandler = (req, res, next) ->
     res.setHeader 'Access-Control-Allow-Credentials', true
   next()
 
-@Files = FileCollection
+@Files = new FileCollection
   resumable: true
   resumableIndexName: 'files'
   http: [
