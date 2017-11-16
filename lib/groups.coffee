@@ -293,12 +293,15 @@ Meteor.methods
           'submessageLastUpdate'
         else
           sort.key
-    options.sort = [[mongosort, if sort.reverse then 'desc' else 'asc']]
+    #options.sort = [[mongosort, if sort.reverse then 'desc' else 'asc']]
     if options.fields
       options.fields[mongosort] = true
       if sort.key == 'subscribe'  ## fields needed for subscribedToMessage
         options.fields.group = true
         options.fields.root = true
+      options.fields.deleted = true
+      options.fields.minimized = true
+      options.fields.published = true
   msgs = Messages.find query, options
   if sort?
     switch sort.key
@@ -309,9 +312,17 @@ Meteor.methods
       when 'subscribe'
         key = (msg) -> subscribedToMessage msg
       else
-        key = null
+        key = mongosort
+        #key = (msg) -> msg[mongosort]
     if key?
       msgs = msgs.fetch()
       msgs = _.sortBy msgs, key
       msgs.reverse() if sort.reverse
+      msgs = _.sortBy msgs,
+        (msg) ->
+          weight = 0
+          weight += 4 if msg.deleted  ## deleted messages go very bottom
+          weight += 2 if msg.minimized  ## minimized messages go bottom
+          weight -= 1 unless msg.published  ## unpublished messages go top
+          weight
   msgs
