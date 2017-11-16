@@ -4,8 +4,10 @@
 
 Here is how to get a **local test server** running:
 
-1. **Install Meteor:** `curl https://install.meteor.com/ | sh` on UNIX, or use
-   the [Windows installer](https://www.meteor.com/install).
+1. **[Install Meteor](https://www.meteor.com/install):**
+   `curl https://install.meteor.com/ | sh` on UNIX,
+   `choco install meteor` on Windows (in administrator command prompt
+   after [installing Chocolatey](https://chocolatey.org/install))
 2. **Download Coauthor:** `git clone https://github.com/edemaine/coauthor.git`
 3. **Run meteor:**
    * `cd coauthor`
@@ -94,3 +96,9 @@ Instructions for building the Coauthor Android app:
 3. `cd ../build/android`
 4. `jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 release-unsigned.apk coauthor`
 5. `zipalign -f 4 release-unsigned.apk coauthor.apk`
+
+## bcrypt on Windows
+
+To install `bcrypt` on Windows, install
+[Visual C++ 2015 Build Tools](http://landinghub.visualstudio.com/visual-cpp-build-tools)
+including the Windows 8.1 API, then `meteor npm install bcrypt`.
