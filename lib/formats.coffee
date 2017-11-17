@@ -335,9 +335,17 @@ postprocessLinks = (text) ->
 @escapeRe = (string) ->
   string.replace /[\\^$*+?.()|{}\[\]]/g, "\\$&"
 
+allUsers = ->
+  users = Meteor.users.find {}, fields: username: 1
+  .map (user) -> user.username
+
 atRePrefix = '[@\uff20]'
-@atRe = (users) ->
+@atRe = (users = allUsers()) ->
+  users = allUsers() unless users?
   users = [users] unless _.isArray users
+  ## Reverse-sort by length to ensure maximum-length match
+  ## (to handle when one username is a prefix of another).
+  users = _.sortBy users, (name) -> -name.length
   users = for user in users
     user = user.username if user.username?
     escapeRe user
@@ -346,12 +354,8 @@ atRePrefix = '[@\uff20]'
 
 postprocessAtMentions = (text) ->
   return text unless ///#{atRePrefix}///.test text
-  users = Meteor.users.find {}, fields: username: 1
-  .map (user) -> user.username
+  users = allUsers()
   return text unless 0 < users.length
-  ## Reverse-sort by length to ensure maximum-length match
-  ## (to handle when one username is a prefix of another).
-  users = _.sortBy users, (name) -> -name.length
   text.replace (atRe users), (match, user) ->
     "@#{linkToAuthor (routeGroup?() ? wildGroup), user}"
 

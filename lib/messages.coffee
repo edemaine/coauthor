@@ -182,7 +182,18 @@ if Meteor.isServer
     #limit: parseInt(@limit)
 
 @atMentioned = (message, author) ->
-  atRe(author).test message.body
+  re = atRe author
+  re.test(message.title) or re.test(message.body)
+
+@atMentions = (message) ->
+  return [] unless message?
+  mentions = []
+  re = atRe()
+  while (match = re.exec message.title)?
+    mentions.push match[1]
+  while (match = re.exec message.body)?
+    mentions.push match[1]
+  mentions
 
 if Meteor.isServer
   Meteor.publish 'messages.author', (group, author) ->

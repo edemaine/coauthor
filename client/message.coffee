@@ -115,7 +115,22 @@ orphans = (message) ->
     root: message
     _id: $nin: descendants
 
+authorCountHelper = (field) -> ->
+  authors =
+    for username, count of Session.get field
+      continue unless count
+      user: findUsername(username) ? username: username
+      count: count
+  authors = _.sortBy authors, (author) -> userSortKey author.user
+  authors = _.sortBy authors, (author) -> -author.count
+  authors =
+    for author in authors
+      "#{linkToAuthor @group, author.user} (#{author.count})"
+  authors.join ', '
+
 Template.message.helpers
+  authors: authorCountHelper 'threadAuthors'
+  mentions: authorCountHelper 'threadMentions'
   subscribers: ->
     users =
       for user in sortedMessageSubscribers @_id
@@ -236,6 +251,9 @@ export messageFoldHandler = (e, t) ->
   e.stopPropagation()
   messageFolded.set @_id, not messageFolded.get @_id
 
+threadAuthors = {}
+threadMentions = {}
+
 Template.submessage.onCreated ->
   @count = submessageCount++
   @editing = new ReactiveVar null
@@ -251,6 +269,20 @@ Template.submessage.onCreated ->
       @editBody.set data.body
     else
       @editing.set null
+
+    threadAuthors[author] -= 1 for author in @authors if @authors?
+    threadMentions[author] -= 1 for author in @mentions if @mentions?
+    @authors = (author for author of data.authors)
+    for author in @authors
+      threadAuthors[author] ?= 0
+      threadAuthors[author] += 1
+    Session.set 'threadAuthors', threadAuthors
+    @mentions = atMentions data
+    for author in @mentions
+      threadMentions[author] ?= 0
+      threadMentions[author] += 1
+    Session.set 'threadMentions', threadMentions
+
     #console.log 'automathjax'
     automathjax()
 
@@ -437,6 +469,11 @@ Template.submessage.onDestroyed ->
     if id of images
       images[id].count -= 1
       checkImage id
+
+  threadAuthors[author] -= 1 for author in @authors if @authors?
+  Session.set 'threadAuthors', threadAuthors
+  threadMentions[author] -= 1 for author in @mentions if @mentions?
+  Session.set 'threadMentions', threadMentions
 
 historify = (x, post) -> () ->
   history = messageHistory.get @_id
