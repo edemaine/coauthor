@@ -272,7 +272,7 @@ Template.submessage.onCreated ->
 
     threadAuthors[author] -= 1 for author in @authors if @authors?
     threadMentions[author] -= 1 for author in @mentions if @mentions?
-    @authors = (author for author of data.authors)
+    @authors = (unescapeUser author for author of data.authors)
     for author in @authors
       threadAuthors[author] ?= 0
       threadAuthors[author] += 1
