@@ -13,4 +13,5 @@
 
 .badge-zero { background-color: #a94442; }
 
-td.subscribe { vertical-align: middle; }
+/* match padding of <a> in other columns */
+td.subscribe button.subscribe { margin-top: 5px; }
