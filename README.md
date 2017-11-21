@@ -88,7 +88,9 @@ in other fields too.
   last update, number of posts, or whether subscribed (by clicking on the
   corresponding column, once for default sort order and again for
   opposite sort order).  Intelligent handling of numbers while sorting,
-  e.g. "9." comes before "10.".
+  e.g. "9." comes before "10.".  Deleted messages always sort to the very
+  bottom; minimized messages always sort near the bottom; and unpublished
+  messages always sort near the top.
 
 * "**Live Feed**" to watch messages as they get changed/posted.  Useful for
   projecting the latest activity onto a big screen while a group is gathered
