@@ -4,13 +4,13 @@ template(name='search')
       .panel-heading.clearfix
         form.form-inline
           span.title.panel-title= group
-          span.space
           | search for #{formatSearch}
+          span.pull-right.badge= messageCountText
       .panel-body
         each messages
           +readMessageHeader
       .panel-footer.clearfix
-        i= messageCount
+        i= messageCountText
         | match search query
   else
     +badGroup

@@ -121,17 +121,17 @@ Router.route '/:group/author/:author',
     author: @params.author
   fastRender: true
 
-Router.route '/:group/tag/:tag',
-  name: 'tag'
-  subscriptions: -> [
-    Subscribe.subscribe 'messages.tag', @params.group, @params.tag
-    Subscribe.subscribe 'groups.members', @params.group
-    Subscribe.subscribe 'files', @params.group
-  ]
-  data: ->
-    group: @params.group
-    tag: @params.tag
-  fastRender: true
+#Router.route '/:group/tag/:tag',
+#  name: 'tag'
+#  subscriptions: -> [
+#    Subscribe.subscribe 'messages.tag', @params.group, @params.tag
+#    Subscribe.subscribe 'groups.members', @params.group
+#    Subscribe.subscribe 'files', @params.group
+#  ]
+#  data: ->
+#    group: @params.group
+#    tag: @params.tag
+#  fastRender: true
 
 Router.route '/:group/stats/:username?',
   name: 'stats'

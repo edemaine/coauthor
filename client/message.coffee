@@ -75,9 +75,12 @@ Template.registerHelper 'tags', ->
   sortTags @tags
 
 Template.registerHelper 'linkToTag', ->
-  pathFor 'tag',
+  #pathFor 'tag',
+  #  group: Template.parentData().group
+  #  tag: @key
+  pathFor 'search',
     group: Template.parentData().group
-    tag: @key
+    search: "tag:#{@key}"
 
 Template.registerHelper 'folded', ->
   messageFolded.get @_id

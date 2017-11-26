@@ -381,9 +381,12 @@ if Meteor.isServer
 
   linkToTag = (group, tag, html) ->
     if html
-      url = urlFor 'tag',
+      #url = urlFor 'tag',
+      #  group: group
+      #  tag: tag
+      url = urlFor 'search',
         group: group
-        tag: tag
+        search: "tag:#{tag}"
       """<a href="#{url}">#{tag}</a>"""
     else
       tag

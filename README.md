@@ -133,6 +133,7 @@ in other fields too.
   Use quotes (`'...'` or `"..."`) to search for phrases or `regex:"..."`
   to search for regular expressions with spaces in them; normally,
   spaces act as an AND query.
+  `tag:...` does an exact match for a specified tag; it can be negated.
 
 * **User search**:
   find posts by a particular user by clicking on their username.

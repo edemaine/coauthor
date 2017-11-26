@@ -19,6 +19,8 @@ SEARCH LANGUAGE:
 * Use quotes ('...' or "...") to prevent this behavior.  For example,
   search for "this phrase" or title:"this phrase" or regex:"this regex"
   or title:regex:"this regex" or -title:"this phrase".
+* tag:... does an exact match for a specified tag.  It can be negated with -,
+  but does not behave specially with regex: or *s.
 ###
 
 escapeRegExp = (regex) ->
@@ -56,7 +58,7 @@ unescapeRegExp = (regex) ->
   while (token = tokenRe.exec search)?
     continue if token[1]  ## ignore whitespace tokens
     ## Check for negation and/or leading commands followed by colon
-    colon = /^-?(?:(?:regex|title|body):)*/.exec token[0]
+    colon = /^-?(?:(?:regex|title|body|tag):)*/.exec token[0]
     colon = colon[0]
     ## Remove quotes (which are just used for avoiding space parsing).
     if token[4]
@@ -64,12 +66,15 @@ unescapeRegExp = (regex) ->
     else if token[5]
       token = token[5]  ## unterminated initial "
     else
-      token = (token[2].replace /"[^"]*"|'[^']*'/g, (match) ->
+      token = (token[2].replace /"([^"]|\\")*"|'([^']|\\')*'/g, (match) ->
         match.substring 1, match.length-1
       ) + (token[3] ? '').substring 1
-    ## Remove leading colon part if we found one.  (Can't have had quotes.)
+    ## Remove leading colon part if we found one.
+    ## (Can't have had quotes or escapes.)
     token = token.substring colon.length
     continue unless token
+    ## Remove escapes.
+    token = token.replace /\\([:'"\\])/g, '$1'
     ## Construct regex for token
     if 0 <= colon.indexOf 'regex:'
       regex = token
@@ -118,6 +123,8 @@ unescapeRegExp = (regex) ->
           wants.push body: $not: regex
         else
           wants.push body: regex
+      when 'tag:'
+        wants.push "tags.#{escapeTag token}": $exists: not negate
   if wants.length == 1
     wants[0]
   else
@@ -172,6 +179,16 @@ formatParsedSearch = (query) ->
     "#{formatParsedSearch query.title} in title"
   else if _.isEqual keys, ['body']
     "#{formatParsedSearch query.body} in body"
+  else if keys.length == 1 and keys[0][...5] == 'tags.'
+    key = keys[0]
+    value = query[key]
+    if _.isEqual _.keys(value), ['$exists']
+      if value.$exists
+        "tagged '#{unescapeTag key[5..]}'"
+      else
+        "not tagged '#{unescapeTag key[5..]}'"
+    else
+      "tag #{key[5..]}: #{JSON.stringify value}"
   else if _.isRegExp query
     simplify = unbreakRegExp uncaseInsensitiveRegExp query.source
     if realRegExp simplify
@@ -192,7 +209,7 @@ formatParsedSearch = (query) ->
       #  s += ' substring'
       s
   else
-    query.toString()
+    JSON.stringify query
 
 ## Pure regex searching
 #@searchQuery = (search) ->

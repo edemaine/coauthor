@@ -114,3 +114,6 @@ em em em em em em { font-style: normal }
 
 /* Author search highlighting */
 .highlight { background: yellow; color: black; }
+
+/* Search results */
+.panel-heading .pull-right.badge { margin-top: 2px; }

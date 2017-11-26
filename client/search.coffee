@@ -38,8 +38,10 @@ topMessagesSearch = (group, search) ->
 Template.search.helpers
   messages: ->
     topMessagesSearch @group, @search
-  messageCount: ->
+  messageCountText: ->
     pluralize messagesSearch(@group, @search).count(), 'message'
+  messageCount: ->
+    messagesSearch(@group, @search).count()
   valid: ->
     parseSearch(@search)?
   formatSearch: ->
