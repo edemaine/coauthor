@@ -385,7 +385,6 @@ postprocessKaTeX = (text, math) ->
         displayMode: block.display
         throwOnError: false
         macros:
-          '\\dots': '\\ldots'
           '\\epsilon': '\\varepsilon'
     catch e
       throw e unless e instanceof katex.ParseError
