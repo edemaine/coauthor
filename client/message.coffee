@@ -83,7 +83,7 @@ Template.registerHelper 'linkToTag', ->
     search: "tag:#{@key}"
 
 Template.registerHelper 'folded', ->
-  messageFolded.get @_id
+  (not here @_id) and messageFolded.get @_id
 
 Template.rootHeader.helpers
   root: ->
@@ -501,14 +501,16 @@ absentTags = ->
   ,
     sort: ['key']
 
+here = (id) ->
+  id? and Router.current().route?.getName() == 'message' and
+  Router.current().params?.message == id
+
 Template.submessage.helpers
   tabindex: tabindex
   tabindex5: -> tabindex 5
   tabindex7: -> tabindex 7
   tabindex9: -> tabindex 9
-  here: ->
-    Router.current().route?.getName() == 'message' and
-    Router.current().params?.message == @_id
+  here: -> here @_id
   nothing: {}
   editingRV: -> Template.instance().editing.get()
   editingNR: -> Tracker.nonreactive -> Template.instance().editing.get()
