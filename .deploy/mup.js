@@ -10,6 +10,7 @@ module.exports = {
     }
   },
 
+  // Meteor server
   meteor: {
     name: 'coauthor',
     path: '/afs/csail/u/e/edemaine/Projects/coauthor',
@@ -31,16 +32,18 @@ module.exports = {
       MONGO_URL: 'mongodb://mongodb/meteor',
       MONGO_OPLOG_URL: 'mongodb://mongodb/local'
     },
+    deployCheckWaitTime: 200,
+    /* Old mup-frontend-server configuration:
     ssl: {
       // pem: '../coauthor_csail_mit_edu.ssl/coauthor_csail_mit_edu.pem'
       crt: '../../coauthor_csail_mit_edu.ssl/coauthor_csail_mit_edu.pem',
       key: '../../coauthor_csail_mit_edu.ssl/coauthor_csail_mit_edu.key',
       port: 443
     },
-    deployCheckWaitTime: 200,
     nginx: {
       clientUploadLimit: '0', // disable upload limit
     },
+    */
   },
 
   mongo: {
@@ -51,6 +54,21 @@ module.exports = {
     },
   },
 
+  // Reverse proxy for SSL
+  proxy: {
+    domains: 'coauthor.csail.mit.edu',
+    ssl: {
+      // pem: '../coauthor_csail_mit_edu.ssl/coauthor_csail_mit_edu.pem'
+      crt: '../../coauthor_csail_mit_edu.ssl/coauthor_csail_mit_edu.pem',
+      key: '../../coauthor_csail_mit_edu.ssl/coauthor_csail_mit_edu.key',
+      forceSSL: true,
+    },
+    shared: {
+      clientUploadLimit: '0', // disable upload limit
+    },
+  },
+
+  // Run 'npm install' before deploying, to ensure packages are up-to-date
   hooks: {
     'pre.deploy': {
       localCommand: 'npm install'

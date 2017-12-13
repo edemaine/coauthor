@@ -37,7 +37,6 @@ gcampax:accounts-dropbox
 bozhao:link-accounts
 gcampax:dropbox-oauth
 http@1.2.12
-force-ssl@1.0.15
 natestrauser:jquery-scrollto
 underscorestring:underscore.string
 standard-minifier-css@1.3.5
