@@ -594,6 +594,23 @@ Template.submessage.helpers
                       "coauthor:#{id}"
             cmDrop e
           editor.setOption 'dragDrop', true
+
+          html = null
+          editor.on 'paste', (cm, e) ->
+            console.log e.clipboardData.types
+            if 'text/html' in e.clipboardData.types
+              html = e.clipboardData.getData 'text/html'
+              html = html.replace /<!--.*?-->/g, ''
+              html = html.replace /<\/?(html|head|body|meta|span)\b[^<>]*>/ig, ''
+              html = html.replace /<b\s+style="font-weight:\s*normal[^<>]*>(.*?)<\/b>/ig, '$1'
+              html = html.replace /<(p|li) dir="ltr"/ig, '<$1'
+              html = html.replace /<(p|li|ul) style="[^"]*"/ig, '<$1'
+            else
+              html = null
+          editor.on 'beforeChange', (cm, change) ->
+            if change.origin == 'paste' and html?
+              change.text = html.split /\r|\n|\r\n/
+
         when 'ace'
           editor.textInput.getElement().setAttribute 'tabindex', 1 + 20 * ti.count + 19
           #editor.meteorData = @  ## currently not needed, also dunno if works
