@@ -595,10 +595,11 @@ Template.submessage.helpers
             cmDrop e
           editor.setOption 'dragDrop', true
 
-          html = null
+          paste = null
           editor.on 'paste', (cm, e) ->
+            paste = null
             if 'text/html' in e.clipboardData.types
-              html = e.clipboardData.getData 'text/html'
+              paste = e.clipboardData.getData 'text/html'
               .replace /<!--.*?-->/g, ''
               .replace /<\/?(html|head|body|meta)\b[^<>]*>/ig, ''
               .replace /<b\s+style="font-weight:\s*normal[^<>]*>(.*?)<\/b>/ig, '$1'
@@ -615,13 +616,17 @@ Template.submessage.helpers
               .replace /<(li|ul|\/ul|br|p)\b/ig, '\n$&'
               .split /\r\n?|\n/
               ## Remove blank lines
-              html = (line for line in html when line.length)
-            else
-              html = null
+              paste = (line for line in paste when line.length)
+            else if 'text/plain' in e.clipboardData.types
+              text = e.clipboardData.getData 'text/plain'
+              if match = parseCoauthorMessageUrl text
+                paste = ["coauthor:#{match.message}"]
+              else if match = parseCoauthorAuthorUrl text
+                paste = ["@#{match.author}"]
           editor.on 'beforeChange', (cm, change) ->
-            if change.origin == 'paste' and html?
-              change.text = html
-              html = null
+            if change.origin == 'paste' and paste?
+              change.text = paste
+              paste = null
 
         when 'ace'
           editor.textInput.getElement().setAttribute 'tabindex', 1 + 20 * ti.count + 19

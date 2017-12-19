@@ -299,6 +299,28 @@ boldWeight = 900
 @coauthorLinkBodyRe = "/?/?([a-zA-Z0-9]+)"
 @coauthorLinkRe = "coauthor:#{coauthorLinkBodyRe}"
 
+@parseCoauthorMessageUrl = (url) ->
+  match = new RegExp urlFor 'message',
+    group: '(.*)'
+    message: '(.*)'
+    0: '*'
+    1: '*'
+  .exec url
+  if match?
+    group: match[1]
+    message: match[2]
+
+@parseCoauthorAuthorUrl = (url) ->
+  match = new RegExp urlFor 'author',
+    group: '(.*)'
+    author: '(.*)'
+    0: '*'
+    1: '*'
+  .exec url
+  if match?
+    group: match[1]
+    author: match[2]
+
 postprocessCoauthorLinks = (text) ->
   text.replace ///(<img\s[^<>]*src\s*=\s*['"])#{coauthorLinkRe}///ig,
     (match, p1, p2) ->
