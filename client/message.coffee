@@ -597,19 +597,31 @@ Template.submessage.helpers
 
           html = null
           editor.on 'paste', (cm, e) ->
-            console.log e.clipboardData.types
             if 'text/html' in e.clipboardData.types
               html = e.clipboardData.getData 'text/html'
-              html = html.replace /<!--.*?-->/g, ''
-              html = html.replace /<\/?(html|head|body|meta|span)\b[^<>]*>/ig, ''
-              html = html.replace /<b\s+style="font-weight:\s*normal[^<>]*>(.*?)<\/b>/ig, '$1'
-              html = html.replace /<(p|li) dir="ltr"/ig, '<$1'
-              html = html.replace /<(p|li|ul) style="[^"]*"/ig, '<$1'
+              .replace /<!--.*?-->/g, ''
+              .replace /<\/?(html|head|body|meta)\b[^<>]*>/ig, ''
+              .replace /<b\s+style="font-weight:\s*normal[^<>]*>(.*?)<\/b>/ig, '$1'
+              .replace /<span\s+style="([^"]*)"[^<>]*>(.*?)<\/span>/ig, (match, style, body) ->
+                body = "<i>#{body}</i>" if style.match /font-style:\s*italic/
+                body = "<b>#{body}</b>" if style.match /font-weight:\s*[6789]00/
+                body
+              .replace /(\s+)(<\/i>(<\/b>)?|<\/b>)/, '$2$1'
+              .replace /<(p|li) dir="ltr"/ig, '<$1'
+              .replace /<(p|li|ul) style="[^"]*"/ig, '<$1'
+              .replace /<(br) class="[^"]*"/ig, '<$1'
+              .replace /<\/(p|li)>/ig, ''
+              .replace /(<li[^<>]*>)<p>/ig, '$1'
+              .replace /<(li|ul|\/ul|br|p)\b/ig, '\n$&'
+              .split /\r\n?|\n/
+              ## Remove blank lines
+              html = (line for line in html when line.length)
             else
               html = null
           editor.on 'beforeChange', (cm, change) ->
             if change.origin == 'paste' and html?
-              change.text = html.split /\r|\n|\r\n/
+              change.text = html
+              html = null
 
         when 'ace'
           editor.textInput.getElement().setAttribute 'tabindex', 1 + 20 * ti.count + 19
