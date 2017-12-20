@@ -300,23 +300,23 @@ boldWeight = 900
 @coauthorLinkRe = "coauthor:#{coauthorLinkBodyRe}"
 
 @parseCoauthorMessageUrl = (url) ->
-  match = new RegExp urlFor 'message',
+  match = new RegExp("^#{urlFor 'message',
     group: '(.*)'
     message: '(.*)'
     0: '*'
     1: '*'
-  .exec url
+  }$").exec url
   if match?
     group: match[1]
     message: match[2]
 
 @parseCoauthorAuthorUrl = (url) ->
-  match = new RegExp urlFor 'author',
+  match = new RegExp("^#{urlFor 'author',
     group: '(.*)'
     author: '(.*)'
     0: '*'
     1: '*'
-  .exec url
+  }$").exec url
   if match?
     group: match[1]
     author: match[2]
