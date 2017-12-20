@@ -614,6 +614,7 @@ Template.submessage.helpers
               .replace /<\/(p|li)>/ig, ''
               .replace /(<li[^<>]*>)<p>/ig, '$1'
               .replace /<(li|ul|\/ul|br|p)\b/ig, '\n$&'
+              .replace /&quot;/ig, '"'
               if match = /^\s*<pre[^<>]*>([^]*)<\/pre>\s*$/.exec paste
                 paste = match[1].split /\r\n?|\n/
               else
