@@ -602,21 +602,24 @@ Template.submessage.helpers
               paste = e.clipboardData.getData 'text/html'
               .replace /<!--.*?-->/g, ''
               .replace /<\/?(html|head|body|meta)\b[^<>]*>/ig, ''
-              .replace /<b\s+style="font-weight:\s*normal[^<>]*>(.*?)<\/b>/ig, '$1'
-              .replace /<span\s+style="([^"]*)"[^<>]*>(.*?)<\/span>/ig, (match, style, body) ->
+              .replace /<b\s+style="font-weight:\s*normal[^<>]*>([^]*?)<\/b>/ig, '$1'
+              .replace /<span\s+style="([^"]*)"[^<>]*>([^]*?)<\/span>/ig, (match, style, body) ->
                 body = "<i>#{body}</i>" if style.match /font-style:\s*italic/
                 body = "<b>#{body}</b>" if style.match /font-weight:\s*[6789]00/
                 body
               .replace /(\s+)(<\/i>(<\/b>)?|<\/b>)/, '$2$1'
               .replace /<(p|li) dir="ltr"/ig, '<$1'
-              .replace /<(p|li|ul) style="[^"]*"/ig, '<$1'
-              .replace /<(br) class="[^"]*"/ig, '<$1'
+              .replace /<(\w+[^<>]*) class=("[^"]*"|'[^']*')/ig, '<$1'
+              .replace /<(p|li|ul|pre) style=("[^"]*"|'[^']*')/ig, '<$1'
               .replace /<\/(p|li)>/ig, ''
               .replace /(<li[^<>]*>)<p>/ig, '$1'
               .replace /<(li|ul|\/ul|br|p)\b/ig, '\n$&'
-              .split /\r\n?|\n/
-              ## Remove blank lines
-              paste = (line for line in paste when line.length)
+              if match = /^\s*<pre[^<>]*>([^]*)<\/pre>\s*$/.exec paste
+                paste = match[1].split /\r\n?|\n/
+              else
+                paste = paste.split /\r\n?|\n/
+                ## Remove blank lines
+                paste = (line for line in paste when line.length)
             else if 'text/plain' in e.clipboardData.types
               text = e.clipboardData.getData 'text/plain'
               if match = parseCoauthorMessageUrl text
