@@ -76,7 +76,7 @@ replaceMathBlocks = (text, replacer) ->
   else
     text
 
-inTag = (string, offset) ->
+@inTag = (string, offset) ->
   open = string.lastIndexOf '<', offset
   if open >= 0
     close = string.lastIndexOf '>', offset
@@ -326,7 +326,7 @@ latex2html = (tex) ->
   latex: (text, title) ->
     latex2html text
   html: (text, title) ->
-    text
+    linkify text
 
 @coauthorLinkBodyRe = "/?/?([a-zA-Z0-9]+)"
 @coauthorLinkRe = "coauthor:#{coauthorLinkBodyRe}"
@@ -495,6 +495,7 @@ formatEither = (isTitle, format, text, leaveTeX = false) ->
     text = putMathBack text, math
   else
     text = postprocessKaTeX text, math
+  text = linkify text  ## Extra support for links, unliked LaTeX
   text = postprocessCoauthorLinks text
   text = postprocessLinks text
   text = postprocessAtMentions text
