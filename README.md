@@ -37,6 +37,8 @@ in other fields too.
     <code>\`\`\`multiple lines of code\`\`\`</code>,
     links via `[text](url)`, images via `![caption](url)`,
     lists via `*` or `1.`, tables, etc.
+    Also supports all LaTeX commands listed below that start with a letter
+    (notably, not accents) and math mode.
   * LaTeX, limited.  Beyond extensive math mode support (see below),
     the following features are supported in text mode; feel free to ask
     for more.  `%...`, `\def\macro{...}`, `\let\macro=\mac`, `\protect`,
@@ -72,6 +74,7 @@ in other fields too.
     `<tbody>`, `<tr>`, `<th>`, `<td>`, `<pre>`,
     `<img src/alt/width/height>`, `<video controls>`, `<source src>`;
     attributes `title`, `style`, `class`, `aria-*`.
+    Also supports LaTeX math mode.
 
 * [CodeMirror editor](http://codemirror.net/) supports syntax highlighting,
   block folding, bracket matching, line numbering, light and dark themes,
