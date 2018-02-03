@@ -149,7 +149,7 @@ latex2htmlDef = (tex) ->
 ## Process all commands starting with \ followed by a letter a-z.
 ## This is not a valid escape sequence in Markdown, so can be safely supported
 ## in Markdown too.
-latex2htmlCommandsAlpha = (tex) ->
+latex2htmlCommandsAlpha = (tex, math) ->
   tex = tex
   .replace /\\(BY|YEAR)\s*{([^{}]*)}/g, '<span style="border: thin solid; margin-left: 0.5em; padding: 0px 4px; font-variant:small-caps">$2</span>'
   .replace /\\protect\b\s*/g, ''
@@ -247,7 +247,7 @@ latex2htmlLight = (tex) ->
   tex = latex2htmlDef tex
   ## After \def expansion and verbatim processing, protect math
   [tex, math] = preprocessKaTeX tex
-  tex = latex2htmlCommandsAlpha tex
+  tex = latex2htmlCommandsAlpha tex, math
   [tex, math]
 
 ## Full LaTeX support, including all supported commands and symbols
@@ -264,7 +264,7 @@ latex2html = (tex) ->
   tex = '<p>' + tex
   ## Commands
   tex = tex.replace /\\\\/g, '[DOUBLEBACKSLASH]'
-  tex = latex2htmlCommandsAlpha tex
+  tex = latex2htmlCommandsAlpha tex, math
   .replace /\\c\s*{s}/g, '&#351;'
   .replace /\\c\s*{z}/g, 'z&#807;'
   .replace /\\v\s*{C}/g, '&#268;'
