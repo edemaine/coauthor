@@ -8,6 +8,11 @@ template(name="group")
       .panel-footer.clearfix
         p
           i= topMessageCount
+          .groupTags
+            each groupTags
+              a(href=linkToTag).tagLink
+                span.tag.label.label-default= key
+              |  
           +importButtons
         .members.alert.alert-info
           p

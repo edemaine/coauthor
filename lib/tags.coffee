@@ -16,6 +16,13 @@ if Meteor.isServer
     key: unescapeTag key
     value: tags[key]
 
+@groupTags = (group) ->
+  keys = Tags.find
+    group: group
+    deleted: false
+  .fetch()
+  _.sortBy keys, 'key'
+
 ## Currently, tags just map keys to "true".
 ## In the future, there will be other values, checked here.  (See #86.)
 @validTags = (tags) ->

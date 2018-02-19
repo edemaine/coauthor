@@ -54,6 +54,7 @@ Router.route '/:group',
   subscriptions: -> [
     Subscribe.subscribe 'messages.root', @params.group
     Subscribe.subscribe 'groups.members', @params.group
+    Subscribe.subscribe 'tags', @params.group
   ]
   data: ->
     group: @params.group
@@ -65,6 +66,7 @@ Router.route '/:group/+:sortBy?',
   subscriptions: -> [
     Subscribe.subscribe 'messages.root', @params.group
     Subscribe.subscribe 'groups.members', @params.group
+    Subscribe.subscribe 'tags', @params.group
   ]
   data: ->
     group: @params.group
@@ -76,6 +78,7 @@ Router.route '/:group/-:sortBy?',
   subscriptions: -> [
     Subscribe.subscribe 'messages.root', @params.group
     Subscribe.subscribe 'groups.members', @params.group
+    Subscribe.subscribe 'tags', @params.group
   ]
   data: ->
     group: @params.group

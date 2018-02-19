@@ -64,6 +64,8 @@ Template.group.onCreated ->
 Template.group.helpers
   topMessageCount: ->
     pluralize(groupSortedBy(@group, null).count(), 'message thread')
+  groupTags: ->
+    groupTags @group
   members: ->
     members =
       for member in sortedGroupMembers @group
