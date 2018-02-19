@@ -36,7 +36,7 @@ template(name="layout")
                 i Select Group
                 span.caret
             ul.dropdown-menu(role="menu")
-              if groupCount
+              if groups.count
                 each groups
                   li(class="{{activeGroup}}")
                     a(href=linkToGroup) {{name}}

@@ -1,25 +1,33 @@
 template(name="frontpage")
   h1 Welcome to Coauthor!
   if currentUser
-    if groupCount
+    if groups.count
       .alert.alert-success(role="alert") Choose a <B>group</B> below to get started.
     else if ready
       .alert.alert-danger(role="alert") You do not appear to have access to any groups.  You probably need to <B>talk to someone in charge</B>.
     else
       .alert.alert-warning(role="alert") Loading...
   else
-    if groupCount
+    if groups.count
       .alert.alert-warning(role="alert") Choose a <B>public group</B> below, or <B>sign in</B> (in the upper-right corner) to gain more access.
     else if ready
       .alert.alert-danger(role="alert") Please <B>sign in</B> (in the upper-right corner) to get started.
     else
       .alert.alert-warning(role="alert") Loading...
-  .list-group
-    each groups
-      a.list-group-item(href="{{pathFor 'group' group=name}}")= name
-  i #{groupCount} groups
   if canSuper
-    span.space
+    h3 Your Groups
+  .list-group
+    each groupsMine
+      a.list-group-item(href="{{pathFor 'group' group=name}}")= name
+  p
+    i #{groupsMine.count} groups
+  if canSuper
+    h3 Other Groups
+    .list-group
+      each groupsOther
+        a.list-group-item(href="{{pathFor 'group' group=name}}")= name
+    p
+      i #{groupsOther.count} groups
     .btn-group
       button.btn.btn-info.groupNewButton New Group
       button.btn.btn-warning.recomputeAuthorsButton Recompute Authors

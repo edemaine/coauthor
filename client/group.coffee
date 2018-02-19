@@ -46,8 +46,22 @@ Template.registerHelper 'groups', ->
   Groups.find {},
     sort: [['name', 'asc']]
 
-Template.registerHelper 'groupCount', ->
-  Groups.find().count()
+Template.registerHelper 'groupsMine', ->
+  Groups.find
+    $or: [
+      name: $in: (unescapeGroup group for own group, roles of Meteor.user().roles ? {} when 'read' in roles)
+    ,
+      anonymous: 'read'
+    ]
+  ,
+    sort: [['name', 'asc']]
+
+Template.registerHelper 'groupsOther', ->
+  Groups.find
+    name: $nin: (unescapeGroup group for own group, roles of Meteor.user().roles ? {} when 'read' in roles)
+    anonymous: $ne: 'read'
+  ,
+    sort: [['name', 'asc']]
 
 Template.registerHelper 'admin', -> canAdmin @group ? routeGroup()
 

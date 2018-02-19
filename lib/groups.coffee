@@ -71,8 +71,9 @@ if Meteor.isServer
     else  ## groups readable by this user or by anonymous
       Groups.find
         $or: [
-          {anonymous: 'read'}
-          {name: $in: (unescapeGroup group for own group, roles of user.roles ? {} when 'read' in roles)}
+          anonymous: 'read'
+        ,
+          name: $in: (unescapeGroup group for own group, roles of user.roles ? {} when 'read' in roles)
         ]
   @readableGroupNames = (userId) ->
     names = []
