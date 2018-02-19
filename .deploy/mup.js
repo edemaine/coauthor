@@ -26,7 +26,6 @@ module.exports = {
     },
     env: {
       ROOT_URL: 'https://coauthor.csail.mit.edu',
-      PORT: 80,
       MAIL_URL: 'smtp://coauthor.csail.mit.edu:25?ignoreTLS=true',
       //MAIL_FROM: 'coauthor@coauthor.csail.mit.edu',
       MONGO_URL: 'mongodb://mongodb/meteor',
@@ -46,6 +45,7 @@ module.exports = {
     */
   },
 
+  // Mongo server
   mongo: {
     oplog: true,
     port: 27017,
@@ -63,9 +63,8 @@ module.exports = {
       key: '../../coauthor_csail_mit_edu.ssl/coauthor_csail_mit_edu.key',
       forceSSL: true,
     },
-    shared: {
-      clientUploadLimit: '0', // disable upload limit
-    },
+    clientUploadLimit: '0', // disable upload limit
+    nginxServerConfig: '../.proxy.config',
   },
 
   // Run 'npm install' before deploying, to ensure packages are up-to-date

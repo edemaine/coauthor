@@ -26,15 +26,11 @@ module.exports = {
     },
     env: {
       ROOT_URL: 'https://coauthor2.csail.mit.edu',
-      PORT: 80,
       //MAIL_URL: 'smtp://localhost:25',
       MONGO_URL: 'mongodb://mongodb/meteor',
       MONGO_OPLOG_URL: 'mongodb://mongodb/local'
     },
     deployCheckWaitTime: 200,
-    nginx: {
-      clientUploadLimit: '0', // disable upload limit
-    },
   },
 
   // Mongo server
@@ -55,9 +51,8 @@ module.exports = {
       key: '../../coauthor_csail_mit_edu.ssl/coauthor_csail_mit_edu.key',
       forceSSL: true,
     },
-    shared: {
-      clientUploadLimit: '0', // disable upload limit
-    },
+    clientUploadLimit: '0', // disable upload limit
+    nginxServerConfig: '../.proxy.config',
   },
 
   // Run 'npm install' before deploying, to ensure packages are up-to-date
