@@ -508,6 +508,7 @@ formatEitherSafe = (isTitle, format, text, leaveTeX = false) ->
   try
     formatEither isTitle, format, text, leaveTeX
   catch e
+    console.error e.stack ? e.toString()
     if isTitle
       """
         <span class="label label-danger">Formatting error (bug in Coauthor)</span>
