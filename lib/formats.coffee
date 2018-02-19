@@ -457,10 +457,8 @@ postprocessKaTeX = (text, math) ->
     else
       out
 
-formatEither = (isTitle, format, text, leaveTeX = false) ->
-  return text unless text?
-
-  ## Search highlighting
+## Search highlighting
+formatSearch = (isTitle, text) ->
   if Meteor.isClient and Router.current()?.route?.getName() == 'search' and
      (search = Router.current()?.params?.search)?
     recurse = (query) ->
@@ -474,6 +472,11 @@ formatEither = (isTitle, format, text, leaveTeX = false) ->
           recurse part
       null
     recurse parseSearch search
+  text
+
+formatEither = (isTitle, format, text, leaveTeX = false) ->
+  return text unless text?
+  text = formatSearch isTitle, text
 
   ## LaTeX and Markdown formats are special because they do their own math
   ## preprocessing at a specific time during its formatting.  Other formats
@@ -501,11 +504,26 @@ formatEither = (isTitle, format, text, leaveTeX = false) ->
   text = postprocessAtMentions text
   sanitize text
 
+formatEitherSafe = (isTitle, format, text, leaveTeX = false) ->
+  try
+    formatEither isTitle, format, text, leaveTeX
+  catch e
+    if isTitle
+      """
+        <span class="label label-danger">Formatting error (bug in Coauthor)</span>
+        <code>#{_.escape text}</code>
+      """
+    else
+      """
+        <div class="alert alert-danger">Formatting error (bug in Coauthor): #{e.toString()}</div>
+        <pre>#{_.escape text}</pre>
+      """
+
 @formatBody = (format, body, leaveTeX = false) ->
-  formatEither false, format, body, leaveTeX
+  formatEitherSafe false, format, body, leaveTeX
 
 @formatTitle = (format, title, leaveTeX = false) ->
-  formatEither true, format, title, leaveTeX
+  formatEitherSafe true, format, title, leaveTeX
 
 @formatBadFile = (fileId) ->
   """<i class="bad-file">&lt;unknown file with ID #{fileId}&gt;</i>"""
