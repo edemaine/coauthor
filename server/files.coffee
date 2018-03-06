@@ -3,6 +3,8 @@ url = require 'url'
 
 fileRe = /^\/(\w+)$/
 
+defaultContentType = 'application/octet-stream'
+
 ## Mimicking vsivsi:file-collection http_access_server.coffee
 WebApp.rawConnectHandlers.use '/file',
   Meteor.bindEnvironment (req, res, next) ->
@@ -75,7 +77,7 @@ WebApp.rawConnectHandlers.use '/file',
       headers['Last-Modified'] = req.gridFS.uploadDate.toUTCString()
       unless req.method is 'HEAD'
         stream = Files.findOneStream { _id: req.gridFS._id }
-    headers['Content-Type'] = req.gridFS.contentType
+    headers['Content-Type'] = req.gridFS.contentType or defaultContentType
     filename = encodeURIComponent(req.query.filename ? req.gridFS.filename)
     headers['Content-Disposition'] = "inline; filename=\"#{filename}\"; filename*=UTF-8''#{filename}"
     if (req.query.download and req.query.download.toLowerCase() == 'true') or req.query.filename
