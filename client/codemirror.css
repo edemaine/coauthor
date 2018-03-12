@@ -9,6 +9,7 @@ div.CodeMirror-cursors > div.CodeMirror-cursor { border-left-width: 3px; }
 /* Math */
 .cm-s-blackboard .cm-math { color: #ff9c9c }
 .cm-s-eclipse .cm-math { color: #b00000 }
+.CodeMirror .cm-math { font-style: normal; font-weight: normal; }
 
 /* Spell checking */
 .cm-s-blackboard .cm-spell-error:not(.cm-url):not(.cm-comment):not(.cm-tag):not(.cm-word):not(.cm-math) {
