@@ -382,7 +382,7 @@ importLaTeX = (group, zip) ->
     ## Remove comments (to ignore \sections inside comments),
     ## and remove figures (already processed).
     tex = tex
-    .replace /(^|[^\\])%.*$\n?/mg, ''
+    .replace /(^|[^\\])%.*$\n?/mg, '$1'
     .replace /\\begin\s*{(wrap)?figure}[^]*?\\end\s*{(wrap)?figure}\s*/g, ''
     .replace /\\hspace\*?\s*{0pt}/g, ''  ## used to place wrapfigures
     tex = processCites tex
