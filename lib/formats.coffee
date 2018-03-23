@@ -237,6 +237,17 @@ latex2htmlCommandsAlpha = (tex, math) ->
   .replace /\\end\s*{(quote)}/g, '</blockquote>'
   .replace /\\begin\s*{(proof|pf)}(\s*\[([^\]]*)\])?/g, (m, env, x, opt) -> "<b>Proof#{if opt then " (#{opt})" else ''}:</b> "
   .replace /\\end\s*{(proof|pf)}/g, ' <span class="pull-right">&#8718;</span></p><p class="clearfix">'
+  .replace /\\begin\s*{tabular}\s*{([^{}]*)}([^]*)\\end\s*{tabular}/g, (m, cols, body) ->
+    '<table class="table">' +
+      (for row in body.split /\\\\(?:\s*\\(?:hline|cline\s*{[^{}]*}))?/
+         continue if row[...2] == '\\\\'
+         "<tr>\n" +
+         (for col in row.split '&'
+            "<td>#{col}</td>\n"
+         ).join('') +
+         "</tr>\n"
+      ).join('') +
+    '</table>'
   .replace /\\(dots|ldots|textellipsis)\b\s*/g, '&hellip;'
   .replace /\\textasciitilde\b\s*/g, '&Tilde;'  ## Avoid ~ -> \nbsp
   .replace /\\textasciicircum\b\s*/g, '&Hat;'
