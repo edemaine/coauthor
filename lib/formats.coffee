@@ -239,7 +239,7 @@ latex2htmlCommandsAlpha = (tex, math) ->
   .replace /\\end\s*{(proof|pf)}/g, ' <span class="pull-right">&#8718;</span></p><p class="clearfix">'
   .replace /\\begin\s*{tabular}\s*{([^{}]*)}([^]*)\\end\s*{tabular}/g, (m, cols, body) ->
     '<table class="table">' +
-      (for row in body.split /\\\\(?:\s*\\(?:hline|cline\s*{[^{}]*}))?/
+      (for row in body.split /(?:\\\\|\[DOUBLEBACKSLASH\])(?:\s*\\(?:hline|cline\s*{[^{}]*}))?/
          continue if row[...2] == '\\\\'
          "<tr>\n" +
          (for col in row.split '&'
@@ -318,7 +318,7 @@ latex2html = (tex) ->
       latexSymbols[match]
   .replace /<p>\s*(<h[1-9]>)/g, '$1'
   .replace /<p>(\s*<p>)+/g, '<p>'  ## Remove double paragraph breaks
-  .replace /\[DOUBLEBACKSLASH\]/g, '\\\\'
+  .replace /\[DOUBLEBACKSLASH\]/g, '<br>'
   [tex, math]
 
 @formats =
