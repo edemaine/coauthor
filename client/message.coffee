@@ -615,8 +615,15 @@ Template.submessage.helpers
               .replace /(<li[^<>]*>)<p>/ig, '$1'
               .replace /<(li|ul|\/ul|br|p)\b/ig, '\n$&'
               .replace /&quot;/ig, '"'
-              if match = /^\s*<pre[^<>]*>([^]*)<\/pre>\s*$/.exec paste
-                paste = match[1].split /\r\n?|\n/
+              if (match = /^\s*<pre[^<>]*>([^]*)<\/pre>\s*$/.exec paste) and
+                 0 > match[1].indexOf '<pre>'
+                ## Treat a single <pre> block (such as pasted from Raw view)
+                ## like a text paste, after parsing basic &chars;
+                paste = match[1]
+                .replace /&lt;/g, '<'
+                .replace /&gt;/g, '>'
+                .replace /&amp;/g, '&'
+                .split /\r\n?|\n/
               else
                 paste = paste.split /\r\n?|\n/
                 ## Remove blank lines
