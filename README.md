@@ -62,7 +62,8 @@ in other fields too.
     `\&`, `\$`, `\{`, `\}`, `\%`, ``` `` ```, `''`,
     `~`, `--`, `---`, `{`, `}`, `\\`, `\item`;
     `\begin/\end` for environments `verbatim`, `enumerate`, `itemize`,
-    `equation`, `eqnarray`, `align`,
+    `quote`, `tabular` (basic),
+    `equation`, `eqnarray`, `align`,
     `problem`, `theorem`, `conjecture`, `lemma`, `corollary`, `fact`,
     `observation`, `proposition`, `claim`, `proof`.
   * HTML, sanitized.  The following tags are allowed; feel free to ask for
