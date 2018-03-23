@@ -240,10 +240,20 @@ latex2htmlCommandsAlpha = (tex, math) ->
   .replace /\\begin\s*{tabular}\s*{([^{}]*)}([^]*)\\end\s*{tabular}/g, (m, cols, body) ->
     '<table class="table">' +
       (for row in body.split /(?:\\\\|\[DOUBLEBACKSLASH\])(?:\s*\\(?:hline|cline\s*{[^{}]*}))?/
-         continue if row[...2] == '\\\\'
+         continue unless row.trim()
          "<tr>\n" +
-         (for col in row.split '&'
-            "<td>#{col}</td>\n"
+         (for col, x in row.split '&'
+            align =
+              switch cols[x]
+                when 'c'
+                  ' style="text-align: center"'
+                when 'l'
+                  ' style="text-align: left"'
+                when 'r'
+                  ' style="text-align: right"'
+                else
+                  ''
+            "<td#{align}>#{col}</td>\n"
          ).join('') +
          "</tr>\n"
       ).join('') +
