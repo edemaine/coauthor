@@ -59,6 +59,7 @@ if Meteor.isServer
           _id: @userId
         , fields:
             roles: true
+            rolesPartial: true
             'services.dropbox.id': true
       else
         @ready()

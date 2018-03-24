@@ -36,7 +36,7 @@ WebApp.rawConnectHandlers.use '/file',
     unless msg? and msg.file and (req.gridFS = findFile msg.file)?
       res.writeHead 403
       return res.end "Invalid file message ID: #{match[1]}"
-    unless groupRoleCheck(msg.group, 'read', user) and (msg.group == req.gridFS.metadata.group or groupRoleCheck req.gridFS.metadata.group, 'read', user)
+    unless messageRoleCheck(msg.group, msg, 'read', user) and (msg.group == req.gridFS.metadata.group or groupRoleCheck req.gridFS.metadata.group, 'read', user)
       res.writeHead 401
       return res.end "Lack read permissions for group of message/file #{match[1]}"
 

@@ -1,5 +1,18 @@
 template(name="users")
-  table.table.table-striped.table-hover.users
+  h3
+    if message
+      | Permissions for thread &ldquo;<a href="{{pathFor 'message' group=group message=message}}">#{message}</a>&rdquo; in group &ldquo;<a href="{{pathFor 'group' group=group}}">#{group}</a>&rdquo;
+    else
+      if wildLink
+        | Permissions for group &ldquo;<a href="{{pathFor 'group' group=group}}">#{group}</a>&rdquo;
+      else
+        | Global permissions for all groups
+    .links.btn-group.pull-right
+      if message
+        a(href="{{pathFor 'users' group=group}}").btn.btn-warning Edit Group Permissions
+      if wildLink
+        a(href=wildHref).btn.btn-danger Edit Global Permissions
+  table.table.table-striped.table-hover.users.clearfix
     thead
       tr
         th Username
@@ -36,10 +49,6 @@ template(name="users")
           td(data-role="edit") !{anonEditRole}
           td(data-role="super") !{anonSuperRole}
           td(data-role="admin") !{anonAdminRole}
-      if wildLink
-        tr
-          td(colspan='6')
-            a(href=wildHref).btn.btn-warning Edit Global User Permissions
       if showInvitations
         tr
           td(colspan='6')

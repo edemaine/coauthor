@@ -14,24 +14,38 @@ template(name="frontpage")
       .alert.alert-danger(role="alert") Please <B>sign in</B> (in the upper-right corner) to get started.
     else
       .alert.alert-warning(role="alert") Loading...
+  h3
+    span.badge= groupsMine.count
+    | Groups you're a member of
+  with groupsMine
+    +groupList
+  if groupsPartial.count
+    h3
+      span.badge= groupsPartial.count
+      | Groups with partial access
+    with groupsPartial
+      +groupList
+  if groupsAnonymous.count
+    h3
+      span.badge= groupsAnonymous.count
+      | Groups with anonymous access
+    with groupsAnonymous
+      +groupList
   if canSuper
-    h3 Your Groups
-  .list-group
-    each groupsMine
-      a.list-group-item(href="{{pathFor 'group' group=name}}")= name
-  p
-    i #{groupsMine.count} groups
-  if canSuper
-    h3 Other Groups
-    .list-group
-      each groupsOther
-        a.list-group-item(href="{{pathFor 'group' group=name}}")= name
-    p
-      i #{groupsOther.count} groups
+    h3
+      span.badge= groupsOther.count
+      | All other groups
+    with groupsOther
+      +groupList
     .btn-group
       button.btn.btn-info.groupNewButton New Group
       button.btn.btn-warning.recomputeAuthorsButton Recompute Authors
       button.btn.btn-warning.recomputeRootsButton Recompute Roots
+
+template(name="groupList")
+  .list-group
+    each groups
+      a.list-group-item(href="{{pathFor 'group' group=name}}")= name
 
 template(name="groupNew")
   .modal

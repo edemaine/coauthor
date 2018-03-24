@@ -59,32 +59,45 @@ if Meteor.isServer
   recurse message
   descendants
 
+naturallyVisibleQuery =
+  published: $ne: false    ## published is false or Date
+  deleted: $ne: true
+  private: $ne: true
+
 @accessibleMessagesQuery = (group, user = Meteor.user(), client = Meteor.isClient) ->
   ## Mimic logic of `canSee` below.
+  canSeeQuery = ->
+    if user?.username
+      re = atRe user
+      $or: [
+        naturallyVisibleQuery
+      ,
+        "authors.#{escapeUser user.username}": $exists: true
+      ,
+        title: re
+      ,
+        body: re
+      ]
+    else
+      naturallyVisibleQuery
   if canSuper group, client, user #groupRoleCheck group, 'super', user
     ## Super-user can see all messages, even unpublished/deleted messages.
     group: group
   else if groupRoleCheck group, 'read', user
     ## Regular users can see all messages they authored, or are @mentioned in,
     ## plus published undeleted messages by others.
-    if user?.username
+    query = canSeeQuery()
+    query.group = group
+    query
+  else if msgs = groupPartialMessagesWithRole group, 'read', user
+    $and: [
       group: group
       $or: [
-        published: $ne: false    ## published is false or Date
-        deleted: $ne: true
-        private: $ne: true
-      ,
-        "authors.#{escapeUser user.username}": $exists: true
-      ,
-        title: atRe user
-      ,
-        body: atRe user
+        _id: $in: msgs
+      , root: $in: msgs
       ]
-    else
-      group: group
-      published: $ne: false    ## published is false or Date
-      deleted: $ne: true
-      private: $ne: true
+      canSeeQuery()
+    ]
   else
     null
 
@@ -358,7 +371,7 @@ if Meteor.isServer
   if canSuper group, client, user #groupRoleCheck group, 'super', user
     ## Super-user can see all messages, even unpublished/deleted messages.
     true
-  else if groupRoleCheck group, 'read', user
+  else if messageRoleCheck group, message, 'read', user
     ## Regular users can see all messages they authored, plus
     ## published undeleted public messages by others.
     (message.published and not message.deleted and not message.private) or
@@ -367,19 +380,18 @@ if Meteor.isServer
     false
 
 @canPost = (group, parent, user = Meteor.user()) ->
-  ## parent actually ignored
   #Meteor.userId()? and
   user? and
-  groupRoleCheck group, 'post', user
+  messageRoleCheck group, parent, 'post', user
 
-@canEdit = (msg, user = Meteor.user()) ->
-  ## Can edit message if an "author" (the creator or edited in the past),
-  ## or if we have global edit privileges in this group.
-  msg = findMessage msg
-  return false unless msg?
+@canEdit = (message, user = Meteor.user()) ->
+  ## Can edit message if an "author" (e.g. the creator or edited in the past),
+  ## or if we have global edit privileges in this group or thread.
+  message = findMessage message
+  return false unless message?
   user? and (
-    escapeUser(user?.username) of (msg.authors ? {}) or
-    groupRoleCheck msg.group, 'edit', user
+    amAuthor(message, user) or
+    messageRoleCheck message.group, message, 'edit', user
   )
 
 @canDelete = canEdit
@@ -424,13 +436,15 @@ if Meteor.isServer
       root = findMessageRoot message
       root.threadPrivacy? and 'public' in root.threadPrivacy and 'private' in root.threadPrivacy
 
-@canAdmin = (group) ->
-  groupRoleCheck group, 'admin'
+@canAdmin = (group, message = null) ->
+  messageRoleCheck group, message, 'admin'
 
 idle = 1000   ## one second
 
 @message2group = (message) ->
   findMessage(message)?.group
+@message2root = (message) ->
+  findMessage(message)?.root ? message?._id ? message
 
 @findMessage = (message, options) ->
   if message? and not message._id?

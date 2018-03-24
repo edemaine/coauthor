@@ -174,6 +174,17 @@ Router.route '/:group/users',
     group: @params.group
   fastRender: true
 
+Router.route '/:group/users/:message',
+  name: 'users.message'
+  template: 'users'
+  subscriptions: -> [
+    Subscribe.subscribe 'users', @params.group
+  ]
+  data: ->
+    group: @params.group
+    message: @params.message
+  fastRender: true
+
 Router.route '/:group/settings',
   name: 'settings'
   fastRender: true

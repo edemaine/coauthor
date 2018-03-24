@@ -61,8 +61,11 @@ template(name="layout")
               button.superButton.btn.btn-normal Leave Superuser
             else
               button.superButton.btn.btn-danger Become Superuser
-          if showUsers
-            a.btn.btn-warning(href="{{pathFor 'users' data=routeGroupOrWildData}}") Users
+          if admin
+            if inUsers
+              a.btn.btn-success(href="{{linkToUsersExit}}") Exit Users
+            else
+              a.btn.btn-warning(href="{{linkToUsers}}") Users
           if currentUser
             a.btn.btn-default(href="{{pathFor 'settings' data=routeGroupOrWildData}}") Settings
         ul.nav.navbar-nav.navbar-right

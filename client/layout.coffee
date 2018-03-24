@@ -18,9 +18,22 @@ Template.layout.helpers
       'active'
     else
       ''
-  showUsers: ->
-    Router.current().route?.getName() != 'users' and
-    canAdmin routeGroupOrWild()
+  inUsers: ->
+    (Router.current().route?.getName() ? '')[...5] == 'users'
+  linkToUsers: ->
+    if message = routeMessage()
+      pathFor 'users.message',
+        group: routeGroupOrWild()
+        message: message2root message
+    else
+      pathFor 'users', group: routeGroupOrWild()
+  linkToUsersExit: ->
+    if message = routeMessage()
+      pathFor 'message',
+        group: routeGroupOrWild()
+        message: message
+    else
+      pathFor 'group', group: routeGroupOrWild()
   linkToGroup: ->
     router = Router.current()
     route = Router.current().route?.getName()

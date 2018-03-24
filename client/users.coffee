@@ -1,21 +1,26 @@
-haveRole = (role, roles) ->
+haveRole = (role, profile) ->
   group = routeGroup()
-  if role in (roles?[escapeGroup group] ? [])
+  message = routeMessage()
+  levels = []
+  if message
+    have = role in (profile.rolesPartial?[escapeGroup group]?[message] ? [])
+  else
+    have = role in (profile.roles?[escapeGroup group] ? [])
+  if have
     btnclass = 'success'
-    local = 'YES'
+    levels.push 'YES'
   else
     btnclass = 'danger'
-    local = 'NO'
-  global = ''
-  if group != wildGroup
-    if role in (roles?[wildGroup] ? [])
-      local = "<del>#{local}</del>"
-      global = ' <b class="text-success space">YES*</b>'
-    #else
-    #  global = 'NO*'
+    levels.push 'NO'
+  if message and role in (profile.roles?[escapeGroup group] ? [])
+    levels.push "<del>#{levels.pop()}</del>"
+    levels.push '<b class="text-success space">YES</b>'
+  if group != wildGroup and role in (profile.roles?[wildGroup] ? [])
+    levels.push "<del>#{levels.pop()}</del>"
+    levels.push '<b class="text-success space">YES*</b>'
   if groupRoleCheck group, 'admin'
-    local = "<button class='roleButton btn btn-#{btnclass}'>#{local}</button>"
-  local + global
+    levels[0] = "<button class='roleButton btn btn-#{btnclass}'>#{levels[0]}</button>"
+  levels.join ' '
 
 anonRole = (role, group) ->
   roles = groupAnonymousRoles group
@@ -37,7 +42,7 @@ Template.users.helpers
   users: ->
     Meteor.users.find {},
       sort: [['createdAt', 'asc']]
-  fullname: -> @profile.fullname
+  fullname: -> @profile?.fullname
   email: ->
     email = @emails?[0]
     unless email
@@ -55,11 +60,11 @@ Template.users.helpers
       name: @group
     ?.invitations ? []
 
-  readRole: -> haveRole 'read', @roles
-  postRole: -> haveRole 'post', @roles
-  editRole: -> haveRole 'edit', @roles
-  superRole: -> haveRole 'super', @roles
-  adminRole: -> haveRole 'admin', @roles
+  readRole: -> haveRole 'read', @
+  postRole: -> haveRole 'post', @
+  editRole: -> haveRole 'edit', @
+  superRole: -> haveRole 'super', @
+  adminRole: -> haveRole 'admin', @
 
   anonReadRole: -> anonRole 'read', @group
   anonPostRole: -> anonRole 'post', @group
@@ -82,9 +87,9 @@ Template.users.events
     role = td.getAttribute 'data-role'
     old = e.target.innerHTML
     if 0 <= old.indexOf 'YES'
-      Meteor.call 'setRole', t.data.group, username, role, false
+      Meteor.call 'setRole', t.data.group, t.data.message, username, role, false
     else if 0 <= old.indexOf 'NO'
-      Meteor.call 'setRole', t.data.group, username, role, true
+      Meteor.call 'setRole', t.data.group, t.data.message, username, role, true
 
   'click .invitationButton': (e, t) ->
     console.log t.find('#invitationInput').value

@@ -48,41 +48,51 @@ if Meteor.isServer
   role in (user?.roles?[escapeGroup(group?.name ? group)] ? []) or
   role in groupAnonymousRoles group
 
+@messageRoleCheck = (group, message, role, user = Meteor.user()) ->
+  groupRoleCheck(group, role, user) or
+  (message and
+   (role in (user?.rolesPartial?[escapeGroup(group?.name ? group)]?[message2root message] ? [])))
+
+@groupPartialMessagesWithRole = (group, role, user = Meteor.user()) ->
+  message \
+  for own message, roles of user?.rolesPartial?[escapeGroup group] ? [] \
+  when role in roles
+
 @memberOfGroup = (group, user = Meteor.user()) ->
-  roles = user?.roles?[escapeGroup group]
-  roles and roles.length > 0
+  escaped = escapeGroup group
+  not _.isEmpty(user?.roles?[escaped]) or
+  not _.isEmpty(user?.rolesPartial?[escaped])
 
 ## List all groups that the user is a member of.
 ## (Mimicking memberOfGroup above.)
 @memberOfGroups = (user = Meteor.user()) ->
-  for group, roles of user?.roles ? {}
-    continue unless roles.length > 0
+  groups = (group for own group, roles of user?.roles ? {} \
+                  when not _.isEmpty roles)
+  .concat (group for group, msgs of user?.rolesPartial ? {} \
+                 when not _.isEmpty msgs)
+  for group in groups
     continue if group == wildGroup
     unescapeGroup group
 
 if Meteor.isServer
-  @readableGroups = (userId) ->
-    user = findUser userId
-    if not user.roles  ## anonymous user or user has no permissions
-      Groups.find
-        anonymous: 'read'
-    else if 'read' in (user.roles[wildGroup] ? [])  ## super-reading user
+  @accessibleGroups = (userId) ->
+    user = findUser userId  ## possibly anonymous
+    if not _.isEmpty user?.roles?[wildGroup]  ## global super user
       Groups.find()
-    else  ## groups readable by this user or by anonymous
+    else  ## groups accessible by this user or by anonymous
       Groups.find
         $or: [
-          anonymous: 'read'
+          #anonymous: 'read'
+          anonymous: $nin: [null, []]
         ,
-          name: $in: (unescapeGroup group for own group, roles of user.roles ? {} when 'read' in roles)
+          name: $in: memberOfGroups user
         ]
-  @readableGroupNames = (userId) ->
-    names = []
-    readableGroups(userId).forEach (group) -> names.push group.name
-    names
+  @accessibleGroupNames = (userId) ->
+    accessibleGroups(userId).map (group) -> group.name
 
   Meteor.publish 'groups', ->
     @autorun ->
-      readableGroups @userId
+      accessibleGroups @userId
 
   #@groupMembers = (group, options) ->
   #  ## Mimic memberOfGroup above
@@ -122,10 +132,15 @@ if Meteor.isServer
         multi: true
 
   Meteor.users.find
-    roles: $exists: true
+    $or: [
+      roles: $exists: true
+    ,
+      rolesPartial: $exists: true
+    ]
   ,
     fields:
       roles: true
+      rolesPartial: true
       username: true
   .observe
     added: (user) ->
@@ -151,6 +166,7 @@ if Meteor.isServer
             profile: true
             emails: true  ## necessary to know whether email address verified
             roles: true  ## necessary to know who can see messages
+            rolesPartial: true  ## necessary to know who can see messages
       else
         @ready()
 
@@ -161,16 +177,20 @@ if Meteor.isServer
   _.sortBy groupMembers(group), userSortKey
 
 Meteor.methods
-  setRole: (group, user, role, yesno) ->
+  setRole: (group, message, user, role, yesno) ->
     check group, String
+    check message, Match.Maybe String
     check user, String
     check role, String
     check yesno, Boolean
-    #console.log 'setRole', group, user, role, yesno
-    unless groupRoleCheck group, 'admin'
+    #console.log 'setRole', group, message, user, role, yesno
+    unless messageRoleCheck group, message, 'admin'
       throw new Meteor.Error 'setRole.unauthorized',
         "You need 'admin' permissions to set roles in group '#{group}'"
     if user == anonymousUser
+      if message
+        throw new Meteor.Error 'setRole.anonymousMessage',
+          "Message-specific role setting not allowed for anonymous user"
       if yesno
         Groups.update
           name: group
@@ -180,8 +200,12 @@ Meteor.methods
           name: group
         , $pull: anonymous: role
     else
-      op =
-        "roles.#{escapeGroup group}": role
+      if message
+        op =
+          "rolesPartial.#{escapeGroup group}.#{message}": role
+      else
+        op =
+          "roles.#{escapeGroup group}": role
       if yesno
         Meteor.users.update
           username: user
@@ -190,6 +214,22 @@ Meteor.methods
         Meteor.users.update
           username: user
         , $pull: op
+        ## Check for now-empty rolesPartial for a particular message, and if
+        ## so, eliminate role array.  This lets us more easily check whether
+        ## a user has any partial roles in a given group.
+        if message
+          console.log Meteor.users.findOne
+            username: user
+            "rolesPartial.#{escapeGroup group}.#{message}": []
+          Meteor.users.update
+            username: user
+            "rolesPartial.#{escapeGroup group}.#{message}": []
+          , $unset: "rolesPartial.#{escapeGroup group}.#{message}": ''
+        #if message and
+        #   _.isEmpty findUsername(user)?.rolesPartial?[group]?[message]
+        #  Meteor.users.update
+        #    username: user
+        #  , $unset: "rolesPartial.#{escapeGroup group}.#{message}": ''
 
   groupDefaultSort: (group, sortBy) ->
     check group, String

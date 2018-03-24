@@ -37,6 +37,9 @@ switch sharejsEditor
   #$(e.target).parent().dropdown 'toggle'
   $(e.target).parents('.dropdown-menu').first().parent().find('.dropdown-toggle').dropdown 'toggle'
 
+@routeMessage = ->
+  Router.current()?.params?.message
+
 #Template.registerHelper 'titleOrUntitled', ->
 #  titleOrUntitled @
 

@@ -58,7 +58,7 @@ if Meteor.isServer
   Meteor.publish 'tags', (group) ->
     check group, String
     @autorun ->
-      unless groupRoleCheck group, 'read', findUser @userId
+      unless memberOfGroup group, findUser @userId
         return @ready()
       Tags.find
         group: group
@@ -67,7 +67,7 @@ if Meteor.isServer
   Meteor.publish 'tags.all', (group) ->
     check group, String
     @autorun ->
-      unless groupRoleCheck group, 'read', findUser @userId
+      unless memberOfGroup group, findUser @userId
         return @ready()
       Tags.find
         group: group

@@ -1,5 +1,5 @@
 @routeGroupRoute = ->
-  Router.current().params.group
+  Router.current()?.params?.group
 
 @routeGroup = ->
   group = routeGroupRoute()
@@ -44,23 +44,6 @@ Template.registerHelper 'groupData', groupData
 
 Template.registerHelper 'groups', ->
   Groups.find {},
-    sort: [['name', 'asc']]
-
-Template.registerHelper 'groupsMine', ->
-  Groups.find
-    $or: [
-      name: $in: (unescapeGroup group for own group, roles of Meteor.user()?.roles ? {} when 'read' in roles)
-    ,
-      anonymous: 'read'
-    ]
-  ,
-    sort: [['name', 'asc']]
-
-Template.registerHelper 'groupsOther', ->
-  Groups.find
-    name: $nin: (unescapeGroup group for own group, roles of Meteor.user()?.roles ? {} when 'read' in roles)
-    anonymous: $ne: 'read'
-  ,
     sort: [['name', 'asc']]
 
 Template.registerHelper 'admin', -> canAdmin @group ? routeGroup()
