@@ -169,6 +169,7 @@ Router.route '/:group/users',
   name: 'users'
   subscriptions: -> [
     Subscribe.subscribe 'users', @params.group
+    Subscribe.subscribe 'messages.root', @params.group  ## for title link
   ]
   data: ->
     group: @params.group
@@ -179,6 +180,7 @@ Router.route '/:group/users/:message',
   template: 'users'
   subscriptions: -> [
     Subscribe.subscribe 'users', @params.group
+    Subscribe.subscribe 'messages.root', @params.group  ## for partial access links
   ]
   data: ->
     group: @params.group

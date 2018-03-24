@@ -1,1 +1,2 @@
 .createdAt { font-weight: normal; font-size: smaller; font-style: italic; }
+tr.partialMember > td { padding-left: 2em; }

@@ -1,7 +1,9 @@
 template(name="users")
   h3
     if message
-      | Permissions for thread &ldquo;<a href="{{pathFor 'message' group=group message=message}}">#{message}</a>&rdquo; in group &ldquo;<a href="{{pathFor 'group' group=group}}">#{group}</a>&rdquo;
+      | Permissions for thread
+      with messageData
+        |  &ldquo;<a href="{{pathFor 'message' group=group message=_id}}">#{titleOrUntitled}</a>&rdquo; in group &ldquo;<a href="{{pathFor 'group' group=group}}">#{group}</a>&rdquo;
     else
       if wildLink
         | Permissions for group &ldquo;<a href="{{pathFor 'group' group=group}}">#{group}</a>&rdquo;
@@ -40,6 +42,12 @@ template(name="users")
           td(data-role="edit") !{editRole}
           td(data-role="super") !{superRole}
           td(data-role="admin") !{adminRole}
+        if partialMember
+          tr.partialMember
+            td(colspan="6")
+              | Partial access to messages:
+              each partialMember
+                |  &bull; <a href="{{pathFor 'users.message' group=group message=_id}}">#{titleOrUntitled}</a>
       if showAnonymous
         tr(data-username="*")
           th

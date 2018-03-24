@@ -60,6 +60,15 @@ Template.users.helpers
       name: @group
     ?.invitations ? []
 
+  messageData: ->
+    findMessage @message
+  partialMember: ->
+    return if routeMessage()
+    return if _.isEmpty @rolesPartial?[escapeGroup routeGroup()]
+    Messages.find
+      _id: $in:
+        (message for message, roles of @rolesPartial[escapeGroup routeGroup()])
+
   readRole: -> haveRole 'read', @
   postRole: -> haveRole 'post', @
   editRole: -> haveRole 'edit', @

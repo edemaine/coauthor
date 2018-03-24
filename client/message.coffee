@@ -40,8 +40,8 @@ switch sharejsEditor
 @routeMessage = ->
   Router.current()?.params?.message
 
-#Template.registerHelper 'titleOrUntitled', ->
-#  titleOrUntitled @
+Template.registerHelper 'titleOrUntitled', ->
+  titleOrUntitled @
 
 Template.registerHelper 'childrenCount', ->
   return 0 unless @children and @children.length > 0
