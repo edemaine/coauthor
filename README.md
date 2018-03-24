@@ -59,7 +59,7 @@ in other fields too.
     `\"`, `\'`, ```\` ```, `\^`, `\~`, `\=`, `\c`, `\v`, `\u`, `\H`,
     `\textasciitilde`, `\textasciicircum`, `\textbackslash`,
     `\textellipsis`, `\dots`, `\ldots`,
-    `\&`, `\$`, `\{`, `\}`, `\%`, ``` `` ```, `''`,
+    `\&`, `\$`, `\{`, `\}`, `\%`, `\#`, ``` `` ```, `''`,
     `~`, `--`, `---`, `{`, `}`, `\\`, `\item`;
     `\begin/\end` for environments `verbatim`, `enumerate`, `itemize`,
     `quote`, `tabular` (basic),

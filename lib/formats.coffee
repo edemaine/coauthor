@@ -319,7 +319,7 @@ latex2html = (tex) ->
   .replace /\\=u|\\={u}/g, '&#363;'
   .replace /\\=y|\\={y}/g, '&#563;'
   .replace /\\&/g, '&amp;'
-  .replace /\\([${}%])/g, '$1'
+  .replace /\\([${}%#])/g, '$1'
   .replace /\\\s+/g, ' '
   .replace latexSymbolsRe, (match, offset, string) ->
     if inTag string, offset  ## potential unclosed HTML tag; leave alone
