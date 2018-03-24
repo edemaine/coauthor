@@ -157,7 +157,11 @@ if Meteor.isServer
     check group, String
     @autorun ->
       groupData = findGroup group
-      if groupRoleCheck groupData, 'read', findUser @userId
+      user = findUser @userId
+      ## Publish members of all readable groups (including anonymous groups)
+      ## and all groups of which you are a full or partial member.
+      if memberOfGroup(group, user) or
+         groupRoleCheck groupData, 'read', user
         Meteor.users.find
           username: $in: groupMembers groupData
         ,
@@ -218,9 +222,6 @@ Meteor.methods
         ## so, eliminate role array.  This lets us more easily check whether
         ## a user has any partial roles in a given group.
         if message
-          console.log Meteor.users.findOne
-            username: user
-            "rolesPartial.#{escapeGroup group}.#{message}": []
           Meteor.users.update
             username: user
             "rolesPartial.#{escapeGroup group}.#{message}": []
