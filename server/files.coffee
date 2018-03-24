@@ -33,6 +33,7 @@ WebApp.rawConnectHandlers.use '/file',
       fields:
         group: true
         file: true
+        root: true  ## for messageRoleCheck
     unless msg? and msg.file and (req.gridFS = findFile msg.file)?
       res.writeHead 403
       return res.end "Invalid file message ID: #{match[1]}"
