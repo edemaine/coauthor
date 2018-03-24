@@ -83,10 +83,10 @@ in other fields too.
   "regular" keybindings as well as Vim and Emacs keybindings
   (if you've ever needed rectangular selection for e.g. ASCII art).
 
-* Organization by **groups** (intended to correspond to groups of people who
-  meet).  Users can have permission to see and/or post within each
-  group, or at a global level (mainly intended for admins).
-  Admins can edit the permissions of other users via the "Users" button.
+* Messages are organized by **groups** (intended to correspond to groups of
+  people who meet), so it's easy to share material with everyone in the group.
+  But it's also possible to share part of a group (only certain threads)
+  with specific users, for visitors or paper merges etc.
 
 * **Sorting** of threads within a group by title, creator, creation date,
   last update, number of posts, or whether subscribed (by clicking on the
@@ -193,7 +193,12 @@ in other fields too.
 * **Time travel**: You can drag through history and see past versions.
   In general, there should be good, automatic history tracking of everything.
 
-* **Permissions** for each user in each group (and globally):
+* **Permissions** can be specified for each user at the group level
+  (typical case --- user can access the entire group of messages),
+  at the thread level (user can access only certain threads within group),
+  or at the global level: just click "Users" in the appropriate view.
+  Levels of access:
+
      * read: see the group and read the messages (otherwise invisible)
      * post: create new messages, replies, etc. in the group
      * edit: modify other people's messages
