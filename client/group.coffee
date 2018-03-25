@@ -46,7 +46,7 @@ Template.registerHelper 'groups', ->
   Groups.find {},
     sort: [['name', 'asc']]
 
-Template.registerHelper 'admin', -> canAdmin @group ? routeGroup()
+Template.registerHelper 'admin', -> canAdmin routeGroup(), routeMessage()
 
 Template.registerHelper 'canImport', -> canImport @group ? routeGroup()
 

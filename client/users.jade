@@ -10,7 +10,7 @@ template(name="users")
       else
         | Global permissions for all groups
     .links.btn-group.pull-right
-      if message
+      if groupLink
         a(href="{{pathFor 'users' group=group}}").btn.btn-warning Edit Group Permissions
       if wildLink
         a(href=wildLink).btn.btn-danger Edit Global Permissions

@@ -18,7 +18,7 @@ haveRole = (role, profile) ->
   if group != wildGroup and role in (profile.roles?[wildGroup] ? [])
     levels.push "<del>#{levels.pop()}</del>"
     levels.push '<b class="text-success space">YES*</b>'
-  if groupRoleCheck group, 'admin'
+  if messageRoleCheck group, message, 'admin'
     levels[0] = "<button class='roleButton btn btn-#{btnclass}'>#{levels[0]}</button>"
   levels.join ' '
 
@@ -81,6 +81,7 @@ Template.users.helpers
   anonSuperRole: -> anonRole 'super', @group
   anonAdminRole: -> anonRole 'admin', @group
 
+  groupLink: -> @message and groupRoleCheck @group, 'admin'
   wild: -> @group == wildGroup
   wildLink: ->
     if @group != wildGroup and groupRoleCheck wildGroup, 'admin'
