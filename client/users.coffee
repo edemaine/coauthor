@@ -81,8 +81,12 @@ Template.users.helpers
   anonSuperRole: -> anonRole 'super', @group
   anonAdminRole: -> anonRole 'admin', @group
 
-  wildLink: -> @group != wildGroup and groupRoleCheck wildGroup, 'admin'
-  wildHref: -> pathFor 'users', group: wildGroupRoute
+  wild: -> @group == wildGroup
+  wildLink: ->
+    if @group != wildGroup and groupRoleCheck wildGroup, 'admin'
+      pathFor 'users', group: wildGroupRoute
+    else
+      null
 
 Template.users.events
   'click .roleButton': (e, t) ->

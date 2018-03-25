@@ -5,7 +5,7 @@ template(name="users")
       with messageData
         |  &ldquo;<a href="{{pathFor 'message' group=group message=_id}}">#{titleOrUntitled}</a>&rdquo; in group &ldquo;<a href="{{pathFor 'group' group=group}}">#{group}</a>&rdquo;
     else
-      if wildLink
+      unless wild
         | Permissions for group &ldquo;<a href="{{pathFor 'group' group=group}}">#{group}</a>&rdquo;
       else
         | Global permissions for all groups
@@ -13,7 +13,7 @@ template(name="users")
       if message
         a(href="{{pathFor 'users' group=group}}").btn.btn-warning Edit Group Permissions
       if wildLink
-        a(href=wildHref).btn.btn-danger Edit Global Permissions
+        a(href=wildLink).btn.btn-danger Edit Global Permissions
   table.table.table-striped.table-hover.users.clearfix
     thead
       tr
