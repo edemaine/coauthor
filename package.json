@@ -35,6 +35,7 @@
     "markdown-it-replacements": "^1.0.1",
     "meteor-node-stubs": "^0.2.11",
     "moment-timezone": "^0.5.14",
+    "pdfjs-dist": "^2.0.457",
     "sanitize-html": "^1.17.0"
   },
   "devDependencies": {

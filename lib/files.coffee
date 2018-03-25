@@ -90,12 +90,15 @@ if Meteor.isServer
 
 @fileType = (file) ->
   file = findFile file unless file.contentType?
-  if file?.contentType in ['image/gif', 'image/jpeg', 'image/png', 'image/svg+xml', 'image/webp', 'image/x-icon']
-    'image'
-  else if file?.contentType in ['video/mp4', 'video/ogg', 'video/webm']
-    'video'
-  else
-    'unknown'
+  switch file?.contentType
+    when 'image/gif', 'image/jpeg', 'image/png', 'image/svg+xml', 'image/webp', 'image/x-icon'
+      'image'
+    when 'video/mp4', 'video/ogg', 'video/webm'
+      'video'
+    when 'application/pdf'
+      'pdf'
+    else
+      'unknown'
 
 if Meteor.isServer
   @readableFiles = (userid) ->

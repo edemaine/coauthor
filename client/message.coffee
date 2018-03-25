@@ -699,6 +699,12 @@ Template.submessage.helpers
       "<PRE CLASS='raw'>#{_.escape body}</PRE>"
     else
       formatBody history.format, body
+  file: historify 'file'
+  pdf: ->
+    history = messageHistory.get(@_id) ? @
+    ## Don't run PDF render if in raw mode
+    return if messageRaw.get(@_id) or "pdf" != fileType history.file
+    url: urlToFile history
   formatFile: ->
     history = messageHistory.get(@_id) ? @
     format = formatFile history
@@ -1227,3 +1233,50 @@ Template.messageParentConfirm.events
     e.preventDefault()
     e.stopPropagation()
     Modal.hide()
+
+Template.messagePDF.onCreated ->
+  @page = 1
+  @pages = 1
+
+Template.messagePDF.onRendered ->
+  `import('pdfjs-dist')`.then (pdfjs) =>
+    pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'
+    pdfjs.getDocument(@data.url).then (pdf) =>
+      @pages = pdf.numPages
+      @renderPage = =>
+        pdf.getPage(@page).then (page) =>
+          viewport = page.getViewport 1
+          container = @find 'div.pdf'
+          ## Simulate width: 100%
+          width = container.parentElement.clientWidth
+          height = width * viewport.height / viewport.width
+          ## Simulate max-height: 100vh
+          if height > window.innerHeight
+            height = window.innerHeight
+            width = height * viewport.width / viewport.height
+          container.style.width = "#{width}px"
+          container.style.height = "#{height}px"
+          page.getOperatorList().then (opList) ->
+            svgGfx = new pdfjs.SVGGraphics page.commonObjs, page.objs
+            svgGfx.getSVG opList, viewport
+            .then (svg) ->
+              #svg.preserveAspectRatio = true
+              container.innerHTML = ''
+              container.appendChild svg
+          #canvas = @find 'div.pdf'
+          #viewport = page.getViewport width / viewport.width
+          #page.render
+          #  canvasContext: canvas.getContext '2d'
+          #  viewport: viewport
+          #.then ->
+      @renderPage()
+
+Template.messagePDF.events
+  'click .prevPage': (e, t) ->
+    if t.page > 1
+      t.page -= 1
+      t.renderPage?()
+  'click .nextPage': (e, t) ->
+    if t.page < t.pages
+      t.page += 1
+      t.renderPage?()

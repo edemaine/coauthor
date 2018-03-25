@@ -24,6 +24,9 @@ template(name='readMessage')
       .panel-body
         .message-body.tex2jax !{formatBody}
         if file
+          if pdf
+            with pdf
+              +messagePDF
           p.message-file !{formatFile}
       .message-footer
         +messageAuthor

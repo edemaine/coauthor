@@ -17,6 +17,11 @@ module.exports = (grunt) ->
           'node_modules/codemirror/addon/fold/foldgutter.css'
         ]
         dest: 'client/codemirror/'
+      pdfjs:
+        expand: true
+        flatten: true
+        src: 'node_modules/pdfjs-dist/build/pdf.worker.min.js'
+        dest: 'public/'
     replace:
       katex:
         options:

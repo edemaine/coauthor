@@ -18,6 +18,9 @@ Template.readMessage.onRendered ->
 
 Template.readMessage.helpers
   readChildren: -> @readChildren
+  pdf: ->
+    return if "pdf" != fileType @file
+    url: urlToFile @
 
 Template.readMessage.events
   'click .foldButton': messageFoldHandler
