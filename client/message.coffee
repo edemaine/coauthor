@@ -1235,27 +1235,30 @@ Template.messageParentConfirm.events
     Modal.hide()
 
 Template.messagePDF.onCreated ->
-  @page = 1
-  @pages = 1
+  @page = new ReactiveVar 1
+  @pages = new ReactiveVar 1
 
 Template.messagePDF.onRendered ->
+  container = @find 'div.pdf'
+  window.addEventListener 'resize', => @resize?()
   `import('pdfjs-dist')`.then (pdfjs) =>
-    pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'
+    pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'  ## in /public
     pdfjs.getDocument(@data.url).then (pdf) =>
-      @pages = pdf.numPages
+      @pages.set pdf.numPages
       @renderPage = =>
-        pdf.getPage(@page).then (page) =>
+        pdf.getPage(@page.get()).then (page) =>
           viewport = page.getViewport 1
-          container = @find 'div.pdf'
-          ## Simulate width: 100%
-          width = container.parentElement.clientWidth
-          height = width * viewport.height / viewport.width
-          ## Simulate max-height: 100vh
-          if height > window.innerHeight
-            height = window.innerHeight
-            width = height * viewport.width / viewport.height
-          container.style.width = "#{width}px"
-          container.style.height = "#{height}px"
+          @resize = ->
+            ## Simulate width: 100%
+            width = container.parentElement.clientWidth
+            height = width * viewport.height / viewport.width
+            ## Simulate max-height: 100vh
+            if height > window.innerHeight
+              height = window.innerHeight
+              width = height * viewport.width / viewport.height
+            container.style.width = "#{width}px"
+            container.style.height = "#{height}px"
+          @resize()
           page.getOperatorList().then (opList) ->
             svgGfx = new pdfjs.SVGGraphics page.commonObjs, page.objs
             svgGfx.getSVG opList, viewport
@@ -1271,12 +1274,17 @@ Template.messagePDF.onRendered ->
           #.then ->
       @renderPage()
 
+Template.messagePDF.helpers
+  multiplePages: -> Template.instance().pages.get() > 1
+  page: -> Template.instance().page.get()
+  pages: -> Template.instance().pages.get()
+
 Template.messagePDF.events
   'click .prevPage': (e, t) ->
-    if t.page > 1
-      t.page -= 1
+    if t.page.get() > 1
+      t.page.set t.page.get() - 1
       t.renderPage?()
   'click .nextPage': (e, t) ->
-    if t.page < t.pages
-      t.page += 1
+    if t.page.get() < t.pages.get()
+      t.page.set t.page.get() + 1
       t.renderPage?()

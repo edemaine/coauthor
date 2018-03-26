@@ -427,10 +427,12 @@ template(name="messageParentConfirm")
           button.btn.btn-success.cancelButton.fullwidth Cancel
 
 template(name="messagePDF")
-  .btn-group.btn-group-xs
-    a.btn.btn-default.prevPage
-      span.glyphicon.glyphicon-backward(aria-hidden="true")
-    a.btn.btn-default.nextPage
-      span.glyphicon.glyphicon-forward(aria-hidden="true")
+  if multiplePages
+    .btn-group.btn-group-xs
+      a.btn.btn-default.prevPage
+        span.glyphicon.glyphicon-backward(aria-hidden="true")
+      a.btn.btn-default.nextPage
+        span.glyphicon.glyphicon-forward(aria-hidden="true")
+    span.space page #{page} of #{pages}
   div.pdf
     i (&hellip;rendering PDF&hellip;)
