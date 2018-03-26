@@ -1243,36 +1243,37 @@ Template.messagePDF.onRendered ->
   window.addEventListener 'resize', => @resize?()
   `import('pdfjs-dist')`.then (pdfjs) =>
     pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'  ## in /public
-    pdfjs.getDocument(@data.url).then (pdf) =>
-      @pages.set pdf.numPages
-      @renderPage = =>
-        pdf.getPage(@page.get()).then (page) =>
-          viewport = page.getViewport 1
-          @resize = ->
-            ## Simulate width: 100%
-            width = container.parentElement.clientWidth
-            height = width * viewport.height / viewport.width
-            ## Simulate max-height: 100vh
-            if height > window.innerHeight
-              height = window.innerHeight
-              width = height * viewport.width / viewport.height
-            container.style.width = "#{width}px"
-            container.style.height = "#{height}px"
-          @resize()
-          page.getOperatorList().then (opList) ->
-            svgGfx = new pdfjs.SVGGraphics page.commonObjs, page.objs
-            svgGfx.getSVG opList, viewport
-            .then (svg) ->
-              #svg.preserveAspectRatio = true
-              container.innerHTML = ''
-              container.appendChild svg
-          #canvas = @find 'div.pdf'
-          #viewport = page.getViewport width / viewport.width
-          #page.render
-          #  canvasContext: canvas.getContext '2d'
-          #  viewport: viewport
-          #.then ->
-      @renderPage()
+    @autorun =>
+      pdfjs.getDocument(Template.currentData().url).then (pdf) =>
+        @pages.set pdf.numPages
+        @renderPage = =>
+          pdf.getPage(@page.get()).then (page) =>
+            viewport = page.getViewport 1
+            @resize = ->
+              ## Simulate width: 100%
+              width = container.parentElement.clientWidth
+              height = width * viewport.height / viewport.width
+              ## Simulate max-height: 100vh
+              if height > window.innerHeight
+                height = window.innerHeight
+                width = height * viewport.width / viewport.height
+              container.style.width = "#{width}px"
+              container.style.height = "#{height}px"
+            @resize()
+            page.getOperatorList().then (opList) ->
+              svgGfx = new pdfjs.SVGGraphics page.commonObjs, page.objs
+              svgGfx.getSVG opList, viewport
+              .then (svg) ->
+                #svg.preserveAspectRatio = true
+                container.innerHTML = ''
+                container.appendChild svg
+            #canvas = @find 'div.pdf'
+            #viewport = page.getViewport width / viewport.width
+            #page.render
+            #  canvasContext: canvas.getContext '2d'
+            #  viewport: viewport
+            #.then ->
+        @renderPage()
 
 Template.messagePDF.helpers
   multiplePages: -> Template.instance().pages.get() > 1
