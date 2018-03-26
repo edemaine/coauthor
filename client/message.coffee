@@ -1278,6 +1278,12 @@ Template.messagePDF.helpers
   multiplePages: -> Template.instance().pages.get() > 1
   page: -> Template.instance().page.get()
   pages: -> Template.instance().pages.get()
+  disablePrev: ->
+    if Template.instance().page.get() <= 1
+      'disabled'
+  disableNext: ->
+    if Template.instance().page.get() >= Template.instance().pages.get()
+      'disabled'
 
 Template.messagePDF.events
   'click .prevPage': (e, t) ->

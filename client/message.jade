@@ -429,9 +429,9 @@ template(name="messageParentConfirm")
 template(name="messagePDF")
   if multiplePages
     .btn-group.btn-group-xs
-      a.btn.btn-default.prevPage
+      a.btn.btn-default.prevPage(class=disablePrev)
         span.glyphicon.glyphicon-backward(aria-hidden="true")
-      a.btn.btn-default.nextPage
+      a.btn.btn-default.nextPage(class=disableNext)
         span.glyphicon.glyphicon-forward(aria-hidden="true")
     span.space page #{page} of #{pages}
   div.pdf
