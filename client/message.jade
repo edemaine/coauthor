@@ -434,5 +434,7 @@ template(name="messagePDF")
       a.btn.btn-default.nextPage(class=disableNext)
         span.glyphicon.glyphicon-forward(aria-hidden="true")
     span.space page #{page} of #{pages}
-  div.pdf
-    i (&hellip;rendering PDF&hellip;)
+  //-- Outer box is to properly detect the width (including padding)
+  div.pdfBox
+    div.pdf
+      i (&hellip;rendering PDF&hellip;)
