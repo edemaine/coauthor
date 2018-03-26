@@ -158,8 +158,9 @@ in other fields too.
   button or dragging a file onto that button.
   File messages can have title and body too; title defaults to the filename.
   Image/video files (including PNG, JPEG, SVG, MP4) are displayed inline.
-  (In the future, they and other visual file types such as PDF will be
-  rendered by some kind of thumbnails.)
+  PDF files are converted to SVG using
+  [pdf.js](https://mozilla.github.io/pdf.js/)
+  and displayed inline, with page-turning buttons.
 
 * Messages can start/be marked **Unpublished** (not yet finished) or
   **Deleted** (mistake / no longer useful).
