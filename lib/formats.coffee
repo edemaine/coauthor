@@ -212,13 +212,17 @@ latex2htmlCommandsAlpha = (tex, math) ->
   .replace /\\includegraphics\s*(\[[^\[\]]*\]\s*)?{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g,
     (match, optional = '', graphic) ->
       style = ''
-      optional.replace /width\s*=\s*([-0-9.]+)\s*([a-zA-Z]*)/g,
+      optional.replace /width\s*=\s*([-0-9.]+)\s*(%|[a-zA-Z]*)/g,
         (match2, value, unit) ->
           style += "width: #{value}#{unit};"
           ''
-      .replace /height\s*=\s*([-0-9.]+)\s*([a-zA-Z]*)/g,
+      .replace /height\s*=\s*([-0-9.]+)\s*(%|[a-zA-Z]*)/g,
         (match2, value, unit) ->
           style += "height: #{value}#{unit};"
+          ''
+      .replace /scale\s*=\s*([-0-9.]+)/g,
+        (match2, value, unit) ->
+          style += "width: #{100 * parseFloat value}%;"
           ''
       style = ' style="' + style + '"' if style
       """<img src="#{graphic}"#{style}>"""
