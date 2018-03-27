@@ -20,6 +20,8 @@ template(name='readMessage')
       span.space
       +messageTags
       +messageLabels
+      unless root
+        span.pull-right.badge= submessageCount
     unless folded
       .panel-body
         .message-body.tex2jax !{formatBody}

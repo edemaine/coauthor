@@ -150,80 +150,85 @@ template(name="submessage")
                 li
                   a.tagAdd(href="#",data-tag=key) #{key}
           +messageLabels
-      .message-right-buttons.btn-group.pull-right.hidden-print
-        unless folded
-          unless editingRV
-            if raw
-              button.btn.btn-default.rawButton(tabindex="{{tabindex 1}}") Formatted
-            else
-              button.btn.btn-default.rawButton(tabindex="{{tabindex 1}}") Raw
-            unless history
-              button.btn.btn-default.historyButton(tabindex="{{tabindex 2}}") History
-        if history
-          button.btn.btn-default.historyButton(tabindex="{{tabindex 2}}") Exit History
-        if editingRV
-          unless root
-            +threadPrivacy
-          +keyboardSelector _id=_id tabindex=tabindex6
-          +formatSelector format=format tabindex=tabindex7
-        unless history
-          if canAction
-            .btn-group
-              button.btn.btn-info.dropdown-toggle(tabindex="{{tabindex 4}}", type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
-                | Action
-                span.caret
-              ul.dropdown-menu.dropdown-menu-right.actionMenu(role="menu")
-                if minimized
-                  if canUnminimize
-                    li
-                      a.minimizeButton(href="#")
-                        button.btn.btn-success.btn-block Unminimize
-                else
-                  if canMinimize
-                    li
-                      a.minimizeButton(href="#")
-                        button.btn.btn-danger.btn-block Minimize
-                if deleted
-                  if canUndelete
-                    li
-                      a.deleteButton(href="#")
-                        button.btn.btn-success.btn-block Undelete
-                  if canSuperdelete
-                    li
-                      a.superdeleteButton(href="#")
-                        button.btn.btn-danger.btn-block Superdelete
-                unless published
-                  if canPublish
-                    li
-                      a.publishButton(href="#")
-                        button.btn.btn-success.btn-block Publish
-                unless deleted
-                  if canDelete
-                    li
-                      a.deleteButton(href="#")
-                        button.btn.btn-danger.btn-block Delete
-                if published
-                  if canUnpublish
-                    li
-                      a.publishButton(href="#")
-                        button.btn.btn-danger.btn-block Unpublish
-                if canPrivate
-                  if private
-                    li
-                      a.privateButton(href="#")
-                        button.btn.btn-success.btn-block Make Public
-                  else
-                    li
-                      a.privateButton(href="#")
-                        button.btn.btn-danger.btn-block Make Private
+      // Buttons and badge on the right of the message
+      .pull-right.hidden-print
+        unless root
+          span.badge= submessageCount
+          span.space
+        .btn-group
+          unless folded
+            unless editingRV
+              if raw
+                button.btn.btn-default.rawButton(tabindex="{{tabindex 1}}") Formatted
+              else
+                button.btn.btn-default.rawButton(tabindex="{{tabindex 1}}") Raw
+              unless history
+                button.btn.btn-default.historyButton(tabindex="{{tabindex 2}}") History
+          if history
+            button.btn.btn-default.historyButton(tabindex="{{tabindex 2}}") Exit History
           if editingRV
-            button.btn.btn-info.editButton(tabindex="{{tabindex 8}}") Stop Editing
-          else
-            unless folded
-              if canEdit
-                if file
-                  +messageReplace _id=_id group=group tabindex=tabindex7
-                button.btn.btn-info.editButton(tabindex="{{tabindex 8}}") Edit
+            unless root
+              +threadPrivacy
+            +keyboardSelector _id=_id tabindex=tabindex6
+            +formatSelector format=format tabindex=tabindex7
+          unless history
+            if canAction
+              .btn-group
+                button.btn.btn-info.dropdown-toggle(tabindex="{{tabindex 4}}", type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
+                  | Action
+                  span.caret
+                ul.dropdown-menu.dropdown-menu-right.actionMenu(role="menu")
+                  if minimized
+                    if canUnminimize
+                      li
+                        a.minimizeButton(href="#")
+                          button.btn.btn-success.btn-block Unminimize
+                  else
+                    if canMinimize
+                      li
+                        a.minimizeButton(href="#")
+                          button.btn.btn-danger.btn-block Minimize
+                  if deleted
+                    if canUndelete
+                      li
+                        a.deleteButton(href="#")
+                          button.btn.btn-success.btn-block Undelete
+                    if canSuperdelete
+                      li
+                        a.superdeleteButton(href="#")
+                          button.btn.btn-danger.btn-block Superdelete
+                  unless published
+                    if canPublish
+                      li
+                        a.publishButton(href="#")
+                          button.btn.btn-success.btn-block Publish
+                  unless deleted
+                    if canDelete
+                      li
+                        a.deleteButton(href="#")
+                          button.btn.btn-danger.btn-block Delete
+                  if published
+                    if canUnpublish
+                      li
+                        a.publishButton(href="#")
+                          button.btn.btn-danger.btn-block Unpublish
+                  if canPrivate
+                    if private
+                      li
+                        a.privateButton(href="#")
+                          button.btn.btn-success.btn-block Make Public
+                    else
+                      li
+                        a.privateButton(href="#")
+                          button.btn.btn-danger.btn-block Make Private
+            if editingRV
+              button.btn.btn-info.editButton(tabindex="{{tabindex 8}}") Stop Editing
+            else
+              unless folded
+                if canEdit
+                  if file
+                    +messageReplace _id=_id group=group tabindex=tabindex7
+                  button.btn.btn-info.editButton(tabindex="{{tabindex 8}}") Edit
     unless folded
       if history
         +messageHistory forHistory
