@@ -138,6 +138,7 @@ in other fields too.
   to search for regular expressions with spaces in them; normally,
   spaces act as an AND query.
   `tag:...` does an exact match for a specified tag; it can be negated.
+  `is:root` matches root messages (tops of threads).
 
 * **User search**:
   find posts by a particular user by clicking on their username.

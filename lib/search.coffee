@@ -21,6 +21,7 @@ SEARCH LANGUAGE:
   or title:regex:"this regex" or -title:"this phrase".
 * tag:... does an exact match for a specified tag.  It can be negated with -,
   but does not behave specially with regex: or *s.
+* is:root matches root messages (tops of threads)
 ###
 
 escapeRegExp = (regex) ->
@@ -58,7 +59,7 @@ unescapeRegExp = (regex) ->
   while (token = tokenRe.exec search)?
     continue if token[1]  ## ignore whitespace tokens
     ## Check for negation and/or leading commands followed by colon
-    colon = /^-?(?:(?:regex|title|body|tag):)*/.exec token[0]
+    colon = /^-?(?:(?:regex|title|body|tag|is):)*/.exec token[0]
     colon = colon[0]
     ## Remove quotes (which are just used for avoiding space parsing).
     if token[4]
@@ -79,7 +80,7 @@ unescapeRegExp = (regex) ->
     if 0 <= colon.indexOf 'regex:'
       regex = token
       colon = colon.replace /regex:/g, ''
-    else
+    else if 0 > colon.indexOf 'is:'
       starStart = token[0] == '*'
       if starStart
         token = token.substring 1
@@ -125,7 +126,18 @@ unescapeRegExp = (regex) ->
           wants.push body: regex
       when 'tag:'
         wants.push "tags.#{escapeTag token}": $exists: not negate
-  if wants.length == 1
+      when 'is:'
+        switch token
+          when 'root'
+            if negate
+              wants.push root: $ne: null
+            else
+              wants.push root: null
+          else
+            console.warn "Unknown 'is:' specification '#{token}'"
+  if wants.length == 0
+    null
+  else if wants.length == 1
     wants[0]
   else
     $and: wants
@@ -135,7 +147,7 @@ unescapeRegExp = (regex) ->
   if query?
     formatted = formatParsedSearch query
   else
-    "invalid query &ldquo;#{search}&rdquo;"
+    "invalid query '#{search}'"
 
 formatParsedSearch = (query) ->
   keys = _.keys query
@@ -189,6 +201,17 @@ formatParsedSearch = (query) ->
         "not tagged '#{unescapeTag key[5..]}'"
     else
       "tag #{key[5..]}: #{JSON.stringify value}"
+  else if _.isEqual keys, ['root']
+    root = query.root
+    prefix = ''
+    if _.isObject(root) and _.isEqual _.keys(root), ['$ne']
+      root = root.$ne
+      prefix = 'not '
+    prefix +
+    if root == null
+      "root message"
+    else
+      "descendant of message #{root}"
   else if _.isRegExp query
     simplify = unbreakRegExp uncaseInsensitiveRegExp query.source
     if realRegExp simplify
@@ -223,9 +246,10 @@ if Meteor.isServer
   Meteor.publish 'messages.search', (group, search) ->
     check group, String
     check search, String
+    parsed = parseSearch search
     @autorun ->
       query = accessibleMessagesQuery group, findUser @userId
-      return @ready() unless query?
+      return @ready() unless query? and parsed?
       query = $and: [
         query
         parseSearch search
