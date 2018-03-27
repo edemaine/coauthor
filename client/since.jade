@@ -8,6 +8,7 @@ template(name='since')
           | since
           input(type='text', size='10', value=since).form-control#sinceInput
           | = #{parseSince}
+          span.pull-right.badge= messageCount
       .panel-body
         if valid
           each messages
