@@ -51,15 +51,27 @@ Installation instructions:
    you'll probably want to `meteor remove force-ssl` to remove the automatic
    redirection from `http` to `https`.
 
+### Email
+
 You'll also need an SMTP server to send email notifications.
-In Postfix, modify the `/etc/postfix/main.cf` configuration as follows
-(substituting your own hostname):
+Make sure that your server has both **DNS** (hostname to IP mapping) *and*
+**reverse DNS (PTR)** (IP to hostname mapping), and that these point to
+each other.  Otherwise, many mail servers (such as
+[MIT's](http://kb.mit.edu/confluence/display/istcontrib/554+5.7.1+Delivery+not+authorized))
+will not accept email sent by the server.
+
+If you're using Postfix, modify the `/etc/postfix/main.cf` configuration as
+follows (substituting your own hostname):
 
  * Set `myhostname = yourhostname.com`
  * Add `, $myhostname` to `mydestination`
  * Add ` 172.17.0.0/16` to `mynetworks`:
 
    `mynetworks = 127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128 172.17.0.0/16`
+
+Set the `MAIL_FROM` environment variable (in `.deploy/mup.js`) to the
+return email address (typically `coauthor@yourhostname.com`) you'd like
+notifications sent from.
 
 If you want `coauthor@yourhostname.com` to receive email,
 add an alias like `coauthor: edemaine@mit.edu` to `/etc/aliases`
