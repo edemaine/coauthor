@@ -93,7 +93,9 @@ Template.registerHelper 'folded', ->
 Template.rootHeader.helpers
   root: ->
     if @root
-      Messages.findOne @root
+      msg = Messages.findOne @root
+      msg.child = @_id
+      msg
 
 Template.registerHelper 'formatTitle', ->
   formatTitleOrFilename @, false
@@ -386,8 +388,8 @@ Template.submessage.onRendered ->
   #  Math.floor(Math.random() * 25 + 255 - 25).toString(16)
 
   ## Drag/drop support.
-  focusButton = $(@find '.message-left-buttons').find('.focusButton')[0]
-  messageDrag.call @, focusButton
+  for focusButton in $(@find '.message-left-buttons').find('.focusButton')
+    messageDrag.call @, focusButton
 
   ## Fold naturally folded (minimized and deleted) messages
   ## by default on initial load.
@@ -396,7 +398,6 @@ Template.submessage.onRendered ->
   ## Fold referenced attached files by default on initial load.
   #@$.children('.panel').children('.panel-body').find('a[href|="/file/"]')
   #console.log @$ 'a[href|="/file/"]'
-  scrollToMessage @data._id if scrollToLater == @data._id
   #images = Session.get 'images'
   @images = {}
   @imagesInternal = {}
@@ -458,9 +459,16 @@ Template.submessage.onRendered ->
           checkImageInternal id
       @imagesInternal = newImagesInternal
 
+  id = @data._id
+  if scrollToLater == id or location.hash == "##{id}"
+    #Meteor.setTimeout ->
+    scrollToMessage id
+
 scrollDelay = 750
 
 @scrollToMessage = (id) ->
+  console.log 'scrolling to', id, id2template[id]?.firstNode
+  scrollToLater = null
   if id of id2template
     template = id2template[id]
     $.scrollTo template.firstNode, scrollDelay,

@@ -45,8 +45,10 @@ template(name="rootHeader")
       .panel.root(data-message=_id).panel-default
         .panel-heading.title
           .message-left-buttons.btn-group.btn-group-xs
-            a.btn.btn-info.focusButton(aria-label="Focus", href="{{pathFor 'message' group=group message=_id}}")
-              span.glyphicon.glyphicon-arrow-right(aria-hidden="true")
+            a.btn.btn-info.focusButton(aria-label="Thread in context", href="{{pathFor 'message' group=group message=_id}}#{{child}}")
+              span.glyphicon.glyphicon-arrow-left(aria-hidden="true")
+            a.btn.btn-info.focusButton(aria-label="Top of thread", href="{{pathFor 'message' group=group message=_id}}")
+              span.glyphicon.glyphicon-arrow-up(aria-hidden="true")
           span.space
           span.title.panel-title.tex2jax !{formatTitle}&#8203;
           +messageTags
