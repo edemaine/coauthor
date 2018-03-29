@@ -52,6 +52,7 @@ input.title ~ .message-right-buttons { margin: 0px; }
 img, video { max-width: 100%; max-height: 100vh; }
 .pdfBox { width: 100%; }
 .pdf > svg { width: 100%; height: auto; }
+.pdf > canvas { position: absolute; }
 
 .historySlider { margin-left: 5em; margin-right: 5em; }
 .slider.slider-horizontal { width: 100%; }
