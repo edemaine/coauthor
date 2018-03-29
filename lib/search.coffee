@@ -140,6 +140,16 @@ unescapeRegExp = (regex) ->
               wants.push root: $ne: null
             else
               wants.push root: null
+          when 'published'
+            if negate
+              wants.push published: false
+            else
+              wants.push published: $ne: false
+          when 'deleted', 'minimized', 'private'
+            if negate
+              wants.push "#{token}": $ne: true
+            else
+              wants.push "#{token}": true
           else
             console.warn "Unknown 'is:' specification '#{token}'"
   options =
@@ -234,6 +244,34 @@ formatParsedSearch = (query) ->
       "root message"
     else
       "descendant of message #{root}"
+  else if _.isEqual keys, ['published']
+    if _.isEqual query.published, false
+      'unpublished'
+    else if _.isEqual query.published, {$ne: false}
+      'published'
+    else
+      "published: #{query.published}"
+  else if _.isEqual keys, ['deleted']
+    if _.isEqual query.deleted, true
+      'deleted'
+    else if _.isEqual query.deleted, {$ne: true}
+      'not deleted'
+    else
+      "deleted: #{query.deleted}"
+  else if _.isEqual keys, ['minimized']
+    if _.isEqual query.minimized, true
+      'minimized'
+    else if _.isEqual query.minimized, {$ne: true}
+      'not minimized'
+    else
+      "minimized: #{query.minimized}"
+  else if _.isEqual keys, ['private']
+    if _.isEqual query.private, true
+      'private'
+    else if _.isEqual query.private, {$ne: true}
+      'not private'
+    else
+      "private: #{query.private}"
   else if _.isRegExp query
     simplify = unbreakRegExp uncaseInsensitiveRegExp query.source
     if realRegExp simplify
