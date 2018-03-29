@@ -23,6 +23,9 @@ SEARCH LANGUAGE:
 * tag:... does an exact match for a specified tag.  It can be negated with -,
   but does not behave specially with regex: or *s.
 * is:root matches root messages (tops of threads)
+* is:file matches file messages (resulting from Attach button)
+* is:deleted, is:published, is:private, is:minimized
+  match those statuses of messages
 ###
 
 escapeRegExp = (regex) ->
@@ -140,6 +143,11 @@ unescapeRegExp = (regex) ->
               wants.push root: $ne: null
             else
               wants.push root: null
+          when 'file'
+            if negate
+              wants.push file: null
+            else
+              wants.push file: $ne: null
           when 'published'
             if negate
               wants.push published: false
@@ -244,6 +252,13 @@ formatParsedSearch = (query) ->
       "root message"
     else
       "descendant of message #{root}"
+  else if _.isEqual keys, ['file']
+    if _.isEqual query.file, null
+      'not a file'
+    else if _.isEqual query.file, {$ne: null}
+      'a file'
+    else
+      "associated with file '#{query.file}'"
   else if _.isEqual keys, ['published']
     if _.isEqual query.published, false
       'unpublished'

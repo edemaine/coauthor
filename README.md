@@ -140,6 +140,9 @@ in other fields too.
   Connect words/phrases with `|` to get an OR query instead.
   `tag:...` does an exact match for a specified tag; it can be negated.
   `is:root` matches root messages (tops of threads).
+  `is:file` matches file messages (made via Attach).
+  `is:deleted`, `is:published`, `is:private`, `is:minimized` match various
+  states of messages.
 
 * **User search**:
   find posts by a particular user by clicking on their username.
