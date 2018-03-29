@@ -16,6 +16,7 @@ SEARCH LANGUAGE:
   Case sensitive.
 * Prefix any of the above with a minus (`-`) to negate the match.
 * Connecting queries via spaces does an implicit AND (like Google)
+* Connecting queries via `|` does an OR (like Google)
 * Use quotes ('...' or "...") to prevent this behavior.  For example,
   search for "this phrase" or title:"this phrase" or regex:"this regex"
   or title:regex:"this regex" or -title:"this phrase".
@@ -54,10 +55,16 @@ unescapeRegExp = (regex) ->
 @parseSearch = (search) ->
   ## Quoted strings turn off separation by spaces.
   ## Last quoted strings doesn't have to be terminated.
-  tokenRe = /(\s+)|((?:"[^"]*"|'[^']*'|[^'"\s])+)('[^']*$|"[^"]*$)?|'([^']*)$|"([^"]*)$/g
+  tokenRe = /(\s+)|((?:"[^"]*"|'[^']*'|[^'"\s|])+)('[^']*$|"[^"]*$)?|'([^']*)$|"([^"]*)$|([|])/g
   wants = []
+  options = [wants]
   while (token = tokenRe.exec search)?
     continue if token[1]  ## ignore whitespace tokens
+
+    if token[6]  ## | = OR
+      options.push wants = []
+      continue
+
     ## Check for negation and/or leading commands followed by colon
     colon = /^-?(?:(?:regex|title|body|tag|is):)*/.exec token[0]
     colon = colon[0]
@@ -135,12 +142,22 @@ unescapeRegExp = (regex) ->
               wants.push root: null
           else
             console.warn "Unknown 'is:' specification '#{token}'"
-  if wants.length == 0
-    null
-  else if wants.length == 1
-    wants[0]
-  else
-    $and: wants
+  options =
+    for wants in options
+      switch wants.length
+        when 0
+          continue
+        when 1
+          wants[0]
+        else
+          $and: wants
+  switch options.length
+    when 0
+      null  ## special signal for nothing / bad search
+    when 1
+      options[0]
+    else
+      $or: options
 
 @formatSearch = (search) ->
   query = parseSearch search
@@ -184,6 +201,11 @@ formatParsedSearch = (query) ->
        _.isEqual query.$or[0].title, query.$or[1].body
       parts[0].replace /in title$/, 'in title or body'
     else
+      if parts.length > 1
+        parts =
+          for part in parts
+            part = "(#{part})" if 0 <= part.indexOf ' AND '
+            part
       parts.join ' OR '
   else if _.isEqual keys, ['$not']
     "#{formatParsedSearch query.$not} not"

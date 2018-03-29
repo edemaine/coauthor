@@ -137,6 +137,7 @@ in other fields too.
   Use quotes (`'...'` or `"..."`) to search for phrases or `regex:"..."`
   to search for regular expressions with spaces in them; normally,
   spaces act as an AND query.
+  Connect words/phrases with `|` to get an OR query instead.
   `tag:...` does an exact match for a specified tag; it can be negated.
   `is:root` matches root messages (tops of threads).
 
