@@ -706,7 +706,7 @@ Template.submessage.helpers
     history = messageHistory.get(@_id) ? @
     ## Don't run PDF render if in raw mode
     return if messageRaw.get(@_id) or "pdf" != fileType history.file
-    url: urlToFile history
+    history
   formatFile: ->
     history = messageHistory.get(@_id) ? @
     format = formatFile history
@@ -1239,6 +1239,7 @@ Template.messageParentConfirm.events
 Template.messagePDF.onCreated ->
   @page = new ReactiveVar 1
   @pages = new ReactiveVar 1
+  @progress = new ReactiveVar null
 
 Template.messagePDF.onRendered ->
   container = @find 'div.pdf'
@@ -1246,7 +1247,14 @@ Template.messagePDF.onRendered ->
   `import('pdfjs-dist')`.then (pdfjs) =>
     pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'  ## in /public
     @autorun =>
-      pdfjs.getDocument(Template.currentData().url).then (pdf) =>
+      msg = Template.currentData()
+      size = findFile(msg.file).length
+      @progress.set 0
+      loader = pdfjs.getDocument urlToFile msg
+      loader.onProgress = (data) =>
+        @progress.set Math.round 100 * data.loaded / size
+      loader.then (pdf) =>
+        @progress.set null
         @pages.set pdf.numPages
         @renderPage = =>
           pdf.getPage(@page.get()).then (page) =>
@@ -1292,6 +1300,7 @@ Template.messagePDF.onRendered ->
         @renderPage()
 
 Template.messagePDF.helpers
+  progress: -> Template.instance().progress.get()
   multiplePages: -> Template.instance().pages.get() > 1
   page: -> Template.instance().page.get()
   pages: -> Template.instance().pages.get()
