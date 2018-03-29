@@ -21,7 +21,7 @@ template(name='readMessage')
       +messageTags
       +messageLabels
       unless root
-        span.pull-right.badge= submessageCount
+        span.pull-right.badge(data-toggle="tooltip", title="Number of submessages within thread")= submessageCount
     unless folded
       .panel-body
         .message-body.tex2jax !{formatBody}

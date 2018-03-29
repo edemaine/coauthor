@@ -105,15 +105,15 @@ template(name="submessage")
               unless root
                 if prev
                   with prev
-                    a.btn.btn-info(href="{{pathFor 'message' group=group message=_id}}", title=title)
-                      span.glyphicon.glyphicon-backward(aria-hidden="true")
+                    a.btn.btn-info(href="{{pathFor 'message' group=group message=_id}}")
+                      span.glyphicon.glyphicon-backward(aria-hidden="true", data-toggle="tooltip", title=title)
                 else
                   a.btn.btn-info.disabled
                     span.glyphicon.glyphicon-backward(aria-hidden="true")
                 if next
                   with next
-                    a.btn.btn-info(href="{{pathFor 'message' group=group message=_id}}", title=title)
-                      span.glyphicon.glyphicon-forward(aria-hidden="true")
+                    a.btn.btn-info(href="{{pathFor 'message' group=group message=_id}}")
+                      span.glyphicon.glyphicon-forward(aria-hidden="true", data-toggle="tooltip", title=title)
                 else
                   a.btn.btn-info.disabled
                     span.glyphicon.glyphicon-forward(aria-hidden="true")
@@ -153,7 +153,7 @@ template(name="submessage")
       // Buttons and badge on the right of the message
       .pull-right.hidden-print
         unless root
-          span.badge= submessageCount
+          span.badge(data-toggle="tooltip", title="Number of submessages within thread")= submessageCount
           span.space
         .btn-group
           unless folded
