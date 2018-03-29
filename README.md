@@ -146,10 +146,12 @@ in other fields too.
 
 * **Statistics** about user's and all posts within a group, by day, week
   (with configurable week start), month, year, or hour within a day.
+  Your own statistics are available via the Statistics button on the group
+  page, while other users' stats are available from their user page.
 
 * **Permanent URLs** for all messages, groups, etc., for easy emailing etc.
   (but other than group name, not revealing, so only those with permission
-  can open).  Links to other messages via specical coauthor:xxx syntax.
+  can open).  Links to other messages via specical `coauthor:xxx` syntax.
   Drag messages (via their arrow icon) into other messages to make such links.
 
 * **Files** (another type of message) can be attached to other messages, as
