@@ -1,3 +1,5 @@
+pdf2svg = false  ## controls pdf.js rendering mode
+
 sharejsEditor = 'cm'  ## 'ace' or 'cm'; also change template used in message.jade
 
 switch sharejsEditor
@@ -1249,7 +1251,7 @@ Template.messagePDF.onRendered ->
         @renderPage = =>
           pdf.getPage(@page.get()).then (page) =>
             viewport = page.getViewport 1
-            @resize = ->
+            @resize = =>
               ## Simulate width: 100%
               width = container.parentElement.clientWidth
               height = width * viewport.height / viewport.width
@@ -1259,20 +1261,34 @@ Template.messagePDF.onRendered ->
                 width = height * viewport.width / viewport.height
               container.style.width = "#{width}px"
               container.style.height = "#{height}px"
+              unless pdf2svg
+                canvas = @find 'canvas.pdf'
+                context = canvas.getContext '2d'
+                ## Based on https://www.html5rocks.com/en/tutorials/canvas/hidpi/
+                dpiScale = (window.devicePixelRatio or 1) /
+                  (context.webkitBackingStorePixelRatio or
+                   context.mozBackingStorePixelRatio or
+                   context.msBackingStorePixelRatio or
+                   context.oBackingStorePixelRatio or
+                   context.backingStorePixelRatio or 1)
+                canvas.width = width * dpiScale
+                canvas.height = height * dpiScale
+                #unless dpiScale == 1
+                canvas.style.transform = "scale(#{1/dpiScale},#{1/dpiScale})"
+                canvas.style.transformOrigin = "0% 0%"
+                page.render
+                  canvasContext: context
+                  viewport: page.getViewport dpiScale * width / viewport.width
+                #.then ->
             @resize()
-            page.getOperatorList().then (opList) ->
-              svgGfx = new pdfjs.SVGGraphics page.commonObjs, page.objs
-              svgGfx.getSVG opList, viewport
-              .then (svg) ->
-                #svg.preserveAspectRatio = true
-                container.innerHTML = ''
-                container.appendChild svg
-            #canvas = @find 'div.pdf'
-            #viewport = page.getViewport width / viewport.width
-            #page.render
-            #  canvasContext: canvas.getContext '2d'
-            #  viewport: viewport
-            #.then ->
+            if pdf2svg
+              page.getOperatorList().then (opList) ->
+                svgGfx = new pdfjs.SVGGraphics page.commonObjs, page.objs
+                svgGfx.getSVG opList, viewport
+                .then (svg) ->
+                  #svg.preserveAspectRatio = true
+                  container.innerHTML = ''
+                  container.appendChild svg
         @renderPage()
 
 Template.messagePDF.helpers
