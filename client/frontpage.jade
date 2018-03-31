@@ -14,11 +14,12 @@ template(name="frontpage")
       .alert.alert-danger(role="alert") Please <B>sign in</B> (in the upper-right corner) to get started.
     else
       .alert.alert-warning(role="alert") Loading...
-  h3
-    span.badge= groupsMine.count
-    | Groups you're a member of
-  with groupsMine
-    +groupList
+  if currentUser
+    h3
+      span.badge= groupsMine.count
+      | Groups you're a member of
+    with groupsMine
+      +groupList
   if groupsPartial.count
     h3
       span.badge= groupsPartial.count
