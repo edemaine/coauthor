@@ -158,6 +158,7 @@ Template.message.helpers
         username: true
         emails: true
         roles: true
+        rolesPartial: true
         'profile.notifications': true
     (for user in users when user.username not of subscribed
       unless user.emails?[0]?

@@ -103,7 +103,9 @@ naturallyVisibleQuery =
 
 @messageReaders = (msg, options = {}) ->
   group = findGroup message2group msg
-  options.fields.roles = true if options.fields?
+  if options.fields?
+    options.fields.roles = true
+    options.fields.rolesPartial = true
   users = Meteor.users.find
     username: $in: groupMembers group
   .fetch()

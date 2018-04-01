@@ -102,6 +102,7 @@ if Meteor.isServer
   group = findGroup msg.group
   if options.fields?
     options.fields.roles = true
+    options.fields.rolesPartial = true
     options.fields['profile.notifications'] = true
   users = Meteor.users.find
     username: $in: groupMembers group
