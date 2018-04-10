@@ -7,6 +7,7 @@
 ## On Debian: sudo apt-get install mongo-tools
 
 REMOTE=ubuntu@coauthor
+#REMOTE=root@coauthor
 
 cd "`dirname "$0"`"
 echo \* mongodump
