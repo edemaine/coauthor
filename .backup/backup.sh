@@ -9,7 +9,9 @@
 REMOTE=ubuntu@coauthor
 
 cd "`dirname "$0"`"
+echo \* mongodump
 ssh $REMOTE mongodump --db coauthor
+echo \* rsync
 rsync -e ssh -a $REMOTE:dump/coauthor/ coauthor-backup/
 
 ## rclone is the recommended system to copy backups to a cloud service.
@@ -18,6 +20,7 @@ rsync -e ssh -a $REMOTE:dump/coauthor/ coauthor-backup/
 
 method=rclone
 #method=acd_cli
+echo \* $method
 
 case $method in
 
