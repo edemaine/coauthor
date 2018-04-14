@@ -55,7 +55,7 @@ in other fields too.
     `\raisebox{amount}{text}`, `\par`,
     `\BY{...}`, `\YEAR{...}`,
     `\chapter`, `\section`, `\subsection`, `\subsubsection`, `\footnote`,
-    `\includegraphics[width/height/scale]{url}`,
+    `\includegraphics[width/height/scale]{url}`, `\noindent`,
     `\"`, `\'`, ```\` ```, `\^`, `\~`, `\=`, `\c`, `\v`, `\u`, `\H`,
     `\textasciitilde`, `\textasciicircum`, `\textbackslash`,
     `\textellipsis`, `\dots`, `\ldots`,

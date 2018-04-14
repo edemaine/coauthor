@@ -262,6 +262,7 @@ latex2htmlCommandsAlpha = (tex, math) ->
          "</tr>\n"
       ).join('') +
     '</table>'
+  .replace /\\noindent\b\s*/g, ''  ## Irrelevant commands
   .replace /\\(dots|ldots|textellipsis)\b\s*/g, '&hellip;'
   .replace /\\textasciitilde\b\s*/g, '&Tilde;'  ## Avoid ~ -> \nbsp
   .replace /\\textasciicircum\b\s*/g, '&Hat;'
