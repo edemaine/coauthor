@@ -262,6 +262,9 @@ latex2htmlCommandsAlpha = (tex, math) ->
          "</tr>\n"
       ).join('') +
     '</table>'
+  .replace /\\bigskip\b\s*/g, '<div style="padding-top:12pt;"></div>\n'
+  .replace /\\medskip\b\s*/g, '<div style="padding-top:6pt;"></div>\n'
+  .replace /\\smallskip\b\s*/g, '<div style="padding-top:3pt;"></div>\n'
   .replace /\\noindent\b\s*/g, ''  ## Irrelevant commands
   .replace /\\(dots|ldots|textellipsis)\b\s*/g, '&hellip;'
   .replace /\\textasciitilde\b\s*/g, '&Tilde;'  ## Avoid ~ -> \nbsp
