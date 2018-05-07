@@ -3,7 +3,10 @@ template(name='search')
     .panel.panel-primary
       .panel-heading.clearfix
         form.form-inline
-          span.title.panel-title= group
+          if wildGroup
+            span.title.panel-title GLOBAL
+          else
+            span.title.panel-title= group
           | search for #{formatSearch}
           span.pull-right.badge= messageCountText
       .panel-body
