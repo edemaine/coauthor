@@ -26,6 +26,9 @@ Template.registerHelper 'wildGroup', ->
 
 Template.registerHelper 'groupData', groupData
 
+Template.registerHelper 'groupDataOrWild', ->
+  routeGroup() == wildGroup or groupData()
+
 @sortBy = ->
   if Router.current().params.sortBy in sortKeys
     key: Router.current().params.sortBy

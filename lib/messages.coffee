@@ -80,7 +80,39 @@ naturallyVisibleQuery =
       ]
     else
       naturallyVisibleQuery
-  if canSuper group, client, user #groupRoleCheck group, 'super', user
+  ## Wild group case effectively unions over all groups
+  ## (duplicating logic below when it helps make shorter queries).
+  if group == wildGroup
+    if canSuper group, client, user #groupRoleCheck group, 'super', user
+      ## Global superuser can read all messages (when in superuser mode)
+      {}
+    else
+      groups = memberOfGroups user
+      fullGroups = []
+      partialGroups = []
+      for group in groups
+        if groupRoleCheck group, 'read', user
+          fullGroups.push group
+        else
+          partialGroups.push group
+      ## Groups with full membership can be combined into one query.
+      fullQuery = canSeeQuery()
+      fullQuery.group = $in: fullGroups
+      if partialGroups.length > 0
+        ## Groups with partial membership need their queries OR'd together.
+        partialQuery = $or:
+          for group in partialGroups
+            accessibleMessagesQuery group, user, client
+        if fullGroups.length > 0 and partialGroups.length > 0
+          $or: [
+            fullQuery
+            partialQuery
+          ]
+        else
+          partialQuery
+      else
+        fullQuery  ## also works when fullGroups.length == 0
+  else if canSuper group, client, user #groupRoleCheck group, 'super', user
     ## Super-user can see all messages, even unpublished/deleted messages.
     group: group
   else if groupRoleCheck group, 'read', user

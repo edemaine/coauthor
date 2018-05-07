@@ -125,8 +125,9 @@ in other fields too.
 * **Tags**: attach an arbitrary set of strings to a message.  Find other
   messages with the same tag by clicking on a tag.
 
-* **Search** across an entire group for posts by keywords using the search bar
-  at the top.  Search for a word as a (whole) `word`, `prefix*`, `*suffix`,
+* **Search** across an entire group, or across all groups,
+  for posts by keywords using the search bar at the top.
+  Search for a word as a (whole) `word`, `prefix*`, `*suffix`,
   `*substring*`, or `prefix*suffix`.
   Lower-case letters are case insensitive,
   while upper-case letters are case sensitive.

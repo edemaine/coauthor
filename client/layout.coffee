@@ -65,7 +65,7 @@ Template.layout.events
     e.preventDefault()
     e.stopPropagation()
     Router.go 'search',
-      group: routeGroup()
+      group: routeGroupOrWild()
       search: t.find('.searchText').value
       0: '*'
       1: '*'

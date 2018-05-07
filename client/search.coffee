@@ -3,11 +3,13 @@ Template.search.onCreated ->
     setTitle "Search #{Template.currentData()?.search}"
 
 messagesSearch = (group, search) ->
-  Messages.find
-    $and: [
+  query = parseSearch search
+  if group != wildGroup
+    query = $and: [
       group: group
-      parseSearch search
+      query
     ]
+  Messages.find query
 
 topMessagesSearch = (group, search) ->
   msgs = messagesSearch group, search
