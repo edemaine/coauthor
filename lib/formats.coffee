@@ -1,4 +1,5 @@
 katex = require 'katex'
+katex.__defineMacro '\\epsilon', '\\varepsilon'
 
 @availableFormats = ['markdown', 'latex', 'html']
 @mathjaxFormats = availableFormats
@@ -458,6 +459,7 @@ putMathBack = (tex, math) ->
   tex.replace /MATH(\d+)ENDMATH/g, (match, id) -> math[id].all
 
 postprocessKaTeX = (text, math) ->
+  macros = {}  ## shared across multiple math expressions within same body
   text.replace /MATH(\d+)ENDMATH([,.!?:;'"\-)\]}]*)/g, (match, id, punct) ->
     block = math[id]
     content = block.content
@@ -469,8 +471,7 @@ postprocessKaTeX = (text, math) ->
       out = katex.renderToString content,
         displayMode: block.display
         throwOnError: false
-        macros:
-          '\\epsilon': '\\varepsilon'
+        macros: macros
     catch e
       throw e unless e instanceof katex.ParseError
       #console.warn "KaTeX failed to parse $#{content}$: #{e}"

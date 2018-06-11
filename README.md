@@ -11,9 +11,10 @@ in other fields too.
 ## Features So Far ##
 
 * **Live updates**/redraw of everything, thanks to
-  [Meteor](https://www.meteor.com/).  No more hitting "reload".
+  [Meteor](https://www.meteor.com/).
   If you're looking at a problem and someone posts/edits something,
   you see it as quickly as they see their preview (roughly 1-second delay).
+  You should never have to hit "reload" (except in case of a bug).
 
 * **Real-time editing** of messages in the style of Google Docs/EtherPad
   (Operational Transforms), if people feel like editing together
@@ -29,7 +30,8 @@ in other fields too.
   All formats support LaTeX math (via `$...$`, `$$...$$`, `\(...\)`, `\[...\]`,
   or `\begin{align/equation/eqnarray}...\end{align/equation/eqnarray}`)
   via [KaTeX](https://khan.github.io/KaTeX/), so math mode supports
-  [this list of supported functions](https://github.com/Khan/KaTeX/wiki/Function-Support-in-KaTeX).
+  [this list of supported functions](https://khan.github.io/KaTeX/function-support.html).
+  Macros defined with `\gdef` can be used throughout one message.
 
   * [Github-style Markdown](https://guides.github.com/features/mastering-markdown/)
     (default), e.g., `*italic*`, `**bold**`, `~~strikethrough~~`,
