@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/edemaine/coauthor",
   "dependencies": {
+    "appear": "^1.0.1",
     "babel-runtime": "^6.26.0",
     "bcrypt": "^1.0.3",
     "chart.js": "^2.7.2",

@@ -1237,14 +1237,45 @@ Template.messageParentConfirm.events
     e.stopPropagation()
     Modal.hide()
 
+appearInit = false
+appearBounds = 500
+pdfTemplates = {}
+pdfTemplateCount = 0
+
 Template.messagePDF.onCreated ->
   @page = new ReactiveVar 1
   @pages = new ReactiveVar 1
   @progress = new ReactiveVar null
   @rendering = new ReactiveVar false
 
+  ## Start detecting (dis)appearance of div.pdf's
+  unless appearInit
+    `import('appear/lib/appear')`.then (appearjs) =>
+      console.log appearjs
+      return if appearInit
+      appearInit = appearjs.default
+        bounds: appearBounds  ## appear once within this many pixels of on page
+        reappear: true  ## appear/disappear can cycle
+        elements: -> document.getElementsByClassName 'pdf'
+        appear: (pdf) -> console.log 'appear', pdf
+        disappear: (pdf) -> console.log 'disappear', pdf
+
+## appear's `viewable` function adapted from
+## https://raw.githubusercontent.com/creativelive/appear/master/dist/appear.js
+viewable = (el, bounds = appearBounds) ->
+  rect = el.getBoundingClientRect()
+  (rect.top + rect.height) >= 0 and
+  (rect.left + rect.width) >= 0 and
+  (rect.bottom - rect.height) <=
+    bounds + (window.innerHeight || document.documentElement.clientHeight) and
+  (rect.right - rect.width) <=
+    bounds + (window.innerWidth || document.documentElement.clientWidth)
+
 Template.messagePDF.onRendered ->
+  pdfTemplates[pdfTemplateCount] = @
   container = @find 'div.pdf'
+  container.setAttribute 'data-template', pdfTemplateCount
+  pdfTemplateCount += 1
   window.addEventListener 'resize', _.debounce (=> @resize?()), 100
   `import('pdfjs-dist')`.then (pdfjs) =>
     pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'  ## in /public
