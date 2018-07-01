@@ -45,7 +45,12 @@
 if Meteor.isServer
   Meteor.publish 'users', (group) ->
     @autorun ->
-      if groupRoleCheck group, 'admin', findUser @userId
+      user = findUser @userId
+      ## User can see the list of all users of the Coauthor instance
+      ## if they have been given admin privileges for the group or
+      ## at least one thread in the group.
+      if (groupRoleCheck group, 'admin', user) or
+         (groupPartialMessagesWithRole group, 'admin', user).length > 0
         Meteor.users.find {}
         , fields:
             services: false
