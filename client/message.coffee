@@ -1241,10 +1241,11 @@ Template.messagePDF.onCreated ->
   @page = new ReactiveVar 1
   @pages = new ReactiveVar 1
   @progress = new ReactiveVar null
+  @rendering = new ReactiveVar false
 
 Template.messagePDF.onRendered ->
   container = @find 'div.pdf'
-  window.addEventListener 'resize', => @resize?()
+  window.addEventListener 'resize', _.debounce (=> @resize?()), 100
   `import('pdfjs-dist')`.then (pdfjs) =>
     pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'  ## in /public
     @autorun =>
@@ -1271,7 +1272,8 @@ Template.messagePDF.onRendered ->
               container.style.width = "#{width}px"
               container.style.height = "#{height}px"
               unless pdf2svg
-                canvas = @find 'canvas.pdf'
+                #canvas = @find 'canvas.pdf'
+                canvas = document.createElement 'canvas'
                 context = canvas.getContext '2d'
                 ## Based on https://www.html5rocks.com/en/tutorials/canvas/hidpi/
                 dpiScale = (window.devicePixelRatio or 1) /
@@ -1285,10 +1287,24 @@ Template.messagePDF.onRendered ->
                 #unless dpiScale == 1
                 canvas.style.transform = "scale(#{1/dpiScale},#{1/dpiScale})"
                 canvas.style.transformOrigin = "0% 0%"
-                page.render
+                ## Cancel any ongoing page render, then render the page.
+                @renderTask.cancel() if @renderTask?
+                @rendering.set true
+                @renderTask = page.render
                   canvasContext: context
                   viewport: page.getViewport dpiScale * width / viewport.width
-                #.then ->
+                renderTask = @renderTask
+                @renderTask.then (=>
+                  ## Replace existing canvas with this one, if still fresh.
+                  if renderTask == @renderTask
+                    container.innerHTML = ''
+                    container.appendChild canvas
+                  ## Mark renderTask done (no longer needs to be canceled).
+                  @renderTask = null
+                  @rendering.set false
+                ), (error) =>  ## ignore render cancellation (which we cause)
+                  unless error instanceof pdfjs.RenderingCancelledException
+                    throw error
             @resize()
             if pdf2svg
               page.getOperatorList().then (opList) ->
@@ -1305,6 +1321,7 @@ Template.messagePDF.helpers
   multiplePages: -> Template.instance().pages.get() > 1
   page: -> Template.instance().page.get()
   pages: -> Template.instance().pages.get()
+  rendering: -> Template.instance().rendering.get()
   disablePrev: ->
     if Template.instance().page.get() <= 1
       'disabled'
