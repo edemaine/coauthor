@@ -6,34 +6,17 @@ Template.messagePDF.onCreated ->
   @progress = new ReactiveVar null
   @rendering = new ReactiveVar false
 
-  ## Start detecting (dis)appearance of div.pdf's
-  unless appearInit
-    `import('appear/lib/appear')`.then (appearjs) =>
-      console.log appearjs
-      return if appearInit
-      appearInit = appearjs.default
-        bounds: appearBounds  ## appear once within this many pixels of on page
-        reappear: true  ## appear/disappear can cycle
-        elements: -> document.getElementsByClassName 'pdf'
-        appear: (pdf) -> console.log 'appear', pdf
-        disappear: (pdf) -> console.log 'disappear', pdf
-
-## appear's `viewable` function adapted from
-## https://raw.githubusercontent.com/creativelive/appear/master/dist/appear.js
-viewable = (el, bounds = appearBounds) ->
-  rect = el.getBoundingClientRect()
-  (rect.top + rect.height) >= 0 and
-  (rect.left + rect.width) >= 0 and
-  (rect.bottom - rect.height) <=
-    bounds + (window.innerHeight || document.documentElement.clientHeight) and
-  (rect.right - rect.width) <=
-    bounds + (window.innerWidth || document.documentElement.clientWidth)
+Template.messagePDF.onDestroyed ->
+  `import('/imports/disappear')`.then (disappear) =>
+    disappear.disappearUnrack @container
 
 Template.messagePDF.onRendered ->
-  pdfTemplates[pdfTemplateCount] = @
-  container = @find 'div.pdf'
-  container.setAttribute 'data-template', pdfTemplateCount
-  pdfTemplateCount += 1
+  @container = @find 'div.pdf'
+  `import('/imports/disappear')`.then (disappear) =>
+    disappear.disappearTrack
+      node: @container
+      appear: => console.log 'hi'
+      disappear: => console.log 'bye'
   window.addEventListener 'resize', _.debounce (=> @resize?()), 100
   `import('pdfjs-dist')`.then (pdfjs) =>
     pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'  ## in /public
@@ -52,14 +35,14 @@ Template.messagePDF.onRendered ->
             viewport = page.getViewport 1
             @resize = =>
               ## Simulate width: 100%
-              width = container.parentElement.clientWidth
+              width = @container.parentElement.clientWidth
               height = width * viewport.height / viewport.width
               ## Simulate max-height: 100vh
               if height > window.innerHeight
                 height = window.innerHeight
                 width = height * viewport.width / viewport.height
-              container.style.width = "#{width}px"
-              container.style.height = "#{height}px"
+              @container.style.width = "#{width}px"
+              @container.style.height = "#{height}px"
               unless pdf2svg
                 #canvas = @find 'canvas.pdf'
                 canvas = document.createElement 'canvas'
@@ -86,8 +69,8 @@ Template.messagePDF.onRendered ->
                 @renderTask.then (=>
                   ## Replace existing canvas with this one, if still fresh.
                   if renderTask == @renderTask
-                    container.innerHTML = ''
-                    container.appendChild canvas
+                    @container.innerHTML = ''
+                    @container.appendChild canvas
                   ## Mark renderTask done (no longer needs to be canceled).
                   @renderTask = null
                   @rendering.set false
@@ -101,8 +84,8 @@ Template.messagePDF.onRendered ->
                 svgGfx.getSVG opList, viewport
                 .then (svg) ->
                   #svg.preserveAspectRatio = true
-                  container.innerHTML = ''
-                  container.appendChild svg
+                  @container.innerHTML = ''
+                  @container.appendChild svg
         @renderPage()
 
 Template.messagePDF.helpers
