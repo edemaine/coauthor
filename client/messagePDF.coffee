@@ -1,7 +1,4 @@
-appearInit = false
-appearBounds = 500
-pdfTemplates = {}
-pdfTemplateCount = 0
+pdf2svg = false  ## controls pdf.js rendering mode
 
 Template.messagePDF.onCreated ->
   @page = new ReactiveVar 1

@@ -1,5 +1,3 @@
-pdf2svg = false  ## controls pdf.js rendering mode
-
 sharejsEditor = 'cm'  ## 'ace' or 'cm'; also change template used in message.jade
 
 switch sharejsEditor
