@@ -430,25 +430,3 @@ template(name="messageParentConfirm")
         .modal-footer
           button.btn.btn-danger.messageParentButton Yes, reparent
           button.btn.btn-success.cancelButton.fullwidth Cancel
-
-template(name="messagePDF")
-  if progress
-    .progress
-      .progress-bar(role="progressbar", aria-valuemin="0", aria-valuenow=progress, aria-valuemax="100", style="width: #{progress}%; min-width: 2em") #{progress}%
-  else
-    if multiplePages
-      .btn-group.btn-group-xs
-        a.btn.btn-default.prevPage(class=disablePrev)
-          span.glyphicon.glyphicon-backward(aria-hidden="true")
-        a.btn.btn-default.nextPage(class=disableNext)
-          span.glyphicon.glyphicon-forward(aria-hidden="true")
-      span.space page #{page} of #{pages}
-      if rendering
-        i.space (rendering)
-  //-- Outer box is to properly detect the width (including padding)
-  div.pdfBox
-    div.pdf
-      //- pdf2svg
-        i (&hellip;rendering PDF&hellip;)
-      //- non-pdf2svg
-      //-canvas.pdf
