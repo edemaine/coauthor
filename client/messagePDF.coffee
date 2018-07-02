@@ -8,7 +8,7 @@ Template.messagePDF.onCreated ->
 
 Template.messagePDF.onDestroyed ->
   `import('/imports/disappear')`.then (disappear) =>
-    disappear.disappearUnrack @container
+    disappear.disappearUntrack @container
 
 Template.messagePDF.onRendered ->
   @container = @find 'div.pdf'
@@ -25,6 +25,10 @@ Template.messagePDF.onRendered ->
       loader.then (pdf) =>
         @progress.set null
         @pages.set pdf.numPages
+        @track =
+          node: @container
+          appear: => @resize() #; console.log 'hi', msg.file
+          disappear: => @container.innerHTML = '' #; console.log 'bye', msg.file
         @renderPage = =>
           pdf.getPage(@page.get()).then (page) =>
             viewport = page.getViewport 1
@@ -38,11 +42,7 @@ Template.messagePDF.onRendered ->
                 width = height * viewport.width / viewport.height
               @container.style.width = "#{width}px"
               @container.style.height = "#{height}px"
-              `import('/imports/disappear')`.then (disappear) =>
-                disappear.disappearTrack
-                  node: @container
-                  appear: => console.log 'hi'
-                  disappear: => console.log 'bye'
+              return unless @track?.visible
               unless pdf2svg
                 #canvas = @find 'canvas.pdf'
                 canvas = document.createElement 'canvas'
@@ -78,6 +78,10 @@ Template.messagePDF.onRendered ->
                   unless error instanceof pdfjs.RenderingCancelledException
                     throw error
             @resize()
+            if @track.visible == undefined
+              `import('/imports/disappear')`.then (disappear) =>
+                if @track.visible == undefined
+                  disappear.disappearTrack @track
             if pdf2svg
               page.getOperatorList().then (opList) ->
                 svgGfx = new pdfjs.SVGGraphics page.commonObjs, page.objs

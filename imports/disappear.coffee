@@ -7,7 +7,7 @@
 
 ## appear's `viewable` function adapted from
 ## https://raw.githubusercontent.com/creativelive/appear/master/dist/appear.js
-visible = (node) ->
+export visible = (node) ->
   rect = node.getBoundingClientRect()
   windowHeight = window.innerHeight || document.documentElement.clientHeight
   windowWidth = window.innerWidth || document.documentElement.clientWidth
@@ -21,14 +21,15 @@ tracking = []
 
 disappearCheckOne = (track) ->
   now = visible track.node
-  if track.visible != now  ## change of state
-    if track.visible == true
+  old = track.visible
+  if old != now  ## change of state
+    track.visible = now  ## update status before calling (dis)appear()
+    if old == true
       ## Call disappear() when previously visible and now invisible
       track.disappear()
     else if now
       ## Call appear() when now visible and previously invisible or undefined
       track.appear()
-    track.visible = now
 
 ## Force a check of all tracked elements.
 export disappearCheck = _.debounce ->
