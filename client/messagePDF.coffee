@@ -12,11 +12,6 @@ Template.messagePDF.onDestroyed ->
 
 Template.messagePDF.onRendered ->
   @container = @find 'div.pdf'
-  `import('/imports/disappear')`.then (disappear) =>
-    disappear.disappearTrack
-      node: @container
-      appear: => console.log 'hi'
-      disappear: => console.log 'bye'
   window.addEventListener 'resize', _.debounce (=> @resize?()), 100
   `import('pdfjs-dist')`.then (pdfjs) =>
     pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'  ## in /public
@@ -43,6 +38,11 @@ Template.messagePDF.onRendered ->
                 width = height * viewport.width / viewport.height
               @container.style.width = "#{width}px"
               @container.style.height = "#{height}px"
+              `import('/imports/disappear')`.then (disappear) =>
+                disappear.disappearTrack
+                  node: @container
+                  appear: => console.log 'hi'
+                  disappear: => console.log 'bye'
               unless pdf2svg
                 #canvas = @find 'canvas.pdf'
                 canvas = document.createElement 'canvas'

@@ -51,10 +51,11 @@ disappearDisable = ->
 ##   appear: -> ...callback when it is visible...
 ##   disappear: -> ...callback when it is invisible...
 export disappearTrack = (track) ->
-  disappearCheckOne track
+  #disappearCheckOne track
   tracking.push track
   if tracking.length == 1
     disappearEnable()
+  disappearCheck()
 
 ## Stop tracking the given DOM node (`node` field given to `disappearTrack`).
 export disappearUntrack = (node) ->
