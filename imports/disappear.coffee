@@ -19,47 +19,47 @@ export visible = (node) ->
 
 tracking = []
 
-disappearCheckOne = (track) ->
-  now = visible track.node
-  old = track.visible
+checkOne = (tracked) ->
+  now = visible tracked.node
+  old = tracked.visible
   if old != now  ## change of state
-    track.visible = now  ## update status before calling (dis)appear()
+    tracked.visible = now  ## update status before calling (dis)appear()
     if old == true
       ## Call disappear() when previously visible and now invisible
-      track.disappear()
+      tracked.disappear()
     else if now
       ## Call appear() when now visible and previously invisible or undefined
-      track.appear()
+      tracked.appear()
 
 ## Force a check of all tracked elements.
-export disappearCheck = _.debounce ->
-  for track in tracking
-    disappearCheckOne track
+export check = _.debounce ->
+  for tracked in tracking
+    checkOne tracked
 , 50
 
-## Called automatically when needed by `disappearTrack`
-disappearEnable = ->
-  window.addEventListener 'resize', disappearCheck, false
-  window.addEventListener 'scroll', disappearCheck, false
+## Called automatically when needed by `track`
+enable = ->
+  window.addEventListener 'resize', check, false
+  window.addEventListener 'scroll', check, false
 
-## Called automatically when needed by `disappearUntrack`
-disappearDisable = ->
-  window.removeEventListener 'resize', disappearCheck, false
-  window.removeEventListener 'scroll', disappearCheck, false
+## Called automatically when needed by `untrack`
+disable = ->
+  window.removeEventListener 'resize', check, false
+  window.removeEventListener 'scroll', check, false
 
 ## Start tracking the given object, of the form:
 ##   node: <DOM element>
 ##   appear: -> ...callback when it is visible...
 ##   disappear: -> ...callback when it is invisible...
-export disappearTrack = (track) ->
-  #disappearCheckOne track
-  tracking.push track
+export track = (tracked) ->
+  #checkOne tracked
+  tracking.push tracked
   if tracking.length == 1
-    disappearEnable()
-  disappearCheck()
+    enable()
+  check()
 
-## Stop tracking the given DOM node (`node` field given to `disappearTrack`).
-export disappearUntrack = (node) ->
-  tracking = (track for track in tracking when track.node != node)
+## Stop tracking the given DOM node (`node` field given to `track`).
+export untrack = (node) ->
+  tracking = (tracked for tracked in tracking when tracked.node != node)
   if tracking.length == 0
-    disappearDisable()
+    disable()

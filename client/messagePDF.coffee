@@ -8,7 +8,7 @@ Template.messagePDF.onCreated ->
 
 Template.messagePDF.onDestroyed ->
   `import('/imports/disappear')`.then (disappear) =>
-    disappear.disappearUntrack @container
+    disappear.untrack @container
 
 Template.messagePDF.onRendered ->
   @container = @find 'div.pdf'
@@ -81,7 +81,7 @@ Template.messagePDF.onRendered ->
             if @track.visible == undefined
               `import('/imports/disappear')`.then (disappear) =>
                 if @track.visible == undefined
-                  disappear.disappearTrack @track
+                  disappear.track @track
             if pdf2svg
               page.getOperatorList().then (opList) ->
                 svgGfx = new pdfjs.SVGGraphics page.commonObjs, page.objs
