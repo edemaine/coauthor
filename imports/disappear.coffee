@@ -51,6 +51,8 @@ disable = ->
 ##   node: <DOM element>
 ##   appear: -> ...callback when it is visible...
 ##   disappear: -> ...callback when it is invisible...
+## The object will be modified to have a `visible` field set to true or false
+## as its visibility changes.
 export track = (tracked) ->
   #checkOne tracked
   tracking.push tracked
