@@ -1080,9 +1080,10 @@ attachFiles = (files, e, t) ->
   message = t.data._id
   group = t.data.group
   for file in files
-    file.callback = (file2) ->
+    file.callback = (file2, done) ->
       Meteor.call 'messageNew', group, message, null,
         file: file2.uniqueIdentifier
+      , done
     file.group = group
     Files.resumable.addFile file, e
 

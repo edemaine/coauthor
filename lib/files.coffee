@@ -168,10 +168,18 @@ else
   Files.resumable.on 'fileProgress', (file) =>
     updateUploading -> @[file.uniqueIdentifier].progress = Math.floor 100*file.progress()
   Files.resumable.on 'fileSuccess', (file) ->
-    updateUploading -> delete @[file.uniqueIdentifier]
-    if _.keys(Session.get 'uploading').length == 0
-      window.dispatchEvent new Event 'filesDone'
-    file.file.callback?(file)
+    ## Mark file as completed *after* callback succeeds, if it's provided.
+    updateUploading -> @[file.uniqueIdentifier].progress = 100
+    completed = (error, result) =>
+      updateUploading -> delete @[file.uniqueIdentifier]
+      if _.keys(Session.get 'uploading').length == 0
+        window.dispatchEvent new Event 'filesDone'
+      if error
+        console.error "Error in upload callback: #{error}"
+    if file.file.callback?
+      file.file.callback file, completed
+    else
+      completed()
   Files.resumable.on 'fileError', (file) ->
     console.error "Error uploading", file.uniqueIdentifier
     updateUploading -> delete @[file.uniqueIdentifier]
