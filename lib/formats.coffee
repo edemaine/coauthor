@@ -17,19 +17,20 @@ if Meteor.isClient
 replaceMathBlocks = (text, replacer) ->
   #console.log text
   blocks = []
-  re = /[{}]|\$\$?|\\(begin|end)\s*{(equation|eqnarray|align)\*?}|\\./g
+  re = /[{}]|\$\$?|\\(begin|end)\s*{(equation|eqnarray|align)\*?}|(\\par\b|\n[ \f\r\t\v]*\n\s*)|\\./g
   block = null
   startBlock = (b) ->
     block = b
     block.start = match.index
     block.contentStart = match.index + match[0].length
-  endBlock = ->
+  endBlock = (skipThisToken) ->
     block.content = text[block.contentStart...match.index]
     delete block.contentStart  ## no longer needed
     ## Simulate \begin{align}...\end{align} with \begin{aligned}...\end{aligned}
     if block.environment and block.environment in ['eqnarray', 'align']
       block.content = "\\begin{aligned}#{block.content}\\end{aligned}"
-    block.end = match.index + match[0].length
+    block.end = match.index
+    block.end += match[0].length unless skipThisToken
     block.all = text[block.start...block.end]
     blocks.push block
     block = null
@@ -58,7 +59,11 @@ replaceMathBlocks = (text, replacer) ->
         braces -= 1
         braces = 0 if braces < 0  ## ignore extra }s
       else
-        if match[1] == 'begin' and not block?
+        if match[3]  ## paragraph break
+          if block? #and not block.display
+            console.warn "Paragraph break within math block; auto-closing math (as LaTeX would)"
+            endBlock true  ## don't include paragraph break in math block
+        else if match[1] == 'begin' and not block?
           startBlock
             display: true
             environment: match[2]
