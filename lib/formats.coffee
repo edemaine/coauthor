@@ -183,6 +183,18 @@ latex2htmlCommandsAlpha = (tex, math) ->
     .replace /\\ttfamily\b\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-family: monospace">$1</span>'
     .replace /\\scshape\b\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-variant: small-caps">$1</span>'
     .replace /\\slshape\b\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-style: oblique">$1</span>'
+    ## Font size commands.  Bootstrap defines base font-size as 14px.
+    ## We multiply this by a scale factor defined by LaTeX's 10pt sizing chart
+    ## [https://en.wikibooks.org/wiki/LaTeX/Fonts].
+    .replace /\\tiny\b\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-size: 7px">$1</span>'
+    .replace /\\scriptsize\b\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-size: 9.8px">$1</span>'
+    .replace /\\footnotesize\b\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-size: 11.2px">$1</span>'
+    .replace /\\small\b\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-size: 12.6px">$1</span>'
+    .replace /\\large\b\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-size: 16.8px">$1</span>'
+    .replace /\\Large\b\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-size: 20.2px">$1</span>'
+    .replace /\\LARGE\b\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-size: 24.2px">$1</span>'
+    .replace /\\huge\b\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-size: 29px">$1</span>'
+    .replace /\\Huge\b\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-size: 34.8px">$1</span>'
     ## Resetting font commands
     .replace /\\(?:rm|normalfont)\b\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font-family: #{defaultFontFamily}; font-style: normal; font-weight: normal; font-variant: normal">$1</span>"""
     .replace /\\md\b\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-weight: #{mediumWeight}">$1</span>"""
