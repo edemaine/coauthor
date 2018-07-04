@@ -1079,11 +1079,22 @@ uploader = (template, button, input, callback) ->
 attachFiles = (files, e, t) ->
   message = t.data._id
   group = t.data.group
-  for file in files
-    file.callback = (file2, done) ->
-      Meteor.call 'messageNew', group, message, null,
-        file: file2.uniqueIdentifier
-      , done
+  callbacks = {}
+  called = 0
+  ## Start all file uploads simultaneously.
+  for file, i in files
+    do (i) ->
+      file.callback = (file2, done) ->
+        ## Set up callback for when this file is completed.
+        callbacks[i] = ->
+          Meteor.call 'messageNew', group, message, null,
+            file: file2.uniqueIdentifier
+          , done
+        ## But call all the callbacks in order by file, so that replies
+        ## appear in the correct order.
+        while callbacks[called]?
+          callbacks[called]()
+          called += 1
     file.group = group
     Files.resumable.addFile file, e
 
