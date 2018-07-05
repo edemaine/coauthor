@@ -1,5 +1,5 @@
 katex = require 'katex'
-#katex.__defineMacro '\\epsilon', '\\varepsilon'
+katex.__defineMacro '\\epsilon', '\\varepsilon'
 
 @availableFormats = ['markdown', 'latex', 'html']
 @mathjaxFormats = availableFormats
