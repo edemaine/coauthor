@@ -735,8 +735,6 @@ Template.submessage.helpers
     history: messageHistory.get @_id
 
   raw: -> messageRaw.get @_id
-  prev: -> messageNeighbors(@)?.prev
-  next: -> messageNeighbors(@)?.next
 
   preview: ->
     messageHistory.get(@_id)? or
@@ -758,6 +756,16 @@ Template.submessage.helpers
   absentTags: absentTags
   absentTagsCount: ->
     absentTags().count()
+
+Template.messageNeighbors.helpers
+  prev: -> messageNeighbors(@)?.prev
+  next: -> messageNeighbors(@)?.next
+
+Template.messageNeighbors.onRendered ->
+  @autorun =>
+    Meteor.defer =>
+      @$('[data-toggle="tooltip"]')
+      .tooltip 'fixTitle'
 
 Template.belowEditor.helpers
   preview: -> messagePreviewGet()?.on

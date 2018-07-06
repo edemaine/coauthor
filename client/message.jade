@@ -103,20 +103,7 @@ template(name="submessage")
                 span.fas.fa-sign-in-alt(aria-hidden="true")
             if here
               unless root
-                if prev
-                  with prev
-                    a.btn.btn-info(href="{{pathFor 'message' group=group message=_id}}")
-                      span.fas.fa-backward(aria-hidden="true", data-toggle="tooltip", title=title)
-                else
-                  a.btn.btn-info.disabled
-                    span.fas.fa-backward(aria-hidden="true")
-                if next
-                  with next
-                    a.btn.btn-info(href="{{pathFor 'message' group=group message=_id}}")
-                      span.fas.fa-forward(aria-hidden="true", data-toggle="tooltip", title=title)
-                else
-                  a.btn.btn-info.disabled
-                    span.fas.fa-forward(aria-hidden="true")
+                +messageNeighbors
           span.space
           if file
             span.fas.fa-paperclip
@@ -278,6 +265,22 @@ template(name="submessage")
         .panel-body.panel-secondbody.btn-group.hidden-print
           +replyButtons
 
+template(name="messageNeighbors")
+  if prev
+    with prev
+      a.btn.btn-info(href="{{pathFor 'message' group=group message=_id}}")
+        span.fas.fa-backward(aria-hidden="true", data-toggle="tooltip", title=title)
+  else
+    a.btn.btn-info.disabled
+      span.fas.fa-backward(aria-hidden="true")
+  if next
+    with next
+      a.btn.btn-info(href="{{pathFor 'message' group=group message=_id}}")
+        span.fas.fa-forward(aria-hidden="true", data-toggle="tooltip", title=title)
+  else
+    a.btn.btn-info.disabled
+      span.fas.fa-forward(aria-hidden="true")
+
 template(name="belowEditor")
   .belowEditor.clearfix
     .pull-right.btn-group
@@ -346,7 +349,7 @@ template(name="emojiButtons")
       ul.dropdown-menu(role="menu").emojiMenu
         each emoji
           li
-            a.emojiAdd(href="#",data-symbol=symbol,title=description)
+            a.emojiAdd(href="#",data-symbol=symbol, data-toggle="tooltip", data-placement="bottom", title=description)
               span.fas(class="fa-#{symbol} #{class}")
     each emojiMessages
       button.btn.btn-default.emojiToggle(data-symbol=symbol, data-toggle="tooltip", data-placement="bottom", title=who)
