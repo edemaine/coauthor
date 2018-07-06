@@ -263,13 +263,13 @@ template(name="submessage")
       if editingRV
         if previewSideBySide
           +belowEditor editData
-      .message-footer.clearfix
-        .message-reply-buttons.btn-group.pull-left.hidden-print
+      .message-footer
+        +messageAuthor
+        .message-reply-buttons.clearfix.hidden-print
           if editingRV
             button.btn.btn-info.editButton(tabindex="{{tabindex 8}}") Stop Editing
           +emojiButtons
           +replyButtons
-        +messageAuthor
       if childrenCount
         .children.clearfix
           each children
@@ -337,7 +337,7 @@ template(name="threadPrivacy")
             a(href="#",data-code=code)= display
 
 template(name="emojiButtons")
-  .btn-group
+  .btn-group.pull-left
     if canReply
       //-button.btn.btn-default.emojiOpenMenu.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="true")
       button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
@@ -354,17 +354,18 @@ template(name="emojiButtons")
         span #{count}
 
 template(name="replyButtons")
-  if canReply
-    if canPrivateReply
-      if canPublicReply
-        button.btn.btn-default.replyButton(data-privacy="public") Public Reply
-        button.btn.btn-default.replyButton(data-privacy="private") Private Reply
+  .btn-group.pull-right
+    if canReply
+      if canPrivateReply
+        if canPublicReply
+          button.btn.btn-default.replyButton(data-privacy="public") Public Reply
+          button.btn.btn-default.replyButton(data-privacy="private") Private Reply
+        else
+          button.btn.btn-default.replyButton(data-privacy="private") Private Reply
       else
-        button.btn.btn-default.replyButton(data-privacy="private") Private Reply
-    else
-      button.btn.btn-default.replyButton Reply
-  if canAttach
-    +messageAttach
+        button.btn.btn-default.replyButton Reply
+    if canAttach
+      +messageAttach
 
 template(name="keyboardSelector")
   .btn-group
