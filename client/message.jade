@@ -344,10 +344,14 @@ template(name="emojiButtons")
         span.fas.fa-plus.emoji-plus(aria-hidden="true")
         span.far.fa-smile.emoji-face(aria-hidden="true")
       ul.dropdown-menu(role="menu").emojiMenu
-        each emojiGlobal
+        each emoji
           li
             a.emojiAdd(href="#",data-symbol=symbol,title=description)
               span.fas(class="fa-#{symbol} #{class}")
+    each emojiMessages
+      button.btn.btn-default.emojiToggle(data-symbol=symbol, title=who)
+        span.fas(class="fa-#{symbol} #{class}")
+        span #{count}
 
 template(name="replyButtons")
   if canReply

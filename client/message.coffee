@@ -1160,7 +1160,29 @@ Template.threadPrivacy.events
 
 Template.emojiButtons.helpers
   canReply: -> canPost @group, @_id
-  emojiGlobal: -> Emoji.find group: wildGroup
+  emoji: -> Emoji.find group: $in: [wildGroup, @group]
+  emojiMessages: ->
+    msgs = EmojiMessages.find
+      message: @_id
+      deleted: false
+    .fetch()
+    msgs = _.groupBy msgs, 'symbol'
+    emoji = Emoji.find
+      symbol: $in: _.keys msgs
+    .fetch()
+    emojiMap = {}
+    for emoj, i in emoji
+      emoj.index = i
+      who =
+        for msg in _.sortBy msgs[emoj.symbol], 'created'
+          msg.creator
+      emoj.count = who.length
+      emoj.who = who.join ", "  ## xxx convert to real name
+      emojiMap[emoj.symbol] = emoj
+    symbols = _.keys msgs
+    symbols = _.sortBy symbols, (emoj) -> emojiMap[emoj].index
+    for symbol in symbols
+      emojiMap[symbol]
 
 Template.emojiButtons.events
   'click .emojiAdd': (e, t) ->
@@ -1178,6 +1200,13 @@ Template.emojiButtons.events
     else
       Meteor.call 'emojiToggle', message, symbol
     dropdownToggle e
+
+  'click .emojiToggle': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    message = t.data._id
+    symbol = e.currentTarget.getAttribute 'data-symbol'
+    Meteor.call 'emojiToggle', message, symbol
 
 Template.replyButtons.helpers
   canReply: -> canPost @group, @_id

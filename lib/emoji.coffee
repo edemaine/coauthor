@@ -78,6 +78,7 @@ Meteor.methods
     creator = Meteor.user().username
     emojiMsg = EmojiMessages.findOne
       message: msgId
+      symbol: symbol
       creator: creator
       deleted: false
     if emojiMsg?
