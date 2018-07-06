@@ -341,8 +341,8 @@ template(name="emojiButtons")
     if canReply
       //-button.btn.btn-default.emojiOpenMenu.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="true")
       button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
-        span.fas.fa-plus-circle(aria-hidden="true")
-        span.fas.fa-smile.smush(aria-hidden="true")
+        span.fas.fa-plus.emoji-plus(aria-hidden="true")
+        span.far.fa-smile.emoji-face(aria-hidden="true")
       ul.dropdown-menu(role="menu").emojiMenu
         each emojiGlobal
           li
