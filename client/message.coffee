@@ -1162,6 +1162,10 @@ Template.emojiButtons.helpers
   canReply: -> canPost @group, @_id
   emoji: -> Emoji.find group: $in: [wildGroup, @group]
   emojiMessages: ->
+    template = Template.instance()
+    Meteor.defer ->
+      template.$('[data-toggle="tooltip"]')
+      .tooltip 'fixTitle'
     msgs = EmojiMessages.find
       message: @_id
       deleted: false
@@ -1177,7 +1181,7 @@ Template.emojiButtons.helpers
         for msg in _.sortBy msgs[emoj.symbol], 'created'
           msg.creator
       emoj.count = who.length
-      emoj.who = who.join ", "  ## xxx convert to real name
+      emoj.who = (displayUser user for user in who).join ", "
       emojiMap[emoj.symbol] = emoj
     symbols = _.keys msgs
     symbols = _.sortBy symbols, (emoj) -> emojiMap[emoj].index
@@ -1204,6 +1208,8 @@ Template.emojiButtons.events
   'click .emojiToggle': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
+    t.$('[data-toggle="tooltip"]')
+    .tooltip 'hide'
     message = t.data._id
     symbol = e.currentTarget.getAttribute 'data-symbol'
     Meteor.call 'emojiToggle', message, symbol
