@@ -28,6 +28,11 @@ input.title ~ .message-right-buttons { margin: 0px; }
 .emoji-face { margin-top: -2px; vertical-align: middle; }
 .positive { color: #8465b3; }
 .negative { color: #d9534f; }
+.emojiMenu { padding: 5px; /* normally 5px 0 */
+             width: max-content; min-width: auto; max-width: 160px; }
+.emojiMenu > li { display: inline-block; }
+.emojiMenu > li > a { display: inline-block; padding: 3px 6px; }
+                                          /* normally 3px 20px */
 
 .previewButtons { padding: 0px 15px; }
 .sideBySide { width: 50%; margin: 0px; display: inline-block; }
