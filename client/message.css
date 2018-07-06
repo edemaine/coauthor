@@ -1,6 +1,6 @@
 .space { padding-left: 0.5em; }
 
-.glyphicon-paperclip { vertical-align: middle; }
+.fa-paperclip { vertical-align: middle; }
 .title { font-weight: bold; vertical-align: middle; }
 input.title { width: 100%; }
 .author { font-style: italic; }
@@ -94,8 +94,8 @@ pre { white-space: pre-wrap; }
 .parentArrow2 { margin-top: 12px; border-top: red dotted 2px; height: 14px; width: 15%; }
 .parentArrow3 { margin-top: 12px; border-top: solid 2px; border-left: solid 2px; height: 14px; width: 15%; }
 .parentArrow4 { border-right: solid 2px; border-bottom: solid 2px; height: 14px; width: 15%; }
-.parentArrow .glyphicon { margin-top: 4px; }
-.parentArrow .glyphicon-remove { color: red; }
+.parentArrow .fas { margin-top: 5px; }
+.parentArrow .fa-times { color: red; }
 
 @media print {
   a[href].btn:after { content: ""; } /* override Bootstrap default */

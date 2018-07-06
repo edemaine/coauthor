@@ -46,7 +46,6 @@ ecmascript@0.9.0
 edemaine:bootstrap-slider
 shell-server@0.3.0
 meteorhacks:subs-manager
-twbs:bootstrap
 meteorhacks:kadira
 webapp@1.4.0
 sergeyt:typeahead
@@ -54,3 +53,4 @@ dynamic-import@0.2.0
 browser-policy@1.1.0
 edemaine:sharejs
 edemaine:sharejs-codemirror@5.22.1-alpha.2
+twbs:bootstrap-noglyph

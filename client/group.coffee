@@ -241,10 +241,16 @@ Template.messageList.helpers
   sortingBy: (key) ->
     sortBy().key == key
   sortingGlyph: ->
-    if sortBy().reverse
-      'glyphicon-sort-by-alphabet-alt'
+    sort = sortBy()
+    if sort.key in ['title', 'creator']
+      type = 'alpha'
     else
-      'glyphicon-sort-by-alphabet'
+      type = 'numeric'
+    if sort.reverse
+      order = 'up'
+    else
+      order = 'down'
+    "fa-sort-#{type}-#{order}"
   topMessages: ->
     groupSortedBy @group, sortBy()
 
