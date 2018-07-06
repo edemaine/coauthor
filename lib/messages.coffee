@@ -177,7 +177,7 @@ if Meteor.isServer
   Meteor.publish 'messages.submessages', (msgId) ->
     check msgId, String
     @autorun ->
-      message = Messages.findOne msgId
+      message = findMessage msgId
       return @ready() unless message?.group?
       query = accessibleMessagesQuery message.group, findUser @userId
       return @ready() unless query?

@@ -821,7 +821,7 @@ Template.submessage.events
     e.stopPropagation()
     message = t.data._id
     tags = t.data.tags
-    tag = e.target.getAttribute 'data-tag'
+    tag = e.currentTarget.getAttribute 'data-tag'
     if tag of tags
       delete tags[escapeTag tag]
       Meteor.call 'messageUpdate', message,
@@ -1163,10 +1163,20 @@ Template.emojiButtons.helpers
   emojiGlobal: -> Emoji.find group: wildGroup
 
 Template.emojiButtons.events
-  'click .emojiOpenMenu': (e, t) ->
+  'click .emojiAdd': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
     message = t.data._id
+    symbol = e.currentTarget.getAttribute 'data-symbol'
+    exists = EmojiMessages.findOne
+      message: message
+      creator: Meteor.user().username
+      symbol: symbol
+      deleted: false
+    if exists?
+      console.warn "Attempt to add duplicate emoji '#{symbol}' to message #{message}"
+    else
+      Meteor.call 'emojiToggle', message, symbol
     dropdownToggle e
 
 Template.replyButtons.helpers

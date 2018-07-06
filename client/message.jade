@@ -346,7 +346,7 @@ template(name="emojiButtons")
       ul.dropdown-menu(role="menu").emojiMenu
         each emojiGlobal
           li
-            a.emojiAdd(title=description)
+            a.emojiAdd(href="#",data-symbol=symbol,title=description)
               span.fas(class="fa-#{symbol} #{class}")
 
 template(name="replyButtons")
