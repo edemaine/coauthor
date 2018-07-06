@@ -1,5 +1,5 @@
 export isProfiling = Meteor.isServer and (
-  Meteor.isDevelopment or Meteor.settings.coauthor.profiling
+  Meteor.isDevelopment or Meteor.settings.coauthor?.profiling
 )
 
 export profiling = (fun, name) ->
