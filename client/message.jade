@@ -347,7 +347,7 @@ template(name="emojiButtons")
         each emojiGlobal
           li
             a.emojiAdd(title=description)
-              span.fas(class="fa-#{symbol}")
+              span.fas(class="fa-#{symbol} #{class}")
 
 template(name="replyButtons")
   if canReply
