@@ -18,6 +18,7 @@ input.title { width: 100%; }
 .messageTags > a:first-child, .messageLabels > span:first-child { margin-left: 0.5em; }
 input.title ~ .message-right-buttons { margin: 0px; }
 .message-reply-buttons { margin-right: 1em; margin-bottom: 15px; }
+.smush { margin-left: -0.4em; }
 .fileDescription { padding: 0.5ex 0.5em; border-bottom: 1px solid #337ab7;
   display: flex; flex-direction: row;
   justify-content: space-between; align-items: center; }

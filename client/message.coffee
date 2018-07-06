@@ -1158,6 +1158,17 @@ Template.threadPrivacy.events
       privacyOptionsByCode[e.target.getAttribute 'data-code'].list
     dropdownToggle e
 
+Template.emojiButtons.helpers
+  canReply: -> canPost @group, @_id
+  emojiGlobal: -> Emoji.find group: wildGroup
+
+Template.emojiButtons.events
+  'click .emojiOpenMenu': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    message = t.data._id
+    dropdownToggle e
+
 Template.replyButtons.helpers
   canReply: -> canPost @group, @_id
   canAttach: -> canPost @group, @_id

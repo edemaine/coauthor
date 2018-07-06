@@ -267,6 +267,7 @@ template(name="submessage")
         .message-reply-buttons.btn-group.pull-left.hidden-print
           if editingRV
             button.btn.btn-info.editButton(tabindex="{{tabindex 8}}") Stop Editing
+          +emojiButtons
           +replyButtons
         +messageAuthor
       if childrenCount
@@ -334,6 +335,19 @@ template(name="threadPrivacy")
         each privacyOptions
           li.threadPrivacy(class=active)
             a(href="#",data-code=code)= display
+
+template(name="emojiButtons")
+  .btn-group
+    if canReply
+      //-button.btn.btn-default.emojiOpenMenu.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="true")
+      button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
+        span.fas.fa-plus-circle(aria-hidden="true")
+        span.fas.fa-smile.smush(aria-hidden="true")
+      ul.dropdown-menu(role="menu").emojiMenu
+        each emojiGlobal
+          li
+            a.emojiAdd(title=description)
+              span.fas(class="fa-#{symbol}")
 
 template(name="replyButtons")
   if canReply
