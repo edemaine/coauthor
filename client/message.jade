@@ -353,7 +353,7 @@ template(name="emojiButtons")
               a.emojiAdd(href="#",data-symbol=symbol, data-toggle="tooltip", data-placement="bottom", title=description)
                 span.fas(class="fa-#{symbol} #{class}")
     each emojiMessages
-      button.btn.btn-default.emojiToggle(data-symbol=symbol, data-toggle="tooltip", data-placement="bottom", title=who)
+      button.btn.btn-default.emojiToggle(data-symbol=symbol, data-toggle="tooltip", data-placement="bottom", title=who, class=emojiDisable)
         span.fas(class="fa-#{symbol} #{class}")
         span #{count}
 

@@ -1195,6 +1195,11 @@ Template.emojiButtons.helpers
     symbols = _.sortBy symbols, (emoj) -> emojiMap[emoj].index
     for symbol in symbols
       emojiMap[symbol]
+  emojiDisable: ->
+    if canPost @group, @_id
+      ''
+    else
+      'disabled'
 
 Template.emojiButtons.events
   'click .emojiAdd': (e, t) ->
@@ -1213,7 +1218,7 @@ Template.emojiButtons.events
       Meteor.call 'emojiToggle', message, symbol
     dropdownToggle e
 
-  'click .emojiToggle': (e, t) ->
+  'click .emojiToggle:not(.disabled)': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
     t.$('[data-toggle="tooltip"]')
