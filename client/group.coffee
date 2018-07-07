@@ -131,7 +131,7 @@ Template.groupButtons.helpers
       'You need to be logged in to post a message.'
 
 Template.groupButtons.onRendered ->
-  $('[data-toggle="tooltip"]').tooltip()
+  tooltipInit()
 
 Template.groupButtons.events
   'click .sortSetDefault': (e) ->
@@ -226,7 +226,7 @@ Template.superdeleteImport.events
 
 Template.messageList.onRendered ->
   mathjax()
-  $('[data-toggle="tooltip"]').tooltip()
+  tooltipInit()
 
 Template.messageList.helpers
   linkToSort: (key) ->

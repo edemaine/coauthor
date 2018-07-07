@@ -110,4 +110,4 @@ Template.users.events
     ## xxx Meteor.call ...
 
 Template.users.onRendered ->
-  $('[data-toggle="tooltip"]').tooltip()
+  tooltipInit()

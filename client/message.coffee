@@ -194,7 +194,7 @@ Template.message.onRendered ->
     $('.affix').height $(window).height()
   $('nav.contents').on 'affixed-top.bs.affix', ->
     $('.affix-top').height $(window).height() - $('#top').outerHeight true
-  $('[data-toggle="tooltip"]').tooltip()
+  tooltipInit()
 
   ## Give focus to first Title input, if there is one.
   setTimeout ->
@@ -758,14 +758,12 @@ Template.submessage.helpers
     absentTags().count()
 
 Template.messageNeighbors.helpers
-  prev: -> messageNeighbors(@)?.prev
-  next: -> messageNeighbors(@)?.next
-
-Template.messageNeighbors.onRendered ->
-  @autorun =>
-    Meteor.defer =>
-      @$('[data-toggle="tooltip"]')
-      .tooltip 'fixTitle'
+  prev: ->
+    tooltipUpdate()
+    messageNeighbors(@)?.prev
+  next: ->
+    tooltipUpdate()
+    messageNeighbors(@)?.next
 
 Template.belowEditor.helpers
   preview: -> messagePreviewGet()?.on
@@ -1170,10 +1168,7 @@ Template.emojiButtons.helpers
   canReply: -> canPost @group, @_id
   emoji: -> Emoji.find group: $in: [wildGroup, @group]
   emojiMessages: ->
-    template = Template.instance()
-    Meteor.defer ->
-      template.$('[data-toggle="tooltip"]')
-      .tooltip 'fixTitle'
+    tooltipUpdate()
     msgs = EmojiMessages.find
       message: @_id
       deleted: false
@@ -1221,8 +1216,7 @@ Template.emojiButtons.events
   'click .emojiToggle:not(.disabled)': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
-    t.$('[data-toggle="tooltip"]')
-    .tooltip 'hide'
+    tooltipHide t
     message = t.data._id
     symbol = e.currentTarget.getAttribute 'data-symbol'
     Meteor.call 'emojiToggle', message, symbol
