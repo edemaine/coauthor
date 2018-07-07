@@ -195,12 +195,12 @@ if Meteor.isServer and Emoji.find().count() == 0
     Emoji.insert
       symbol: 'heart'
       class: 'positive'
-      description: 'love'
+      description: 'heart it'
       group: wildGroup
     Emoji.insert
       symbol: 'check'
       class: 'positive'
-      description: 'checked'
+      description: 'checked it'
       group: wildGroup
     Emoji.insert
       symbol: 'question'
