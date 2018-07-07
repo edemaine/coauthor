@@ -29,7 +29,8 @@ template(name='readMessage')
           if pdf
             +messagePDF
           p.message-file !{formatFile}
-      .message-footer
+      .message-footer.message-reply-buttons.clearfix
+        +emojiButtons
         +messageAuthor
       .children
         each readChildren
