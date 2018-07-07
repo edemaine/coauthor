@@ -4,6 +4,15 @@
 ## Database of emoji responses/messages
 @EmojiMessages = new Mongo.Collection 'messages.emoji'
 
+## Indexes
+if Meteor.isServer
+  ## This index makes it fast to find all undeleted emoji
+  ## attached to a given message.
+  EmojiMessages._ensureIndex [
+    ['message', 1]
+    ['deleted', 1]
+  ]
+
 ## Always subscribe to group-global emoji
 if Meteor.isServer
   Meteor.publish 'emoji.global', ->
