@@ -57,6 +57,7 @@ if Meteor.isServer
       else
         @ready()
 
+## Emoji message methods
 Meteor.methods
   emojiToggle: (msgId, symbol) ->
     ## Check permissions

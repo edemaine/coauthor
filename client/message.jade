@@ -262,8 +262,9 @@ template(name="submessage")
           each children
             with childLookup @index
               +submessage
-        .panel-body.panel-secondbody.btn-group.hidden-print
-          +replyButtons
+        if canReply
+          .panel-body.panel-secondbody.btn-group.hidden-print
+            +replyButtons
 
 template(name="messageNeighbors")
   if prev
@@ -352,14 +353,19 @@ template(name="emojiButtons")
             li
               a.emojiAdd(href="#",data-symbol=symbol, data-toggle="tooltip", data-placement="bottom", title=description)
                 span.fas(class="fa-#{symbol} #{class}")
-    each emojiMessages
-      button.btn.btn-default.emojiToggle(data-symbol=symbol, data-toggle="tooltip", data-placement="bottom", title=who, class=emojiDisable)
-        span.fas(class="fa-#{symbol} #{class}")
-        span #{count}
+      each emojiMessages
+        button.btn.btn-default.emojiToggle(data-symbol=symbol, data-toggle="tooltip", data-placement="bottom", title=who)
+          span.fas(class="fa-#{symbol} #{class}")
+          span #{count}
+    else
+      each emojiMessages
+        button.btn.btn-default.emojiToggle.disabled(data-symbol=symbol, data-toggle="tooltip", data-placement="bottom", title=who)
+          span.fas(class="fa-#{symbol} #{class}")
+          span #{count}
 
 template(name="replyButtons")
-  .btn-group.pull-right
-    if canReply
+  if canReply
+    .btn-group.pull-right
       if canPrivateReply
         if canPublicReply
           button.btn.btn-default.replyButton(data-privacy="public") Public Reply
@@ -368,7 +374,6 @@ template(name="replyButtons")
           button.btn.btn-default.replyButton(data-privacy="private") Private Reply
       else
         button.btn.btn-default.replyButton Reply
-    if canAttach
       +messageAttach
 
 template(name="keyboardSelector")

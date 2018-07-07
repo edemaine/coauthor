@@ -1223,7 +1223,6 @@ Template.emojiButtons.events
 
 Template.replyButtons.helpers
   canReply: -> canPost @group, @_id
-  canAttach: -> canPost @group, @_id
   canPublicReply: -> 'public' in (@threadPrivacy ? ['public'])
   canPrivateReply: -> 'private' in (@threadPrivacy ? ['public'])
 
