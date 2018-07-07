@@ -342,15 +342,16 @@ template(name="threadPrivacy")
 template(name="emojiButtons")
   .btn-group.pull-left
     if canReply
-      //-button.btn.btn-default.emojiOpenMenu.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="true")
-      button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false", title="Add emoji response")
-        span.fas.fa-plus.emoji-plus(aria-hidden="true")
-        span.far.fa-smile.emoji-face(aria-hidden="true")
-      ul.dropdown-menu(role="menu").emojiMenu
-        each emoji
-          li
-            a.emojiAdd(href="#",data-symbol=symbol, data-toggle="tooltip", data-placement="bottom", title=description)
-              span.fas(class="fa-#{symbol} #{class}")
+      if emoji.count
+        //-button.btn.btn-default.emojiOpenMenu.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="true")
+        button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false", title="Add emoji response")
+          span.fas.fa-plus.emoji-plus(aria-hidden="true")
+          span.far.fa-smile.emoji-face(aria-hidden="true")
+        ul.dropdown-menu(role="menu").emojiMenu
+          each emoji
+            li
+              a.emojiAdd(href="#",data-symbol=symbol, data-toggle="tooltip", data-placement="bottom", title=description)
+                span.fas(class="fa-#{symbol} #{class}")
     each emojiMessages
       button.btn.btn-default.emojiToggle(data-symbol=symbol, data-toggle="tooltip", data-placement="bottom", title=who)
         span.fas(class="fa-#{symbol} #{class}")
