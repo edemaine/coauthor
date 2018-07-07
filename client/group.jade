@@ -168,12 +168,7 @@ template(name="messageShort")
       if emojiPositive.length
         a(href=messageLink)
           with emojiPositive
-            span.badge.badge-positive(data-toggle="tooltip", data-html="true", title=emojiWho)= emojiCount
-    //-
-      td
-        if emojiNegative.length
-          a(href=messageLink)
-            span.badge.badge-negative(title=emojiNegative)= emojiNegative.length
+            span.badge.badge-positive(data-toggle="tooltip", data-html="true", data-original-title=emojiWho)= emojiCount
     td.subscribe.text-center
       //- a(href=messageLink)
       button.btn.btn-default.btn-xs.subscribe
