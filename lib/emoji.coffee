@@ -37,17 +37,22 @@ if Meteor.isServer
     @autorun ->
       if canSee root, false, findUser @userId
         EmojiMessages.find
-          root: root
+          $or: [
+            message: root
+          , root: root
+          ]
           deleted: false
       else
         @ready()
 
   Meteor.publish 'emoji.root', (group) ->
     check group, String
+    user = findUser @userId
     @autorun ->
       if memberOfGroupOrReadable group, user
         EmojiMessages.find
           group: group
+          root: null
           deleted: false
       else
         @ready()
@@ -87,7 +92,7 @@ Meteor.methods
     else
       EmojiMessages.insert
         group: msg.group
-        root: message2root msg
+        root: msg.root  ## null if this message is the root message
         message: msgId
         symbol: symbol
         creator: creator
