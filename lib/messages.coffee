@@ -775,6 +775,12 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
   if root != cmsg.root
     Messages.update child,
       $set: root: root
+    EmojiMessages.update
+      message: child
+    ,
+      $set: root: root
+    ,
+      multi: true
     if cmsg.root?
       ## If we move a nonroot message to have new root, update descendants.
       descendants = descendantMessageIds cmsg
@@ -785,10 +791,22 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
           $set: root: root ? child
         ,
           multi: true
+        EmojiMessages.update
+          message: $in: descendants
+        ,
+          $set: root: root ? child
+        ,
+          multi: true
     else if cmsg.children?.length
       ## To reparent root message (with children),
       ## change the root of all descendants.
       Messages.update
+        root: child
+      ,
+        $set: root: root ? child  ## actually must be root
+      ,
+        multi: true
+      EmojiMessages.update
         root: child
       ,
         $set: root: root ? child  ## actually must be root
@@ -1151,10 +1169,22 @@ Meteor.methods
       throw new Meteor.Error 'recomputeRoots.unauthorized',
         "Insufficient permissions to recompute roots in group '#{wildGroup}'"
     rootMessages().forEach (root) ->
+      EmojiMessages.update
+        message: root._id
+      ,
+        $set: root: null
+      ,
+        multi: true
       descendants = descendantMessageIds root
       if descendants.length > 0
         Messages.update
           _id: $in: descendants
+        ,
+          $set: root: root._id
+        ,
+          multi: true
+        EmojiMessages.update
+          message: $in: descendants
         ,
           $set: root: root._id
         ,
