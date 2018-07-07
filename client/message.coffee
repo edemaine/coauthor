@@ -1169,32 +1169,8 @@ Template.emojiButtons.helpers
   emoji: -> Emoji.find group: $in: [wildGroup, @group]
   emojiMessages: ->
     tooltipUpdate()
-    msgs = EmojiMessages.find
-      message: @_id
-      deleted: false
-    .fetch()
-    msgs = _.groupBy msgs, 'symbol'
-    emoji = Emoji.find
-      symbol: $in: _.keys msgs
-    .fetch()
-    emojiMap = {}
-    for emoj, i in emoji
-      emoj.index = i
-      who =
-        for msg in _.sortBy msgs[emoj.symbol], 'created'
-          msg.creator
-      emoj.count = who.length
-      emoj.who = (displayUser user for user in who).join ", "
-      emojiMap[emoj.symbol] = emoj
-    symbols = _.keys msgs
-    symbols = _.sortBy symbols, (emoj) -> emojiMap[emoj].index
-    for symbol in symbols
-      emojiMap[symbol]
-  emojiDisable: ->
-    if canPost @group, @_id
-      ''
-    else
-      'disabled'
+    emojiReplies @
+  who: -> (displayUser user for user in @who).join ', '
 
 Template.emojiButtons.events
   'click .emojiAdd': (e, t) ->

@@ -9,6 +9,8 @@
 .table > tbody > tr.messageShort:hover > td.subscribe { background-color: #5cb85c; }
 
 .badge-zero { background-color: #a94442; }
+.badge-positive { background-color: #8465b3; }
+.badge-negative { background-color: #d9534f; }
 
 /* match padding of <a> in other columns */
 td.subscribe button.subscribe { margin-top: 5px; }

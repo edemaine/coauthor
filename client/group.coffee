@@ -271,6 +271,22 @@ Template.messageShort.helpers
     formatDate @submessageLastUpdate
   subscribed: ->
     subscribedToMessage @
+  emojiPositive: ->
+    emojiReplies @, class: 'positive'
+  #emojiNegative: ->
+  #  emojiReplies @, class: 'negative'
+  emojiCount: ->
+    sum = 0
+    for emoji in @
+      sum += emoji.who.length
+    sum
+  emojiWho: ->
+    tooltipUpdate()
+    text = []
+    for emoji in @
+      for user in emoji.who
+        text.push """<span class="fas fa-#{emoji.symbol}"></span> #{displayUser user}"""
+    text.join ', '
 
 Template.messageShort.events
   'click button.subscribe': (e, t) ->

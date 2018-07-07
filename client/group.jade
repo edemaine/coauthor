@@ -90,14 +90,25 @@ template(name="messageList")
           if sortingBy 'published'
             span.fas(class=sortingGlyph)
         th
-          a(href="{{linkToSort 'updated'}}", data-toggle="tooltip", title="Last update of submessage in thread") Updated
+          a(href="{{linkToSort 'updated'}}", data-toggle="tooltip", title="Last update of any submessage in thread") Updated
           if sortingBy 'updated'
             span.fas(class=sortingGlyph)
-        th
-          a(href="{{linkToSort 'posts'}}", data-toggle="tooltip", title="Number of submessages in thread") Posts
+        th.text-center
+          a(href="{{linkToSort 'posts'}}", data-toggle="tooltip", title="Number of submessages in thread (excluding root message)") Posts
           if sortingBy 'posts'
             span.fas(class=sortingGlyph)
-        th
+        th.text-center
+          a(href="{{linkToSort 'emojiPos'}}", data-toggle="tooltip", title="Number of positive emoji reactions to root message of thread")
+            span.fas.fa-thumbs-up.positive
+          if sortingBy 'emojiPos'
+            span.fas(class=sortingGlyph)
+        //-
+          th
+            a(href="{{linkToSort 'emojiNeg'}}", data-toggle="tooltip")
+              span.fas.fa-thumbs-down.negative
+            if sortingBy 'emojiNeg'
+              span.fas(class=sortingGlyph)
+        th.text-center
           a(href="{{linkToSort 'subscribe'}}", data-toggle="tooltip", title="Whether you subscribe to notifications about this thread (see Settings for default)") Sub
           if sortingBy 'subscribe'
             span.fas(class=sortingGlyph)
@@ -150,10 +161,20 @@ template(name="messageShort")
           //- span.author (created by #{creator} {{formatDate created}})
     td
       a(href=messageLink)= submessageLastUpdate
-    td
+    td.text-right
       a(href=messageLink)
         span.badge(class=zeroClass)= submessageCount
-    td.subscribe
+    td.text-right
+      if emojiPositive.length
+        a(href=messageLink)
+          with emojiPositive
+            span.badge.badge-positive(data-toggle="tooltip", data-html="true", title=emojiWho)= emojiCount
+    //-
+      td
+        if emojiNegative.length
+          a(href=messageLink)
+            span.badge.badge-negative(title=emojiNegative)= emojiNegative.length
+    td.subscribe.text-center
       //- a(href=messageLink)
       button.btn.btn-default.btn-xs.subscribe
         if subscribed

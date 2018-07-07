@@ -100,6 +100,29 @@ Meteor.methods
         created: new Date
         deleted: false
 
+## Emoji grouping tool
+@emojiReplies = (message, emojiFilter = {}) ->
+  msgs = EmojiMessages.find
+    message: message._id ? message
+    deleted: false
+  .fetch()
+  msgs = _.groupBy msgs, 'symbol'
+  emojiFilter.symbol = $in: _.keys msgs
+  emoji = Emoji.find emojiFilter
+  .fetch()
+  emojiMap = {}
+  for emoj, i in emoji
+    emoj.index = i
+    emoj.who =
+      for msg in _.sortBy msgs[emoj.symbol], 'created'
+        msg.creator
+    emoj.count = emoj.who.length
+    emojiMap[emoj.symbol] = emoj
+  symbols = _.keys emojiMap
+  symbols = _.sortBy symbols, (emoj) -> emojiMap[emoj].index
+  for symbol in symbols
+    emojiMap[symbol]
+
 ## Default set of group-global emoji
 if Meteor.isServer and Emoji.find().count() == 0
   Meteor.startup ->
