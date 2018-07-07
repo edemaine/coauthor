@@ -127,6 +127,11 @@ in other fields too.
 * **Tags**: attach an arbitrary set of strings to a message.  Find other
   messages with the same tag by clicking on a tag.
 
+* **Emoji** for super-short responses that show appreciation but don't cause
+  email notifications or take up much space. (Like Github and Slack.)
+  Positive emoji on root messages are counted on the group page, enabling
+  a simple voting system for e.g. which problems to work on. 
+
 * **Search** across an entire group, or across all groups,
   for posts by keywords using the search bar at the top.
   Search for a word as a (whole) `word`, `prefix*`, `*suffix`,
