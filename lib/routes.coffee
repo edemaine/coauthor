@@ -33,7 +33,7 @@ Router.route '/:group/m/:message',
   template: 'messageMaybe'
   subscriptions: -> [
     Subscribe.subscribe 'messages.submessages', @params.message
-    Subscribe.subscribe 'emoji.submessages', @params.message
+    #Subscribe.subscribe 'emoji.submessages', @params.message
     Subscribe.subscribe 'messages.root', @params.group
     Subscribe.subscribe 'groups.members', @params.group
     Subscribe.subscribe 'tags', @params.group
@@ -54,7 +54,7 @@ Router.route '/:group',
   name: 'group'
   subscriptions: -> [
     Subscribe.subscribe 'messages.root', @params.group
-    Subscribe.subscribe 'emoji.root', @params.group
+    #Subscribe.subscribe 'emoji.root', @params.group
     Subscribe.subscribe 'groups.members', @params.group
     Subscribe.subscribe 'tags', @params.group
   ]
@@ -67,7 +67,7 @@ Router.route '/:group/+:sortBy?',
   template: 'group'
   subscriptions: -> [
     Subscribe.subscribe 'messages.root', @params.group
-    Subscribe.subscribe 'emoji.root', @params.group
+    #Subscribe.subscribe 'emoji.root', @params.group
     Subscribe.subscribe 'groups.members', @params.group
     Subscribe.subscribe 'tags', @params.group
   ]
@@ -80,7 +80,7 @@ Router.route '/:group/-:sortBy?',
   template: 'group'
   subscriptions: -> [
     Subscribe.subscribe 'messages.root', @params.group
-    Subscribe.subscribe 'emoji.root', @params.group
+    #Subscribe.subscribe 'emoji.root', @params.group
     Subscribe.subscribe 'groups.members', @params.group
     Subscribe.subscribe 'tags', @params.group
   ]

@@ -1178,12 +1178,13 @@ Template.emojiButtons.events
     e.stopPropagation()
     message = t.data._id
     symbol = e.currentTarget.getAttribute 'data-symbol'
-    exists = EmojiMessages.findOne
-      message: message
-      creator: Meteor.user().username
-      symbol: symbol
-      deleted: false
-    if exists?
+    #exists = EmojiMessages.findOne
+    #  message: message
+    #  creator: Meteor.user().username
+    #  symbol: symbol
+    #  deleted: false
+    exists = Meteor.user().username in (t.data.emoji?[symbol] ? [])
+    if exists
       console.warn "Attempt to add duplicate emoji '#{symbol}' to message #{message}"
     else
       Meteor.call 'emojiToggle', message, symbol

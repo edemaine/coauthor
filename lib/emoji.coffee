@@ -29,7 +29,9 @@ if Meteor.isServer
       else
         @ready()
 
-## Emoji message publications
+## Emoji message publications.  These aren't currently needed, thanks to the
+## caching.
+###
 if Meteor.isServer
   Meteor.publish 'emoji.submessages', (msgId) ->
     check msgId, String
@@ -56,6 +58,7 @@ if Meteor.isServer
           deleted: false
       else
         @ready()
+###
 
 ## Emoji message methods
 Meteor.methods
@@ -81,6 +84,7 @@ Meteor.methods
         "No emoji with symbol '#{symbol}' in group '#{group}'"
 
     ## Toggle the state of this emoji
+    return if @isSimulation  ## client does not have EmojiMessages
     creator = Meteor.user().username
     emojiMsg = EmojiMessages.findOne
       message: msgId
@@ -90,6 +94,8 @@ Meteor.methods
     if emojiMsg?
       EmojiMessages.update emojiMsg._id,
         $set: deleted: new Date
+      Messages.update msgId,
+        $pull: "emoji.#{symbol}": creator
     else
       EmojiMessages.insert
         group: msg.group
@@ -99,9 +105,49 @@ Meteor.methods
         creator: creator
         created: new Date
         deleted: false
+      Messages.update msgId,
+        $push: "emoji.#{symbol}": creator
 
-## Emoji grouping tool
+  recomputeEmoji: ->
+    ## Force recomputation of message `emoji` fields to match EmojiMessages
+    ## database, in creation order.
+    unless canSuper wildGroup
+      throw new Meteor.Error 'recomputeEmoji.unauthorized',
+        "Insufficient permissions to recompute emoji in group '#{wildGroup}'"
+    return if @isSimulation  ## client doesn't have EmojiMessages
+    Messages.find({}).forEach (msg) ->
+      emoji = {}
+      EmojiMessages.find
+        message: msg._id
+        deleted: false
+      , sort: [['created', 'asc']]
+      .forEach (emojiMsg) ->
+        emoji[emojiMsg.symbol] ?= []
+        emoji[emojiMsg.symbol].push emojiMsg.creator
+      Messages.update msg._id,
+        $set: emoji: emoji
+
+## Emoji lookup tool.  Note that emojiFilter is modified by the function.
 @emojiReplies = (message, emojiFilter = {}) ->
+  message = findMessage message
+  return [] unless message.emoji
+  #for key, value of message.emoji
+  #  if value.length == 0
+  #    delete message.emoji[key]
+  emojiFilter.symbol = $in: _.keys message.emoji
+  emoji = Emoji.find emojiFilter
+  .fetch()
+  emojiMap = {}
+  for emoj, i in emoji
+    emoj.index = i
+    emoj.who = message.emoji[emoj.symbol]
+    emoj.count = emoj.who.length
+    emojiMap[emoj.symbol] = emoj if emoj.count > 0
+  symbols = _.keys emojiMap
+  symbols = _.sortBy symbols, (emoj) -> emojiMap[emoj].index
+  for symbol in symbols
+    emojiMap[symbol]
+  ### Without `emoji` attribute cache:
   msgs = EmojiMessages.find
     message: message._id ? message
     deleted: false
@@ -122,6 +168,7 @@ Meteor.methods
   symbols = _.sortBy symbols, (emoj) -> emojiMap[emoj].index
   for symbol in symbols
     emojiMap[symbol]
+  ###
 
 ## Default set of group-global emoji
 if Meteor.isServer and Emoji.find().count() == 0

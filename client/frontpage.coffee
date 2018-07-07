@@ -2,15 +2,21 @@ Template.frontpage.onCreated ->
   setTitle null
 
 Template.frontpage.events
-  'click .groupNewButton': ->
+  'click .groupNew': ->
     Modal.show 'groupNew'
-  'click .recomputeAuthorsButton': ->
+  'click .recomputeAuthors': ->
     Meteor.call 'recomputeAuthors', (error, result) ->
       if error
         console.error 'recomputeAuthors:', error
       else
         console.log 'recomputeAuthors done!'
-  'click .recomputeRootsButton': ->
+  'click .recomputeEmoji': ->
+    Meteor.call 'recomputeEmoji', (error, result) ->
+      if error
+        console.error 'recomputeEmoji:', error
+      else
+        console.log 'recomputeEmoji done!'
+  'click .recomputeRoots': ->
     Meteor.call 'recomputeRoots', (error, result) ->
       if error
         console.error 'recomputeRoots:', error
