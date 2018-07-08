@@ -1122,9 +1122,10 @@ replaceFiles = (files, e, t) ->
     console.error "Attempt to replace #{message} with #{files.length} files -- expected 1"
   else
     file = files[0]
-    file.callback = (file2) ->
+    file.callback = (file2, done) ->
       Meteor.call 'messageUpdate', message,
         file: file2.uniqueIdentifier
+      , done
     file.group = group
     Files.resumable.addFile file, e
 
