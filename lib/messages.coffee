@@ -1106,6 +1106,20 @@ Meteor.methods
         Messages.update child,
           $unset: root: ''
         _submessagesChanged child
+        descendants = descendantMessageIds child
+        if descendants.length > 0
+          Messages.update
+            _id: $in: descendants
+          ,
+            $set: root: child
+          ,
+            multi: true
+          EmojiMessages.update
+            message: $in: descendants
+          ,
+            $set: root: child
+          ,
+            multi: true
     
     ## Delete all associated files.
     MessagesDiff.find
