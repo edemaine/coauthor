@@ -510,6 +510,7 @@ here = (id) ->
   Router.current().params?.message == id
 
 Template.submessage.helpers
+  canReply: -> canPost @group, @_id
   tabindex: tabindex
   tabindex5: -> tabindex 5
   tabindex7: -> tabindex 7
