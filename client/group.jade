@@ -98,9 +98,9 @@ template(name="messageList")
           if sortingBy 'posts'
             span.fas(class=sortingGlyph)
         th.text-center
-          a(href="{{linkToSort 'emojiPos'}}", data-toggle="tooltip", title="Number of positive emoji reactions to root message of thread")
+          a(href="{{linkToSort 'emoji'}}", data-toggle="tooltip", title="Number of positive emoji reactions to root message of thread")
             span.fas.fa-thumbs-up.positive
-          if sortingBy 'emojiPos'
+          if sortingBy 'emoji'
             span.fas(class=sortingGlyph)
         //-
           th

@@ -8,7 +8,8 @@
 @validGroup = (group) ->
   validKey(group) and group.charAt(0) != '*' and group.trim().length > 0
 
-@sortKeys = ['title', 'creator', 'published', 'updated', 'posts', 'subscribe']
+@sortKeys = ['title', 'creator', 'published', 'updated', 'posts', 'emoji',
+             'subscribe']
 
 @defaultSort =
   key: 'published'
@@ -358,6 +359,13 @@ Meteor.methods
         key = (msg) -> userSortKey msg.creator
       when 'subscribe'
         key = (msg) -> subscribedToMessage msg
+      when 'emoji'
+        key = (msg) ->
+          sum = 0
+          if msg.emoji
+            for emoji, users of msg.emoji
+              sum += users.length
+          sum
       else
         key = mongosort
         #key = (msg) -> msg[mongosort]

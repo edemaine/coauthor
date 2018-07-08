@@ -237,7 +237,8 @@ Template.messageList.helpers
     else
       linkToSort
         key: key
-        reverse: key in ['published', 'updated', 'posts', 'subscribe']  ## default reverse
+        ## Default reverse setting when switching sort keys:
+        reverse: key in ['published', 'updated', 'posts', 'emoji', 'subscribe']
   sortingBy: (key) ->
     sortBy().key == key
   sortingGlyph: ->
