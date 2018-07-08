@@ -21,7 +21,7 @@ template(name="settings")
           tr
             th
               label Default message format:
-              .description All formats support LaTeX math like <code>$x+y$</code>. The message format controls e.g. whether you specify italics like <code>*this*</code> (Markdown), <code>\emph{this}</code> (LaTeX), or <code>&lt;i&gt;this&lt;/i&gt;</code> (HTML).  Actually, HTML is always available in all formats.  See the <a href="https://github.com/edemaine/coauthor#features-so-far">detailed list of supported features</a>.
+              .description All formats support LaTeX math like <code>$x+y$</code>, arbitrary HTML like <code>&lt;i&gt;...&lt;/i&gt;</code>, and (except in HTML format) many LaTeX macros like <code>\begin{theorem}...\end{theorem}</code>. The message format primarily controls how punctuation gets interpreted, e.g., whether comments are specified with <code>%</code> (LaTeX) or <code>&lt;!--...--&gt;</code>, or whether <code>*</code> turns into an unordered list item (Markdown).  See the <a href="https://github.com/edemaine/coauthor#features-so-far">detailed list of supported features</a>.
             td
               +formatSelector
           tr
