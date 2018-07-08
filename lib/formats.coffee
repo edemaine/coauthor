@@ -417,9 +417,11 @@ postprocessCoauthorLinks = (text) ->
       #  match
   .replace ///(<a\s[^<>]*href\s*=\s*['"])#{coauthorLinkRe}///ig,
     (match, p1, p2) ->
-      ## xxx Could add msg.title, when available, to hover text...
+      ## xxx Should we subscribe to the linked message when we can't find it?
       ## xxx Currently assuming message is in same group if can't find it.
       msg = Messages.findOne p2
+      if msg?.title
+        p1 = """<a title="#{msg.title.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}"" href=""" + p1[p1.length-1]
       p1 + urlFor 'message',
         group: msg?.group or routeGroup?() or wildGroup
         message: p2
