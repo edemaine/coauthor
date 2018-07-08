@@ -92,12 +92,12 @@ in other fields too.
   with specific users, for visitors or paper merges etc.
 
 * **Sorting** of threads within a group by title, creator, creation date,
-  last update, number of posts, or whether subscribed (by clicking on the
-  corresponding column, once for default sort order and again for
-  opposite sort order).  Intelligent handling of numbers while sorting,
-  e.g. "9." comes before "10.".  Deleted messages always sort to the very
-  bottom; minimized messages always sort near the bottom; and unpublished
-  messages always sort near the top.
+  last update, number of posts, number of positive emoji responses, or whether
+  subscribed (by clicking on the corresponding column, once for default sort
+  order and again for opposite sort order).  Intelligent handling of numbers
+  while sorting, e.g. "9." comes before "10.".  Deleted messages always sort
+  to the very bottom; minimized messages always sort near the bottom; and
+  unpublished messages always sort near the top.
 
 * "**Live Feed**" to watch messages as they get changed/posted.  Useful for
   projecting the latest activity onto a big screen while a group is gathered
@@ -128,7 +128,9 @@ in other fields too.
   messages with the same tag by clicking on a tag.
 
 * **Emoji** for super-short responses that show appreciation but don't cause
-  email notifications or take up much space. (Like Github and Slack.)
+  email notifications or take up much space.  (Like Github and Slack.)
+  Hover over an emoji to see a list of people who added the emoji; click to
+  toggle your own status.  Emoji are positive (purple) or negative (red).
   Positive emoji on root messages are counted on the group page, enabling
   a simple voting system for e.g. which problems to work on. 
 
