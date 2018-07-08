@@ -8,7 +8,7 @@ blankImg = '/updating.png'
   tags = null
   loadCallback = (e) ->
     unless init
-      tags = $("img[src$='#{src}']")
+      tags = $("img[src$='#{src}'], video source[src$='#{src}']")
       tags.attr 'src', blankImg
       init = true
       iframe.contentWindow.location.reload true

@@ -300,7 +300,7 @@ id2template = {}
 scrollToLater = null
 fileQuery = null
 
-updateFileQuery = ->
+updateFileQuery = _.debounce ->
   fileQuery.stop() if fileQuery?
   fileQuery = Messages.find
     _id: $in: _.keys images
@@ -312,10 +312,12 @@ updateFileQuery = ->
       initImageInternal images[id].file, id if images[id].file?
     changed: (id, fields) ->
       if fields.file? and images[id].file != fields.file
-        forceImgReload urlToFile id
+        if fileType(fields.file) in ['image', 'video']
+          forceImgReload urlToFile id
         imagesInternal[images[id].file].image = null if images[id].file?
         images[id].file = fields.file
         initImageInternal images[id].file, id if images[id].file?
+, 50
 
 initImage = (id) ->
   if id not of images
