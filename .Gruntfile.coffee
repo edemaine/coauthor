@@ -88,10 +88,12 @@ module.exports = (grunt) ->
   ## Convert timezones into autocompletion list
   fs = require 'fs'
   meta = JSON.parse fs.readFileSync 'node_modules/moment-timezone/data/meta/latest.json', encoding: 'utf8'
-  zones = JSON.parse fs.readFileSync 'node_modules/moment-timezone/data/unpacked/latest.json', encoding: 'utf8'
+  zones = JSON.parse fs.readFileSync 'node_modules/moment-timezone/data/packed/latest.json', encoding: 'utf8'
   timezones =
     for zone in zones.zones
-      name = zone.name
+      #name = zone.name  ## unpacked format
+      name = zone
+      name = name[...name.indexOf '|'] if '|' in name  ## packed format
       if name of meta.zones
         countries = meta.zones[name].countries
         countries = (meta.countries[country].name for country in countries)
