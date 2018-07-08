@@ -218,10 +218,14 @@ timezoneEdit = (e, t) ->
 
 Template.timezoneSelector.events
   'input .timezone': timezoneEdit
-  'typeahead:select .timezone': timezoneEdit
   'typeahead:autocomplete .timezone': timezoneEdit
+  'typeahead:cursorchange .timezone': timezoneEdit
+  'typeahead:select .timezone': (e, t) ->
+    timezoneEdit e, t
+    unless t.$('.saveButton').attr 'disabled'
+      timezoneSave e, t
 
-  'click .saveButton': (e, t) ->
+  'click .saveButton': timezoneSave = (e, t) ->
     e.preventDefault()
     e.stopPropagation()
     zone = t.find('.tt-input').value
