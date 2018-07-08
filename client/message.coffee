@@ -349,7 +349,7 @@ checkImageInternal = (id) ->
   image = imagesInternal[id].image
   checkImage image if image?
 
-messageDrag = (target, bodyToo = true) ->
+messageDrag = (target, bodyToo = true, old) ->
   return unless target
   onDragStart = (e) =>
     #url = "coauthor:#{@data._id}"
@@ -369,8 +369,11 @@ messageDrag = (target, bodyToo = true) ->
     #  url = formatted
     if bodyToo
       $(@find '.message-file')?.find('img, video, a')?.each (i, elt) =>
+        elt.removeEventListener 'dragstart', old if old?
         elt.addEventListener 'dragstart', onDragStart
+  target.removeEventListener 'dragstart', old if old?
   target.addEventListener 'dragstart', onDragStart
+  onDragStart
 
 ## A message is "naturally" folded if it is flagged as minimized or deleted.
 ## It still will be default-folded if it's an image referenced in another
@@ -386,7 +389,8 @@ Template.submessage.onRendered ->
 
   ## Drag/drop support.
   focusButton = $(@find '.message-left-buttons').find('.focusButton')[0]
-  messageDrag.call @, focusButton
+  @autorun =>
+    listener = messageDrag.call @, focusButton, true, listener
 
   ## Fold naturally folded (minimized and deleted) messages
   ## by default on initial load.
@@ -1205,7 +1209,8 @@ Template.replyButtons.helpers
   canPrivateReply: -> 'private' in (@threadPrivacy ? ['public'])
 
 Template.tableOfContentsMessage.onRendered ->
-  messageDrag.call @, @find('a'), false
+  @autorun =>
+    listener = messageDrag.call @, @find('a'), false, listener
 
 addDragOver = (e) ->
   e.preventDefault()
