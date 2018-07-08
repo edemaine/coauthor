@@ -428,9 +428,13 @@ Template.submessage.onRendered ->
       $($.parseHTML("<div>#{formatBody data.format, data.body}</div>"))
       .find """
         img[src^="#{fileUrlPrefix}"],
-        img[src^="#{Meteor.absoluteUrl fileUrlPrefix[1..]}"],
+        img[src^="#{fileAbsoluteUrlPrefix}"],
         img[src^="#{internalFileUrlPrefix}"],
-        img[src^="#{Meteor.absoluteUrl internalFileUrlPrefix[1..]}"]
+        img[src^="#{internalFileAbsoluteUrlPrefix}"],
+        video source[src^="#{fileUrlPrefix}"],
+        video source[src^="#{fileAbsoluteUrlPrefix}"],
+        video source[src^="#{internalFileUrlPrefix}"],
+        video source[src^="#{internalFileAbsoluteUrlPrefix}"]
       """
       .each ->
         src = @getAttribute('src')
@@ -589,7 +593,7 @@ Template.submessage.helpers
                   if username
                     return "@#{username}"
                   switch type
-                    when 'image'
+                    when 'image', 'video'
                       switch ti.data.format
                         when 'markdown'
                           "![](coauthor:#{id})"
@@ -597,8 +601,8 @@ Template.submessage.helpers
                           "\\includegraphics{coauthor:#{id}}"
                         when 'html'
                           """<img src="coauthor:#{id}">"""
-                    when 'video'
-                      """<video controls><source src="coauthor:#{id}"></video>"""
+                    #when 'video'
+                    #  """<video controls><source src="coauthor:#{id}"></video>"""
                     else
                       "coauthor:#{id}"
             cmDrop e

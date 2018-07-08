@@ -421,10 +421,25 @@ postprocessCoauthorLinks = (text) ->
       ## xxx Currently assuming message is in same group if can't find it.
       msg = Messages.findOne p2
       if msg?.title
-        p1 = """<a title="#{msg.title.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}"" href=""" + p1[p1.length-1]
+        p1 = """<a title="#{msg.title.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}"" href=#{p1[p1.length-1]}"""
       p1 + urlFor 'message',
         group: msg?.group or routeGroup?() or wildGroup
         message: p2
+  .replace ///(<img\s[^<>]*src\s*=\s*['"])(#{fileUrlPattern}[^'"]*)(['"][^<>]*>)///ig,
+    (match, prefix, url, isFile, isInternalFile, suffix) ->
+      if isFile
+        msg = findMessage url2file url
+        return match unless msg?
+        file = msg.file
+      else
+        file = url2internalFile url
+      file = findFile file
+      return match unless file?
+      switch fileType file
+        when 'video'
+          formatVideo file, url
+        else
+          match
 
 ## URL regular expression with scheme:// required, to avoid extraneous matching
 @urlRe = /\w+:\/\/[-\w~!$&'()*+,;=.:@%#?\/]+/g
@@ -594,6 +609,12 @@ We therefore don't display any file that is still in the zero-length state.
   return formatBadFile msg.file unless file?
   """<i class="odd-file"><a href="#{urlToFile msg}">&lt;#{s.numberFormat file.length}-byte #{file.contentType} file &ldquo;#{file.filename}&rdquo;&gt;</a></i>"""
 
+@formatVideo = (file, url) ->
+  if file?.contentType
+    """<video controls><source src="#{url}" type="#{file.contentType}"></video>"""
+  else
+    """<video controls><source src="#{url}"></video>"""
+
 @formatFile = (msg, file = null) ->
   file = findFile msg.file unless file?
   return formatBadFile msg.file unless file?
@@ -602,7 +623,7 @@ We therefore don't display any file that is still in the zero-length state.
     when 'image'
       """<img src="#{urlToFile msg}">"""
     when 'video'
-      """<video controls><source src="#{urlToFile msg}" type="#{file.contentType}"></video>"""
+      formatVideo file, urlToFile msg
     else  ## 'unknown'
       formatFileDescription msg, file
 

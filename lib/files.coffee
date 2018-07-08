@@ -44,6 +44,12 @@ if Meteor.isServer
   ]
 
 @fileUrlPrefix = "/file/"
+@fileAbsoluteUrlPrefix = Meteor.absoluteUrl fileUrlPrefix[1..]
+@internalFileUrlPrefix = "#{Files.baseURL}/id/"
+@internalFileAbsoluteUrlPrefix = Meteor.absoluteUrl internalFileUrlPrefix[1..]
+@fileUrlPattern =
+  "(?:(#{fileUrlPrefix}|#{fileAbsoluteUrlPrefix})|" +
+   "(#{internalFileUrlPrefix}|#{internalFileAbsoluteUrlPrefix}))"
 
 ## If given object has a `file` but no `_id` field, then we make a link
 ## to the internal file object instead of the file associated with a message.
@@ -53,35 +59,23 @@ if Meteor.isServer
   if id.file?
     urlToInternalFile id
   else
-    Meteor.absoluteUrl "#{fileUrlPrefix[1..]}#{id}"
+    "#{fileAbsoluteUrlPrefix}#{id}"
 
 @url2file = (url) ->
-  if url[...fileUrlPrefix.length] == fileUrlPrefix
-    url[fileUrlPrefix.length..]
-  else
-    absolutePrefix = Meteor.absoluteUrl fileUrlPrefix[1..]
-    if url[...absolutePrefix.length] == absolutePrefix
-      url[absolutePrefix.length..]
-    else
-      throw new Meteor.Error 'url2file.invalid',
-        "Bad file URL #{url}"
-
-@internalFileUrlPrefix = "#{Files.baseURL}/id/"
+  for prefix in [fileUrlPrefix, fileAbsoluteUrlPrefix]
+    if url[...prefix.length] == prefix
+      return url[prefix.length..]
+  throw new Meteor.Error 'url2file.invalid', "Bad file URL #{url}"
 
 @urlToInternalFile = (id) ->
   id = id.file if id.file?
-  Meteor.absoluteUrl "#{internalFileUrlPrefix[1..]}#{id}"
+  "#{internalFileAbsoluteUrlPrefix}#{id}"
 
 @url2internalFile = (url) ->
-  if url[...internalFileUrlPrefix.length] == internalFileUrlPrefix
-    url[internalFileUrlPrefix.length..]
-  else
-    absolutePrefix = Meteor.absoluteUrl internalFileUrlPrefix[1..]
-    if url[...absolutePrefix.length] == absolutePrefix
-      url[absolutePrefix.length..]
-    else
-      throw new Meteor.Error 'url2internalFile.invalid',
-        "Bad file URL #{url}"
+  for prefix in [internalFileUrlPrefix, internalFileAbsoluteUrlPrefix]
+    if url[...prefix.length] == prefix
+      return url[prefix.length..]
+  throw new Meteor.Error 'url2internalFile.invalid', "Bad file URL #{url}"
 
 @findFile = (id) ->
   Files.findOne new Meteor.Collection.ObjectID id
