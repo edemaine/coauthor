@@ -181,7 +181,8 @@ timezones = []
 #  #prefetch: '/timezones.json'
 #  #local: timezones
 timezoneSource = (q, callback) ->
-  callback(timezone for timezone in timezones when 0 <= timezone.toLowerCase().indexOf q.toLowerCase())
+  re = new RegExp (escapeRegExp q).replace(/[ _]/g, '[ _]'), 'i'
+  callback(timezone for timezone in timezones when timezone.match re)
 
 Template.timezoneSelector.onCreated ->
   Meteor.http.get '/timezones.json', (error, result) ->

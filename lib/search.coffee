@@ -28,7 +28,7 @@ SEARCH LANGUAGE:
   match those statuses of messages
 ###
 
-escapeRegExp = (regex) ->
+@escapeRegExp = (regex) ->
   ## https://stackoverflow.com/questions/3446170/escape-string-for-use-in-javascript-regex
   #s.replace /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&"
   ## Intentionally omitting * which we're defining in parseSearch
