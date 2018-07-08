@@ -68,7 +68,7 @@ if Meteor.isServer
 ## anonymous groups) and all groups of which you are a full or partial member.
 @memberOfGroupOrReadable = (group, user = Meteor.user()) ->
   memberOfGroup(group, user) or
-  Check groupData, 'read', user
+  groupRoleCheck groupData, 'read', user
 
 ## List all groups that the user is a member of.
 ## (Mimicking memberOfGroup above.)
