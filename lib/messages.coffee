@@ -1122,6 +1122,9 @@ Meteor.methods
         child: message
       , parent: message
       ]
+    ## Delete all emoji responses to this message.
+    EmojiMessages.remove
+      message: message
 
   threadPrivacy: (message, list) ->
     #check Meteor.userId(), String  ## should be done by 'canSuper'
