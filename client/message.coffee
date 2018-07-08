@@ -370,7 +370,7 @@ messageDrag = (target, bodyToo = true, old) ->
     #   "class='bad-file'" not in formatted
     #  url = formatted
     if bodyToo
-      $(@find '.message-file')?.find('img, video, a')?.each (i, elt) =>
+      $(@find '.message-file')?.find('img, video, a, canvas')?.each (i, elt) =>
         elt.removeEventListener 'dragstart', old if old?
         elt.addEventListener 'dragstart', onDragStart
   target.removeEventListener 'dragstart', old if old?
@@ -595,7 +595,7 @@ Template.submessage.helpers
                   if username
                     return "@#{username}"
                   switch type
-                    when 'image', 'video'
+                    when 'image', 'video', 'pdf'
                       switch ti.data.format
                         when 'markdown'
                           "![](coauthor:#{id})"

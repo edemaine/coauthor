@@ -4,7 +4,7 @@
 sanitizeHtml = require 'sanitize-html'
 
 sanitizeHtml.defaults.allowedAttributes['*'] = [
-  'style', 'class', 'title', 'aria-*'
+  'style', 'class', 'title', 'aria-*', 'data-id'
 ]
 
 ## For author links + drag support

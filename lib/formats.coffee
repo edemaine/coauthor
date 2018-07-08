@@ -430,14 +430,25 @@ postprocessCoauthorLinks = (text) ->
       if isFile
         msg = findMessage url2file url
         return match unless msg?
-        file = msg.file
+        fileId = msg.file
       else
-        file = url2internalFile url
-      file = findFile file
+        fileId = url2internalFile url
+      file = findFile fileId
       return match unless file?
       switch fileType file
         when 'video'
           formatVideo file, url
+        when 'pdf'
+          template = Template?.instance?()
+          if template?
+            id = Random.id()
+            Meteor.defer =>
+              parent = template.find """div[data-id="#{id}"]"""
+              return unless parent?
+              Blaze.renderWithData Template.messagePDF, fileId, parent
+            """<div data-id="#{id}"></div>"""
+          else  ## e.g. server has no templates
+            match
         else
           match
 
