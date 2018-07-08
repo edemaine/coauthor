@@ -578,6 +578,18 @@ formatEitherSafe = (isTitle, format, text, leaveTeX = false) ->
 @formatBadFile = (fileId) ->
   """<i class="bad-file">&lt;unknown file with ID #{fileId}&gt;</i>"""
 
+###
+vsivsi:file-collection creates an initial file of zero length; see
+share.insert_func in
+  https://github.com/vsivsi/meteor-file-collection/blob/master/src/gridFS.coffee
+After upload (which is forbidden to take a zero-length file), the file
+length gets set correctly; see the end of resumable_post_handler in
+  https://github.com/vsivsi/meteor-file-collection/blob/master/src/resumable_server.coffee
+We therefore don't display any file that is still in the zero-length state.
+###
+@formatEmptyFile = (fileId) ->
+  """<i class="empty-file">(uploading file...)</i>"""
+
 @formatFileDescription = (msg, file = null) ->
   file = findFile msg.file unless file?
   return formatBadFile msg.file unless file?
@@ -586,6 +598,7 @@ formatEitherSafe = (isTitle, format, text, leaveTeX = false) ->
 @formatFile = (msg, file = null) ->
   file = findFile msg.file unless file?
   return formatBadFile msg.file unless file?
+  return formatEmptyFile msg.file unless file.length
   switch fileType file
     when 'image'
       """<img src="#{urlToFile msg}">"""

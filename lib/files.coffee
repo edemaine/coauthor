@@ -126,12 +126,12 @@ if Meteor.isServer
       file.metadata.uploader = userId
       memberOfGroup file.metadata.group ? wildGroup, findUser userId
     remove: (userId, file) ->
-      file.metadata?.uploader in [userId, null]
+      file.metadata?.uploader == userId
     read: (userId, file) ->
-      file.metadata?.uploader in [userId, null] or
+      file.metadata?.uploader == userId or
       memberOfGroup file.metadata?.group, findUser userId
     write: (userId, file, fields) ->
-      file.metadata?.uploader in [userId, null]
+      file.metadata?.uploader == userId
 else
   Tracker.autorun ->
     Meteor.userId()  ## rerun when userId changes
