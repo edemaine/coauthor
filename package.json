@@ -22,7 +22,7 @@
   "homepage": "https://github.com/edemaine/coauthor",
   "dependencies": {
     "babel-runtime": "^6.26.0",
-    "bcrypt": "^1.0.3",
+    "bcrypt": "^3.0.0",
     "chart.js": "^2.7.2",
     "codemirror": "5.26.0",
     "codemirror-spell-checker": "^1.1.2",
