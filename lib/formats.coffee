@@ -437,9 +437,6 @@ postprocessLinks = (text) ->
       match.replace /\/+/g, (slash) ->
         "#{slash}&#8203;"  ## Add zero-width space after every slash group
 
-@escapeRe = (string) ->
-  string.replace /[\\^$*+?.()|{}\[\]]/g, "\\$&"
-
 allUsers = ->
   users = Meteor.users.find {}, fields: username: 1
   .map (user) -> user.username
@@ -453,7 +450,7 @@ atRePrefix = '[@\uff20]'
   users = _.sortBy users, (name) -> -name.length
   users = for user in users
     user = user.username if user.username?
-    escapeRe user
+    escapeRegExp user
   ## FF20 is FULLWIDTH COMMERCIAL AT common in Asian scripts
   ///#{atRePrefix}(#{users.join '|'})(?!\w)///g
 

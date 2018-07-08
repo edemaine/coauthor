@@ -30,9 +30,7 @@ SEARCH LANGUAGE:
 
 @escapeRegExp = (regex) ->
   ## https://stackoverflow.com/questions/3446170/escape-string-for-use-in-javascript-regex
-  #s.replace /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&"
-  ## Intentionally omitting * which we're defining in parseSearch
-  regex.replace /[\-\[\]\/\{\}\(\)\+\?\.\\\^\$\|]/g, "\\$&"
+  regex.replace /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&"
 
 caseInsensitiveRegExp = (regex) ->
   regex.replace /[a-z]/g, (char) -> "[#{char}#{char.toUpperCase()}]"
@@ -102,7 +100,7 @@ unescapeRegExp = (regex) ->
       regex = escapeRegExp token
       ## Outside regex mode, lower-case letters are case-insensitive
       regex = caseInsensitiveRegExp regex
-      regex = regex.replace /\*/g, '\\S*'
+      regex = regex.replace /\\\*/g, '\\S*'  ## * was already escaped
       if not starStart and regex.match /^[\[\w]/  ## a or [aA]
         regex = "\\b#{regex}"
       if not starEnd and regex.match /[\w\]]$/  ## a or [aA]
