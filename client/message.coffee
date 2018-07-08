@@ -714,7 +714,7 @@ Template.submessage.helpers
     history = messageHistory.get(@_id) ? @
     ## Don't run PDF render if in raw mode
     return if messageRaw.get(@_id) or "pdf" != fileType history.file
-    history
+    history.file
   formatFile: ->
     history = messageHistory.get(@_id) ? @
     format = formatFile history

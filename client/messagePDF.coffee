@@ -16,10 +16,10 @@ Template.messagePDF.onRendered ->
   `import('pdfjs-dist')`.then (pdfjs) =>
     pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'  ## in /public
     @autorun =>
-      msg = Template.currentData()
-      size = findFile(msg.file).length
+      file = Template.currentData()
+      size = findFile(file).length
       @progress.set 0
-      loader = pdfjs.getDocument urlToFile msg
+      loader = pdfjs.getDocument urlToInternalFile file
       loader.onProgress = (data) =>
         @progress.set Math.round 100 * data.loaded / size
       loader.then (pdf) =>
