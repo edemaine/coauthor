@@ -55,12 +55,13 @@ if Meteor.isServer
    (role in (user?.rolesPartial?[escapeGroup(group?.name ? group)]?[message2root message] ? [])))
 
 @groupPartialMessagesWithRole = (group, role, user = Meteor.user()) ->
+  group = group.name if group.name?
   message \
   for own message, roles of user?.rolesPartial?[escapeGroup group] ? [] \
   when role in roles
 
 @memberOfGroup = (group, user = Meteor.user()) ->
-  escaped = escapeGroup group
+  escaped = escapeGroup group.name ? group
   not _.isEmpty(user?.roles?[escaped]) or
   not _.isEmpty(user?.rolesPartial?[escaped])
 
@@ -68,7 +69,7 @@ if Meteor.isServer
 ## anonymous groups) and all groups of which you are a full or partial member.
 @memberOfGroupOrReadable = (group, user = Meteor.user()) ->
   memberOfGroup(group, user) or
-  groupRoleCheck groupData, 'read', user
+  groupRoleCheck group, 'read', user
 
 ## List all groups that the user is a member of.
 ## (Mimicking memberOfGroup above.)
@@ -167,7 +168,7 @@ if Meteor.isServer
       user = findUser @userId
       ## Publish members of all readable groups (including anonymous groups)
       ## and all groups of which you are a full or partial member.
-      if memberOfGroupOrReadable group, user
+      if memberOfGroupOrReadable groupData, user
         Meteor.users.find
           username: $in: groupMembers groupData
         ,
