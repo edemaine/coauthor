@@ -15,6 +15,9 @@ input.title { width: 100%; }
 .message > .panel-heading { padding: 5px 5px 5px 10px; }
 .root > .panel-heading { padding: 5px 5px 5px 10px; border-bottom: 0px; }
 .messageTitle { display: inline-block; padding: 5px 5px 5px 0px; }
+.panel-secondbody > .messageTitle { display: inline; color: gray; }
+.panel-secondbody > .messageTitle > .panel-title { font-weight: normal; font-size: small; }
+.linkToTop { margin-top: -4px; }
 .messageTags > a:first-child, .messageLabels > span:first-child { margin-left: 0.5em; }
 input.title ~ .message-right-buttons { margin: 0px; }
 .message-reply-buttons { margin: 8px 0px 10px 0px; }

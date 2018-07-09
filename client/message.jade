@@ -265,6 +265,15 @@ template(name="submessage")
         if canReply
           .panel-body.panel-secondbody.hidden-print.clearfix
             +replyButtons
+            span.messageTitle
+              a.btn.btn-default.btn-xs.linkToTop(aria-label="Top", href="#{{_id}}")
+                span.fas.fa-caret-up
+              span.space
+              if file
+                span.fas.fa-paperclip
+              span.panel-title.tex2jax !{formatTitle}&#8203;
+              +messageTags
+              +messageLabels
 
 template(name="messageNeighbors")
   if prev
