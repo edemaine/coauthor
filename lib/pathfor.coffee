@@ -14,6 +14,7 @@ ironUrlFor = Blaze._globalHelpers.urlFor
     hash:
       route: route
       data: _.extend data, wild
+      query: data.query
       hash: hash
     0: '*'
 
@@ -25,6 +26,7 @@ ironUrlFor = Blaze._globalHelpers.urlFor
     hash:
       route: route
       data: _.extend data, wild
+      query: data.query
       hash: hash
     0: '*'
 
