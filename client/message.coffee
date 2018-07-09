@@ -703,6 +703,7 @@ Template.submessage.helpers
     else
       formatTitleOrFilename history, false  ## don't write (untitled)
   formatBody: ->
+    #console.log 'rendering', @_id
     history = messageHistory.get(@_id) ? @
     body = history.body
     return body unless body
