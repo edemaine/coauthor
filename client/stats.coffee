@@ -48,6 +48,8 @@ Template.statsGood.onCreated ->
       switch unit
         when 'hour'
           'HH:mm'
+        when 'weekday'
+          'ddd'
         when 'day', 'week'
           'ddd, MMM DD, YYYY' #'YYYY-MM-DD'
         when 'month'
@@ -73,9 +75,13 @@ Template.statsGood.onCreated ->
           title: true
           authors: true
         sort: created: 1
-      if unit == 'hour'
-        msgs = _.sortBy msgs.fetch(), (msg) -> moment(msg.created).format 'HH:mm'
+      switch unit
+        when 'hour'
+          msgs = _.sortBy msgs.fetch(), (msg) -> moment(msg.created).format 'HH:mm'
+        when 'weekday'
+          msgs = _.sortBy msgs.fetch(), (msg) -> moment(msg.created).day()
       msgs.forEach (msg) =>
+        increment = unit
         switch unit
           when 'week'
             day = moment(msg.created).startOf 'day'
@@ -87,6 +93,12 @@ Template.statsGood.onCreated ->
             day = moment(msg.created).startOf unit
             .year 2000
             .dayOfYear 1
+          when 'weekday'
+            day = moment(msg.created).startOf 'day'
+            day = day.date 1 + moment(msg.created).day()
+            .month 9
+            .year 2000  ## 1st day of October 2000 is a Sunday
+            increment = 'day'
           else
             day = moment(msg.created).startOf unit
         if lastDate?
@@ -96,8 +108,11 @@ Template.statsGood.onCreated ->
             makeDay()
           else
             while lastDate.valueOf() != day.valueOf()
-              lastDate = lastDate.add 1, unit
+              lastDate = lastDate.add 1, increment
               makeDay()
+              if lastDate.valueOf() > day.valueOf()
+                console.warn "Bad day handling (Coauthor bug)"
+                break
         else
           lastDate = day
           makeDay()

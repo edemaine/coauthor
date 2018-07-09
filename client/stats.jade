@@ -14,6 +14,8 @@ template(name='statsGood')
       ul.dropdown-menu(role="menu")
         li.unit(class="{{activeUnit 'hour'}}")
           a(href="#",data-unit="hour") Hour
+        li.unit(class="{{activeUnit 'weekday'}}")
+          a(href="#",data-unit="weekday") Day of week
         li.unit(class="{{activeUnit 'day'}}")
           a(href="#",data-unit="day") Day
         li.unit(class="{{activeUnit 'week'}}")
