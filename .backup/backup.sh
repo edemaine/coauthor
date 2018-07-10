@@ -18,15 +18,24 @@ rsync -e ssh -a $REMOTE:dump/coauthor/ coauthor-backup/
 ## rclone is the recommended system to copy backups to a cloud service.
 ## Just setup a remote called `coauthor-backup` using `rclone config`.
 ## (acd_cli is another option, but it sadly was turned off by Amazon.)
-
 method=rclone
 #method=acd_cli
 echo \* $method
 
+## 1 for a separate backup for each day; 0 to overwrite the backup each time
+datedir=0
+
+if [ "$datedir" -eq 1 ]
+then
+  datedir=/`date +%Y-%m-%d`
+else
+  datedir=
+fi
+
 case $method in
 
 rclone)
-  if rclone --retries 10 copy coauthor-backup coauthor-backup:coauthor-backup/`date +%Y-%m-%d`
+  if rclone --retries 10 copy coauthor-backup coauthor-backup:coauthor-backup$datedir
   then
     echo SUCCESS\!\!
   else
@@ -38,8 +47,8 @@ acd_cli)
   count=0
   limit=20
   acd_cli sync
-  acd_cli mkdir /coauthor-backup/`date +%Y-%m-%d`
-  while ! acd_cli ul -q -o coauthor-backup/* /coauthor-backup/`date +%Y-%m-%d`
+  acd_cli mkdir /coauthor-backup$datedir
+  while ! acd_cli ul -q -o coauthor-backup/* /coauthor-backup$datedir
   do
     echo Trying again... $count
     acd_cli sync
