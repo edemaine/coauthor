@@ -20,7 +20,7 @@ Template.readMessage.helpers
   readChildren: -> @readChildren
   pdf: ->
     return if "pdf" != fileType @file
-    true
+    @file
 
 Template.readMessage.events
   'click .foldButton': messageFoldHandler

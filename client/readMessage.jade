@@ -27,7 +27,8 @@ template(name='readMessage')
         .message-body.tex2jax !{formatBody}
         if file
           if pdf
-            +messagePDF
+            with pdf
+              +messagePDF
           p.message-file !{formatFile}
       .message-footer.message-reply-buttons.clearfix
         +emojiButtons
