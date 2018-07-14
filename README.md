@@ -67,8 +67,8 @@ in other fields too.
     `\begin/\end` for environments `verbatim`, `enumerate`, `itemize`,
     `quote`, `tabular` (basic),
     `equation`, `eqnarray`, `align`,
-    `problem`, `theorem`, `conjecture`, `lemma`, `corollary`, `fact`,
-    `observation`, `proposition`, `claim`, `proof`.
+    `problem`, `question`, `idea`, `theorem`, `conjecture`, `lemma`,
+    `corollary`, `fact`, `observation`, `proposition`, `claim`, `proof`.
   * HTML, sanitized.  The following tags are allowed; feel free to ask for
     more.  `<h1>`, `<h2>`, `<h3>`, `<h4>`, `<h5>`, `<h6>`,
     `<blockquote>`, `<p>`, `<div>`, `<span>`,

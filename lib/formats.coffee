@@ -253,8 +253,8 @@ latex2htmlCommandsAlpha = (tex, math) ->
       else
         value = "-#{value}"
       """<span style="margin-top: #{value}#{unit};">#{arg}</span>"""
-  .replace /\\begin\s*{(problem|theorem|conjecture|lemma|corollary|fact|observation|proposition|claim)}(\s*\[([^\]]*)\])?/g, (m, env, x, opt) -> "<blockquote><p><b>#{s.capitalize env}#{if opt then " (#{opt})" else ''}:</b> "
-  .replace /\\end\s*{(problem|theorem|conjecture|lemma|corollary|fact|observation|proposition|claim)}/g, '</blockquote>'
+  .replace /\\begin\s*{(problem|question|idea|theorem|conjecture|lemma|corollary|fact|observation|proposition|claim)}(\s*\[([^\]]*)\])?/g, (m, env, x, opt) -> "<blockquote><p><b>#{s.capitalize env}#{if opt then " (#{opt})" else ''}:</b> "
+  .replace /\\end\s*{(problem|question|idea|theorem|conjecture|lemma|corollary|fact|observation|proposition|claim)}/g, '</blockquote>'
   .replace /\\begin\s*{(quote)}/g, '<blockquote><p>'
   .replace /\\end\s*{(quote)}/g, '</blockquote>'
   .replace /\\begin\s*{(proof|pf)}(\s*\[([^\]]*)\])?/g, (m, env, x, opt) -> "<b>Proof#{if opt then " (#{opt})" else ''}:</b> "
