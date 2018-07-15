@@ -378,7 +378,9 @@ latex2html = (tex) ->
     linkify text
 
 @coauthorLinkBodyRe = "/?/?([a-zA-Z0-9]+)"
+@coauthorLinkBodyHashRe = "#{coauthorLinkBodyRe}(#[a-zA-Z0-9]*)?"
 @coauthorLinkRe = "coauthor:#{coauthorLinkBodyRe}"
+@coauthorLinkHashRe = "coauthor:#{coauthorLinkBodyHashRe}"
 
 @parseCoauthorMessageUrl = (url) ->
   match = new RegExp("^#{urlFor 'message',
@@ -404,27 +406,28 @@ latex2html = (tex) ->
 
 postprocessCoauthorLinks = (text) ->
   text.replace ///(<img\s[^<>]*src\s*=\s*['"])#{coauthorLinkRe}///ig,
-    (match, p1, p2) ->
-      p1 + urlToFile p2
-      #msg = Messages.findOne p2
+    (match, html, id) ->
+      html + urlToFile id
+      #msg = Messages.findOne id
       #if msg? and msg.file
-      #  p1 + urlToFile msg
+      #  html + urlToFile msg
       #else
       #  if msg?
-      #    console.warn "Couldn't detect image in message #{p2} -- must be text?"
+      #    console.warn "Couldn't detect image in message #{id} -- must be text?"
       #  else
-      #    console.warn "Couldn't find group for message #{p2} (likely subscription issue)"
+      #    console.warn "Couldn't find group for message #{id} (likely subscription issue)"
       #  match
-  .replace ///(<a\s[^<>]*href\s*=\s*['"])#{coauthorLinkRe}///ig,
-    (match, p1, p2) ->
+  .replace ///(<a\s[^<>]*href\s*=\s*['"])#{coauthorLinkHashRe}///ig,
+    (match, html, id, hash) ->
       ## xxx Should we subscribe to the linked message when we can't find it?
       ## (This would just be to get its title, so maybe not worth it.)
-      msg = Messages.findOne p2
+      msg = Messages.findOne id
       if msg?.title
-        p1 = """<a title="#{msg.title.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}"" href=#{p1[p1.length-1]}"""
-      p1 + urlFor 'message',
+        html = """<a title="#{msg.title.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}"" href=#{html[html.length-1]}"""
+      html + urlFor('message',
         group: msg?.group or wildGroup
-        message: p2
+        message: id
+      ) + hash
   .replace ///(<img\s[^<>]*src\s*=\s*['"])(#{fileUrlPattern}[^'"]*)(['"][^<>]*>)///ig,
     (match, prefix, url, isFile, isInternalFile, suffix) ->
       if isFile

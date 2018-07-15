@@ -56,7 +56,10 @@ Router.route '/:group/m/:message',
           return @redirect 'message',
             group: msg.group
             message: @params.message
-          , replaceState: true
+          ,
+            replaceState: true
+            hash: @params.hash
+            query: @params.query
       @render 'messageBad'
     else
       @render()

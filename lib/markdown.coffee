@@ -24,7 +24,7 @@ switch markdownMode
         ''  ## default escaping
     .use require 'markdown-it-replacements'
     markdownIt.linkify
-    .add 'coauthor:', validate: ///^#{coauthorLinkBodyRe}///
+    .add 'coauthor:', validate: ///^#{coauthorLinkBodyHashRe}///
     @markdown = (text) -> markdownIt.render text
     @markdownInline = (text) -> markdownIt.renderInline text
     @linkify = (text) ->
