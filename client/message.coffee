@@ -105,7 +105,7 @@ Template.registerHelper 'formatBody', ->
 Template.registerHelper 'formatFile', ->
   formatFile @
 
-Template.badMessage.helpers
+Template.messageBad.helpers
   message: -> Router.current().params.message
 
 orphans = (message) ->

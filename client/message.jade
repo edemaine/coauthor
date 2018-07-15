@@ -2,7 +2,7 @@ template(name="messageMaybe")
   if group
     +message
   else
-    +badMessage
+    +messageBad
 
 template(name="message")
   .row
@@ -75,7 +75,7 @@ template(name="tableOfContentsMessage")
       | !{formatTitle} [#{creator}]
     +tableOfContents
 
-template(name="badMessage")
+template(name="messageBad")
   if ready
     .alert.alert-danger The message &ldquo;<b>#{message}</b>&rdquo; does not exist or you do not have permission to access it.
     unless currentUser
