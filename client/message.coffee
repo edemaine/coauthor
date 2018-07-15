@@ -685,10 +685,6 @@ Template.submessage.helpers
       editorMode editor, ti.data.format
       editorKeyboard editor, messageKeyboard.get(ti.data._id) ? userKeyboard()
 
-  tags: historify 'tags', sortTags
-  deleted: historify 'deleted'
-  published: historify 'published'
-
   tex2jax: ->
     history = messageHistory.get(@_id) ? @
     if history.format in mathjaxFormats
@@ -768,6 +764,15 @@ Template.submessage.helpers
   absentTags: absentTags
   absentTagsCount: ->
     absentTags().count()
+
+Template.messageTags.helpers
+  tags: historify 'tags', sortTags
+
+Template.messageLabels.helpers
+  deleted: historify 'deleted'
+  published: historify 'published'
+  minimized: historify 'minimized'
+  private: historify 'private'
 
 Template.messageNeighbors.helpers
   prev: ->
