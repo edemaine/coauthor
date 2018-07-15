@@ -418,12 +418,12 @@ postprocessCoauthorLinks = (text) ->
   .replace ///(<a\s[^<>]*href\s*=\s*['"])#{coauthorLinkRe}///ig,
     (match, p1, p2) ->
       ## xxx Should we subscribe to the linked message when we can't find it?
-      ## xxx Currently assuming message is in same group if can't find it.
+      ## (This would just be to get its title, so maybe not worth it.)
       msg = Messages.findOne p2
       if msg?.title
         p1 = """<a title="#{msg.title.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}"" href=#{p1[p1.length-1]}"""
       p1 + urlFor 'message',
-        group: msg?.group or routeGroup?() or wildGroup
+        group: msg?.group or wildGroup
         message: p2
   .replace ///(<img\s[^<>]*src\s*=\s*['"])(#{fileUrlPattern}[^'"]*)(['"][^<>]*>)///ig,
     (match, prefix, url, isFile, isInternalFile, suffix) ->
