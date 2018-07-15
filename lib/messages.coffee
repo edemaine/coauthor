@@ -318,9 +318,11 @@ if Meteor.isServer
 
 @parseSince = (since) ->
   try
-    match = /^\s*[+-]?\s*(\d+)\s*(\w+)\s*$/.exec since
+    match = /^\s*[+-]?\s*([\d.]+)\s*(\w+)\s*$/.exec since
     if match?
-      moment().subtract(match[1], match[2]).toDate()
+      amount = parseFloat match[1]
+      return null if isNaN amount
+      moment().subtract(amount, match[2]).toDate()
     else
       match = /^\s*(\d+)\s*:\s*(\d+)\s*$/.exec since
       if match?
