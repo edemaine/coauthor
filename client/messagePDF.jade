@@ -12,6 +12,9 @@ template(name="messagePDF")
       span.space page #{page} of #{pages}
       if rendering
         i.space (rendering)
+    else
+      if rendering
+        i.absolute (rendering)
   //-- Outer box is to properly detect the width (including padding)
   div.pdfBox
     div.pdf
