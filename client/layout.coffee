@@ -11,6 +11,20 @@ linkToRoutes =
   settings: true
   search: true
 
+Template.layout.onRendered ->
+  ## Create Google font without italic definition to get slanted (fake-italic)
+  ## version for \textsl support.
+  ## See https://stackoverflow.com/questions/11042330/force-the-browser-to-use-faux-italic-oblique-and-not-the-real-italic
+  for child in document.head.children
+    if child.tagName == 'LINK' and child.href.match /fonts.googleapis.com/
+      rules = (rule for rule in child.sheet.cssRules)  ## copy before modifying
+      for rule in rules
+        if rule.style.fontStyle == 'normal'  ## skip italic definitions
+          child.sheet.insertRule (
+            rule.cssText.replace /font-family:\s*/i, '$&Slant'
+          ), child.sheet.cssRules.length  ## append
+      break
+
 Template.layout.helpers
   activeGroup: ->
     data = Template.parentData()

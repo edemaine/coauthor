@@ -173,7 +173,7 @@ latex2htmlCommandsAlpha = (tex, math) ->
     inner = inner.replace /-/g, '&hyphen;'  ## prevent -- coallescing
     """<span style="font-family: monospace">#{inner}</span>"""
   .replace /\\textsc\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="font-variant: small-caps">$1</span>'
-  .replace /\\textsl\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="font-style: oblique">$1</span>'
+  .replace /\\textsl\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<i class="slant">$1</i>'
   loop ## Repeat until done to support overlapping matches, e.g. \rm x \it y
     old = tex
     tex = tex

@@ -1,4 +1,5 @@
 body { font-family: 'Merriweather', serif; }
+.slant { font-family: 'SlantMerriweather', serif; }
 
 .navbar-flex .searchForm { width: 100%; }
 .navbar-flex .searchText { width: 100%; }
