@@ -22,6 +22,11 @@ module.exports = (grunt) ->
         flatten: true
         src: 'node_modules/pdfjs-dist/build/pdf.worker.min.js'
         dest: 'public/'
+      bootstrap_slider:
+        expand: true
+        flatten: true
+        src: 'node_modules/bootstrap-slider/dist/css/bootstrap-slider.min.css'
+        dest: 'client/'
     replace:
       katex:
         options:

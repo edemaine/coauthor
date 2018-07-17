@@ -1059,23 +1059,25 @@ Template.messageHistory.onRendered ->
       ## Remove diff IDs
       delete diff._id
     @slider?.destroy()
-    @slider = new Slider @$('input')[0],
-      #min: 0                 ## min and max not needed when using ticks
-      #max: diffs.length-1
-      #value: diffs.length-1  ## doesn't update, unlike setValue method below
-      ticks: [0...diffs.length]
-      ticks_snap_bounds: 999999999
-      tooltip: 'always'
-      tooltip_position: 'bottom'
-      formatter: (i) ->
-        if i of diffs
-          formatDate(diffs[i].updated) + '\n' + diffs[i].updators.join ', '
-        else
-          i
-    @slider.setValue diffs.length-1
-    #@slider.off 'change'
-    @slider.on 'change', (e) =>
-      messageHistory.set @data._id, diffs[e.newValue]
+    `import('bootstrap-slider')`.then (Slider) =>
+      Slider = Slider.default
+      @slider = new Slider @$('input')[0],
+        #min: 0                 ## min and max not needed when using ticks
+        #max: diffs.length-1
+        #value: diffs.length-1  ## doesn't update, unlike setValue method below
+        ticks: [0...diffs.length]
+        ticks_snap_bounds: 999999999
+        tooltip: 'always'
+        tooltip_position: 'bottom'
+        formatter: (i) ->
+          if i of diffs
+            formatDate(diffs[i].updated) + '\n' + diffs[i].updators.join ', '
+          else
+            i
+      @slider.setValue diffs.length-1
+      #@slider.off 'change'
+      @slider.on 'change', (e) =>
+        messageHistory.set @data._id, diffs[e.newValue]
     messageHistory.set @data._id, diffs[diffs.length-1]
 
 uploader = (template, button, input, callback) ->
