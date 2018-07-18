@@ -714,6 +714,9 @@ Template.submessage.helpers
     ## Don't run PDF render if in raw mode
     return if messageRaw.get(@_id) or "pdf" != fileType history.file
     history.file
+  image: ->
+    history = messageHistory.get(@_id) ? @
+    'image' == fileType history.file
   formatFile: ->
     history = messageHistory.get(@_id) ? @
     format = formatFile history
@@ -1140,6 +1143,18 @@ replaceFiles = (files, e, t) ->
     Files.resumable.addFile file, e
 
 uploader 'messageReplace', 'replaceButton', 'replaceInput', replaceFiles
+
+Template.messageFile.onRendered ->
+  @slider?.destroy()
+  `import('bootstrap-slider')`.then (Slider) =>
+    Slider = Slider.default
+    @slider = new Slider @$('.rotationSlider')[0],
+      min: -180
+      max: 180
+      tooltip: 'hide'
+      #value: 0  ## doesn't update, unlike setValue method below
+      #formatter: (v) -> 
+    @slider.setValue 0
 
 Template.messageAuthor.helpers
   creator: ->
