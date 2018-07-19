@@ -467,6 +467,25 @@ Template.submessage.onRendered ->
           checkImageInternal id
       @imagesInternal = newImagesInternal
 
+  ## Image rotation
+  @imageTransform = (data) =>
+    return unless data?
+    history = messageHistory.get data._id
+    data = history if history?
+    if data.file and 'image' == fileType data.file
+      settings = data
+      unless history?
+        settings = liveImageSettings.get(data._id) ? settings
+      image = @find '.message-file img'
+      return unless image?
+      if settings.rotate
+        image.style.transform = "rotate(#{-settings.rotate}deg)"
+      else
+        image.style.transform = undefined
+  @autorun =>
+    data = Template.currentData()
+    @imageTransform data
+
 scrollDelay = 750
 
 @scrollToMessage = (id) ->
@@ -702,6 +721,10 @@ Template.submessage.helpers
     #console.log 'rendering', @_id
     history = messageHistory.get(@_id) ? @
     body = history.body
+    ## Apply image settings (e.g. rotation) on image files
+    if history.file and 'image' == fileType history.file
+      t = Template.instance()
+      Meteor.defer -> t.imageTransform t.data
     return body unless body
     ## Don't show raw view if editing (editor is a raw view)
     if messageRaw.get(@_id) and not Template.instance().editing?.get()
@@ -1143,18 +1166,6 @@ replaceFiles = (files, e, t) ->
     Files.resumable.addFile file, e
 
 uploader 'messageReplace', 'replaceButton', 'replaceInput', replaceFiles
-
-Template.messageFile.onRendered ->
-  @slider?.destroy()
-  `import('bootstrap-slider')`.then (Slider) =>
-    Slider = Slider.default
-    @slider = new Slider @$('.rotationSlider')[0],
-      min: -180
-      max: 180
-      tooltip: 'hide'
-      #value: 0  ## doesn't update, unlike setValue method below
-      #formatter: (v) -> 
-    @slider.setValue 0
 
 Template.messageAuthor.helpers
   creator: ->

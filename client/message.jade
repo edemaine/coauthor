@@ -239,7 +239,7 @@ template(name="submessage")
                     | !{formatFileDescription}
                   .file-right-buttons.btn-group.hidden-print
                     if image
-                      +messageFile _id=id group=group tabindex=tabindex9
+                      +messageImage
                     +messageReplace _id=_id group=group tabindex=tabindex9
             .panel-body
               .message-body(class=tex2jax) !{formatBody}
@@ -438,28 +438,6 @@ template(name="messageAttach")
 template(name="messageReplace")
   input.replaceInput(type="file", style="display:none")
   button.btn.btn-info.replaceButton(tabindex=tabindex) Replace File
-
-template(name="messageFile")
-  button.btn.btn-info.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false", tabindex=tabindex)
-    | Image
-    span.caret
-  ul.dropdown-menu.fileMenu(role="menu")
-    li
-      a.disabled
-        | Rotate:
-        input.rotationAngle(type="text", size="4")
-        | &deg;
-    li
-      a.disabled
-        .rotationSlider
-    li
-      a.disabled.btn-group
-        button.btn.btn-default.rotateCW90
-          span.fas.fa-redo
-          | 90&deg;
-        button.btn.btn-default.rotateCCW90
-          span.fas.fa-undo
-          | 90&deg;
 
 template(name="messageParentConfirm")
   .modal

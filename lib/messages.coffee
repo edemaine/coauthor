@@ -664,6 +664,7 @@ _messageUpdate = (id, message, authors = null, old = null) ->
     deleted: Match.Optional Boolean
     private: Match.Optional Boolean
     minimized: Match.Optional Boolean
+    rotate: Match.Optional Number
 
   ## Don't update if there aren't any actual differences.
   difference = false
@@ -883,6 +884,7 @@ Meteor.methods
       deleted: Match.Optional Boolean
       private: Match.Optional Boolean
       minimized: Match.Optional Boolean
+      rotate: Match.Optional Number
     user = Meteor.user()
     unless canPost group, parent, user
       throw new Meteor.Error 'messageNew.unauthorized',
