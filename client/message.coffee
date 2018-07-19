@@ -482,6 +482,7 @@ Template.submessage.onRendered ->
       return unless image.width  ## wait for load
       if settings.rotate
         radians = settings.rotate * Math.PI / 180
+        ## Computation based on https://stackoverflow.com/a/3231438
         width = Math.abs(Math.sin radians) * image.height + Math.abs(Math.cos radians) * image.width
         height = Math.abs(Math.sin radians) * image.width + Math.abs(Math.cos radians) * image.height
         scale = image.width / width
