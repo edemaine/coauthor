@@ -40,16 +40,18 @@ Template.messageImage.onDestroyed ->
   liveImageSettings.delete @id if @id?
 
 Template.messageImage.onRendered ->
-  @slider?.destroy()
+  @rotateSlider?.destroy()
   `import('bootstrap-slider')`.then (Slider) =>
     Slider = Slider.default
-    @slider = new Slider @$('.rotateSlider')[0],
+    @rotateSlider = new Slider @$('.rotateSlider')[0],
       min: -180
       max: 180
       tooltip: 'hide'
       #value: 0  ## doesn't update, unlike setValue method below
       #formatter: (v) -> 
-    @slider.setValue 0
+    @autorun =>
+      data = Template.currentData()
+      @rotateSlider.setValue liveImageSettings.get(data._id).rotate ? defaults.rotate
   
 Template.messageImage.events
   'click a.disabled': (e) ->
