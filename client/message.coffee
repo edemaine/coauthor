@@ -489,8 +489,8 @@ Template.submessage.onRendered ->
         image.style.transform = "translateY(#{(height - image.height)/2}px) scale(#{scale}) rotate(#{-settings.rotate}deg)"
         image.parentNode.style.height = "#{height}px"
       else
-        image.style.transform = undefined
-        image.parentNode.style.height = undefined
+        image.style.transform = null
+        image.parentNode.style.height = null
   @autorun =>
     data = Template.currentData()
     @imageTransform()
