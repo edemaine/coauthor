@@ -1,1 +1,2 @@
 .imageMenu { min-width: 190px; }
+.imageMenu > li > a { padding: 3px 10px; }

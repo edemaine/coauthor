@@ -62,6 +62,8 @@ Template.messageImage.events
       Meteor.call 'messageUpdate', t.data._id, diff
   'change .rotateSlider': (e, t) ->
     changeLiveImageSettings t.data._id, 'rotate', -> e.value.newValue
+  'click .rotateZero': (e, t) ->
+    changeLiveImageSettings t.data._id, 'rotate', -> 0
   'click .rotateCW90': (e, t) ->
     changeLiveImageSettings t.data._id, 'rotate', (val) -> val += -90
   'click .rotateCCW90': (e, t) ->
