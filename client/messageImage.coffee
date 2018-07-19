@@ -32,7 +32,6 @@ Template.messageImage.onCreated ->
   @autorun =>
     liveImageSettings.delete @id if @id?
     data = Template.currentData()
-    console.log 'updating to', data
     @id = data._id
     return unless @id?
     liveImageSettings.set @id, _.pick data ? {}, settingsKeys...
@@ -58,7 +57,6 @@ Template.messageImage.events
     e.stopPropagation()
   'hide.bs.dropdown .messageImage': (e, t) ->
     if diff = changedLiveImageSettings t.data
-      console.log diff
       Meteor.call 'messageUpdate', t.data._id, diff
   'change .rotateSlider': (e, t) ->
     changeLiveImageSettings t.data._id, 'rotate', -> e.value.newValue
