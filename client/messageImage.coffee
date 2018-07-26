@@ -51,7 +51,7 @@ Template.messageImage.onRendered ->
       #formatter: (v) -> 
     @autorun =>
       data = Template.currentData()
-      @rotateSlider.setValue liveImageSettings.get(data._id).rotate ? defaults.rotate
+      @rotateSlider.setValue liveImageSettings.get(data._id).rotate ? settingsDefaults.rotate
   
 Template.messageImage.events
   'click a.disabled': (e) ->

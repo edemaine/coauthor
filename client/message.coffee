@@ -473,6 +473,8 @@ Template.submessage.onRendered ->
     history = messageHistory.get @data._id
     @data = history if history?
     if @data.file and 'image' == fileType @data.file
+      file = findFile @data.file
+      exifRotate = Orientation2rotate[file.metadata.exif?.Orientation]
       settings = @data
       unless history?
         settings = liveImageSettings.get(@data._id) ? settings
@@ -480,15 +482,16 @@ Template.submessage.onRendered ->
       return unless image?
       image.onload = => @imageTransform()
       return unless image.width  ## wait for load
-      if settings.rotate
+      rotate = (settings.rotate ? 0) + (exifRotate ? 0)
+      if rotate
         ## `rotate` is in clockwise degrees
-        radians = -settings.rotate * Math.PI / 180
+        radians = -rotate * Math.PI / 180
         ## Computation based on https://stackoverflow.com/a/3231438
         width = Math.abs(Math.sin radians) * image.height + Math.abs(Math.cos radians) * image.width
         height = Math.abs(Math.sin radians) * image.width + Math.abs(Math.cos radians) * image.height
         scale = image.width / width
         height *= scale
-        image.style.transform = "translateY(#{(height - image.height)/2}px) scale(#{scale}) rotate(#{settings.rotate}deg)"
+        image.style.transform = "translateY(#{(height - image.height)/2}px) scale(#{scale}) rotate(#{rotate}deg)"
         image.parentNode.style.height = "#{height}px"
       else
         image.style.transform = null

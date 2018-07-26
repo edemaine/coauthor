@@ -32,6 +32,7 @@ Files.find
       unless meta.imageSize
         console.log file
       exif = meta.tags
+      ## Rewrite dates into ISO 8601 strings.
       for dateTag in dateTags
         if dateTag of exif
           date = new Date 1000*exif[dateTag]
@@ -41,9 +42,11 @@ Files.find
           if iso[iso.length-4..] == '.000'  ## should be, if EXIF format
             iso = iso[...iso.length-4]
           exif[dateTag] = iso
+      settings =
+        'metadata.exif': exif  ## {} if no EXIF data
+      if meta.imageSize
+        settings['metadata.width'] = meta.imageSize.width
+        settings['metadata.height'] = meta.imageSize.height
       Files.update
         _id: file._id
-      , $set:
-        'metadata.exif': exif
-        'metadata.width': meta.imageSize.width
-        'metadata.height': meta.imageSize.width
+      , $set: settings
