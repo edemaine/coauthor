@@ -481,13 +481,14 @@ Template.submessage.onRendered ->
       image.onload = => @imageTransform()
       return unless image.width  ## wait for load
       if settings.rotate
-        radians = settings.rotate * Math.PI / 180
+        ## `rotate` is in clockwise degrees
+        radians = -settings.rotate * Math.PI / 180
         ## Computation based on https://stackoverflow.com/a/3231438
         width = Math.abs(Math.sin radians) * image.height + Math.abs(Math.cos radians) * image.width
         height = Math.abs(Math.sin radians) * image.width + Math.abs(Math.cos radians) * image.height
         scale = image.width / width
         height *= scale
-        image.style.transform = "translateY(#{(height - image.height)/2}px) scale(#{scale}) rotate(#{-settings.rotate}deg)"
+        image.style.transform = "translateY(#{(height - image.height)/2}px) scale(#{scale}) rotate(#{settings.rotate}deg)"
         image.parentNode.style.height = "#{height}px"
       else
         image.style.transform = null

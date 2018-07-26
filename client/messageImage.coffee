@@ -65,9 +65,9 @@ Template.messageImage.events
   'click .rotateZero': (e, t) ->
     changeLiveImageSettings t.data._id, 'rotate', -> 0
   'click .rotateCW90': (e, t) ->
-    changeLiveImageSettings t.data._id, 'rotate', (val) -> val += -90
-  'click .rotateCCW90': (e, t) ->
     changeLiveImageSettings t.data._id, 'rotate', (val) -> val += 90
+  'click .rotateCCW90': (e, t) ->
+    changeLiveImageSettings t.data._id, 'rotate', (val) -> val += -90
   'change .rotateAngle': (e, t) ->
     angle = parseFloat e.target.value
     unless isNaN angle
