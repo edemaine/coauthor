@@ -57,6 +57,9 @@ Template.messageImage.events
   'click a.disabled': (e) ->
     e.preventDefault()
     e.stopPropagation()
+  'click .cancelButton': (e, t) ->
+    ## Reset changes to match template data before closing dropdown
+    liveImageSettings.set t.id, _.pick t.data ? {}, settingsKeys...
   'hide.bs.dropdown .messageImage': (e, t) ->
     if diff = changedLiveImageSettings t.data
       Meteor.call 'messageUpdate', t.data._id, diff
