@@ -487,6 +487,17 @@ image2orientation = {}
 ## Callable from `submessage` and `readMessage` templates
 @messageImageTransform = ->
   return unless @data?
+
+  ## Transform any images embedded within message body
+  for img in @findAll """
+    .message-body img[src^="#{fileUrlPrefix}"],
+    .message-body img[src^="#{fileAbsoluteUrlPrefix}"]
+  """
+    message = findMessage url2file img.src
+    continue unless message
+    imageTransform img, messageRotate message
+
+  ## Transform image file, respecting history
   data = messageHistory.get(@data._id) ? @data
   if data.file and 'image' == fileType data.file
     image = @find '.message-file img'
@@ -728,10 +739,9 @@ Template.submessage.helpers
     #console.log 'rendering', @_id
     history = messageHistory.get(@_id) ? @
     body = history.body
-    ## Apply image settings (e.g. rotation) on image files
-    if history.file and 'image' == fileType history.file
-      t = Template.instance()
-      Meteor.defer -> messageImageTransform.call t
+    ## Apply image settings (e.g. rotation) on embedded images and image files
+    t = Template.instance()
+    Meteor.defer -> messageImageTransform.call t
     return body unless body
     ## Don't show raw view if editing (editor is a raw view)
     if messageRaw.get(@_id) and not Template.instance().editing?.get()
