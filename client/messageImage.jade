@@ -1,33 +1,24 @@
 template(name="messageImage")
   .btn-group.messageImage
     button.btn.btn-info.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false", tabindex=tabindex)
-      | Image
+      | Rotate
       span.caret
-    ul.dropdown-menu.imageMenu(role="menu")
+    ul.dropdown-menu.dropdown-menu-right.imageMenu(role="menu")
       li
-        a.disabled.form-inline.form-sm
-          label(for="rotateAngle") Rotate:
-          span.space
-          input.form-control.rotateAngle#rotateAngle(type="text", size="4", value=rotate)
-          | &deg;
+        a.rotateCCW90
+          div
+            img(src=urlToFile)
+          span.fas.fa-undo
+          | 90&deg;
       li
-        a.disabled.btn-group.btn-group-sm
-          button.btn.btn-default.rotateCCW90
-            span.fas.fa-undo
-            | 90&deg;
-          button.btn.btn-default.rotateZero
-            span.far.fa-image
-            | 0&deg;
-          button.btn.btn-default.rotateCW90
-            span.fas.fa-redo
-            | 90&deg;
+        a.rotate180
+          div
+            img(src=urlToFile)
+          span.fas.fa-sync
+          | 180&deg;
       li
-        a.disabled
-          .rotateSlider
-      li.divider(role="separator")
-      li
-        a
-          button.btn.btn-default(class=changedClass) Save changes
-      li
-        a
-          button.btn.btn-default.cancelButton Cancel changes
+        a.rotateCW90
+          div
+            img(src=urlToFile)
+          span.fas.fa-redo
+          | 90&deg;

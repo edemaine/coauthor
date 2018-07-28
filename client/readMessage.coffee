@@ -16,8 +16,9 @@ Template.readMessage.onRendered ->
       messageFolded.set data._id, natural = naturallyFolded data
     mathjax()
     ## Image rotation
-    imageTransform.call @
-  window.addEventListener 'resize', _.debounce (=> imageTransform.call @), 100
+    messageImageTransform.call @
+  window.addEventListener 'resize',
+    _.debounce (=> messageImageTransform.call @), 100
 
 Template.readMessage.helpers
   readChildren: -> @readChildren

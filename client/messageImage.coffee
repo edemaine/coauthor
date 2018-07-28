@@ -1,85 +1,60 @@
-## Stores not-yet-committed changes to image settings
-@liveImageSettings = new ReactiveDict
-
-settingsDefaults =
-  rotate: 0
-settingsKeys = _.keys settingsDefaults
-
-changeLiveImageSettings = (id, key, changer) ->
-  return unless id?
-  settings = liveImageSettings.get(id) ? {}
-  old = settings[key] ? settingsDefaults[key]
-  settings[key] = changer old
-  if key == 'rotate'
-    while settings[key] < -180
-      settings[key] += 360
-    while settings[key] > 180
-      settings[key] -= 360
-  liveImageSettings.set id, settings
-
-changedLiveImageSettings = (data) ->
-  live = liveImageSettings.get data._id
-  diff = {}
-  for key, value of live
-    unless value == (data?[key] ? settingsDefaults[key])
-      diff[key] = value
-  if _.isEqual diff, {}
-    null
-  else
-    diff
-
-Template.messageImage.onCreated ->
-  @autorun =>
-    liveImageSettings.delete @id if @id?
-    data = Template.currentData()
-    @id = data._id
-    return unless @id?
-    liveImageSettings.set @id, _.pick data ? {}, settingsKeys...
-
-Template.messageImage.onDestroyed ->
-  liveImageSettings.delete @id if @id?
+angle = (a) ->
+  while a > 180
+    a -= 360
+  while a <= -180
+    a += 360
+  a
 
 Template.messageImage.onRendered ->
-  @rotateSlider?.destroy()
-  `import('bootstrap-slider')`.then (Slider) =>
-    Slider = Slider.default
-    @rotateSlider = new Slider @$('.rotateSlider')[0],
-      min: -180
-      max: 180
-      tooltip: 'hide'
-      #value: 0  ## doesn't update, unlike setValue method below
-      #formatter: (v) -> 
-    @autorun =>
-      data = Template.currentData()
-      @rotateSlider.setValue liveImageSettings.get(data._id).rotate ? settingsDefaults.rotate
-  
+  @autorun @update = =>
+    rotate = messageRotate Template.currentData()
+    imageTransform @find('.rotateCCW90 img'), rotate - 90
+    imageTransform @find('.rotate180 img'), rotate + 180
+    imageTransform @find('.rotateCW90 img'), rotate + 90
+    ## Couldn't get this full-height hack to work:
+    #for a in @findAll 'img'
+    #  li = a.parentNode
+    #  console.log li.clientHeight
+    #  a.style.height = "#{li.clientHeight}px" if li.clientHeight
+
 Template.messageImage.events
-  'click a.disabled': (e) ->
-    e.preventDefault()
-    e.stopPropagation()
-  'click .cancelButton': (e, t) ->
-    ## Reset changes to match template data before closing dropdown
-    liveImageSettings.set t.id, _.pick t.data ? {}, settingsKeys...
-  'hide.bs.dropdown .messageImage': (e, t) ->
-    if diff = changedLiveImageSettings t.data
-      Meteor.call 'messageUpdate', t.data._id, diff
-  'change .rotateSlider': (e, t) ->
-    changeLiveImageSettings t.data._id, 'rotate', -> e.value.newValue
-  'click .rotateZero': (e, t) ->
-    changeLiveImageSettings t.data._id, 'rotate', -> 0
-  'click .rotateCW90': (e, t) ->
-    changeLiveImageSettings t.data._id, 'rotate', (val) -> val += 90
+  'shown.bs.dropdown .messageImage': (e, t) ->
+    t.update()
   'click .rotateCCW90': (e, t) ->
-    changeLiveImageSettings t.data._id, 'rotate', (val) -> val += -90
-  'change .rotateAngle': (e, t) ->
-    angle = parseFloat e.target.value
-    unless isNaN angle
-      changeLiveImageSettings t.data._id, 'rotate', -> angle
+    Meteor.call 'messageUpdate', t.data._id,
+      rotate: angle (t.data.rotate ? 0) - 90
+  'click .rotate180': (e, t) ->
+    Meteor.call 'messageUpdate', t.data._id,
+      rotate: angle (t.data.rotate ? 0) + 180
+  'click .rotateCW90': (e, t) ->
+    Meteor.call 'messageUpdate', t.data._id,
+      rotate: angle (t.data.rotate ? 0) + 90
 
 Template.messageImage.helpers
-  rotate: -> liveImageSettings.get(@_id)?.rotate ? 0
-  changedClass: ->
-    if changedLiveImageSettings @
-      ''
-    else
-      'disabled'
+  urlToFile: -> urlToFile @
+
+@imageTransform = (image, rotate) ->
+  unless image.width  ## wait for load
+    image.onload = -> imageTransform image, rotate
+    return
+  if rotate
+    ## `rotate` is in clockwise degrees
+    radians = -rotate * Math.PI / 180
+    ## Computation based on https://stackoverflow.com/a/3231438
+    width = Math.abs(Math.sin radians) * image.height + Math.abs(Math.cos radians) * image.width
+    height = Math.abs(Math.sin radians) * image.width + Math.abs(Math.cos radians) * image.height
+    #scale = image.width / width
+    ## max-width: 100%
+    scale = image.parentNode.getBoundingClientRect().width / width
+    return unless scale  ## avoid zero scaling (invisible box)
+    scale = 1 if scale > 1
+    ## max-height: 100vh
+    if height * scale > window.innerHeight
+      scale *= window.innerHeight / (height * scale)
+    width *= scale
+    height *= scale
+    image.style.transform = "translate(#{(width - image.width)/2}px, #{(height - image.height)/2}px) scale(#{scale}) rotate(#{rotate}deg)"
+    image.parentNode.style.height = "#{height}px"
+  else
+    image.style.transform = null
+    image.parentNode.style.height = null

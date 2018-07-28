@@ -470,44 +470,29 @@ Template.submessage.onRendered ->
   ## Image rotation
   @autorun =>
     data = Template.currentData()
-    imageTransform.call @
-  window.addEventListener 'resize', _.debounce (=> imageTransform.call @), 100
+    messageImageTransform.call @
+  window.addEventListener 'resize',
+    _.debounce (=> messageImageTransform.call @), 100
+
+## Cache EXIF orientations, as files should be static
+image2orientation = {}
+@messageRotate = (data) ->
+  if data.file not of image2orientation
+    file = findFile data.file
+    if file
+      image2orientation[data.file] = file.metadata?.exif?.Orientation
+  exifRotate = Orientation2rotate[image2orientation[data.file]]
+  (data.rotate ? 0) + (exifRotate ? 0)
 
 ## Callable from `submessage` and `readMessage` templates
-@imageTransform = ->
+@messageImageTransform = ->
   return unless @data?
-  history = messageHistory.get @data._id
-  @data = history if history?
-  if @data.file and 'image' == fileType @data.file
-    file = findFile @data.file
-    exifRotate = Orientation2rotate[file.metadata.exif?.Orientation]
-    settings = @data
-    unless history?
-      settings = liveImageSettings.get(@data._id) ? settings
+  data = messageHistory.get(@data._id) ? @data
+  if data.file and 'image' == fileType data.file
     image = @find '.message-file img'
     return unless image?
-    image.onload = => imageTransform.call @
-    return unless image.width  ## wait for load
-    rotate = (settings.rotate ? 0) + (exifRotate ? 0)
-    if rotate
-      ## `rotate` is in clockwise degrees
-      radians = -rotate * Math.PI / 180
-      ## Computation based on https://stackoverflow.com/a/3231438
-      width = Math.abs(Math.sin radians) * image.height + Math.abs(Math.cos radians) * image.width
-      height = Math.abs(Math.sin radians) * image.width + Math.abs(Math.cos radians) * image.height
-      #scale = image.width / width
-      ## max-width: 100%
-      scale = image.parentNode.getBoundingClientRect().width / width
-      ## max-height: 100vh
-      if height * scale > window.innerHeight
-        scale *= window.innerHeight / (height * scale)
-      width *= scale
-      height *= scale
-      image.style.transform = "translate(#{(width - image.width)/2}px, #{(height - image.height)/2}px) scale(#{scale}) rotate(#{rotate}deg)"
-      image.parentNode.style.height = "#{height}px"
-    else
-      image.style.transform = null
-      image.parentNode.style.height = null
+    imageTransform image, messageRotate data
+
 scrollDelay = 750
 
 @scrollToMessage = (id) ->
@@ -746,7 +731,7 @@ Template.submessage.helpers
     ## Apply image settings (e.g. rotation) on image files
     if history.file and 'image' == fileType history.file
       t = Template.instance()
-      Meteor.defer -> imageTransform t
+      Meteor.defer -> messageImageTransform.call t
     return body unless body
     ## Don't show raw view if editing (editor is a raw view)
     if messageRaw.get(@_id) and not Template.instance().editing?.get()
