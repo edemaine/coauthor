@@ -616,6 +616,7 @@ export messageContentFields = [
   'deleted'
   'private'
   'minimized'
+  'rotate'
 ]
 
 export messageExtraFields = [
