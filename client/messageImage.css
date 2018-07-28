@@ -1,0 +1,4 @@
+.open > .imageMenu { display: table-row; }
+.imageMenu { width: 300px; padding: 0px; }
+.imageMenu > li { display: table-cell; vertical-align: bottom; overflow: auto; }
+.imageMenu > li > a { padding: 10px; text-align: center; }

@@ -238,7 +238,8 @@ template(name="submessage")
                     span.fas.fa-paperclip
                     | !{formatFileDescription}
                   .file-right-buttons.btn-group.hidden-print
-                    //- In future, support basic image editing.  For now, just:
+                    if image
+                      +messageImage
                     +messageReplace _id=_id group=group tabindex=tabindex9
             .panel-body
               .message-body(class=tex2jax) !{formatBody}

@@ -8,13 +8,17 @@ Template.readMessage.onRendered ->
   ## Fold naturally folded (minimized and deleted) messages
   ## by default on initial load.
   messageFolded.set @data._id, true if natural = naturallyFolded @data
-  @autorun ->
+  @autorun =>
     ## Check for change in naturally folded state.
     data = Template.currentData()
     return unless data._id
     if natural != naturallyFolded data
       messageFolded.set data._id, natural = naturallyFolded data
     mathjax()
+    ## Image rotation
+    messageImageTransform.call @
+  window.addEventListener 'resize',
+    _.debounce (=> messageImageTransform.call @), 100
 
 Template.readMessage.helpers
   readChildren: -> @readChildren

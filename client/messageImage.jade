@@ -1,0 +1,24 @@
+template(name="messageImage")
+  .btn-group.messageImage
+    button.btn.btn-info.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false", tabindex=tabindex)
+      | Rotate
+      span.caret
+    ul.dropdown-menu.dropdown-menu-right.imageMenu(role="menu")
+      li
+        a.rotateCCW90
+          div
+            img(src=urlToFile)
+          span.fas.fa-undo
+          | 90&deg;
+      li
+        a.rotate180
+          div
+            img(src=urlToFile)
+          span.fas.fa-sync
+          | 180&deg;
+      li
+        a.rotateCW90
+          div
+            img(src=urlToFile)
+          span.fas.fa-redo
+          | 90&deg;

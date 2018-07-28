@@ -467,6 +467,43 @@ Template.submessage.onRendered ->
           checkImageInternal id
       @imagesInternal = newImagesInternal
 
+  ## Image rotation
+  @autorun =>
+    data = Template.currentData()
+    messageImageTransform.call @
+  window.addEventListener 'resize',
+    _.debounce (=> messageImageTransform.call @), 100
+
+## Cache EXIF orientations, as files should be static
+image2orientation = {}
+@messageRotate = (data) ->
+  if data.file not of image2orientation
+    file = findFile data.file
+    if file
+      image2orientation[data.file] = file.metadata?.exif?.Orientation
+  exifRotate = Orientation2rotate[image2orientation[data.file]]
+  (data.rotate ? 0) + (exifRotate ? 0)
+
+## Callable from `submessage` and `readMessage` templates
+@messageImageTransform = ->
+  return unless @data?
+
+  ## Transform any images embedded within message body
+  for img in @findAll """
+    .message-body img[src^="#{fileUrlPrefix}"],
+    .message-body img[src^="#{fileAbsoluteUrlPrefix}"]
+  """
+    message = findMessage url2file img.src
+    continue unless message
+    imageTransform img, messageRotate message
+
+  ## Transform image file, respecting history
+  data = messageHistory.get(@data._id) ? @data
+  if data.file and 'image' == fileType data.file
+    image = @find '.message-file img'
+    return unless image?
+    imageTransform image, messageRotate data
+
 scrollDelay = 750
 
 @scrollToMessage = (id) ->
@@ -702,6 +739,9 @@ Template.submessage.helpers
     #console.log 'rendering', @_id
     history = messageHistory.get(@_id) ? @
     body = history.body
+    ## Apply image settings (e.g. rotation) on embedded images and image files
+    t = Template.instance()
+    Meteor.defer -> messageImageTransform.call t
     return body unless body
     ## Don't show raw view if editing (editor is a raw view)
     if messageRaw.get(@_id) and not Template.instance().editing?.get()
@@ -714,6 +754,9 @@ Template.submessage.helpers
     ## Don't run PDF render if in raw mode
     return if messageRaw.get(@_id) or "pdf" != fileType history.file
     history.file
+  image: ->
+    history = messageHistory.get(@_id) ? @
+    'image' == fileType history.file
   formatFile: ->
     history = messageHistory.get(@_id) ? @
     format = formatFile history
@@ -1133,9 +1176,13 @@ replaceFiles = (files, e, t) ->
   else
     file = files[0]
     file.callback = (file2, done) ->
-      Meteor.call 'messageUpdate', message,
+      diff =
         file: file2.uniqueIdentifier
-      , done
+      ## Reset rotation angle on replace
+      data = findMessage message
+      if data.rotate
+        diff.rotate = 0
+      Meteor.call 'messageUpdate', message, diff, done
     file.group = group
     Files.resumable.addFile file, e
 
