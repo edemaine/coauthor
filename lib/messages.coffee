@@ -14,6 +14,13 @@ import { ShareJS } from 'meteor/edemaine:sharejs'
   else
     msg.title
 
+@angle180 = (a) ->
+  while a > 180
+    a -= 360
+  while a <= -180
+    a += 360
+  a
+
 @Messages = new Mongo.Collection 'messages'
 @MessagesDiff = new Mongo.Collection 'messages.diff'
 @MessagesParent = new Mongo.Collection 'messages.parents'

@@ -566,16 +566,12 @@ if Meteor.isServer
             else
               bullet "File upload: #{msg.file}?"
           if changed.rotate
-            console.log changed, msg, old
-            delta = (msg.rotate ? 0) - (old.rotate ? 0)
-            while delta > 180
-              delta -= 360
-            while delta <= -180
-              delta += 360
-            if delta != (msg.rotate ? 0)
-              bullet "Rotated #{delta}° (now #{msg.rotate ? 0}°)"
-            else
-              bullet "Rotated #{delta}°"
+            delta = angle180 (msg.rotate ? 0) - (old.rotate ? 0)
+            if delta != 0
+              if delta != (msg.rotate ? 0)
+                bullet "Rotated #{delta}° (now #{msg.rotate ? 0}°)"
+              else
+                bullet "Rotated #{delta}°"
           if textBullets.length > 0
             text += textBullets.join ''
           if htmlBullets.length > 0

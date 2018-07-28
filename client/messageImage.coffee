@@ -1,10 +1,3 @@
-angle = (a) ->
-  while a > 180
-    a -= 360
-  while a <= -180
-    a += 360
-  a
-
 Template.messageImage.onRendered ->
   @autorun @update = =>
     rotate = messageRotate Template.currentData()
@@ -22,13 +15,13 @@ Template.messageImage.events
     t.update()
   'click .rotateCCW90': (e, t) ->
     Meteor.call 'messageUpdate', t.data._id,
-      rotate: angle (t.data.rotate ? 0) - 90
+      rotate: angle180 (t.data.rotate ? 0) - 90
   'click .rotate180': (e, t) ->
     Meteor.call 'messageUpdate', t.data._id,
-      rotate: angle (t.data.rotate ? 0) + 180
+      rotate: angle180 (t.data.rotate ? 0) + 180
   'click .rotateCW90': (e, t) ->
     Meteor.call 'messageUpdate', t.data._id,
-      rotate: angle (t.data.rotate ? 0) + 90
+      rotate: angle180 (t.data.rotate ? 0) + 90
 
 Template.messageImage.helpers
   urlToFile: -> urlToFile @
