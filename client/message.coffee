@@ -1166,9 +1166,13 @@ replaceFiles = (files, e, t) ->
   else
     file = files[0]
     file.callback = (file2, done) ->
-      Meteor.call 'messageUpdate', message,
+      diff =
         file: file2.uniqueIdentifier
-      , done
+      ## Reset rotation angle on replace
+      data = findMessage message
+      if data.rotate
+        diff.rotate = 0
+      Meteor.call 'messageUpdate', message, diff, done
     file.group = group
     Files.resumable.addFile file, e
 
