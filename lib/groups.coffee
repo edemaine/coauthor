@@ -61,7 +61,7 @@ if Meteor.isServer
   when role in roles
 
 @memberOfGroup = (group, user = Meteor.user()) ->
-  escaped = escapeGroup group.name ? group
+  escaped = escapeGroup (group?.name ? group)
   not _.isEmpty(user?.roles?[escaped]) or
   not _.isEmpty(user?.rolesPartial?[escaped])
 
