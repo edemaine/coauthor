@@ -427,7 +427,7 @@ postprocessCoauthorLinks = (text) ->
       html + urlFor('message',
         group: msg?.group or wildGroup
         message: id
-      ) + hash
+      ) + (hash ? '')
   .replace ///(<img\s[^<>]*src\s*=\s*['"])(#{fileUrlPattern}[^'"]*)(['"][^<>]*>)///ig,
     (match, prefix, url, isFile, isInternalFile, suffix) ->
       if isFile
