@@ -66,6 +66,8 @@ Template.group.helpers
     pluralize(groupSortedBy(@group, null).count(), 'message thread')
   groupTags: ->
     groupTags @group
+  membersCount: ->
+    groupMembers(@group).length
   members: ->
     members =
       for member in sortedGroupMembers @group

@@ -16,7 +16,7 @@ template(name="group")
           +importButtons
         .members.alert.alert-info
           p
-            b Members of this group:
+            b #{membersCount} members of this group:
           p !{members}
   else
     +badGroup
