@@ -1,4 +1,4 @@
-CodeMirror = require "meteor/edemaine:sharejs-codemirror/node_modules/codemirror/lib/codemirror.js"
+CodeMirror = require 'codemirror'
 
 require('codemirror-spell-checker')
   codeMirrorInstance: CodeMirror

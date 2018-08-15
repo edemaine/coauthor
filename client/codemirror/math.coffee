@@ -1,4 +1,5 @@
-CodeMirror = require "meteor/edemaine:sharejs-codemirror/node_modules/codemirror/lib/codemirror.js"
+CodeMirror = require 'codemirror'
+require 'codemirror/addon/mode/overlay'
 
 mathMode =
   startState: ->

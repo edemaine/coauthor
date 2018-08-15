@@ -1,4 +1,4 @@
-CodeMirror = require "meteor/edemaine:sharejs-codemirror/node_modules/codemirror/lib/codemirror.js"
+CodeMirror = require 'codemirror'
 
 ## The following code is copyright 2014 by William Stein
 ## [https://github.com/sagemath/cloud/blob/0233cdd61f9f81190fa5673daaac38c7fc37e821/page/misc_page.coffee#L439]

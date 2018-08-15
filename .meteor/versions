@@ -37,7 +37,7 @@ ecmascript-runtime@0.5.0
 ecmascript-runtime-client@0.5.0
 ecmascript-runtime-server@0.5.0
 edemaine:sharejs@0.10.3-alpha.3
-edemaine:sharejs-codemirror@5.22.1-alpha.3
+edemaine:sharejs-codemirror@5.39.2-alpha.1
 ejson@1.1.0
 email@1.2.3
 gcampax:accounts-dropbox@1.0.0

@@ -51,6 +51,6 @@ sergeyt:typeahead
 dynamic-import@0.2.0
 browser-policy@1.1.0
 edemaine:sharejs
-edemaine:sharejs-codemirror@5.22.1-alpha.2
+edemaine:sharejs-codemirror
 twbs:bootstrap-noglyph
 less
