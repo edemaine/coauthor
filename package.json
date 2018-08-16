@@ -34,12 +34,12 @@
     "jquery": "^3.3.1",
     "jszip": "^3.1.5",
     "katex": "^0.10.0-beta",
-    "markdown-it": "^8.4.1",
+    "markdown-it": "^8.4.2",
     "markdown-it-replacements": "^1.0.1",
     "meteor-node-stubs": "^0.2.11",
     "moment-timezone": "^0.5.21",
     "pdfjs-dist": "^2.0.550",
-    "sanitize-html": "^1.18.2"
+    "sanitize-html": "^1.18.4"
   },
   "devDependencies": {
     "grunt": "^1.0.3",
