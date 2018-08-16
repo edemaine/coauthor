@@ -5,16 +5,25 @@
 
 lastURL = null
 pastTops = {}
+loadedPastTops = false
 transitioning = false
+
+saveTops = _.debounce ->
+  sessionStorage?.setItem? 'pastTops', JSON.stringify pastTops
+, 100
 
 $(window).scroll ->
   return if transitioning
   lastURL = document.URL
   pastTops[lastURL] = $(window).scrollTop()
   #console.log lastURL, $(window).scrollTop()
+  saveTops()
 
 Router.onBeforeAction ->
   transitioning = true
+  if stored = sessionStorage?.getItem? 'pastTops'
+    pastTops = JSON.parse stored
+    #console.log 'loaded', pastTops
   @next()
 
 Router.onAfterAction ->
@@ -24,7 +33,13 @@ Router.onAfterAction ->
     #console.log url, lastURL, pastTops[url] or 0
     return if url == lastURL
     lastURL = url
-    $('html, body').animate
-      scrollTop: pastTops[url] or 0
-    , 200
+    top = pastTops[url] or 0  ## prevent from changing while page loads
+    scroll = ->
+      $('html, body').animate
+        scrollTop: top
+      , 200
+    Tracker.autorun (computation) ->
+      if Router.current().ready()
+        scroll()
+        computation.stop()
   , 100
