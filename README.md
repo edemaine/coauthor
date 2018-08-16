@@ -235,6 +235,11 @@ in other fields too.
 
 ## User Tips ##
 
+* On Android, the
+  [Chrome browser](https://play.google.com/store/apps/details?id=com.android.chrome&hl=en)
+  with [SwiftKey keyboard](https://play.google.com/store/apps/details?id=com.touchtype.swiftkey)
+  seems to work best for editing messages in Coauthor.
+  (Firefox and Gboard have cursor positioning issues.)
 * LaTeX mode supports LaTeX accents (like `\'e`), but other modes do not.  To
   easily type accented characters (e.g., on Windows where this is not easy), try
   [this Chrome extension](https://chrome.google.com/webstore/detail/fastaccent/gkadokkbkifbfpiljldcnnpkebpannhb/related?hl=en-GB)
