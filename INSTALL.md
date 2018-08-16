@@ -28,11 +28,14 @@ Here is how to get a **local test server** running:
 
 ## Public Server
 
-To deploy to a **public server**, we recommend
-[meteor-up](https://github.com/kadirahq/meteor-up).
+To deploy to a **public server**, we recommend deploying from a development
+machine via [meteor-up](https://github.com/kadirahq/meteor-up).
 Installation instructions:
 
-1. Edit `.deploy/mup.js` to point to your SSH key (for accessing the server),
+1. Install Meteor and download Coauthor as above.
+2. Install `mup` via `npm install -g mup`
+   (after installing [Node](https://nodejs.org/en/) and thus NPM).
+3. Edit `.deploy/mup.js` to point to your SSH key (for accessing the server),
    your SSL certificate (for an https server), and your SMTP server in the
    [`MAIL_URL` environment variable](https://docs.meteor.com/api/email.html)
    (for sending email notifications &mdash; to run a local SMTP server,
@@ -40,14 +43,14 @@ Installation instructions:
    [`smtp://localhost:25/` may not work because of mup's use of docker.]
    If you want the "From" address in email notifications to be something
    other than coauthor@*deployed-host-name*, set the `MAIL_FROM` variable.
-2. Edit `settings.json` to set the server's
+4. Edit `settings.json` to set the server's
    [timezone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
    (used as the default email notification timezone for all users).
-3. `cd .deploy`
-4. `mup setup` to install all necessary software on the server
-5. `mup deploy` each time you want to deploy code to server
+5. `cd .deploy`
+6. `mup setup` to install all necessary software on the server
+7. `mup deploy` each time you want to deploy code to server
    (initially and after each `git pull`)
-6. If you proxy the resulting server from another web server,
+8. If you proxy the resulting server from another web server,
    you'll probably want to `meteor remove force-ssl` to remove the automatic
    redirection from `http` to `https`.
 
@@ -88,6 +91,13 @@ To get open-source Kadira running (on a different server), I recommend
 
 ## MongoDB
 
+All of Coauthor's data (including messages, history, and file uploads)
+is stored in the Mongo database (which is part of Meteor).
+You probably want to do regular (e.g. daily) dump backups.
+There's a script in `.backup` that I use to dump the database,
+copy to the development machine, and upload to Dropbox or other cloud storage
+via [rclone](https://rclone.org/).
+
 `mup`'s MongoDB stores data in `/var/lib/mongodb`.  MongoDB prefers an XFS
 filesystem, so you might want to
 [create an XFS filesystem](http://ask.xmodulo.com/create-mount-xfs-file-system-linux.html)
@@ -95,9 +105,21 @@ and mount or link it there.
 (For example, I have mounted an XFS volume at `/data` and linked via
 `ln -s /data/mongodb /var/lib/mongodb`).
 
+`mup` also, by default, makes the MongoDB accessible to any user on the
+deployed machine.  This is a security hole: make sure that there aren't any
+user accounts on the deployed machine.
+But it is also useful for manual database inspection and/or manipulation.
+[Install MongoDB client
+tools](https://docs.mongodb.com/manual/administration/install-community/),
+run `mongo coauthor` (or `mongo` then `use coauthor`) and you can directly
+query or update the collections.  (Start with `show collections`, then
+e.g. `db.messages.find()`.)
+On a test server, you can run `meteor mongo` to get the same interface.
+
 ## Android app
 
-Instructions for building the Coauthor Android app:
+Instructions for building the Coauthor Android app
+(not yet functional):
 
 0. Install [Android Studio](https://developer.android.com/studio/);
    add `gradle/gradle-N.N/bin`, `jre/bin`,
@@ -111,6 +133,7 @@ Instructions for building the Coauthor Android app:
 
 ## bcrypt on Windows
 
-To install `bcrypt` on Windows, install
-[Visual C++ 2015 Build Tools](http://landinghub.visualstudio.com/visual-cpp-build-tools)
-including the Windows 8.1 API, then `meteor npm install bcrypt`.
+To install `bcrypt` on Windows (to avoid warnings about it missing), install
+[windows-build-tools](https://www.npmjs.com/package/windows-build-tools)
+via `npm install --global --production windows-build-tools`, and
+then run `meteor npm install bcrypt`.
