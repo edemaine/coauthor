@@ -33,7 +33,7 @@
     "highlight.js": "^9.12.0",
     "jquery": "^3.3.1",
     "jszip": "^3.1.5",
-    "katex": "^0.10.0-beta",
+    "katex": "^0.10.0-rc.1",
     "markdown-it": "^8.4.2",
     "markdown-it-replacements": "^1.0.1",
     "meteor-node-stubs": "^0.2.11",
