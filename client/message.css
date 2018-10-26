@@ -91,6 +91,10 @@ nav.contents { overflow-y: scroll; padding-bottom: 5px; }
 
 code { white-space: pre-wrap; color: #333; background-color: #f5f5f5; }  /* match <pre> */
 pre { white-space: pre-wrap; }
+s .katex .base, del .katex .base { position: relative; } /* already in KaTeX */
+s .katex .base:after, del .katex .base:after { content: "";
+  position: absolute; left: 0; width: 100%; top: 50%; display: block;
+  height: 1.3px; background: #333; }
 
 .root { margin-bottom: 0px; } /* glom onto message below */
 
