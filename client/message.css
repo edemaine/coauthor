@@ -89,7 +89,7 @@ nav.contents { overflow-y: scroll; padding-bottom: 5px; }
 .contents li > a.minimized { color: #449d44; font-size: small; padding: 3px 10px; }
 .affix { top: 0px; }
 
-code.raw { white-space: pre-wrap; color: #333; }  /* match <pre> */
+code { white-space: pre-wrap; color: #333; background-color: #f5f5f5; }  /* match <pre> */
 pre { white-space: pre-wrap; }
 
 .root { margin-bottom: 0px; } /* glom onto message below */
