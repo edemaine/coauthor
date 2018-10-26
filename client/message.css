@@ -89,7 +89,8 @@ nav.contents { overflow-y: scroll; padding-bottom: 5px; }
 .contents li > a.minimized { color: #449d44; font-size: small; padding: 3px 10px; }
 .affix { top: 0px; }
 
-code { white-space: pre-wrap; color: #333; background-color: #f5f5f5; }  /* match <pre> */
+code { white-space: pre-wrap; color: #333; background-color: #f5f5f5;
+  font-size: 100%; }  /* match <pre>, overriding Bootstrap code defaults */
 pre { white-space: pre-wrap; }
 s .katex .base, del .katex .base { position: relative; } /* already in KaTeX */
 s .katex .base:after, del .katex .base:after { content: "";
