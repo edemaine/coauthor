@@ -23,14 +23,14 @@
   "dependencies": {
     "babel-runtime": "^6.26.0",
     "bcrypt": "^3.0.0",
-    "bootstrap-slider": "^10.2.0",
-    "chart.js": "^2.7.2",
-    "codemirror": "^5.39.2",
+    "bootstrap-slider": "^10.2.1",
+    "chart.js": "^2.7.3",
+    "codemirror": "^5.41.0",
     "codemirror-spell-checker": "^1.1.2",
     "cookie": "^0.3.1",
     "diff": "^3.5.0",
     "exif-parser": "^0.1.12",
-    "highlight.js": "^9.12.0",
+    "highlight.js": "^9.13.1",
     "jquery": "^3.3.1",
     "jszip": "^3.1.5",
     "katex": "^0.10.0-rc.1",
@@ -39,7 +39,7 @@
     "meteor-node-stubs": "^0.2.11",
     "moment-timezone": "^0.5.21",
     "pdfjs-dist": "^2.0.550",
-    "sanitize-html": "^1.18.4"
+    "sanitize-html": "^1.19.1"
   },
   "devDependencies": {
     "grunt": "^1.0.3",

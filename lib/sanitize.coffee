@@ -3,6 +3,8 @@
 
 sanitizeHtml = require 'sanitize-html'
 
+sanitizeHtml.defaults.allowIframeRelativeUrls = false
+
 sanitizeHtml.defaults.allowedAttributes['*'] = [
   'style', 'class', 'title', 'aria-*', 'data-id'
 ]
@@ -77,7 +79,7 @@ sanitizeHtml.defaults.allowedAttributes.annotation = ['encoding']
 sanitizeHtml.defaults.allowedAttributes.menclose = ['notation']
 sanitizeHtml.defaults.allowedAttributes.mfrac = ['linethickness']
 sanitizeHtml.defaults.allowedAttributes.mi = ['mathvariant']
-sanitizeHtml.defaults.allowedAttributes.mo = ['fence', 'separator']
+sanitizeHtml.defaults.allowedAttributes.mo = ['fence', 'separator', 'stretchy']
 sanitizeHtml.defaults.allowedAttributes.mstyle = ['mathcolor']
 sanitizeHtml.defaults.allowedTags.push 'nobr'
 
