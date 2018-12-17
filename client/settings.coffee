@@ -185,7 +185,7 @@ timezoneSource = (q, callback) ->
   callback(timezone for timezone in timezones when timezone.match re)
 
 Template.timezoneSelector.onCreated ->
-  Meteor.http.get '/timezones.json', (error, result) ->
+  HTTP.get '/timezones.json', (error, result) ->
     return console.error "Failed to load timezones: #{error}" if error
     timezones = JSON.parse result.content
     console.log "Loaded #{timezones.length} timezones."
