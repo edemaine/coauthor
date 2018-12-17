@@ -266,14 +266,35 @@ Template.submessage.onCreated ->
   @editing = new ReactiveVar null
   @editTitle = new ReactiveVar null
   @editBody = new ReactiveVar null
+  @lastTitle = null
+  @savedTitles = []
   @autorun =>
     data = Template.currentData()
     return unless data?
     #@myid = data._id
     if editing data
-      @editing.set data._id
-      @editTitle.set data.title
-      @editBody.set data.body
+      ## Maintain @editing == this message's ID when message is being edited.
+      ## Also initialize title and body only when we start editing.
+      if data._id != @editing.get()
+        @editing.set data._id
+        @editTitle.set data.title
+        @editBody.set data.body
+      ## Update input's value when title changes on server
+      if data.title != @lastTitle
+        @lastTitle = data.title
+        ## Ignore an update that matches a title we sent to the server,
+        ## to avoid weird reversion while live typing with network delays.
+        ## (In steady state, we expect our saves to match later updates,
+        ## so this should acquiesce with an empty savedTitles.)
+        if data.title in @savedTitles
+          while @savedTitles.pop() != data.title
+            continue
+        else
+          ## Received new title: update input text, forget past saves,
+          ## and cancel any pending save.
+          @editTitle.set data.title
+          @savedTitles = []
+          Meteor.clearTimeout @timer
     else
       @editing.set null
 
@@ -566,6 +587,7 @@ Template.submessage.helpers
   nothing: {}
   editingRV: -> Template.instance().editing.get()
   editingNR: -> Tracker.nonreactive -> Template.instance().editing.get()
+  editTitle: -> Template.instance().editTitle.get()
   editData: ->
     #_.extend @,
     _id: @_id
@@ -1016,10 +1038,12 @@ Template.submessage.events
     e.stopPropagation()
     message = t.data._id
     Meteor.clearTimeout t.timer
-    t.editTitle.set e.target.value
+    newTitle = e.target.value
+    t.editTitle.set newTitle
     t.timer = Meteor.setTimeout ->
+      t.savedTitles.push newTitle
       Meteor.call 'messageUpdate', message,
-        title: e.target.value
+        title: newTitle
     , idle
 
   'click .replyButton': (e, t) ->

@@ -88,7 +88,7 @@ template(name="submessage")
     .panel-heading.clearfix
       unless history
         if editingRV
-          input.form-control.title(type="text", placeholder="Title", value=title, tabindex="{{tabindex 18}}")
+          input.form-control.title(type="text", placeholder="Title", value=editTitle, tabindex="{{tabindex 18}}")
       //-unless editingRV
       span(class=hideIfEditing)
         .messageTitle
