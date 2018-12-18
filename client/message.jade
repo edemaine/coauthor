@@ -209,7 +209,10 @@ template(name="submessage")
                         a.privateButton(href="#")
                           button.btn.btn-danger.btn-block Make Private
             if editingRV
-              button.btn.btn-info.editButton(tabindex="{{tabindex 8}}") Stop Editing
+              if editStopping
+                button.btn.btn-info.editButton.disabled(tabindex="{{tabindex 8}}", title="Waiting for save to complete before stopping editing...") Stop Editing
+              else
+                button.btn.btn-info.editButton(tabindex="{{tabindex 8}}") Stop Editing
             else
               unless folded
                 if canEdit
@@ -255,7 +258,10 @@ template(name="submessage")
         +messageAuthor
         .message-reply-buttons.clearfix.hidden-print
           if editingRV
-            button.btn.btn-info.editButton(tabindex="{{tabindex 8}}") Stop Editing
+            if editStopping
+              button.btn.btn-info.editButton.disabled(title="Waiting for save to complete before stopping editing...") Stop Editing
+            else
+              button.btn.btn-info.editButton Stop Editing
           +emojiButtons
           +replyButtons
       if childrenCount
@@ -306,7 +312,10 @@ template(name="belowEditor")
     if saved
       .alert.alert-success.save-alert All changes saved.!{otherEditors}
     else
-      .alert.alert-danger.save-alert Unsaved changes.!{otherEditors}
+      if editStopping
+        .alert.alert-danger.save-alert Unsaved changes. Stopping editing once saved...!{otherEditors}
+      else
+        .alert.alert-danger.save-alert Unsaved changes. Saving...!{otherEditors}
 
 template(name="messageTags")
   span.messageTags

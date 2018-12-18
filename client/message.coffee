@@ -204,6 +204,13 @@ Template.message.onRendered ->
 editing = (self) ->
   Meteor.user()? and Meteor.user().username in (self.editing ? [])
 
+safeToStopEditing = ->
+  data = Template.currentData()
+  instance = Template.instance()
+  #data.editing.length > 1 or (
+  data.title == instance.editTitle.get() and
+  data.body == instance.editBody.get()
+
 idle = 1000   ## one second
 
 messageClass = ->
@@ -264,6 +271,7 @@ threadMentions = {}
 Template.submessage.onCreated ->
   @count = submessageCount++
   @editing = new ReactiveVar null
+  @editStopping = new ReactiveVar false
   @editTitle = new ReactiveVar null
   @editBody = new ReactiveVar null
   @lastTitle = null
@@ -587,6 +595,7 @@ Template.submessage.helpers
   nothing: {}
   editingRV: -> Template.instance().editing.get()
   editingNR: -> Tracker.nonreactive -> Template.instance().editing.get()
+  editStopping: -> Template.instance().editStopping.get()
   editTitle: -> Template.instance().editTitle.get()
   editData: ->
     #_.extend @,
@@ -595,6 +604,7 @@ Template.submessage.helpers
     body: @body
     group: @group
     editing: @editing  ## to list other editors
+    editStopping: Template.instance().editStopping.get()
     editTitle: Template.instance().editTitle.get()
     editBody: Template.instance().editBody.get()
   hideIfEditing: ->
@@ -961,9 +971,18 @@ Template.submessage.events
   'click .editButton': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
-    message = t.data._id  #e.target.getAttribute 'data-message'
+    message = @_id  #e.target.getAttribute 'data-message'
     if editing @
-      Meteor.call 'messageEditStop', message
+      stop = -> Meteor.call 'messageEditStop', message
+      if safeToStopEditing()
+        stop()
+      else
+        t.editStopping.set true
+        t.autorun (computation) ->
+          if safeToStopEditing()
+            t.editStopping.set false
+            stop()
+            computation.stop()
     else
       Meteor.call 'messageEditStart', message
 
