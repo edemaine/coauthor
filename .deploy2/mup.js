@@ -28,7 +28,8 @@ module.exports = {
       ROOT_URL: 'https://coauthor2.csail.mit.edu',
       //MAIL_URL: 'smtp://localhost:25',
       MONGO_URL: 'mongodb://mongodb/meteor',
-      MONGO_OPLOG_URL: 'mongodb://mongodb/local'
+      MONGO_OPLOG_URL: 'mongodb://mongodb/local',
+      NODE_OPTIONS: '--trace-warnings'
     },
     deployCheckWaitTime: 200,
   },

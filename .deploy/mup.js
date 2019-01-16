@@ -29,7 +29,8 @@ module.exports = {
       MAIL_URL: 'smtp://coauthor.csail.mit.edu:25?ignoreTLS=true',
       //MAIL_FROM: 'coauthor@coauthor.csail.mit.edu',
       MONGO_URL: 'mongodb://mongodb/meteor',
-      MONGO_OPLOG_URL: 'mongodb://mongodb/local'
+      MONGO_OPLOG_URL: 'mongodb://mongodb/local',
+      NODE_OPTIONS: '--trace-warnings'
     },
     deployCheckWaitTime: 200,
     /* Old mup-frontend-server configuration:
