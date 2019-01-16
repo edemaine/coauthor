@@ -29,6 +29,7 @@ ddp-client@2.3.3
 ddp-common@1.4.0
 ddp-rate-limiter@1.0.7
 ddp-server@2.2.0
+deanius:promise@3.0.1
 deps@1.0.12
 diff-sequence@1.1.1
 dynamic-import@0.5.1
@@ -76,7 +77,6 @@ minifier-css@1.4.1
 minifier-js@2.4.0
 minifiers@1.1.7
 minimongo@1.4.5
-mnmtanish:iced@1.1.0
 mobile-experience@1.0.5
 mobile-status-bar@1.0.14
 modern-browsers@0.1.3

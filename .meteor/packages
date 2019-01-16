@@ -27,7 +27,6 @@ check@1.3.1
 reactive-var@1.0.11
 
 
-mnmtanish:iced
 peppelg:bootstrap-3-modal
 edemaine:file-collection
 benjaminrh:jquery-cookie
@@ -54,3 +53,4 @@ edemaine:sharejs-codemirror
 twbs:bootstrap-noglyph
 less@2.8.0
 techplex:accounts-ui-bootstrap-3
+deanius:promise

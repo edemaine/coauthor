@@ -17,15 +17,14 @@ ext2type =
 upfile_url = ///http://6...\.csail\.mit\.edu/[^/\s"=]*/upfiles/([^/\s"=]*)///g
 
 loadZip = (zipData, callback) ->
-  await `importJSZip()`.then defer JSZip
-  #await `import('jszip')`.then defer JSZip
+  JSZip = await `import('jszip')`
   JSZip = JSZip.default
   zip = new JSZip
   console.log 'Loading ZIP file...'
-  zip.loadAsync(zipData).then callback
+  await zip.loadAsync zipData
 
 importOSQA = (group, zip) ->
-  await loadZip zip, defer zip
+  zip = await loadZip zip
 
   files = {}
   for content in zip.file /^upfiles\//
@@ -45,12 +44,12 @@ importOSQA = (group, zip) ->
     #content.type = ext2type[ext]
     #files[filename] = content
     #do (basename, filename, content, type = ext2type[ext]) ->
-    await zip.file(filename).async('arraybuffer').then defer buffer
+    buffer = await zip.file(filename).async('arraybuffer')
     files[basename] = new File [buffer], basename,
       type: type
       lastModified: content.date
 
-  await zip.file('users.xml').async('string').then defer users
+  users = await zip.file('users.xml').async('string')
   users = parseXML users
   usermap = {}
   for user in users.find 'user'
@@ -66,7 +65,7 @@ importOSQA = (group, zip) ->
       console.error 'no mapping for user', author
       author
 
-  await zip.file('actions.xml').async('string').then defer actions
+  actions = await zip.file('actions.xml').async('string')
   actions = parseXML actions
   deleted = {}
   for action in actions.find 'action'
@@ -94,7 +93,7 @@ importOSQA = (group, zip) ->
         tags = tagsNode.text().split /\s*,\s*/
     listToTags tags
 
-  await zip.file('nodes.xml').async('string').then defer nodes
+  nodes = await zip.file('nodes.xml').async('string')
   nodes = parseXML nodes
   idmap = {}
   count = 0
@@ -142,10 +141,10 @@ importOSQA = (group, zip) ->
           usedFiles[filename] = revision
 
     attachFiles = []
-    await
+    await Promise.all(
       for filename, revision of usedFiles
         #if typeof files[filename] == 'function'
-        #  await files[filename] defer file
+        #  file = await files[filename]
         file = files[filename]
         ## Assume file created by same person and roughly same time
         ## as the first post that contains them.  OSQA doesn't seem to
@@ -153,11 +152,14 @@ importOSQA = (group, zip) ->
         file.creator = revision.updators[0]
         file.created = revision.updated
         file.group = group
-        do (d = defer files[filename]) ->
-          file.callback = (file2) ->
-            attachFiles.push file2
-            d file2.uniqueIdentifier
-        Files.resumable.addFile file
+        do (filename) ->
+          new Promise (resolve, reject) ->
+            file.callback = (file2) ->
+              attachFiles.push file2
+              files[filename] = file2.uniqueIdentifier
+              resolve()
+            Files.resumable.addFile file
+    )
 
     for revision in revisions
       revision.body ?= ''
@@ -177,12 +179,14 @@ importOSQA = (group, zip) ->
     else
       message.deleted = false
     message.published = revisions[0].published = message.created
-    await Meteor.call 'messageImport', group, parent, message, revisions, defer error, idmap[id]
-    throw error if error
+    idmap[id] = await (
+      Meteor.callPromise 'messageImport', group, parent, message, revisions
+      .catch (error) -> throw error
+    )
     count += 1
     #return if count == 5
 
-    await
+    await Promise.all(
       for file2 in attachFiles
         ## Last modified date of the physical file (as preserved in ZIP)
         ## is generally earlier than the time of the post using the file,
@@ -200,8 +204,9 @@ importOSQA = (group, zip) ->
         filemsg.created = creation
         filerev.updators = [file2.file.creator]
         filerev.updated = creation
-        Meteor.call 'messageImport', group, idmap[id], filemsg, [filerev],
-          defer()  ## ignoring error
+        Meteor.callPromise 'messageImport', group, idmap[id], filemsg, [filerev],
+        ## ignoring error
+    )
 
 importOSQA.readAs = 'ArrayBuffer'
 
@@ -226,12 +231,12 @@ path2ext = (path) ->
 
 importLaTeX = (group, zip) ->
   me = Meteor.user().username
-  await loadZip zip, defer zip
+  zip = await loadZip zip
 
   ## Extract bib entries.
   bibs = {}
   for content in zip.file /\.bib$/
-    await content.async('string').then defer bib
+    bib = await content.async('string')
     r = /@[\w\s]*{([^,]*),[^@]*?\burl\s*=\s*("[^"]*"|{[^{}]*})/ig
     while (match = r.exec bib)?
       author = /\bauthor\s*=\s*("(?:{[^{}]*}|[^"])*"|{(?:[^{}]|{(?:[^{}]|{[^{}]*})*})*})/i.exec match[0]
@@ -319,7 +324,7 @@ importLaTeX = (group, zip) ->
   figures = {}
   inlineGraphics = {}
   for content in zip.file /\.tex$/
-    await content.async('string').then defer tex
+    tex = await content.async('string')
     tex = tex.replace /%.*$\n?/mg, ''
     .replace /\\begin\s*{(wrap)?figure}([^]*?)\\end\s*{(wrap)?figure}\s*/g,
       (match, beginFigure, body, endFigure) ->
@@ -378,7 +383,7 @@ importLaTeX = (group, zip) ->
 
   ## Extract sections = top-level threads.
   for content in zip.file /\.tex$/
-    await content.async('string').then defer tex
+    tex = await content.async('string')
     ## Remove comments (to ignore \sections inside comments),
     ## and remove figures (already processed).
     tex = tex
@@ -439,7 +444,7 @@ importLaTeX = (group, zip) ->
         for graphic in figure.graphics
           filename = graphic.filename
           base = basename filename
-          await zip.file(filename).async('arraybuffer').then defer buffer
+          buffer = await zip.file(filename).async('arraybuffer')
           file = new File [buffer],
                    base,
                    type: ext2type[path2ext base]
@@ -449,10 +454,9 @@ importLaTeX = (group, zip) ->
           file.group = group
           file.graphic = graphic
           figure.files.push file
-          await
-            do (d = defer file.file2id) ->
-              file.callback = (file2) ->
-                d file2.uniqueIdentifier
+          file.file2id = await new Promise (resolve, reject) ->
+            file.callback = (file2) ->
+              resolve file2.uniqueIdentifier
             Files.resumable.addFile file
       for figure in attach
         figure.message =
@@ -473,9 +477,11 @@ importLaTeX = (group, zip) ->
         figure.message.created = now
         frevision.updators = [me]
         frevision.updated = now
-        await Meteor.call 'messageImport', group, null, figure.message, [frevision], defer error, figure.message._id
-        throw error if error
-      await
+        figure.message._id = await (
+          Meteor.callPromise 'messageImport', group, null, figure.message, [frevision]
+          .catch (error) -> throw error
+        )
+      await Promise.all(
         for figure in attach
           for file in figure.files
             filerev =
@@ -492,8 +498,9 @@ importLaTeX = (group, zip) ->
             filemsg.created = now
             filerev.updators = [me]
             filerev.updated = now
-            Meteor.call 'messageImport', group, figure.message._id, filemsg, [filerev],
-              defer()  ## ignoring error
+            Meteor.callPromise 'messageImport', group, figure.message._id, filemsg, [filerev]
+            ## ignoring error
+      )
       ## With the files uploaded, we can hyperlink to them in the message.
       message.body = message.body
       .replace /\\ref\s*{([^{}]*)}/g, (match, ref) ->
@@ -518,8 +525,10 @@ importLaTeX = (group, zip) ->
       delete revision.created
       revision.updators = [revision.creator]
       delete revision.creator
-      await Meteor.call 'messageImport', group, null, message, [revision], defer error, message._id
-      throw error if error
+      message._id = (
+        await Meteor.callPromise 'messageImport', group, null, message, [revision]
+        .catch (error) -> throw error
+      )
       links[title2section message.title] = "coauthor:#{message._id}"
       ## Finally, reparent the figures' root messages to be children
       ## of the main message for the problem.
