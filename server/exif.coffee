@@ -29,8 +29,15 @@ Files.find
     stream.on 'end', Meteor.bindEnvironment ->
       buffer = Buffer.concat chunks
       meta = ExifParser.create(buffer).parse()
-      unless meta.imageSize
-        console.log file
+      ## `imageSize` is set to actual image width and height when seeing the
+      ## stream, but given that we only look at the initial `readSize` bytes,
+      ## we may not see that.  Use `ExifImageWidth` and `ExifImageHeight`
+      ## in this case (which generally seems to be accurate).
+      if not meta.imageSize? and \
+         meta.tags.ExifImageWidth and meta.tags.ExifImageHeight
+        meta.imageSize =
+          width: meta.tags.ExifImageWidth
+          height: meta.tags.ExifImageHeight
       exif = meta.tags
       ## Rewrite dates into ISO 8601 strings.
       for dateTag in dateTags
