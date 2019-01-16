@@ -455,7 +455,8 @@ importLaTeX = (group, zip) ->
           file.graphic = graphic
           figure.files.push file
           file.file2id = await new Promise (resolve, reject) ->
-            file.callback = (file2) ->
+            file.callback = (file2, done) ->
+              done() # assume user won't navigate away until import complete
               resolve file2.uniqueIdentifier
             Files.resumable.addFile file
       for figure in attach
