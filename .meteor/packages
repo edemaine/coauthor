@@ -41,7 +41,7 @@ underscorestring:underscore.string
 standard-minifier-css@1.5.2
 standard-minifier-js@2.4.0
 reactive-dict@1.2.1
-ecmascript@0.12.3
+ecmascript@0.12.4
 shell-server@0.4.0
 meteorhacks:subs-manager
 meteorhacks:kadira
