@@ -71,33 +71,33 @@ CodeMirror.registerHelper "fold", "stex", (cm, start) ->
             for i in [start.line+1..cm.lastLine()]
                 if startswith(cm.getLine(i).trimLeft(), ["\\chapter", "\\end{document}"])
                     return [i - 1, 0]
-            return cm.lastLine()
+            return [cm.lastLine(), 0]
 
         else if startswith(line, "\\section")
             # article section
             for i in [start.line+1..cm.lastLine()]
                 if startswith(cm.getLine(i).trimLeft(), ["\\chapter", "\\section", "\\end{document}"])
                     return [i - 1, 0]
-            return cm.lastLine()
+            return [cm.lastLine(), 0]
 
         else if startswith(line, "\\subsection")
             # article subsection
             for i in [start.line+1..cm.lastLine()]
                 if startswith(cm.getLine(i).trimLeft(), ["\\chapter", "\\section", "\\subsection", "\\end{document}"])
                     return [i - 1, 0]
-            return cm.lastLine()
+            return [cm.lastLine(), 0]
         else if startswith(line, "\\subsubsection")
             # article subsubsection
             for i in [start.line+1..cm.lastLine()]
                 if startswith(cm.getLine(i).trimLeft(), ["\\chapter", "\\section", "\\subsection", "\\subsubsection", "\\end{document}"])
                     return [i - 1, 0]
-            return cm.lastLine()
+            return [cm.lastLine(), 0]
         else if startswith(line, "\\subsubsubsection")
             # article subsubsubsection
             for i in [start.line+1..cm.lastLine()]
                 if startswith(cm.getLine(i).trimLeft(), ["\\chapter", "\\section", "\\subsection", "\\subsubsection", "\\subsubsubsection", "\\end{document}"])
                     return [i - 1, 0]
-            return cm.lastLine()
+            return [cm.lastLine(), 0]
         else if startswith(line, "%\\begin{}")
             # support what texmaker supports for custom folding -- http://tex.stackexchange.com/questions/44022/code-folding-in-latex
             for i in [start.line+1..cm.lastLine()]
