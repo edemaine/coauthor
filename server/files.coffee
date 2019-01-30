@@ -1,6 +1,9 @@
 cookie = require 'cookie'
 url = require 'url'
 
+# Simultaneous file access/locking seems to need more listeners than 10
+require('events').EventEmitter.defaultMaxListeners = 50
+
 fileRe = /^\/(\w+)$/
 
 defaultContentType = 'application/octet-stream'
