@@ -99,7 +99,7 @@ ordered-dict@1.1.0
 peerlibrary:assert@0.2.5
 peerlibrary:extend-publish@0.5.0
 peerlibrary:fiber-utils@0.9.1
-peerlibrary:reactive-mongo@0.2.2
+peerlibrary:reactive-mongo@0.3.0
 peerlibrary:reactive-publish@0.7.1
 peerlibrary:server-autorun@0.7.1
 peppelg:bootstrap-3-modal@1.0.4
