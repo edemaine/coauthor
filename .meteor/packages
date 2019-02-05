@@ -52,5 +52,5 @@ edemaine:sharejs
 edemaine:sharejs-codemirror
 twbs:bootstrap-noglyph
 less@2.8.0
-techplex:accounts-ui-bootstrap-3
 deanius:promise
+edemaine:accounts-ui-bootstrap-3
