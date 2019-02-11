@@ -527,7 +527,7 @@ if Meteor.isServer
             textBullets.push "  * #{textBullet}\n"
             htmlBullets.push "<LI>#{htmlBullet}\n"
           if changed.title
-            if old.title
+            if old?.title
               bullet "Title changed from \"#{titleOrUntitled old}\"",
                      "Title changed from &ldquo;#{formatTitleOrFilename old, true, true}&rdquo;"
             else
@@ -566,7 +566,7 @@ if Meteor.isServer
             else
               bullet "File upload: #{msg.file}?"
           if changed.rotate
-            delta = angle180 (msg.rotate ? 0) - (old.rotate ? 0)
+            delta = angle180 (msg.rotate ? 0) - (old?.rotate ? 0)
             if delta != 0
               if delta != (msg.rotate ? 0)
                 bullet "Rotated #{delta}° (now #{msg.rotate ? 0}°)"
