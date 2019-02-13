@@ -1129,24 +1129,24 @@ Template.messageHistory.onCreated ->
   @diffsub = @subscribe 'messages.diff', @data._id
 
 Template.messageHistory.onRendered ->
-  @autorun =>
-    diffs = MessagesDiff.find
-        id: @data._id
-      ,
-        sort: ['updated']
-      .fetch()
-    return if diffs.length < 2  ## don't show a zero-length slider
-    ## Accumulate diffs
-    for diff, i in diffs
-      if i >= 0
-        for own key, value of diffs[i-1]
-          unless key of diff
-            diff[key] = value
-      ## Remove diff IDs
-      delete diff._id
-    @slider?.destroy()
-    `import('bootstrap-slider')`.then (Slider) =>
-      Slider = Slider.default
+  `import('bootstrap-slider')`.then (Slider) =>
+    Slider = Slider.default
+    @autorun =>
+      @slider?.destroy()
+      diffs = MessagesDiff.find
+          id: @data._id
+        ,
+          sort: ['updated']
+        .fetch()
+      return if diffs.length < 2  ## don't show a zero-length slider
+      ## Accumulate diffs
+      for diff, i in diffs
+        if i >= 0
+          for own key, value of diffs[i-1]
+            unless key of diff
+              diff[key] = value
+        ## Remove diff IDs
+        delete diff._id
       @slider = new Slider @$('input')[0],
         #min: 0                 ## min and max not needed when using ticks
         #max: diffs.length-1
@@ -1164,7 +1164,7 @@ Template.messageHistory.onRendered ->
       #@slider.off 'change'
       @slider.on 'change', (e) =>
         messageHistory.set @data._id, diffs[e.newValue]
-    messageHistory.set @data._id, diffs[diffs.length-1]
+      messageHistory.set @data._id, diffs[diffs.length-1]
 
 uploader = (template, button, input, callback) ->
   Template[template].events {
