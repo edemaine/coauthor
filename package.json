@@ -34,7 +34,7 @@
     "highlight.js": "^9.13.1",
     "jquery": "^3.3.1",
     "jszip": "^3.1.5",
-    "katex": "^0.10.0",
+    "katex": "https://github.com/edemaine/KaTeX/tarball/fixnot-dist",
     "markdown-it": "^8.4.2",
     "markdown-it-replacements": "^1.0.1",
     "meteor-node-stubs": "^0.4.1",
