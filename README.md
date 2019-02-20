@@ -29,8 +29,9 @@ in other fields too.
 * Three **formats** for writing messages (and easy to add additional formats).
   All formats support LaTeX math (via `$...$`, `$$...$$`, `\(...\)`, `\[...\]`,
   or `\begin{align/equation/eqnarray}...\end{align/equation/eqnarray}`)
-  via [KaTeX](https://khan.github.io/KaTeX/), so math mode supports
-  [this list of supported functions](https://khan.github.io/KaTeX/function-support.html).
+  via [KaTeX](https://katex.org/), so math mode supports
+  [this list of supported functions](https://katex.org/docs/supported.html)
+  (see also [this support table](https://katex.org/docs/support_table.html)).
   Macros defined with `\gdef` can be used throughout one message.
 
   * [Github-style Markdown](https://guides.github.com/features/mastering-markdown/)
