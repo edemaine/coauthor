@@ -66,7 +66,8 @@ in other fields too.
     `\&`, `\$`, `\{`, `\}`, `\%`, `\#`, ``` `` ```, `''`,
     `~`, `--`, `---`, `{`, `}`, `\\`, `\item`;
     `\begin/\end` for environments `verbatim`, `enumerate`, `itemize`,
-    `quote`, `tabular` (basic),
+    `quote`, `center`,
+    `tabular` (basic but including `\multicolumn` and `\multirow`),
     `equation`, `eqnarray`, `align`,
     `problem`, `question`, `idea`, `theorem`, `conjecture`, `lemma`,
     `corollary`, `fact`, `observation`, `proposition`, `claim`, `proof`.

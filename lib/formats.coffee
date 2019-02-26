@@ -259,7 +259,10 @@ latex2htmlCommandsAlpha = (tex, math) ->
   .replace /\\end\s*{(quote)}/g, '</blockquote>'
   .replace /\\begin\s*{(proof|pf)}(\s*\[([^\]]*)\])?/g, (m, env, x, opt) -> "<b>Proof#{if opt then " (#{opt})" else ''}:</b> "
   .replace /\\end\s*{(proof|pf)}/g, ' <span class="pull-right">&#8718;</span></p><p class="clearfix">'
-  .replace /\\begin\s*{tabular}\s*{([^{}]*)}([^]*)\\end\s*{tabular}/g, (m, cols, body) ->
+  .replace /\\begin\s*{center}([^]*?)\\end\s*{center}/g, (m, body) ->
+    '<div style="margin: 10pt auto; width: min-content">' +
+    body + '</div>'
+  .replace /\\begin\s*{tabular}\s*{([^{}]*)}([^]*?)\\end\s*{tabular}/g, (m, cols, body) ->
     cols = cols.replace /|/g, '' # not yet supported
     skip = (0 for colnum in [0...cols.length])
     '<table>' +
