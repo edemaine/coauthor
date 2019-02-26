@@ -260,22 +260,46 @@ latex2htmlCommandsAlpha = (tex, math) ->
   .replace /\\begin\s*{(proof|pf)}(\s*\[([^\]]*)\])?/g, (m, env, x, opt) -> "<b>Proof#{if opt then " (#{opt})" else ''}:</b> "
   .replace /\\end\s*{(proof|pf)}/g, ' <span class="pull-right">&#8718;</span></p><p class="clearfix">'
   .replace /\\begin\s*{tabular}\s*{([^{}]*)}([^]*)\\end\s*{tabular}/g, (m, cols, body) ->
-    '<table class="table">' +
+    cols = cols.replace /|/g, '' # not yet supported
+    skip = (0 for colnum in [0...cols.length])
+    '<table>' +
       (for row in body.split /(?:\\\\|\[DOUBLEBACKSLASH\])(?:\s*\\(?:hline|cline\s*{[^{}]*}))?/
          continue unless row.trim()
          "<tr>\n" +
-         (for col, x in row.split '&'
-            align =
-              switch cols[x]
+         (for col, colnum in row.split '&'
+            if skip[colnum]
+              skip[colnum] -= 1
+              continue
+            align = cols[colnum]
+            attrs = ''
+            style = ''
+            ## "If you want to use both \multirow and \multicolumn on the same
+            ## entry, you must put the \multirow inside the \multicolumn"
+            ## [http://ctan.mirrors.hoobly.com/macros/latex/contrib/multirow/multirow.pdf]
+            if match = /\\multicolumn\s*(\d+|{\s*(\d+)\s*})\s*(\w|{([^{}]*)})\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/.exec col
+              attrs += " colspan=\"#{match[2] ? match[1]}\""
+              align = match[4] ? match[3]
+              col = match[5]
+            ## In HTML, rowspan means that later rows shouldn't specify <td>s
+            ## for that column, while in LaTeX, they are still present.
+            if match = /\\multirow\s*(\d+|{\s*(\d+)\s*})\s*(\*|{([^{}]*)})\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/.exec col
+              rowspan = parseInt match[2] ? match[1]
+              skip[colnum] += rowspan - 1
+              attrs += " rowspan=\"#{rowspan}\""
+              style = 'vertical-align: middle; '
+              #width = match[4] ? match[3]
+              col = match[5]
+            attrs +=
+              switch align
                 when 'c'
-                  ' style="text-align: center"'
+                  " style=\"#{style}text-align: center\""
                 when 'l'
-                  ' style="text-align: left"'
+                  " style=\"#{style}text-align: left\""
                 when 'r'
-                  ' style="text-align: right"'
+                  " style=\"#{style}text-align: right\""
                 else
-                  ''
-            "<td#{align}>#{col}</td>\n"
+                  style
+            "<td#{attrs}>#{col}</td>\n"
          ).join('') +
          "</tr>\n"
       ).join('') +
