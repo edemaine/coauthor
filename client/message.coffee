@@ -365,11 +365,14 @@ initImageInternal = (id, image = null) ->
 
 checkImage = (id) ->
   return unless id of images
-  ## Image gets unnaturally folded if it's referenced at least once.
+  ## Image gets unnaturally folded if it's referenced at least once
+  ## and doesn't have any children (don't want to hide children, and this
+  ## can also lead to infinite loop if children has the image reference).
   messageFolded.set id, images[id].naturallyFolded or
-    images[id].count > 0 or
-    (imagesInternal[images[id].file]? and
-     imagesInternal[images[id].file].count > 0)
+    (not images[id].children and
+     (images[id].count > 0 or
+      (imagesInternal[images[id].file]? and
+       imagesInternal[images[id].file].count > 0)))
   ## No longer care about this image if it's not referenced and doesn't have
   ## a rendered template.
   if images[id].count == 0 and id not of id2template
@@ -444,6 +447,7 @@ Template.submessage.onRendered ->
     id2template[data._id] = @
     ## If message is naturally folded, don't count images it references.
     images[data._id].naturallyFolded = naturallyFolded data
+    images[data._id].children = data.children?.length
     if images[data._id].naturallyFolded
       for id of @images
         images[id].count -= 1
