@@ -649,10 +649,17 @@ Template.submessage.helpers
                 'eclipse'
               else
                 theme()
+          pasteHTML = false
           editor.setOption 'extraKeys',
             Enter: 'newlineAndIndentContinueMarkdownList'
             End: 'goLineRight'
             Home: 'goLineLeft'
+            "Shift-Ctrl-H": (cm) ->
+              pasteHTML = not pasteHTML
+              if pasteHTML
+                console.log 'HTML pasting mode turned on.'
+              else
+                console.log 'HTML pasting mode turned off.'
           cmDrop = editor.display.dragFunctions.drop
           editor.setOption 'dragDrop', false
           editor.display.dragFunctions.drop = (e) ->
@@ -695,7 +702,7 @@ Template.submessage.helpers
           paste = null
           editor.on 'paste', (cm, e) ->
             paste = null
-            if 'text/html' in e.clipboardData.types
+            if pasteHTML and 'text/html' in e.clipboardData.types
               paste = e.clipboardData.getData 'text/html'
               .replace /<!--.*?-->/g, ''
               .replace /<\/?(html|head|body|meta)\b[^<>]*>/ig, ''

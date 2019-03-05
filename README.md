@@ -86,7 +86,12 @@ in other fields too.
   block folding, bracket matching, line numbering, light and dark themes,
   [spell checking](https://github.com/NextStepWebs/codemirror-spell-checker),
   "regular" keybindings as well as Vim and Emacs keybindings
-  (if you've ever needed rectangular selection for e.g. ASCII art).
+  (especially useful for rectangular selection for e.g. ASCII art).
+
+  * **Copy/paste** produces text by default.  Special handling of Coauthor
+    URLs produces `coauthor:...` links or embeds images.  Special handling of
+    user URLs produces @mentions.  To paste rich text, you can toggle HTML
+    paste mode via Ctrl-Shift-H.
 
 * Messages are organized by **groups** (intended to correspond to groups of
   people who meet), so it's easy to share material with everyone in the group.
