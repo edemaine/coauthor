@@ -22,13 +22,8 @@ template(name="message")
           p !{mentions}
       .subscribers.alert.alert-success
         p
-          b Users subscribed to notifications about this thread:
+          b Users who can read this message, and whether they are subscribed to notifications:
         p !{subscribers}
-      if nonsubscribers
-        .nonsubscribers.alert.alert-warning
-          p
-            b Users who can read this message but are not subscribed to notifications:
-          p !{nonsubscribers}
       if orphanCount
         .orphans.alert.alert-warning
           b

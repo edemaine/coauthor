@@ -138,14 +138,6 @@ Template.message.helpers
   authors: authorCountHelper 'threadAuthors'
   mentions: authorCountHelper 'threadMentions'
   subscribers: ->
-    users =
-      for user in sortedMessageSubscribers @_id
-        linkToAuthor @group, user
-    if users.length > 0
-      users.join ', '
-    else
-      '(none)'
-  nonsubscribers: ->
     subscribers = messageSubscribers @_id,
       fields: username: true
     subscribed = {}
@@ -158,19 +150,26 @@ Template.message.helpers
         roles: true
         rolesPartial: true
         'profile.notifications': true
-    (for user in users when user.username not of subscribed
+    unless users.length
+      return '(none)'
+    (for user in users
       title = "User '#{user.username}': " # like linkToAuthor
-      unless user.emails?[0]?
-        title += "No email address"
-      else if not user.emails[0].verified
-        title += "Unverified email address #{user.emails[0].address}"
-      else if not (user.profile.notifications?.on ? defaultNotificationsOn)
-        title += "Notifications turned off"
-      else if not autosubscribe @group, user
-        title += "Autosubscribe turned off, and not explicitly subscribed to thread"
+      if user.username of subscribed
+        title += 'Subscribed to email notifications'
+        icon = '<i class="fas fa-check text-success"></i> '
       else
-        title += "Explicitly unsubscribed from thread"
-      linkToAuthor @group, user.username, title
+        icon = '<i class="fas fa-times text-danger"></i> '
+        unless user.emails?[0]?
+          title += "No email address"
+        else if not user.emails[0].verified
+          title += "Unverified email address #{user.emails[0].address}"
+        else if not (user.profile.notifications?.on ? defaultNotificationsOn)
+          title += "Notifications turned off"
+        else if not autosubscribe @group, user
+          title += "Autosubscribe turned off, and not explicitly subscribed to thread"
+        else
+          title += "Explicitly unsubscribed from thread"
+      linkToAuthor @group, user.username, title, icon
     ).join ', '
   orphans: ->
     orphans @_id
