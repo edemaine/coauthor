@@ -58,6 +58,7 @@ module.exports = (grunt) ->
           flatten: true
           src: [
             'node_modules/codemirror/theme/eclipse.css'
+            'node_modules/codemirror/addon/hint/show-hint.css'
           ]
           dest: 'client/codemirror/'
         ]
@@ -85,6 +86,7 @@ module.exports = (grunt) ->
           expand: true
           flatten: true
           src: [
+            'node_modules/codemirror/addon/hint/show-hint.js'
             #'node_modules/codemirror/mode/markdown/markdown.js'
             'node_modules/codemirror/mode/gfm/gfm.js'
             #'node_modules/codemirror/mode/xml/xml.js'

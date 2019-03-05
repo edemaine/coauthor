@@ -743,6 +743,52 @@ Template.submessage.helpers
               change.text = paste
               paste = null
 
+          lastWord = (cm) ->
+            cursor = cm.getCursor()
+            return '' unless cursor.ch
+            text = cm.getRange
+              line: cursor.line
+              ch: 0
+            , cursor
+            /@[^\s@]*$/.exec(text)[0]
+          users = usernames = usersSearch = null
+          editor.on 'keyup', (cm, e) ->
+            if e.key.length == 1 and  ## regular typing
+               (word = lastWord cm).startsWith '@'
+              word = word[1..]
+              cm.showHint
+                completeSingle: false
+                hint: (cm) -> new Promise (callback) ->
+                  unless users?
+                    users = []
+                    usernames = []
+                    usersSearch = []
+                    (Meteor.users.find {}, fields:
+                      username: 1
+                      "profile.fullname": 1
+                    ).forEach (user) ->
+                      usernames.push user.username
+                      if user.profile.fullname
+                        users.push "#{user.username} (#{user.profile.fullname})"
+                      else
+                        users.push user.username
+                      usersSearch.push \
+                        users[users.length-1].toLowerCase().replace /\s/g, ''
+                  matches =
+                    for search, i in usersSearch \
+                        when 0 <= search.indexOf word.toLowerCase()
+                      text: usernames[i] + ' '
+                      displayText: users[i]
+                  cursor = cm.getCursor()
+                  callback
+                    list: matches
+                    from:
+                      line: cursor.line
+                      ch: cursor.ch - word.length
+                    to: cursor
+            else
+              cm.execCommand 'closeHint'
+
         when 'ace'
           editor.textInput.getElement().setAttribute 'tabindex', 1 + 20 * ti.count + 19
           #editor.meteorData = @  ## currently not needed, also dunno if works

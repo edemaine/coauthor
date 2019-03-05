@@ -493,13 +493,12 @@ postprocessLinks = (text) ->
       match.replace /\/+/g, (slash) ->
         "#{slash}&#8203;"  ## Add zero-width space after every slash group
 
-allUsers = ->
+allUsernames = ->
   users = Meteor.users.find {}, fields: username: 1
   .map (user) -> user.username
 
 atRePrefix = '[@\uff20]'
-@atRe = (users = allUsers()) ->
-  users = allUsers() unless users?
+@atRe = (users = allUsernames()) ->
   users = [users] unless _.isArray users
   ## Reverse-sort by length to ensure maximum-length match
   ## (to handle when one username is a prefix of another).
@@ -512,7 +511,7 @@ atRePrefix = '[@\uff20]'
 
 postprocessAtMentions = (text) ->
   return text unless ///#{atRePrefix}///.test text
-  users = allUsers()
+  users = allUsernames()
   return text unless 0 < users.length
   text.replace (atRe users), (match, user) ->
     "@#{linkToAuthor (routeGroup?() ? wildGroup), user}"
