@@ -69,6 +69,7 @@ Template.group.helpers
   membersCount: ->
     groupMembers(@group).length
   members: ->
+    tooltipUpdate()
     members =
       for member in sortedGroupMembers @group
         linkToAuthor @group, member

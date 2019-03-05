@@ -122,6 +122,7 @@ orphans = (message) ->
     _id: $nin: descendants
 
 authorCountHelper = (field) -> ->
+  tooltipUpdate()
   authors =
     for username, count of Session.get field
       continue unless count
@@ -138,6 +139,7 @@ Template.message.helpers
   authors: authorCountHelper 'threadAuthors'
   mentions: authorCountHelper 'threadMentions'
   subscribers: ->
+    tooltipUpdate()
     subscribers = messageSubscribers @_id,
       fields: username: true
     subscribed = {}
@@ -867,6 +869,7 @@ Template.belowEditor.helpers
   saved: ->
     @title == @editTitle and @body == @editBody
   otherEditors: ->
+    tooltipUpdate()
     others = _.without @editing, Meteor.user()?.username
     if others.length > 0
       " Editing with #{(linkToAuthor @group, other for other in others).join ', '}."
@@ -889,12 +892,14 @@ Template.registerHelper 'messagePanelClass', ->
   classes.join ' '
 
 Template.registerHelper 'formatCreator', ->
+  tooltipUpdate()
   linkToAuthor @group, @creator
 
 Template.registerHelper 'creator', ->
   displayUser @creator
 
 Template.registerHelper 'formatAuthors', ->
+  tooltipUpdate()
   a = for own author, date of @authors when author != @creator or date.getTime() != @created.getTime()
         "#{linkToAuthor @group, unescapeUser author} #{formatDate date, 'on '}"
   if a.length > 0

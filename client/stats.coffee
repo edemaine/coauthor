@@ -187,6 +187,7 @@ Template.statsGood.helpers
     else
       ''
   linkToAuthor: ->
+    tooltipUpdate()
     linkToAuthor @group, @username
   postCount: (type) ->
     Messages.find Template.instance().stats[type].query.call(@)
