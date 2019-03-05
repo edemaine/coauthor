@@ -743,32 +743,36 @@ Template.submessage.helpers
               change.text = paste
               paste = null
 
-          lastWord = (cm) ->
+          lastAtWord = (cm) ->
             cursor = cm.getCursor()
-            return '' unless cursor.ch
+            return null unless cursor.ch
             text = cm.getRange
               line: cursor.line
               ch: 0
             , cursor
-            /@[^\s@]*$/.exec(text)[0]
+            (/@[^\s@]*$/.exec text)?[0]
           users = null
           editor.on 'keyup', (cm, e) ->
-            if e.key.length == 1 and  ## regular typing
-               (word = lastWord cm).startsWith '@'
+            if (e.key.length == 1 or e.key == 'Backspace') and ## regular typing
+               (word = lastAtWord cm)?  ## completable @mention
               word = word[1..]
               cm.showHint
                 completeSingle: false
                 hint: (cm) -> new Promise (callback) ->
-                  users ?= (Meteor.users.find {}, fields:
-                    username: 1
-                    "profile.fullname": 1
-                  ).map (user) ->
-                    display = user.username
-                    if user.profile.fullname
-                      display += " (#{user.profile.fullname})"
-                    text: user.username + ' '
-                    displayText: display
-                    search: display.toLowerCase().replace /\s/g, ''
+                  users ?= _.sortBy (
+                    (Meteor.users.find {}, fields:
+                      username: 1
+                      "profile.fullname": 1
+                    ).map (user) ->
+                      display = user.username
+                      if user.profile.fullname
+                        display += " (#{user.profile.fullname})"
+                      lower = display.toLowerCase()
+                      text: user.username + ' '
+                      displayText: display
+                      sort: lower
+                      search: lower.replace /\s/g, ''
+                  ), 'sort'
                   matches = (user for user in users \
                     when user.search.includes word.toLowerCase())
                   cursor = cm.getCursor()
