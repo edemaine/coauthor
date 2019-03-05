@@ -751,7 +751,7 @@ Template.submessage.helpers
               ch: 0
             , cursor
             /@[^\s@]*$/.exec(text)[0]
-          users = usernames = usersSearch = null
+          users = null
           editor.on 'keyup', (cm, e) ->
             if e.key.length == 1 and  ## regular typing
                (word = lastWord cm).startsWith '@'
@@ -759,26 +759,18 @@ Template.submessage.helpers
               cm.showHint
                 completeSingle: false
                 hint: (cm) -> new Promise (callback) ->
-                  unless users?
-                    users = []
-                    usernames = []
-                    usersSearch = []
-                    (Meteor.users.find {}, fields:
-                      username: 1
-                      "profile.fullname": 1
-                    ).forEach (user) ->
-                      usernames.push user.username
-                      if user.profile.fullname
-                        users.push "#{user.username} (#{user.profile.fullname})"
-                      else
-                        users.push user.username
-                      usersSearch.push \
-                        users[users.length-1].toLowerCase().replace /\s/g, ''
-                  matches =
-                    for search, i in usersSearch \
-                        when 0 <= search.indexOf word.toLowerCase()
-                      text: usernames[i] + ' '
-                      displayText: users[i]
+                  users ?= (Meteor.users.find {}, fields:
+                    username: 1
+                    "profile.fullname": 1
+                  ).map (user) ->
+                    display = user.username
+                    if user.profile.fullname
+                      display += " (#{user.profile.fullname})"
+                    text: user.username + ' '
+                    displayText: display
+                    search: display.toLowerCase().replace /\s/g, ''
+                  matches = (user for user in users \
+                    when user.search.includes word.toLowerCase())
                   cursor = cm.getCursor()
                   callback
                     list: matches
