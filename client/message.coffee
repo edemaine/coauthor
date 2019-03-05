@@ -656,32 +656,39 @@ Template.submessage.helpers
           cmDrop = editor.display.dragFunctions.drop
           editor.setOption 'dragDrop', false
           editor.display.dragFunctions.drop = (e) ->
-            #text = e.dataTransfer.getData 'text'
+            text = e.dataTransfer?.getData 'text'
             id = e.dataTransfer?.getData 'application/coauthor-id'
             username = e.dataTransfer?.getData 'application/coauthor-username'
             type = e.dataTransfer?.getData 'application/coauthor-type'
-            if id or username
+            if username
+              replacement = "@#{username}"
+            else if id
+              switch type
+                when 'image', 'video', 'pdf'
+                  switch ti.data.format
+                    when 'markdown'
+                      replacement = "![](coauthor:#{id})"
+                    when 'latex'
+                      replacement = "\\includegraphics{coauthor:#{id}}"
+                    when 'html'
+                      replacement = """<img src="coauthor:#{id}">"""
+                #when 'video'
+                #  """<video controls><source src="coauthor:#{id}"></video>"""
+                else
+                  replacement = "coauthor:#{id}"
+            else if match = parseCoauthorMessageUrl text
+              replacement = "coauthor:#{match.message}"
+            else if match = parseCoauthorAuthorUrl text
+              replacement = "@#{match.author}"
+            else
+              replacement = text
+            if replacement?
               e.preventDefault()
               e = _.omit e, 'dataTransfer', 'preventDefault'
               e.defaultPrevented = false
               e.preventDefault = ->
               e.dataTransfer =
-                getData: ->
-                  if username
-                    return "@#{username}"
-                  switch type
-                    when 'image', 'video', 'pdf'
-                      switch ti.data.format
-                        when 'markdown'
-                          "![](coauthor:#{id})"
-                        when 'latex'
-                          "\\includegraphics{coauthor:#{id}}"
-                        when 'html'
-                          """<img src="coauthor:#{id}">"""
-                    #when 'video'
-                    #  """<video controls><source src="coauthor:#{id}"></video>"""
-                    else
-                      "coauthor:#{id}"
+                getData: -> replacement
             cmDrop e
           editor.setOption 'dragDrop', true
 
