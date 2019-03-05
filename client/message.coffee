@@ -158,9 +158,9 @@ Template.message.helpers
       title = "User '#{user.username}': " # like linkToAuthor
       if user.username of subscribed
         title += 'Subscribed to email notifications'
-        icon = '<span class="fas fa-check text-success"></span> '
+        icon = '<span class="fas fa-check"></span> ' #text-success
       else
-        icon = '<span class="fas fa-times text-danger"></span> '
+        icon = '<span class="fas fa-times"></span> ' #text-danger
         unless user.emails?[0]?
           title += "No email address"
         else if not user.emails[0].verified
