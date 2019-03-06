@@ -513,8 +513,11 @@ postprocessAtMentions = (text) ->
   return text unless ///#{atRePrefix}///.test text
   users = allUsernames()
   return text unless 0 < users.length
-  text.replace (atRe users), (match, user) ->
-    "@#{linkToAuthor (routeGroup?() ? wildGroup), user}"
+  text.replace (atRe users), (match, user, offset, string) ->
+    unless inTag string, offset
+      "@#{linkToAuthor (routeGroup?() ? wildGroup), user}"
+    else # e.g. in <a title="..."> caused by postprocessCoauthorLinks
+      match
 
 preprocessKaTeX = (text) ->
   math = []
