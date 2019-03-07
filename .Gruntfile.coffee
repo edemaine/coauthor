@@ -24,6 +24,7 @@ module.exports = (grunt) ->
           #'node_modules/codemirror/theme/eclipse.css'
           'node_modules/codemirror/addon/dialog/dialog.css'
           'node_modules/codemirror/addon/fold/foldgutter.css'
+          'node_modules/codemirror/addon/hint/show-hint.css'
         ]
         dest: 'client/codemirror/'
       pdfjs:
@@ -68,10 +69,7 @@ module.exports = (grunt) ->
         files: [
           expand: true
           flatten: true
-          src: [
-            'node_modules/codemirror/theme/eclipse.css'
-            'node_modules/codemirror/addon/hint/show-hint.css'
-          ]
+          src: 'node_modules/codemirror/theme/eclipse.css'
           dest: 'client/codemirror/'
         ]
       codemirror:
