@@ -6,6 +6,10 @@ module.exports = (grunt) ->
         src: [
           'client/codemirror/*.js'
         ]
+      css:
+        src: [
+          'client/*.min.css'
+        ]
     copy:
       katex_fonts:
         expand: true
@@ -27,11 +31,19 @@ module.exports = (grunt) ->
         flatten: true
         src: 'node_modules/pdfjs-dist/build/pdf.worker.min.js'
         dest: 'public/'
+      bootstrap:
+        expand: true
+        flatten: true
+        src: [
+          'node_modules/bootstrap/dist/js/bootstrap.min.js'
+          'node_modules/bootstrap/dist/css/bootstrap.min.css'
+        ]
+        dest: 'client/bootstrap/'
       bootstrap_slider:
         expand: true
         flatten: true
         src: 'node_modules/bootstrap-slider/dist/css/bootstrap-slider.min.css'
-        dest: 'client/'
+        dest: 'client/bootstrap/'
     replace:
       katex:
         options:

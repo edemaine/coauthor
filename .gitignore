@@ -2,7 +2,9 @@
 *.swp
 .backup/coauthor-backup
 node_modules
-client/bootstrap-slider.min.css
+client/bootstrap/bootstrap.min.css
+client/bootstrap/bootstrap.min.js
+client/bootstrap/bootstrap-slider.min.css
 client/katex.min.css
 public/timezones.json
 public/katex
