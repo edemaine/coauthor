@@ -5,9 +5,11 @@
 
 export defaultFormat = 'markdown'
 
-@defaultTheme = 'light'
-@theme = ->
-  Meteor.user()?.profile?.theme ? defaultTheme
+@defaultThemeEditor = @defaultThemeGlobal = 'light'
+@themeEditor = ->
+  Meteor.user()?.profile?.theme.editor ? defaultThemeEditor
+@themeGlobal = ->
+  Meteor.user()?.profile?.theme.global ? defaultThemeGlobal
 
 @defaultKeyboard = 'normal'
 

@@ -1,11 +1,13 @@
 .meteor/local
 *.swp
 .backup/coauthor-backup
+.bootstrap
 node_modules
-client/bootstrap/bootstrap.min.css
 client/bootstrap/bootstrap.min.js
 client/bootstrap/bootstrap-slider.min.css
 client/katex.min.css
+public/bootstrap/dark.min.css
+public/bootstrap/light.min.css
 public/timezones.json
 public/katex
 public/pdf.worker.min.js

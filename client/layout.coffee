@@ -26,6 +26,7 @@ Template.layout.onRendered ->
       break
 
 Template.layout.helpers
+  themeGlobal: -> themeGlobal()
   activeGroup: ->
     data = Template.parentData()
     if routeGroup() == @name

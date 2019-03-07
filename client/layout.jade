@@ -1,4 +1,6 @@
 head
+  link(rel="stylesheet", href="/bootstrap/light.min.css", id="themeLink")
+  meteor-bundled-css
   link(href="https://fonts.googleapis.com/css?family=Merriweather:400,400i,700&subset=latin-ext", rel="stylesheet", crossorigin="anonymous")
   link(rel="stylesheet", href="https://use.fontawesome.com/releases/v5.7.2/css/all.css", integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr", crossorigin="anonymous")
   //-
@@ -7,7 +9,7 @@ head
   meta(name="viewport", content="width=device-width, initial-scale=1")
 
 template(name="layout")
-  .container-fluid
+  .container-fluid(class=themeGlobal)
     nav.navbar.navbar-default.navbar-flex(role="navigation")#top
       .navbar-header
         button.navbar-toggle.collapsed(type="button", data-toggle="collapse", data-target="#navbar")
@@ -62,7 +64,7 @@ template(name="layout")
         .navbar-btn.btn-group
           if couldSuper
             if super
-              button.superButton.btn.btn-normal Leave Superuser
+              button.superButton.btn.btn-success Leave Superuser
             else
               button.superButton.btn.btn-danger Become Superuser
           if admin

@@ -32,6 +32,8 @@ input.title ~ .message-right-buttons { margin: 0px; }
 .emoji-face { margin-top: -2px; vertical-align: middle; }
 .positive { color: #8465b3; }
 .negative { color: #d9534f; }
+.dark .positive { color: #ad76fe; }
+.dark .negative { color: #ff7a75; }
 .emojiMenu { padding: 5px; /* normally 5px 0 */
              width: max-content; min-width: auto; max-width: 300px; }
 .emojiMenu > li { display: inline-block; }
@@ -83,6 +85,7 @@ nav.contents { overflow-y: scroll; padding-bottom: 5px; }
 /* Purples based on #563d7c from Bootstrap docs */
 .subcontents { border-left: solid 2px #8465b3; padding-left: 3px; }
 .contents li.active > a { background: #d1c5e2; }
+.dark .contents li.active > a { background: #3c245e; }
 .contents li > a.deleted { color: #a94442; font-size: x-small; padding: 2px 10px; }
 .contents li > a.unpublished { color: #8a6d3b; font-size: x-small; padding: 2px 10px; }
 .contents li > a.private { color: #5bc0de; }
@@ -91,7 +94,9 @@ nav.contents { overflow-y: scroll; padding-bottom: 5px; }
 
 code.raw, pre { white-space: pre-wrap; }
 /* match <pre>, overriding Bootstrap code defaults */
-code { color: #333; background-color: #f5f5f5; font-size: 100%; }
+code { font-size: 100%; }
+code { color: #333; background-color: #f5f5f5; }
+.dark code { color: #eee; background-color: #222; }
 s .katex .base, del .katex .base { position: relative; } /* already in KaTeX */
 s .katex .base:after, del .katex .base:after { content: "";
   position: absolute; left: 0; width: 100%; top: 50%; display: block;

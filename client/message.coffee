@@ -642,13 +642,13 @@ Template.submessage.helpers
             'CodeMirror-foldgutter'
           ]
           editor.setOption 'theme',
-            switch theme()
+            switch themeEditor()
               when 'dark'
                 'blackboard'
               when 'light'
                 'eclipse'
               else
-                theme()
+                themeEditor()
           pasteHTML = false
           editor.setOption 'extraKeys',
             Enter: 'newlineAndIndentContinueMarkdownList'
@@ -791,13 +791,13 @@ Template.submessage.helpers
           editor.$blockScrolling = Infinity
           #editor.on 'change', onChange
           editor.setTheme 'ace/theme/' +
-            switch theme()
+            switch themeEditor()
               when 'dark'
                 'vibrant_ink'
               when 'light'
                 'chrome'
               else
-                theme()
+                themeEditor()
           editor.setShowPrintMargin false
           editor.setBehavioursEnabled true
           editor.setShowFoldWidgets true

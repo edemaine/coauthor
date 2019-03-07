@@ -33,6 +33,13 @@ Meteor.users.update
 ,
   multi: true
 
+## Upgrade from old single (editor) theme setting
+Meteor.users.find
+  'profile.theme': $type: 'string'
+.forEach (user) ->
+  Meteor.users.update user._id,
+    $set: 'profile.theme': editor: user.profile.theme
+
 ## Upgrade from old notification format which listed all dates and diffs
 Notifications.find
   dates: $exists: true

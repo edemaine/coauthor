@@ -20,6 +20,18 @@ template(name="settings")
                 +_loginButtonsAdditionalLoggedInDropdownActions
           tr
             th
+              label Global theme:
+              .description Throughout Coauthor (except editor): Black text on white background (Light) or white text on black background (Dark).
+            td
+              button.btn.btn-default.themeGlobalButton(type="button", data-toggle="button", autocomplete="off")= themeGlobal
+          tr
+            th
+              label Editor theme:
+              .description When editing messages: Black text on white background (Light) or white text on black background (Dark).
+            td
+              button.btn.btn-default.themeEditorButton(type="button", data-toggle="button", autocomplete="off")= themeEditor
+          tr
+            th
               label Default message format:
               .description All formats support LaTeX math like <code>$x+y$</code>, arbitrary HTML like <code>&lt;i&gt;...&lt;/i&gt;</code>, and (except in HTML format) many LaTeX macros like <code>\begin{theorem}...\end{theorem}</code>. The message format primarily controls how punctuation gets interpreted, e.g., whether comments are specified with <code>%</code> (LaTeX) or <code>&lt;!--...--&gt;</code>, or whether <code>*</code> turns into an unordered list item (Markdown).  See the <a href="https://github.com/edemaine/coauthor#features-so-far">detailed list of supported features</a>.
             td
@@ -39,12 +51,6 @@ template(name="settings")
                 button.btn.btn-success.autopublishButton(type="button", data-toggle="button", autocomplete="off") Yes
               else
                 button.btn.btn-warning.autopublishButton(type="button", data-toggle="button", autocomplete="off") No
-          tr
-            th
-              label Editor theme:
-              .description Black text on white background (Light) or white text on black background (Dark).
-            td
-              button.btn.btn-default.themeButton(type="button", data-toggle="button", autocomplete="off")= theme
           tr
             th
               label Preview while editing (by default):

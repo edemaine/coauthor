@@ -28,7 +28,8 @@ Template.settings.helpers
   notifySelf: notifySelf
   autosubscribeGroup: -> autosubscribe routeGroup()
   autosubscribeGlobal: -> autosubscribe wildGroup
-  theme: -> capitalize theme()
+  themeGlobal: -> capitalize themeGlobal()
+  themeEditor: -> capitalize themeEditor()
   previewOn: -> messagePreviewDefault().on
   previewSideBySide: -> messagePreviewDefault().sideBySide
   dropbox: ->
@@ -94,12 +95,22 @@ Template.settings.events
     Meteor.users.update Meteor.userId(),
       $set: "profile.notifications.autosubscribe.#{escapeGroup routeGroup()}": not autosubscribe routeGroup()
 
-  'click .themeButton': (e, t) ->
+  'click .themeGlobalButton': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
     Meteor.users.update Meteor.userId(),
-      $set: "profile.theme":
-        if theme() == 'dark'
+      $set: "profile.theme.global":
+        if themeGlobal() == 'dark'
+          'light'
+        else
+          'dark'
+
+  'click .themeEditorButton': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    Meteor.users.update Meteor.userId(),
+      $set: "profile.theme.editor":
+        if themeEditor() == 'dark'
           'light'
         else
           'dark'
