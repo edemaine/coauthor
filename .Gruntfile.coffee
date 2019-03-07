@@ -92,6 +92,12 @@ module.exports = (grunt) ->
             'input-color-placeholder':    '@gray-light'
             'legend-color':               '@text-color'
             'legend-border-color':        '@gray-dark'
+            'progress-bg':                '@gray-darker'
+            'list-group-bg':                 '@gray-darker'
+            'list-group-border':             '@gray-dark'
+            'list-group-hover-bg':           'lighten(@list-group-bg, 15%)'
+            'list-group-link-color':         '@text-color'
+            'list-group-link-heading-color': '#fff'
         src: 'node_modules/bootstrap/less/bootstrap.less'
         dest: '.bootstrap/dark.css'
     copy:
