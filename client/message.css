@@ -65,7 +65,9 @@ input.title ~ .message-right-buttons { margin: 0px; }
   cursor: auto; padding: 0px 5px; } /* normally 3px 20px */
 .dropdown-menu.tagMenu > li > a { font-size: 75%; } /* matches label */
 
-.dropdown-menu.actionMenu { min-width: 100px; background: rgb(217,237,247); }
+.dropdown-menu.actionMenu { min-width: 100px; }
+.dropdown-menu.actionMenu { background: #d9edf7; }
+.dark .dropdown-menu.actionMenu { background: #175b70; }
 .dropdown-menu.actionMenu > li > a { padding: 2px 10px; }
 .dropdown-menu.actionMenu > li > a:hover { min-width: 100px; background: white; }
 
