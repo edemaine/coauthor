@@ -138,6 +138,7 @@ s a, del a { text-decoration-color: #c7254e; }
 
 /* Based on Github's .markdown-body styling e.g.
  * https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet#tables
+ * Plus some special formatting for thead.
  * Also return text-align to left to counteract .message-body's
  * text-align: justify
  */
@@ -145,8 +146,11 @@ s a, del a { text-decoration-color: #c7254e; }
 .message-body table td, .message-body table th { padding: 6px 13px; border: 1px solid #ddd }
 .message-body table tr { background-color: #fff; }
 .message-body table tr:nth-child(2n) { background-color: #f8f8f8; }
+.message-body table thead tr { background-color: #ccc; }
+.dark .message-body table td, .dark .message-body table th { border: 1px solid #444 }
 .dark .message-body table tr { background-color: #000; }
 .dark .message-body table tr:nth-child(2n) { background-color: #222; }
+.dark .message-body table thead tr { background-color: #555; }
 
 em em { font-style: normal }
 em em em { font-style: italic }
