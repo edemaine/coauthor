@@ -239,8 +239,9 @@ importLaTeX = (group, zip) ->
     bib = await content.async('string')
     r = /@[\w\s]*{([^,]*),[^@]*?\burl\s*=\s*("[^"]*"|{[^{}]*})/ig
     while (match = r.exec bib)?
+      key = match[1].trim()
       author = /\bauthor\s*=\s*("(?:{[^{}]*}|[^"])*"|{(?:[^{}]|{(?:[^{}]|{[^{}]*})*})*})/i.exec match[0]
-      console.log match[0] unless author
+      console.log match[0], 'has no author' unless author
       author = author[1][1...-1].split /\s*\band\b\s*/i
       author = for auth in author
         if ',' in auth
@@ -248,20 +249,20 @@ importLaTeX = (group, zip) ->
         else
           auth
       title = /\btitle\s*=\s*("(?:{[^{}]*}|[^"])*"|{(?:[^{}]|{(?:[^{}]|{[^{}]*})*})*})/i.exec match[0]
-      console.log match[0] unless title
+      console.log match[0], 'has no title' unless title
       title = title[1][1...-1].replace /[{}]/g, ''
       year = /\byear\s*=\s*("(?:{[^{}]*}|[^"])*"|{(?:[^{}]|{[^{}]*})*}|\d+)/i.exec match[0]
       if year?
         year = year[1].replace /["{}]/g, ''
       else
-        console.warn match[1], 'has no year'
+        console.warn key, 'has no year'
       if author.length <= 1
         abbrev = /([^{}]|{[^{}]*}){1,3}/.exec(lastName author[0])[0].replace /[{}]/g, ''
       else
         abbrev = (lastName(auth)[0] for auth in author).join ''
       abbrev += year[-2..] if year?
-      console.log match[1], '=', abbrev, '=', author.join(' & '), year, '=', match[2][1...-1]
-      bibs[match[1]] =
+      console.log key, '=', abbrev, '=', author.join(' & '), year, '=', match[2][1...-1]
+      bibs[key] =
         author: author
         title: title
         year: year
@@ -390,6 +391,8 @@ importLaTeX = (group, zip) ->
     .replace /(^|[^\\])%.*$\n?/mg, '$1'
     .replace /\\begin\s*{(wrap)?figure}[^]*?\\end\s*{(wrap)?figure}\s*/g, ''
     .replace /\\hspace\*?\s*{0pt}/g, ''  ## used to place wrapfigures
+    .replace /\\let\s*\\realbibitem\s*=?\s*\\bibitem/g, ''  ## bibliography
+    .replace /\\def\s*\\bibitem\s*{([^{}]|{[^{}]*})*}/g, ''  ## bibliography
     tex = processCites tex
     depths = []
     start = null
@@ -405,6 +408,7 @@ importLaTeX = (group, zip) ->
         body = body.replace /\\label{([^{}]*)}/g, (match, label) ->
           labels[label] = title2section title
           ''
+        .replace /^\s*\\vspace\*?\s*{[^{}]*}/, ''  ## used to place wrapfigures
         console.log "Importing '#{title}'"
         messages.push
           title: title
