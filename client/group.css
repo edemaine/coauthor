@@ -6,7 +6,7 @@
 .table > tbody > tr.messageShort > td > a { display: block; color: inherit; padding: 6px 8px; }
 .table > tbody > tr.messageShort:hover > td { background-color: #5cb85c; }
 .table > tbody > tr.messageShort:hover > td > a { text-decoration: underline; color: white; }
-.table > tbody > tr.messageShort:hover > td.subscribe { background-color: #5cb85c; }
+.dark .table > tbody > tr.messageShort:hover > td { background-color: #2c592c; }
 
 .badge-zero { background-color: #a94442; }
 .badge-positive { background-color: #8465b3; }
