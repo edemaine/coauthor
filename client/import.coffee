@@ -210,8 +210,18 @@ importOSQA = (group, zip) ->
 
 importOSQA.readAs = 'ArrayBuffer'
 
+accentMap =
+  "'": '\u0301'
+  '"': '\u0308'
+  '`': '\u0300'
+latexAccents = (x) ->
+  x.replace /\\(['"`])([^{]|{[^{}]})/g, (match, accent, char) ->
+    char = char[1] if char.length == 3
+    (char + accentMap[accent]).normalize()
+
 lastName = (x) ->
-  x = x.replace /[{}]/g, ''
+  x = latexAccents x
+  .replace /[{}]/g, ''
   if ' ' in x
     x[x.lastIndexOf(' ')+1..]
   else
@@ -286,7 +296,7 @@ importLaTeX = (group, zip) ->
           cite = cite.trim()
           bib = bibs[cite]
           if bib?
-            "\\pdftooltip{\\href{#{bib.url}}{#{bib.abbrev}}}{``#{cleanBibTeX bib.title}'' by #{cleanBibTeX bib.author.join '; '}}"
+            "\\pdftooltip{\\href{#{bib.url}}{#{bib.abbrev}}}{\u201c#{cleanBibTeX bib.title}\u201d by #{cleanBibTeX latexAccents bib.author.join '; '}}"
           else
             console.warn "Missing bib url for '#{cite}'" unless bib?
             cite
