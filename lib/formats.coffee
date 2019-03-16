@@ -104,6 +104,8 @@ latexSymbols =
 latexSymbolsRe = ///#{_.keys(latexSymbols).join '|'}///g
 latexEscape = (x) ->
   x.replace /[-`'~\\$%&<>]/g, (char) -> "&##{char.charCodeAt 0};"
+latexURL = (x) ->
+  x.replace /\\([_#@$%&])/g, '$1'
 
 defaultFontFamily = 'Merriweather'
 lightWeight = 300
@@ -118,8 +120,12 @@ latex2htmlVerb = (tex) ->
   tex.replace /\\begin\s*{verbatim}([^]*?)\\end\s*{verbatim}/g,
     (match, verb) -> "<pre>#{latexEscape verb}</pre>"
   .replace /\\url\s*{([^{}]*)}/g, (match, url) ->
+    url = latexURL url
     """<a href="#{url}">#{latexEscape url}</a>"""
-  .replace /\\href\s*{([^{}]*)}\s*{((?:[^{}]|{[^{}]*})*)}/g, '<a href="$1">$2</a>'
+  .replace /\\href\s*{([^{}]*)}\s*{((?:[^{}]|{[^{}]*})*)}/g,
+    (match, url, text) ->
+      url = latexURL url
+      """<a href="#{url}">#{text}</a>"""
 
 ## Remove comments, stripping newlines from the input.
 latexStripComments = (text) ->
