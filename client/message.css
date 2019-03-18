@@ -92,10 +92,14 @@ nav.contents { overflow-y: scroll; padding-bottom: 5px; }
 .dark .contents li > a { color: #eee; }
 .contents li.active > a { background: #d1c5e2; }
 .dark .contents li.active > a { background: #3c245e; }
-.contents li > a.deleted { color: #a94442; font-size: x-small; padding: 2px 10px; }
-.contents li > a.unpublished { color: #8a6d3b; font-size: x-small; padding: 2px 10px; }
+.contents li > a.deleted, .contents li > a.unpublished, .contents li > a.minimized { font-size: x-small; padding: 2px 10px; }
+.contents li > a.deleted { color: #a94442; }
+.contents li > a.unpublished { color: #8a6d3b; }
 .contents li > a.private { color: #5bc0de; }
-.contents li > a.minimized { color: #449d44; font-size: small; padding: 3px 10px; }
+.contents li > a.minimized { color: #449d44; }
+.dark .contents li > a.deleted { color: #d9534f; }
+.dark .contents li > a.unpublished { color: #f0ad4e; }
+.dark .contents li > a.minimized { color: #5cb85c; }
 .affix { top: 0px; }
 
 code.raw, pre { white-space: pre-wrap; }

@@ -98,6 +98,8 @@ module.exports = (grunt) ->
             'list-group-hover-bg':           'lighten(@list-group-bg, 15%)'
             'list-group-link-color':         '@text-color'
             'list-group-link-heading-color': '#fff'
+            'label-color':            '#000'
+            'label-link-hover-color': '#000'
         src: 'node_modules/bootstrap/less/bootstrap.less'
         dest: '.bootstrap/dark.css'
     copy:
