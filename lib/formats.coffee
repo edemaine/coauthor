@@ -158,6 +158,11 @@ latex2htmlDef = (tex) ->
       tex = tex.replace r, (match, def) -> defs[def]
   tex
 
+texAlign =
+  raggedleft: 'right'
+  raggedright: 'left'
+  centering: 'center'
+
 ## Process all commands starting with \ followed by a letter a-z.
 ## This is not a valid escape sequence in Markdown, so can be safely supported
 ## in Markdown too.
@@ -215,6 +220,9 @@ latex2htmlCommandsAlpha = (tex, math) ->
     .replace /\\sf\b\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-family: sans-serif">$1</span>"""
     .replace /\\tt\b\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-family: monospace">$1</span>"""
     .replace /\\sc\b\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-variant: small-caps">$1</span>"""
+    ## Alignment
+    .replace /\\(raggedleft|raggedright|centering)\b\s*((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)/g, (match, align, content) ->
+      """<div style="text-align:#{texAlign[align]};"><p>#{content}</p></div>"""
     break if old == tex
   tex = tex
   .replace /\\(uppercase|MakeTextUppercase)\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="text-transform: uppercase">$2</span>'
