@@ -82,6 +82,8 @@ in other fields too.
     attributes `title`, `style`, `class`, `aria-*`.
     Also supports LaTeX math mode.
 
+* Light and dark themes available under Settings.
+
 * [CodeMirror editor](http://codemirror.net/) supports syntax highlighting,
   block folding, bracket matching, line numbering, light and dark themes,
   [spell checking](https://github.com/NextStepWebs/codemirror-spell-checker),
@@ -92,6 +94,9 @@ in other fields too.
     URLs produces `coauthor:...` links or embeds images.  Special handling of
     user URLs produces @mentions.  To paste rich text, you can toggle HTML
     paste mode via Ctrl-Shift-H.
+  * @mentioning has automatic completion of all users in group. You can type
+    any substring of the real name or username (but skipping spaces, like
+    Github), and select by pressing enter, or ignore by pressing space.
 
 * Messages are organized by **groups** (intended to correspond to groups of
   people who meet), so it's easy to share material with everyone in the group.
