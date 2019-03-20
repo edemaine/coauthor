@@ -182,6 +182,12 @@ module.exports = (grunt) ->
           ,
             match: /\|coap\|/
             replacement: '|coap|coauthor|'
+          ,
+            match: /newlineAndIndentContinueMarkdownList/
+            replacement: 'xnewlineAndIndentContinueMarkdownList'
+          ,
+            match: /cm\.getMode\(\)\.innerMode\(/
+            replacement: 'CodeMirror.innerMode(cm.getMode(), '
           ]
         files: [
           expand: true
@@ -197,7 +203,7 @@ module.exports = (grunt) ->
             #'node_modules/codemirror/keymap/emacs.js'
             #'node_modules/codemirror/addon/dialog/dialog.js'
             #'node_modules/codemirror/addon/edit/matchbrackets.js'
-            #'node_modules/codemirror/addon/edit/continuelist.js'
+            'node_modules/codemirror/addon/edit/continuelist.js'
             #'node_modules/codemirror/addon/fold/foldcode.js'
             #'node_modules/codemirror/addon/fold/foldgutter.js'
             #'node_modules/codemirror/addon/fold/markdown-fold.js'

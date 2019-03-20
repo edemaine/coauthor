@@ -651,7 +651,7 @@ Template.submessage.helpers
                 themeEditor()
           pasteHTML = false
           editor.setOption 'extraKeys',
-            Enter: 'newlineAndIndentContinueMarkdownList'
+            Enter: 'xnewlineAndIndentContinueMarkdownList'
             End: 'goLineRight'
             Home: 'goLineLeft'
             "Shift-Ctrl-H": (cm) ->
