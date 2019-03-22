@@ -917,6 +917,13 @@ Template.messageLabels.helpers
   private: historify 'private'
 
 Template.messageNeighbors.helpers
+  parent: ->
+    if @_id
+      tooltipUpdate()
+      findMessageParent @_id
+      #parent = findMessageParent @_id
+      #parent.child = @_id
+      #parent
   prev: ->
     tooltipUpdate()
     messageNeighbors(@)?.prev

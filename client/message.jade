@@ -97,8 +97,7 @@ template(name="submessage")
               a.btn.btn-info.focusButton(aria-label="Focus", href="{{pathFor 'message' group=group message=_id}}", draggable="true")
                 span.fas.fa-sign-in-alt(aria-hidden="true")
             if here
-              unless root
-                +messageNeighbors
+              +messageNeighbors
           span.space
           if file
             span.fas.fa-paperclip
@@ -278,20 +277,26 @@ template(name="submessage")
               +messageLabels
 
 template(name="messageNeighbors")
-  if prev
-    with prev
-      a.btn.btn-info(href="{{pathFor 'message' group=group message=_id}}")
-        span.fas.fa-backward(aria-hidden="true", data-toggle="tooltip", data-original-title=title)
+  if root
+    if parent
+      with parent
+        a.btn.btn-info(href="{{pathFor 'message' group=group message=_id}}#")
+          span.fas.fa-chevron-up(aria-hidden="true", data-toggle="tooltip", data-original-title=title)
   else
-    a.btn.btn-info.disabled
-      span.fas.fa-backward(aria-hidden="true")
-  if next
-    with next
-      a.btn.btn-info(href="{{pathFor 'message' group=group message=_id}}")
-        span.fas.fa-forward(aria-hidden="true", data-toggle="tooltip", data-original-title=title)
-  else
-    a.btn.btn-info.disabled
-      span.fas.fa-forward(aria-hidden="true")
+    if prev
+      with prev
+        a.btn.btn-info(href="{{pathFor 'message' group=group message=_id}}")
+          span.fas.fa-backward(aria-hidden="true", data-toggle="tooltip", data-original-title=title)
+    else
+      a.btn.btn-info.disabled
+        span.fas.fa-backward(aria-hidden="true")
+    if next
+      with next
+        a.btn.btn-info(href="{{pathFor 'message' group=group message=_id}}")
+          span.fas.fa-forward(aria-hidden="true", data-toggle="tooltip", data-original-title=title)
+    else
+      a.btn.btn-info.disabled
+        span.fas.fa-forward(aria-hidden="true")
 
 template(name="belowEditor")
   .belowEditor.clearfix
