@@ -5,7 +5,6 @@
 
 lastURL = null
 pastTops = {}
-loadedPastTops = false
 transitioning = false
 
 saveTops = _.debounce ->
@@ -19,9 +18,20 @@ $(window).scroll ->
   #console.log lastURL, $(window).scrollTop()
   saveTops()
 
+$(window).click (e) ->
+  ## If we click on a link with a hash mark in it, forget and therefore
+  ## don't scroll to remembered position.
+  if e.target?.href?.endsWith? '#'
+    delete pastTops[e.target.href[...e.target.href.length-1]]
+  else if e.target?.hash
+    delete pastTops[e.target.href]
+    ## If we click on a hash link to the same message again, scroll there.
+    if e.target.href == window.location.toString()
+      scrollToMessage e.target.hash
+
 Router.onBeforeAction ->
   transitioning = true
-  if stored = sessionStorage?.getItem? 'pastTops'
+  if _.isEmpty(pastTops) and stored = sessionStorage?.getItem? 'pastTops'
     pastTops = JSON.parse stored
     #console.log 'loaded', pastTops
   @next()

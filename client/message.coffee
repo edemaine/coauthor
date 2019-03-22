@@ -428,6 +428,10 @@ Template.submessage.onRendered ->
   @autorun =>
     listener = messageDrag.call @, focusButton, true, listener
 
+  ## Scroll to this message if it's been requested.
+  if scrollToLater == @data._id
+    scrollToMessage @data._id
+
   ## Fold naturally folded (minimized and deleted) messages
   ## by default on initial load.
   messageFolded.set @data._id, true if natural = naturallyFolded @data
@@ -435,7 +439,6 @@ Template.submessage.onRendered ->
   ## Fold referenced attached files by default on initial load.
   #@$.children('.panel').children('.panel-body').find('a[href|="/file/"]')
   #console.log @$ 'a[href|="/file/"]'
-  scrollToMessage @data._id if scrollToLater == @data._id
   #images = Session.get 'images'
   @images = {}
   @imagesInternal = {}
@@ -542,11 +545,13 @@ image2orientation = {}
 scrollDelay = 750
 
 @scrollToMessage = (id) ->
+  if id[0] == '#'
+    id = id[1..]
   if id of id2template
     template = id2template[id]
-    $.scrollTo template.firstNode, scrollDelay,
-      easing: 'swing'
-      onAfter: ->
+    $('html, body').animate
+      scrollTop: template.firstNode.offsetTop
+    , 200, 'swing', ->
         $(template.find 'input.title').focus()
   else
     scrollToLater = id
