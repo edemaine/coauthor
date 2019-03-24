@@ -1181,6 +1181,20 @@ Template.submessage.events
     e.preventDefault()
     e.stopPropagation()
 
+  'mousedown .resizer': (start, t) ->
+    $(start.target).addClass 'active'
+    oldHeight = t.$('.CodeMirror').height()
+    $(document).mousemove mover = (move) ->
+      height = "#{Math.max 100, oldHeight + move.clientY - start.clientY}px"
+      t.editor.setSize null, height
+    cancel = (e) ->
+      $(start.target).removeClass 'active'
+      $(document).off 'mousemove', mover
+      $(document).off 'mouseup', cancel
+      $(document).off 'mouseleave', cancel
+    $(document).mouseup cancel
+    $(document).mouseleave cancel
+
 Template.superdelete.events
   'click .shallowSuperdeleteButton': (e, t) ->
     e.preventDefault()

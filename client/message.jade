@@ -216,8 +216,8 @@ template(name="submessage")
     unless folded
       if history
         +messageHistory forHistory
-      .editorAndBody.clearfix
-        .editorContainer(class=sideBySideClass)
+      .editorAndBody.clearfix(class=sideBySideClass)
+        .editorContainer
           unless history
             with nothing
               if editingRV
@@ -226,8 +226,9 @@ template(name="submessage")
             if editingRV
               unless previewSideBySide
                 +belowEditor editData
+                .resizer
         if preview
-          .bodyContainer(class=sideBySideClass)
+          .bodyContainer
             if file
               if editingRV
                 .fileDescription
@@ -248,6 +249,7 @@ template(name="submessage")
       if editingRV
         if previewSideBySide
           +belowEditor editData
+          .resizer
       .message-footer
         +messageAuthor
         .message-reply-buttons.clearfix.hidden-print

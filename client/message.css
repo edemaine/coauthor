@@ -43,12 +43,18 @@ input.title ~ .message-right-buttons { margin: 0px; }
 .emojiMenu > li > a { display: inline-block; font-size: large;
   padding: 8px 8px; /* normally 3px 20px */ }
 
+/*
 .previewButtons { padding: 0px 15px; }
-.sideBySide { width: 50%; margin: 0px; display: inline-block; }
-.previewButtons.sideBySide { float: left; }
-.bodyContainer.sideBySide { float: right; height: 300px; overflow: scroll; }
-  /* 300px matches .CodeMirror's height */
-.ace_editor { width: 100%; height: 20em; }
+.sideBySide .previewButtons { float: left; }
+*/
+.sideBySide { display: flex; align-items: stretch; }
+.sideBySide .editorContainer { flex: 1; margin: 0px; display: inline-block; }
+.sideBySide .bodyContainer { flex: 1; overflow: scroll; }
+/*.ace_editor { width: 100%; height: 20em; }*/
+.resizer { user-select: none; cursor: row-resize;
+  border-top: ridge 3px #337ab7; }
+.resizer:hover, .resizer.active { border-top-color: #286090; } /* link highlight color */
+.dark .resizer:hover, .dark .resizer.active { border-top-color: #c7ddef; }
 
 .children { margin-left: 1em; }
 
