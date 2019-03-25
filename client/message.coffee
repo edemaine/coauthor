@@ -240,24 +240,29 @@ messagePreview = new ReactiveDict
   profile = Meteor.user().profile?.preview
   on: profile?.on ? true
   sideBySide: profile?.sideBySide ? false
+  height: profile?.height ? 300
 ## The following helpers should only be called when editing.
 ## They can be called in two settings:
 ##   * Within the submessage template, and possibly within a `with nothing`
 ##     data environment.  In this case, we use the `editing` ReactiveVar
 ##     to get the message ID, because we should be editing.
 ##   * From the betweenEditorAndBody subtemplate.  Then we can use `_id` data.
-messagePreviewGet = ->
-  if Template.instance().editing?
-    id = Template.instance().editing.get()
+messagePreviewGet = (template = Template.instance()) ->
+  if template.editing?
+    id = template.editing.get()
+  else if (data = Template.currentData())?
+    id = data._id
   else
-    id = Template.currentData()._id
+    id = template.data._id
   return unless id
   messagePreview.get(id) ? messagePreviewDefault()
-messagePreviewSet = (change) ->
-  if Template.instance().editing?
-    id = Template.instance().editing.get()
+messagePreviewSet = (change, template = Template.instance()) ->
+  if template.editing?
+    id = template.editing.get()
+  else if data = Template.currentData()
+    id = data._id
   else
-    id = Template.currentData()._id
+    id = template.data._id
   return unless id
   preview = messagePreview.get(id) ? messagePreviewDefault()
   messagePreview.set id, change preview
@@ -512,6 +517,20 @@ Template.submessage.onRendered ->
   window.addEventListener 'resize',
     _.debounce (=> messageImageTransform.call @), 100
 
+  ## Update side-by-side height settings when leaving editing mode
+  ## and/or changing side-by-side preview setting.
+  @autorun =>
+    preview = messagePreviewGet()
+    if preview?
+      @editor?.setSize null, preview.height
+      @$('.bodyContainer').first().height \
+        if @editing.get() and preview.sideBySide
+          preview.height
+        else
+          'auto'
+    else ## preview unset when not editing
+      @$('.bodyContainer').first().height 'auto'
+
 ## Cache EXIF orientations, as files should be static
 image2orientation = {}
 @messageRotate = (data) ->
@@ -626,12 +645,14 @@ Template.submessage.helpers
   #myid: -> Tracker.nonreactive -> Template.instance().myid
   #editing: -> editing @
   config: ->
+    height = Tracker.nonreactive -> messagePreviewGet().height
     ti = Tracker.nonreactive -> Template.instance()
     (editor) =>
       #console.log 'config', editor.getValue(), '.'
       ti.editor = editor
       switch sharejsEditor
         when 'cm'
+          editor.setSize null, height
           editor.getInputField().setAttribute 'tabindex', 1 + 20 * ti.count + 19
           ## styleActiveLine is currently buggy on Android.
           if 0 > navigator.userAgent.toLowerCase().indexOf 'android'
@@ -1185,8 +1206,9 @@ Template.submessage.events
     $(start.target).addClass 'active'
     oldHeight = t.$('.CodeMirror').height()
     $(document).mousemove mover = (move) ->
-      height = "#{Math.max 100, oldHeight + move.clientY - start.clientY}px"
-      t.editor.setSize null, height
+      messagePreviewSet ((preview) -> _.extend {}, preview,
+        height: Math.max 100, oldHeight + move.clientY - start.clientY
+      ), t
     cancel = (e) ->
       $(start.target).removeClass 'active'
       $(document).off 'mousemove', mover
