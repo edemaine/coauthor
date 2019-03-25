@@ -236,11 +236,12 @@ export messageFolded = new ReactiveDict
 messageHistory = new ReactiveDict
 messageKeyboard = new ReactiveDict
 messagePreview = new ReactiveDict
+defaultHeight = 300
 @messagePreviewDefault = ->
   profile = Meteor.user().profile?.preview
   on: profile?.on ? true
   sideBySide: profile?.sideBySide ? false
-  height: profile?.height ? 300
+  height: profile?.height ? defaultHeight
 ## The following helpers should only be called when editing.
 ## They can be called in two settings:
 ##   * Within the submessage template, and possibly within a `with nothing`
@@ -248,22 +249,22 @@ messagePreview = new ReactiveDict
 ##     to get the message ID, because we should be editing.
 ##   * From the betweenEditorAndBody subtemplate.  Then we can use `_id` data.
 messagePreviewGet = (template = Template.instance()) ->
-  if template.editing?
-    id = template.editing.get()
-  else if (data = Template.currentData())?
-    id = data._id
-  else
-    id = template.data._id
-  return unless id
+  unless id?
+    id = template?.editing?.get()
+    unless id?
+      id = Template.currentData()?._id
+      unless id?
+        id = template?.data?._id
+        return unless id?
   messagePreview.get(id) ? messagePreviewDefault()
 messagePreviewSet = (change, template = Template.instance()) ->
-  if template.editing?
-    id = template.editing.get()
-  else if data = Template.currentData()
-    id = data._id
-  else
-    id = template.data._id
-  return unless id
+  unless id?
+    id = template?.editing?.get()
+    unless id?
+      id = Template.currentData()?._id
+      unless id?
+        id = template?.data?._id
+        return unless id?
   preview = messagePreview.get(id) ? messagePreviewDefault()
   messagePreview.set id, change preview
 
@@ -521,15 +522,13 @@ Template.submessage.onRendered ->
   ## and/or changing side-by-side preview setting.
   @autorun =>
     preview = messagePreviewGet()
-    if preview?
-      @editor?.setSize null, preview.height
-      @$('.bodyContainer').first().height \
-        if @editing.get() and preview.sideBySide
-          preview.height
-        else
-          'auto'
-    else ## preview unset when not editing
-      @$('.bodyContainer').first().height 'auto'
+    return unless preview?
+    @editor?.setSize null, preview.height
+    @$('.bodyContainer').first().height \
+      if @editing.get() and preview.sideBySide
+        preview.height
+      else
+        'auto'
 
 ## Cache EXIF orientations, as files should be static
 image2orientation = {}
@@ -645,7 +644,7 @@ Template.submessage.helpers
   #myid: -> Tracker.nonreactive -> Template.instance().myid
   #editing: -> editing @
   config: ->
-    height = Tracker.nonreactive -> messagePreviewGet().height
+    height = Tracker.nonreactive -> messagePreviewGet()?.height
     ti = Tracker.nonreactive -> Template.instance()
     (editor) =>
       #console.log 'config', editor.getValue(), '.'
@@ -955,6 +954,9 @@ Template.messageNeighbors.helpers
 Template.belowEditor.helpers
   preview: -> messagePreviewGet()?.on
   sideBySide: -> messagePreviewGet()?.sideBySide
+  changedHeight: ->
+    height = messagePreviewGet()?.height
+    height? and height != (Meteor.user()?.profile?.preview?.height ? defaultHeight)
   saved: ->
     @title == @editTitle and @body == @editBody
   otherEditors: ->
@@ -1201,6 +1203,12 @@ Template.submessage.events
   'click .replaceButton': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
+
+  'click .setHeight': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    Meteor.users.update Meteor.userId(),
+      $set: "profile.preview.height": messagePreviewGet()?.height
 
   'mousedown .resizer': (start, t) ->
     $(start.target).addClass 'active'

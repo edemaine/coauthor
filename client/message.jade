@@ -303,14 +303,16 @@ template(name="messageNeighbors")
 template(name="belowEditor")
   .belowEditor.clearfix
     .pull-right.btn-group
+      if changedHeight
+        button.btn.btn-xs.btn-warning.setHeight Set Default Height
       if preview
         if sideBySide
-          button.btn.btn-default.sideBySidePreview Top-Bottom Preview
+          button.btn.btn-default.sideBySidePreview Top-Bottom
         else
-          button.btn.btn-default.sideBySidePreview Side-by-Side Preview
-        button.btn.btn-default.togglePreview Disable Preview
+          button.btn.btn-default.sideBySidePreview Side-by-Side
+        button.btn.btn-default.togglePreview No Preview
       else
-        button.btn.btn-default.togglePreview Enable Preview
+        button.btn.btn-default.togglePreview Preview
     if saved
       .alert.alert-success.save-alert All changes saved.!{otherEditors}
     else
