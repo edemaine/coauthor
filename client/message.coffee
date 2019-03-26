@@ -914,7 +914,7 @@ Template.submessage.helpers
     preview = messagePreviewGet()
     preview?.on and preview?.sideBySide
   sideBySideClass: ->
-    if Template.instance().editing
+    if Template.instance().editing.get()
       preview = messagePreviewGet()
       if preview? and preview.on and preview.sideBySide
         'sideBySide'

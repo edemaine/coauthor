@@ -44,8 +44,8 @@ input.title ~ .message-right-buttons { margin: 0px; }
   padding: 8px 8px; /* normally 3px 20px */ }
 
 .sideBySide { display: flex; align-items: stretch; }
-.sideBySide .editorContainer { flex: 1; margin: 0px; display: inline-block; }
-.sideBySide .bodyContainer { flex: 1; overflow: scroll; }
+.sideBySide .editorContainer { flex: 1 1; width: 50%; margin: 0px; display: inline-block; }
+.sideBySide .bodyContainer { flex: 1 1; overflow: scroll; }
 .resizer { user-select: none; cursor: row-resize;
   border-top: ridge 3px #337ab7; }
 .resizer:hover, .resizer.active { border-top-color: #286090; } /* link highlight color */
