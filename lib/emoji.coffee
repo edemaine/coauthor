@@ -181,6 +181,7 @@ Meteor.methods
 
 ## Default set of group-global emoji
 if Meteor.isServer and Emoji.find().count() == 0
+
   Meteor.startup ->
     Emoji.insert
       symbol: 'thumbs-up'
@@ -188,30 +189,41 @@ if Meteor.isServer and Emoji.find().count() == 0
       description: '+1/agree'
       group: wildGroup
     Emoji.insert
+      symbol: 'heart'
+      class: 'neutral'
+      description: 'heart'
+      group: wildGroup
+    Emoji.insert
+      symbol: 'grin-beam'
+      class: 'neutral'
+      description: 'happy/funny'
+      group: wildGroup
+    Emoji.insert
+      symbol: 'surprise'
+      class: 'neutral'
+      description: 'surprise'
+      group: wildGroup
+    Emoji.insert
+      symbol: 'sad-tear'
+      class: 'neutral'
+      description: 'sad'
+      group: wildGroup
+    Emoji.insert
+      symbol: 'check'
+      class: 'neutral'
+      description: 'checked'
+      group: wildGroup
+    Emoji.insert
+      symbol: 'question'
+      class: 'neutral'
+      description: 'question/confusion'
+      group: wildGroup
+    Emoji.insert
       symbol: 'thumbs-down'
       class: 'negative'
       description: '-1/disagree'
       group: wildGroup
-    Emoji.insert
-      symbol: 'heart'
-      class: 'positive'
-      description: 'heart it'
-      group: wildGroup
-    Emoji.insert
-      symbol: 'check'
-      class: 'positive'
-      description: 'checked it'
-      group: wildGroup
-    Emoji.insert
-      symbol: 'question'
-      class: 'negative'
-      description: 'question/confusion'
-      group: wildGroup
     #Emoji.insert
     #  symbol: 'birthday-cake'
     #  description: 'celebrate'
-    #  group: wildGroup
-    #Emoji.insert
-    #  symbol: 'laugh-beam'
-    #  description: 'laugh'
     #  group: wildGroup
