@@ -41,6 +41,7 @@ input.title ~ .message-right-buttons { margin: 0px; }
 .dark .negative { color: #ff7a75; }
 .emojiMenu { padding: 5px; /* normally 5px 0 */
              width: max-content; min-width: auto; max-width: 300px; }
+.open > .emojiMenu.dropdown-menu { display: table; }
 .emojiMenu > li { display: inline-block; }
 .emojiMenu > li > a { display: inline-block; font-size: large;
   padding: 8px 8px; /* normally 3px 20px */ }
