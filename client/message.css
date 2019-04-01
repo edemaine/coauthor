@@ -27,8 +27,11 @@ input.title ~ .message-right-buttons { margin: 0px; }
   justify-content: space-between; align-items: center; }
 .fileDescriptionText { flex-grow: 1; }
 
-/* White background for uploaded images, in case of transparency + dark theme */
+/* White background for uploaded images or embedded SVG, in case of
+ * transparency + dark theme.  But don't touch KaTeX's SVG!
+ */
 .message-body img, .message-body svg, .message-file img { background: white; }
+.message-body .katex svg { background: inherit; }
 
 /* Emoji */
 .emoji-plus { font-size: 0.7em; margin-top: -2px; vertical-align: middle; }
