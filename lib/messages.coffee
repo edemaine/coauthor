@@ -699,7 +699,7 @@ _messageUpdate = (id, message, authors = null, old = null) ->
   #_submessagesChanged old.root ? id
   ## In this special case, we can efficiently simulate the behavior of
   ## _submessagesChanged via a direct update to the root:
-  if Meteor.isServer and _consideredSubmessage message, old
+  if Meteor.isServer and (not old.root? or _consideredSubmessage message, old)
     rootUpdate = $max: submessageLastUpdate: message.updated
     if old.root? and not _consideredSubmessage old
       rootUpdate.$inc = submessageCount: 1  ## considered a new submessage
