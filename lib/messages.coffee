@@ -690,7 +690,7 @@ _messageUpdate = (id, message, authors = null, old = null) ->
   message.updators = authors
   diff = _.clone message
   for author in authors
-    message["authors." + escapeUser author] = now
+    message["authors.#{escapeUser author}"] = now
   Messages.update id,
     $set: message
   diff.id = id
@@ -785,12 +785,27 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
   if parent?
     _messageAddChild child, parent, position
   if root != cmsg.root
-    Messages.update child,
-      $set: root: root
+    update = root: root
+    if group != cmsg.group
+      update.group = group
+      ## First MessagesDiff has the initial group; add Diff if it changes.
+      ## (Unclear whether we should track group at all, though.)
+      now = new Date
+      username = Meteor.user().username
+      MessagesDiff.insert
+        id: cmsg._id
+        group: cmsg.group
+        updated: now
+        updators: [username]
+      Messages.update child,
+        $set: _.extend {"authors.#{escapeUser username}": now}, update
+    else
+      Messages.update child,
+        $set: update
     EmojiMessages.update
       message: child
     ,
-      $set: root: root
+      $set: update
     ,
       multi: true
     if cmsg.root?
@@ -815,13 +830,13 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
       Messages.update
         root: child
       ,
-        $set: root: root ? child  ## actually must be root
+        $set: update  # root: root ? child  ## actually must be root
       ,
         multi: true
       EmojiMessages.update
         root: child
       ,
-        $set: root: root ? child  ## actually must be root
+        $set: update  # root: root ? child  ## actually must be root
       ,
         multi: true
       _noLongerRoot child if root?
