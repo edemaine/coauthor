@@ -12,6 +12,13 @@ switch markdownMode
     @markdownInline = (text) -> marked.inlineLexer text, {}, marked.defaults
 
   when 'markdown-it'
+    ## Remove the HTML blocks rule from CommonMark
+    ## [https://spec.commonmark.org/0.29/#html-blocks], which prevents
+    ## Markdown processing in blocks that begin with specific HTML tags.
+    ## This rule interacts poorly with LaTeX, e.g., \item **bold**.
+    blocks = require('markdown-it/lib/common/html_blocks')
+    blocks[..] = []
+
     @hljs = require 'highlight.js'
     @markdownIt = require('markdown-it')
       html: true
