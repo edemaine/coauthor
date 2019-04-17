@@ -105,7 +105,7 @@ if Meteor.isServer
   Meteor.publish 'files', (group) ->
     check group, String
     @autorun ->
-      if memberOfGroup group, findUser @userId
+      if memberOfGroupOrReadable group, findUser @userId
         Files.find
           'metadata._Resumable': $exists: false
           'metadata.group': group
