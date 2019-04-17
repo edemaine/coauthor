@@ -90,6 +90,7 @@ module.exports = (grunt) ->
             'input-color':                '@text-color'
             'input-border':               '@gray-dark'
             'input-color-placeholder':    '@gray-light'
+            'input-bg-disabled':          '@gray-dark'
             'legend-color':               '@text-color'
             'legend-border-color':        '@gray-dark'
             'progress-bg':                '@gray-darker'
