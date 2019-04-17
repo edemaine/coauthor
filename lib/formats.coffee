@@ -108,9 +108,9 @@ latexURL = (x) ->
   x.replace /\\([_#@$%&])/g, '$1'
 
 defaultFontFamily = 'Merriweather'
-lightWeight = 300
-mediumWeight = 700
-boldWeight = 900
+lightWeight = 100
+mediumWeight = 400
+boldWeight = 700
 
 ## Convert verbatim environment, \url, and \href commands to HTML.
 ## These are special (and generally must happen first) because they can have
@@ -548,13 +548,28 @@ putMathBack = (tex, math) ->
 
 postprocessKaTeX = (text, math) ->
   macros = {}  ## shared across multiple math expressions within same body
-  text.replace /MATH(\d+)ENDMATH([,.!?:;'"\-)\]}]*)/g, (match, id, punct) ->
+  weights = [mediumWeight]
+  text.replace /MATH(\d+)ENDMATH([,.!?:;'"\-)\]}]*)|<span([^<>]*)>|<b\b|<strong\b|<\/\s*(b|strong|span)\s*>/g, (match, id, punct, spanArgs) ->
+    ## Detect math within bold mode
+    unless id?
+      if spanArgs?
+        spanArgs = /style\s*=\s*['"]font-weight:\s*(\d+)/i.exec spanArgs
+        if spanArgs?
+          weights.push parseInt spanArgs[1]
+      else if match == '<b' or match == '<strong'
+        weights.push boldWeight
+      else if match[...2] == '</'
+        weights.pop()
+      return match
+    ## MATH...ENDMATH
     block = math[id]
     content = block.content
     #.replace /&lt;/g, '<'
     #.replace /&gt;/g, '>'
     #.replace /’/g, "'"
     #.replace /‘/g, "`"  ## remove bad Marked automatic behavior
+    if weights[weights.length-1] == boldWeight
+      content = "\\boldsymbol{#{content}}"
     try
       out = katex.renderToString content,
         displayMode: block.display
