@@ -115,16 +115,22 @@ Template.messagePDF.helpers
 
 Template.messagePDF.events
   'click .prevPage': (e, t) ->
+    e.currentTarget.blur()
     if t.page.get() > 1
       t.page.set t.page.get() - 1
       t.renderPage?()
   'click .nextPage': (e, t) ->
+    e.currentTarget.blur()
     if t.page.get() < t.pages.get()
       t.page.set t.page.get() + 1
       t.renderPage?()
   'click .fitWidth': (e, t) ->
+    e.currentTarget.blur()
+    tooltipHide t  ## because button disappears from DOM
     t.fit.set 'width'
     t.renderPage?()
   'click .fitPage': (e, t) ->
+    e.currentTarget.blur()
+    tooltipHide t  ## because button disappears from DOM
     t.fit.set 'page'
     t.renderPage?()
