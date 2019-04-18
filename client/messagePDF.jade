@@ -5,13 +5,15 @@ template(name="messagePDF")
   else
     //- if multiplePages
     .btn-group.btn-group-xs
-      a.btn.btn-default.fitWidth(class=disableFitWidth, title="Fit to width")
-        span.fas.fa-expand-arrows-alt(aria-hidden="true")
-      a.btn.btn-default.fitPage(class=disableFitPage, title="Fit full page to screen")
-        span.fas.fa-compress-arrows-alt(aria-hidden="true")
-      a.btn.btn-default.prevPage(class=disablePrev, title="Previous page")
+      if fitPage
+        button.btn.btn-default.fitWidth(data-toggle="tooltip", title="Fit to width", data-container="body")
+          span.fas.fa-expand-arrows-alt(aria-hidden="true")
+      else
+        button.btn.btn-default.fitPage(data-toggle="tooltip", title="Fit full page to screen", data-container="body")
+          span.fas.fa-compress-arrows-alt(aria-hidden="true")
+      button.btn.btn-default.prevPage(class=disablePrev, data-toggle="tooltip", title="Previous page", data-container="body")
         span.fas.fa-backward(aria-hidden="true")
-      a.btn.btn-default.nextPage(class=disableNext, title="Next page")
+      button.btn.btn-default.nextPage(class=disableNext, data-toggle="tooltip", title="Next page", data-container="body")
         span.fas.fa-forward(aria-hidden="true")
     span.space page #{page} of #{pages}
     if rendering

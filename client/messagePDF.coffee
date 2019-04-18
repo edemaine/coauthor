@@ -12,6 +12,10 @@ Template.messagePDF.onDestroyed ->
     disappear.untrack @container
 
 Template.messagePDF.onRendered ->
+  @autorun =>
+    @progress.get()
+    @fit.get()
+    tooltipUpdate()
   @container = @find 'div.pdf'
   window.addEventListener 'resize', _.debounce (=> @resize?()), 100
   `import('pdfjs-dist')`.then (pdfjs) =>
@@ -106,12 +110,8 @@ Template.messagePDF.helpers
   disableNext: ->
     if Template.instance().page.get() >= Template.instance().pages.get()
       'disabled'
-  disableFitWidth: ->
-    if Template.instance().fit.get() == 'width'
-      'disabled'
-  disableFitPage: ->
-    if Template.instance().fit.get() == 'page'
-      'disabled'
+  fitPage: ->
+    Template.instance().fit.get() == 'page'
 
 Template.messagePDF.events
   'click .prevPage': (e, t) ->
