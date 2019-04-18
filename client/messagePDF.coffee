@@ -5,6 +5,7 @@ Template.messagePDF.onCreated ->
   @pages = new ReactiveVar 1
   @progress = new ReactiveVar null
   @rendering = new ReactiveVar false
+  @fit = new ReactiveVar 'page'
 
 Template.messagePDF.onDestroyed ->
   `import('/imports/disappear')`.then (disappear) =>
@@ -37,9 +38,10 @@ Template.messagePDF.onRendered ->
               width = @container.parentElement.clientWidth
               height = width * viewport.height / viewport.width
               ## Simulate max-height: 100vh
-              if height > window.innerHeight
-                height = window.innerHeight
-                width = height * viewport.width / viewport.height
+              if @fit.get() == 'page'
+                if height > window.innerHeight
+                  height = window.innerHeight
+                  width = height * viewport.width / viewport.height
               @container.style.width = "#{width}px"
               @container.style.height = "#{height}px"
               return unless @track?.visible
@@ -104,6 +106,12 @@ Template.messagePDF.helpers
   disableNext: ->
     if Template.instance().page.get() >= Template.instance().pages.get()
       'disabled'
+  disableFitWidth: ->
+    if Template.instance().fit.get() == 'width'
+      'disabled'
+  disableFitPage: ->
+    if Template.instance().fit.get() == 'page'
+      'disabled'
 
 Template.messagePDF.events
   'click .prevPage': (e, t) ->
@@ -114,3 +122,9 @@ Template.messagePDF.events
     if t.page.get() < t.pages.get()
       t.page.set t.page.get() + 1
       t.renderPage?()
+  'click .fitWidth': (e, t) ->
+    t.fit.set 'width'
+    t.renderPage?()
+  'click .fitPage': (e, t) ->
+    t.fit.set 'page'
+    t.renderPage?()
