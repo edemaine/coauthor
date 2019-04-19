@@ -9,6 +9,9 @@ sanitizeHtml.defaults.allowedAttributes['*'] = [
   'style', 'class', 'title', 'aria-*', 'data-id'
 ]
 
+## For \item[...]
+sanitizeHtml.defaults.allowedAttributes.li = ['data-itemlab']
+
 ## For \multicolumn and \multirow
 sanitizeHtml.defaults.allowedAttributes.td = ['colspan', 'rowspan']
 sanitizeHtml.defaults.allowedAttributes.th = ['colspan', 'rowspan']

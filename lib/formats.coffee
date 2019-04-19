@@ -232,7 +232,11 @@ latex2htmlCommandsAlpha = (tex, math) ->
   .replace /\\colorbox\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="background-color: $1">$2</span>'
   .replace /\\begin\s*{enumerate}/g, '<ol>'
   .replace /\\begin\s*{itemize}/g, '<ul>'
-  .replace /\\item\b\s*/g, '<li>'
+  .replace /\\item\b\s*(?:\[([^\[\]]*)\]\s*)?/g, (match, arg) ->
+    if arg
+      """<li data-itemlab="#{arg}">"""
+    else
+      '<li>'
   .replace /\\end\s*{enumerate}/g, '</ol>'
   .replace /\\end\s*{itemize}/g, '</ul>'
   .replace /\\chapter\s*\*?\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<h1>$1</h1><p>'
