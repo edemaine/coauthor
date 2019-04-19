@@ -36,14 +36,16 @@ input.title ~ .message-right-buttons { margin: 0px; }
 /* LaTeX-like nested <ol> */
 .message-body ol { counter-reset: enum; }
 .message-body ol > li { list-style: none; counter-increment: enum; }
-.message-body ol ol ol ol ol ol ol > li::before { content: counter(enum) ". " }
-.message-body ol ol ol ol ol ol > li::before { content: counter(enum, lower-greek) ". " }
-.message-body ol ol ol ol ol > li::before { content: counter(enum, upper-roman) ". " }
-.message-body ol ol ol ol > li::before { content: "(" counter(enum, upper-alpha) ") " }
-.message-body ol ol ol > li::before { content: counter(enum, lower-roman) ". " }
-.message-body ol ol > li::before { content: "(" counter(enum, lower-alpha) ") " }
-.message-body ol > li::before { content: counter(enum) ". " }
-.message-body ol > li[data-itemlab]::before { content: attr(data-itemlab) " " }
+.message-body ol ol ol ol ol ol ol > li::before { content: counter(enum) "." }
+.message-body ol ol ol ol ol ol > li::before { content: counter(enum, lower-greek) "." }
+.message-body ol ol ol ol ol > li::before { content: counter(enum, upper-roman) "." }
+.message-body ol ol ol ol > li::before { content: "(" counter(enum, upper-alpha) ")" }
+.message-body ol ol ol > li::before { content: counter(enum, lower-roman) "." }
+.message-body ol ol > li::before { content: "(" counter(enum, lower-alpha) ")" }
+.message-body ol > li::before { content: counter(enum) "." }
+.message-body ol > li[data-itemlab]::before { content: attr(data-itemlab) }
+/* 40px is ol's default left padding on most browsers; fill that size */
+.message-body ol > li::before { display: inline-block; width: 40px; margin-left: -40px; text-align: right; padding-right: 0.25em; vertical-align: top; }
 
 /* Emoji */
 .emoji-plus { font-size: 0.7em; margin-top: -2px; vertical-align: middle; }
