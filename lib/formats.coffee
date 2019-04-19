@@ -234,7 +234,8 @@ latex2htmlCommandsAlpha = (tex, math) ->
   .replace /\\begin\s*{itemize}/g, '<ul>'
   .replace /\\item\b\s*(?:\[([^\[\]]*)\]\s*)?/g, (match, arg) ->
     if arg
-      """<li data-itemlab="#{arg}">"""
+      ## Data didn't support e.g. math: """<li data-itemlab="#{arg}">"""
+      """<li class="noitemlab"><span class="itemlab">#{arg}</span>"""
     else
       '<li>'
   .replace /\\end\s*{enumerate}/g, '</ol>'
