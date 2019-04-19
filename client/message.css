@@ -28,10 +28,21 @@ input.title ~ .message-right-buttons { margin: 0px; }
 .fileDescriptionText { flex-grow: 1; }
 
 /* White background for uploaded images or embedded SVG, in case of
- * transparency + dark theme.  But don't touch KaTeX's SVG!
+ * transparency + dark theme.  But don't touch KaTeX's SVG! (e.g. \sqrt)
  */
 .message-body img, .message-body svg, .message-file img { background: white; }
 .message-body .katex svg { background: inherit; }
+
+/* LaTeX-like nested <ol> */
+.message-body ol { counter-reset: enum; }
+.message-body ol > li { list-style: none; counter-increment: enum; }
+.message-body ol ol ol ol ol ol ol > li:before { content: counter(enum) ". " }
+.message-body ol ol ol ol ol ol > li:before { content: counter(enum, lower-greek) ". " }
+.message-body ol ol ol ol ol > li:before { content: counter(enum, upper-roman) ". " }
+.message-body ol ol ol ol > li:before { content: "(" counter(enum, upper-alpha) ") " }
+.message-body ol ol ol > li:before { content: counter(enum, lower-roman) ". " }
+.message-body ol ol > li:before { content: "(" counter(enum, lower-alpha) ") " }
+.message-body ol > li:before { content: counter(enum) ". " }
 
 /* Emoji */
 .emoji-plus { font-size: 0.7em; margin-top: -2px; vertical-align: middle; }
