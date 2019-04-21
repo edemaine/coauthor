@@ -36,8 +36,18 @@ window.katexReplaceWithTex = function(fragment) {
                 - copyDelimiters.inline[1].length)
             + copyDelimiters.display[1];
     }
-    return fragment;
 };
+
+// Replace a.author full names with their usernames.
+// This works out of the box for at-mentions and
+// it's a better representation of names during a copy-paste scenario.
+// Modifies fragment in-place.
+window.authorNameReplaceWithUsername = function(fragment) {
+    const authors = fragment.querySelectorAll('a.author');
+    for (let i = 0; i < authors.length; i++) {
+        authors[i].innerHTML = authors[i].dataset.username;
+    }
+}
 
 // Global copy handler to modify behavior on .katex elements.
 document.addEventListener('copy', function(event) {
@@ -46,8 +56,17 @@ document.addEventListener('copy', function(event) {
         return;  // default action OK if selection is empty
     }
     const fragment = selection.getRangeAt(0).cloneContents();
-    if (!fragment.querySelector('.katex')) {
-        return;  // default action OK if no .katex elements
+    let isAnyChangeDone = false;
+    if (fragment.querySelector('a.author')) {
+        window.authorNameReplaceWithUsername(fragment);
+        isAnyChangeDone = true;
+    }
+    if (fragment.querySelector('.katex')) {
+        window.katexReplaceWithTex(fragment);
+        isAnyChangeDone = true;
+    }
+    if (!isAnyChangeDone) {
+        return;  // default action OK if no change done
     }
     // Preserve usual HTML copy/paste behavior.
     const html = [];
@@ -56,8 +75,7 @@ document.addEventListener('copy', function(event) {
     }
     event.clipboardData.setData('text/html', html.join(''));
     // Rewrite plain-text version.
-    event.clipboardData.setData('text/plain',
-        window.katexReplaceWithTex(fragment).textContent);
+    event.clipboardData.setData('text/plain', fragment.textContent);
     // Prevent normal copy handling.
     event.preventDefault();
 });
