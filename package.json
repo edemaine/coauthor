@@ -41,6 +41,7 @@
     "meteor-node-stubs": "^0.4.1",
     "moment-timezone": "^0.5.23",
     "pdfjs-dist": "^2.0.943",
+    "roman-numeral": "^0.2.6",
     "sanitize-html": "^1.19.1"
   },
   "devDependencies": {

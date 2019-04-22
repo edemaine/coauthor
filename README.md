@@ -64,8 +64,9 @@ in other fields too.
     `\textasciitilde`, `\textasciicircum`, `\textbackslash`,
     `\textellipsis`, `\dots`, `\ldots`,
     `\&`, `\$`, `\{`, `\}`, `\%`, `\#`, ``` `` ```, `''`,
-    `~`, `--`, `---`, `{`, `}`, `\\`, `\item`;
-    `\begin/\end` for environments `verbatim`, `enumerate`, `itemize`,
+    `~`, `--`, `---`, `{`, `}`, `\\`, `\item`, `\item[...]`;
+    `\begin/\end` for environments `verbatim`, `itemize`,
+    `enumerate` (including [enumerate.sty's optional argument](http://ctan.mirrors.hoobly.com/macros/latex/required/tools/enumerate.pdf))
     `quote`, `center`,
     `tabular` (basic but including `\multicolumn` and `\multirow`),
     `equation`, `eqnarray`, `align`,

@@ -1,6 +1,8 @@
 katex = require 'katex'
 katex.__defineMacro '\\epsilon', '\\varepsilon'
 
+romanNumeral = require 'roman-numeral'
+
 @availableFormats = ['markdown', 'latex', 'html']
 @mathjaxFormats = availableFormats
 
@@ -224,22 +226,60 @@ latex2htmlCommandsAlpha = (tex, math) ->
     .replace /\\(raggedleft|raggedright|centering)\b\s*((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)/g, (match, align, content) ->
       """<div style="text-align:#{texAlign[align]};"><p>#{content}</p></div>"""
     break if old == tex
+  listStyles = []
+  listCounts = []
   tex = tex
   .replace /\\(uppercase|MakeTextUppercase)\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="text-transform: uppercase">$2</span>'
   .replace /\\(lowercase|MakeTextLowercase)\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="text-transform: lowercase">$2</span>'
   .replace /\\underline\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<u>$1</u>'
   .replace /\\textcolor\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="color: $1">$2</span>'
   .replace /\\colorbox\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="background-color: $1">$2</span>'
-  .replace /\\begin\s*{enumerate}/g, '<ol>'
-  .replace /\\begin\s*{itemize}/g, '<ul>'
-  .replace /\\item\b\s*(?:\[([^\[\]]*)\]\s*)?/g, (match, arg) ->
-    if arg
-      ## Data didn't support e.g. math: """<li data-itemlab="#{arg}">"""
-      """<li class="noitemlab"><span class="itemlab">#{arg}</span>"""
-    else
-      '<li>'
-  .replace /\\end\s*{enumerate}/g, '</ol>'
-  .replace /\\end\s*{itemize}/g, '</ul>'
+  ## Nested list environments: process all together (with listStyles global)
+  ## to handle special \item formatting.
+  .replace ///
+    \\begin\s*{(itemize)}
+   |\\begin\s*{enumerate}(?:\s*\[((?:[^\[\]]|{[^{}]*})*)\])?
+   |\\end\s*{(itemize|enumerate)}
+   |\\item\b\s*(?:\[([^\[\]]*)\]\s*)?
+  ///g, (match, beginItemize, enumArg, end, itemArg) ->
+    switch match[1]
+      when 'b' ## \begin
+        listStyles.push enumArg
+        listCounts.push 0
+        if beginItemize
+          '<ul>'
+        else # beginEnumerate
+          '<ol>'
+      when 'e' ## \end
+        listStyles.pop()
+        listCounts.pop()
+        if end == 'itemize'
+          '</ul>'
+        else
+          '</ol>'
+      when 'i' ## \item
+        '<li>'
+        listCounts[listCounts.length-1]++
+        if listStyles[listStyles.length-1]?
+          count = listCounts[listCounts.length-1]
+          itemArg ?= listStyles[listStyles.length-1]
+          .replace /[AaIi1]|{[^{}]*}/g, (match) ->
+            switch match
+              when '1'
+                count
+              when 'a', 'A'
+                String.fromCharCode (match.charCodeAt() + count - 1)
+              when 'i'
+                (romanNumeral.convert count).toLowerCase()
+              when 'I'
+                romanNumeral.convert count
+              else ## {...}
+                match[1...-1]
+        if itemArg?
+          ## Data didn't support e.g. math: """<li data-itemlab="#{arg}">"""
+          """<li class="noitemlab"><span class="itemlab">#{itemArg}</span>"""
+        else
+          '<li>'
   .replace /\\chapter\s*\*?\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<h1>$1</h1><p>'
   .replace /\\section\s*\*?\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<h2>$1</h2><p>'
   .replace /\\subsection\s*\*?\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<h3>$1</h3><p>'
