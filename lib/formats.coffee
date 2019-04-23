@@ -236,13 +236,14 @@ latex2htmlCommandsAlpha = (tex, math) ->
   .replace /\\colorbox\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="background-color: $1">$2</span>'
   ## Nested list environments: process all together (with listStyles global)
   ## to handle special \item formatting.
-  .replace ///
+  .replace ///(\s*)(?:
     \\begin\s*{(itemize)}
    |\\begin\s*{enumerate}(?:\s*\[((?:[^\[\]]|{[^{}]*})*)\])?
    |\\end\s*{(itemize|enumerate)}
    |\\item\b\s*(?:\[([^\[\]]*)\]\s*)?
-  ///g, (match, beginItemize, enumArg, end, itemArg) ->
-    switch match[1]
+  )///g, (match, space, beginItemize, enumArg, end, itemArg) ->
+    space.replace(/\n\s*\n/, '\n') +  ## eat paragraphs
+    switch match[space.length + 1]
       when 'b' ## \begin
         listStyles.push enumArg
         listCounts.push 0
@@ -258,7 +259,6 @@ latex2htmlCommandsAlpha = (tex, math) ->
         else
           '</ol>'
       when 'i' ## \item
-        '<li>'
         listCounts[listCounts.length-1]++
         if listStyles[listStyles.length-1]?
           count = listCounts[listCounts.length-1]
