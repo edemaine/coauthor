@@ -47,7 +47,9 @@ input.title ~ .message-right-buttons { margin: 0px; }
 /*.message-body ol > li[data-itemlab]::before { content: attr(data-itemlab) }*/
 .message-body ol > li.noitemlab::before { content: none }
 /* 40px is ol's default left padding on most browsers; fill that size */
-.message-body ol > li::before, .itemlab { display: inline-block; width: 40px; margin-left: -40px; text-align: right; padding-right: 0.25em; vertical-align: top; }
+.message-body ol > li::before, .itemlab {
+  position: absolute; display: inline-block; vertical-align: top;
+  width: 40px; margin-left: -40px; text-align: right; padding-right: 0.25em; }
 
 /* Emoji */
 .emoji-plus { font-size: 0.7em; margin-top: -2px; vertical-align: middle; }
