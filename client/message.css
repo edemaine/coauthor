@@ -48,7 +48,7 @@ input.title ~ .message-right-buttons { margin: 0px; }
 .message-body ol > li.noitemlab::before { content: none }
 /* 40px is ol's default left padding on most browsers; fill that size */
 .message-body ol > li::before, .itemlab {
-  position: absolute; display: inline-block; vertical-align: top;
+  position: relative; display: inline-block; vertical-align: text-top;
   width: 40px; margin-left: -40px; text-align: right; padding-right: 0.25em; }
 
 /* Emoji */
