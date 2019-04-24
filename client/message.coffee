@@ -345,16 +345,22 @@ updateFileQuery = _.debounce ->
     fields: file: true
   .observeChanges
     added: (id, fields) ->
+      #console.log "#{id} added:", fields
       images[id].file = fields.file
-      initImageInternal images[id].file, id if images[id].file?
+      if images[id].file?
+        initImageInternal images[id].file, id
+        checkImageInternal images[id].file
     changed: (id, fields) ->
+      #console.log "#{id} changed:", fields
       if fields.file? and images[id].file != fields.file
         if fileType(fields.file) in ['image', 'video']
           forceImgReload urlToFile id
         imagesInternal[images[id].file].image = null if images[id].file?
         images[id].file = fields.file
-        initImageInternal images[id].file, id if images[id].file?
-, 50
+        if images[id].file?
+          initImageInternal images[id].file, id
+          checkImageInternal images[id].file
+, 250
 
 initImage = (id) ->
   if id not of images
@@ -364,6 +370,7 @@ initImage = (id) ->
     updateFileQuery()
 
 initImageInternal = (id, image = null) ->
+  #console.log "initImageInternal #{id}, #{image}"
   if id not of imagesInternal
     imagesInternal[id] =
       count: 0
@@ -389,6 +396,7 @@ checkImage = (id) ->
 
 checkImageInternal = (id) ->
   image = imagesInternal[id].image
+  #console.log "#{id} corresponds to #{image}"
   checkImage image if image?
 
 messageDrag = (target, bodyToo = true, old) ->
