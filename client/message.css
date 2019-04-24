@@ -45,7 +45,8 @@ input.title ~ .message-right-buttons { margin: 0px; }
 .message-body ol > li::before { content: counter(enum) "." }
 /* Custom item labels. Data approach didn't support e.g. math: */
 /*.message-body ol > li[data-itemlab]::before { content: attr(data-itemlab) }*/
-.message-body ol > li.noitemlab::before { content: none }
+.message-body li.noitemlab::before { content: none }
+.message-body ul > li.noitemlab { list-style: none }
 /* 40px is ol's default left padding on most browsers; fill that size */
 .message-body ol > li::before, .itemlab {
   position: relative; display: inline-block; vertical-align: text-top;
