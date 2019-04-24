@@ -160,9 +160,10 @@ s a, del a { text-decoration-color: #c7254e; }
 .parentArrow .fas { margin-top: 5px; }
 .parentArrow .fa-times { color: red; }
 
-@media print {
-  a[href].btn:after { content: ""; } /* override Bootstrap default */
-  a[href].author:after { content: ""; } /* override Bootstrap default */
+@media print { /* override Bootstrap defaults for link printing */
+  a[href].btn:after { content: ""; }
+  a[href].author:after { content: ""; }
+  a[href].tagLink:after { content: ""; }
 }
 
 /* Based on Github's .markdown-body styling e.g.
