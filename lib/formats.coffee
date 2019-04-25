@@ -669,6 +669,11 @@ formatEither = (isTitle, format, text, leaveTeX = false) ->
       text = formats[format] text, isTitle
     else
       console.warn "Unrecognized format '#{format}'"
+
+  ## Remove space after <li> to prevent shifting the next item right relative
+  ## to the item label.  Related to CSS rule for "li > p:first-child".
+  text = text.replace /(<li[^<>]*>)\s+/ig, '$1'
+
   ## Remove surrounding <P> block caused by Markdown and LaTeX formatters.
   if isTitle
     text = text

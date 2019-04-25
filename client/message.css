@@ -49,9 +49,13 @@ input.title ~ .message-right-buttons { margin: 0px; }
 .message-body ul > li.noitemlab { list-style: none }
 /* 40px is ol's default left padding on most browsers; fill that size */
 .message-body ol > li::before, .itemlab {
-  position: absolute; display: inline-block; vertical-align: text-top;
+  position: relative; display: inline-block; vertical-align: baseline;
   width: 40px; margin-left: -40px; text-align: right; padding-right: 0.25em; }
-/*.message-body ol > li > p:first-child { display: inline; margin-bottom: 1em; }*/
+/* Switch first paragraph within an item to inline-block, so that it stacks
+ * next to (instead of on top of) item label's inline-block.
+ */
+.message-body li > p:first-child, .message-body li.noitemlab > p:nth-child(2) {
+  display: inline-block; width: 100%; vertical-align: top; }
 
 /* Emoji */
 .emoji-plus { font-size: 0.7em; margin-top: -2px; vertical-align: middle; }
