@@ -13,6 +13,16 @@ if Meteor.isClient
       active: if Template.currentData()?.format == format then 'active' else ''
       capitalized: capitalize format
 
+escapeForHTML = (s) ->
+  s
+  .replace /&/g, '&amp;'
+  .replace /</g, '&lt;'
+  .replace />/g, '&gt;'
+
+escapeForQuotedHTML = (s) ->
+  escapeForHTML s
+  .replace /"/g, '&quot;'
+
 ## Finds all $...$ and $$...$$ blocks, where ... properly deals with balancing
 ## braces (e.g. $\hbox{$x$}$) and escaped dollar signs (\$ doesn't count as $),
 ## and replaces them with the output of the given replacer function.
@@ -85,6 +95,8 @@ replaceMathBlocks = (text, replacer) ->
     text
 
 @inTag = (string, offset) ->
+  ## Known issue: `<a title=">"` looks like a terminated tag to this code.
+  ## This is why `escapeForQuotedHTML` escapes >s.
   open = string.lastIndexOf '<', offset
   if open >= 0
     close = string.lastIndexOf '>', offset
@@ -509,7 +521,7 @@ postprocessCoauthorLinks = (text) ->
       ## (This would just be to get its title, so maybe not worth it.)
       msg = Messages.findOne id
       if msg?.title
-        html = """<a title="#{msg.title.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}"" href=#{html[html.length-1]}"""
+        html = """<a title="#{escapeForQuotedHTML msg.title}" href=#{html[html.length-1]}"""
       html + urlFor('message',
         group: msg?.group or wildGroup
         message: id
@@ -546,6 +558,7 @@ postprocessCoauthorLinks = (text) ->
 
 postprocessLinks = (text) ->
   text.replace urlRe, (match, offset, string) ->
+    #console.log string, offset, inTag string, offset
     if inTag string, offset
       match
     else
@@ -623,13 +636,8 @@ postprocessKaTeX = (text, math) ->
     catch e
       throw e unless e instanceof katex.ParseError
       #console.warn "KaTeX failed to parse $#{content}$: #{e}"
-      title = e.toString()
-      .replace /&/g, '&amp;'
-      .replace /"/g, '&#34;'
-      latex = content
-      .replace /&/g, '&amp;'
-      .replace /</g, '&lt;'
-      .replace />/g, '&gt;'
+      title = escapeForQuotedHTML e.toString()
+      latex = escapeForHTML content
       out = """<span class="katex-error" title="#{title}">#{latex}</span>"""
     out += punct
     if punct and not block.display
