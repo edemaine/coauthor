@@ -1,1 +1,2 @@
 .dark .label.label-default { color: #fff; }
+.dark .label.label-default:hover { color: #000; }
