@@ -144,7 +144,7 @@ template(name="messageShort")
   tr.messageShort(class=messageClass)
     td.title.tex2jax
       a(href=messageLink)
-        | !{formatTitleOrUntitled}
+        | !{formatTitleOrUntitledBold}
         each tags
           span.label.label-default #{key}
           |  

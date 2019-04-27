@@ -16,7 +16,7 @@ template(name='readMessage')
         a.btn.btn-info.focusButton(aria-label="Focus", href="{{pathFor 'message' group=group message=_id}}")
           span.fas.fa-sign-in-alt(aria-hidden="true")
       span.space
-      span.title.panel-title.tex2jax !{formatTitle}
+      span.title.panel-title.tex2jax !{formatTitleBold}
       span.space
       +messageTags
       +messageLabels

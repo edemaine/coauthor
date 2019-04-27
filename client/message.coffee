@@ -99,6 +99,12 @@ Template.registerHelper 'formatTitle', ->
 Template.registerHelper 'formatTitleOrUntitled', ->
   formatTitleOrFilename @, true
 
+Template.registerHelper 'formatTitleBold', ->
+  formatTitleOrFilename @, false, false, true
+
+Template.registerHelper 'formatTitleOrUntitledBold', ->
+  formatTitleOrFilename @, true, false, true
+
 Template.registerHelper 'formatBody', ->
   formatBody @format, @body
 

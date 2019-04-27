@@ -604,9 +604,12 @@ putMathBack = (tex, math) ->
   ## Restore math
   tex.replace /MATH(\d+)ENDMATH/g, (match, id) -> math[id].all
 
-postprocessKaTeX = (text, math) ->
+postprocessKaTeX = (text, math, initialBold) ->
   macros = {}  ## shared across multiple math expressions within same body
-  weights = [mediumWeight]
+  if initialBold
+    weights = [boldWeight]
+  else
+    weights = [mediumWeight]
   text.replace /MATH(\d+)ENDMATH([,.!?:;'"\-)\]}]*)|<span([^<>]*)>|<b\b|<strong\b|<\/\s*(b|strong|span)\s*>/g, (match, id, punct, spanArgs) ->
     ## Detect math within bold mode
     unless id?
@@ -662,7 +665,7 @@ formatSearch = (isTitle, text) ->
     recurse parseSearch search
   text
 
-formatEither = (isTitle, format, text, leaveTeX = false) ->
+formatEither = (isTitle, format, text, leaveTeX = false, bold = false) ->
   return text unless text?
   text = formatSearch isTitle, text
 
@@ -690,16 +693,16 @@ formatEither = (isTitle, format, text, leaveTeX = false) ->
   if leaveTeX
     text = putMathBack text, math
   else
-    text = postprocessKaTeX text, math
+    text = postprocessKaTeX text, math, bold
   text = linkify text  ## Extra support for links, unliked LaTeX
   text = postprocessCoauthorLinks text
   text = postprocessLinks text
   text = postprocessAtMentions text
   sanitize text
 
-formatEitherSafe = (isTitle, format, text, leaveTeX = false) ->
+formatEitherSafe = (isTitle, format, text, leaveTeX = false, bold = false) ->
   try
-    formatEither isTitle, format, text, leaveTeX
+    formatEither isTitle, format, text, leaveTeX, bold
   catch e
     console.error e.stack ? e.toString()
     if isTitle
@@ -713,11 +716,11 @@ formatEitherSafe = (isTitle, format, text, leaveTeX = false) ->
         <pre>#{_.escape text}</pre>
       """
 
-@formatBody = (format, body, leaveTeX = false) ->
-  formatEitherSafe false, format, body, leaveTeX
+@formatBody = (format, body, leaveTeX = false, bold = false) ->
+  formatEitherSafe false, format, body, leaveTeX, bold
 
-@formatTitle = (format, title, leaveTeX = false) ->
-  formatEitherSafe true, format, title, leaveTeX
+@formatTitle = (format, title, leaveTeX = false, bold = false) ->
+  formatEitherSafe true, format, title, leaveTeX, bold
 
 @formatBadFile = (fileId) ->
   """<i class="bad-file">&lt;unknown file with ID #{fileId}&gt;</i>"""
@@ -769,9 +772,9 @@ We therefore don't display any file that is still in the zero-length state.
   else
     title
 
-@formatTitleOrFilename = (msg, orUntitled = true, leaveTeX = false) ->
+@formatTitleOrFilename = (msg, orUntitled = true, leaveTeX = false, bold = false) ->
   if msg.format and msg.title and msg.title.trim().length > 0
-    formatTitle msg.format, msg.title, leaveTeX
+    formatTitle msg.format, msg.title, leaveTeX, bold
   else
     formatFilename msg, orUntitled
 

@@ -43,7 +43,7 @@ template(name="rootHeader")
             a.btn.btn-info.focusButton(aria-label="Focus", href="{{pathFor 'message' group=group message=_id}}")
               span.fas.fa-sign-in-alt(aria-hidden="true")
           span.space
-          span.title.panel-title.tex2jax !{formatTitle}&#8203;
+          span.title.panel-title.tex2jax !{formatTitleBold}&#8203;
           +messageTags
           +messageLabels
 
@@ -51,7 +51,7 @@ template(name="tableOfContentsRoot")
   nav.contents
     ul.nav.contents
       li
-        a(href="#{{_id}}", data-id=_id, class=messageClass).title.tex2jax.onMessageDrop !{formatTitle} [#{creator}]
+        a(href="#{{_id}}", data-id=_id, class=messageClass).title.tex2jax.onMessageDrop !{formatTitleBold} [#{creator}]
     +tableOfContents
 
 template(name="tableOfContents")
@@ -101,7 +101,7 @@ template(name="submessage")
           span.space
           if file
             span.fas.fa-paperclip
-          span.title.panel-title.tex2jax !{formatTitle}&#8203;
+          span.title.panel-title.tex2jax !{formatTitleBold}&#8203;
           +messageTags
           +messageLabels
       //- http://stackoverflow.com/questions/22390272/how-to-create-a-label-with-close-icon-in-bootstrap
