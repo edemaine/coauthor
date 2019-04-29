@@ -87,9 +87,10 @@ in other fields too.
 
 * [CodeMirror editor](http://codemirror.net/) supports syntax highlighting,
   block folding, bracket matching, line numbering, light and dark themes,
-  [spell checking](https://github.com/NextStepWebs/codemirror-spell-checker),
+  [spell checking](https://github.com/edemaine/codemirror-spell-checker),
   "regular" keybindings as well as Vim and Emacs keybindings
-  (especially useful for rectangular selection for e.g. ASCII art).
+  (especially useful for rectangular selection for e.g. ASCII art),
+  multiple cursors for simultaneous editing (ctrl-click).
 
   * **Copy/paste** produces text by default.  Special handling of Coauthor
     URLs produces `coauthor:...` links or embeds images.  Special handling of
