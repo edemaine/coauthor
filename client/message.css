@@ -153,9 +153,12 @@ s a, del a { text-decoration-color: #c7254e; }
 .onMessageDrop.dragover { background-image: linear-gradient(rgba(0,0,0,0), red, rgba(0,0,0,0)); }
 
 .messageParentConfirm .modal-content { max-height: 90vh; }
+/* Workaround for https://bugs.chromium.org/p/chromium/issues/detail?id=958802
+ * (in addition to removing .flexColumn from .modal-content) */
+.messageParentConfirm .modal-body { max-height: calc(90vh - 159px); } /* 159px is the measured height of header and footer */
 .flexColumn { display: flex; flex-direction: column; }
 .flexRow { display: flex; flex-direction: row; }
-.flexShrink { min-height: 50px } /* allow shrinking height down to 50px */
+.flexShrink { min-height: 50px; flex-basis: 100vh; } /* allow equal-size shrinking height down to 50px */
 .scrollbars { overflow: auto; float: none; max-height: 100%; }
 .parentArrow { text-align: center; }
 .parentArrow div { vertical-align: top; display: inline-block; }

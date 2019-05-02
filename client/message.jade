@@ -455,7 +455,8 @@ template(name="messageReplace")
 template(name="messageParentConfirm")
   .modal
     .modal-dialog.modal-lg.messageParentConfirm
-      .modal-content.flexColumn
+      .modal-content
+        //-.flexColumn
         .modal-header
           h2 Confirm Message Reparenting
         .modal-body.flexColumn
@@ -479,5 +480,6 @@ template(name="messageParentConfirm")
               with child
                 +readMessage
         .modal-footer
+          //-.flexColumn
           button.btn.btn-danger.messageParentButton Yes, reparent
           button.btn.btn-success.cancelButton.fullwidth Cancel
