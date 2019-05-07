@@ -248,13 +248,13 @@ latex2htmlCommandsAlpha = (tex, math) ->
   .replace /\\colorbox\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="background-color: $1">$2</span>'
   ## Nested list environments: process all together (with listStyles global)
   ## to handle special \item formatting.
-  .replace ///(\s*)(?:
+  .replace ///((?:\s|<p>)*)(?:
     \\begin\s*{(itemize)}
    |\\begin\s*{enumerate}(?:\s*\[((?:[^\[\]]|{[^{}]*})*)\])?
    |\\end\s*{(itemize|enumerate)}
    |\\item\b\s*(?:\[([^\[\]]*)\]\s*)?
   )///g, (match, space, beginItemize, enumArg, end, itemArg) ->
-    space.replace(/\n\s*\n/, '\n') +  ## eat paragraphs
+    space.replace(/\n\s*\n|<p>/g, '\n') +  ## eat paragraphs
     switch match[space.length + 1]
       when 'b' ## \begin
         listStyles.push enumArg
@@ -292,6 +292,13 @@ latex2htmlCommandsAlpha = (tex, math) ->
           """<li class="noitemlab"><span class="itemlab">#{itemArg}</span>"""
         else
           '<li>'
+  ## Because we define styles for first <p> child of <li>, we need to make
+  ## sure that, if an <li> has any <p> in it, then it also starts with one.
+  .replace /(<li\b[^<>]*>)([^]*?)<p\b[^<>]*>/gi, (match, li, inner) ->
+    unless inner.match /<li\b|<\/\s*[uo]l\b/i
+      li + '<p>' + match[li.length..]
+    else
+      match
   .replace /\\chapter\s*\*?\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<h1>$1</h1><p>'
   .replace /\\section\s*\*?\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<h2>$1</h2><p>'
   .replace /\\subsection\s*\*?\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<h3>$1</h3><p>'
