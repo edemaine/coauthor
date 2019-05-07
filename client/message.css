@@ -158,7 +158,7 @@ s a, del a { text-decoration-color: #c7254e; }
 .messageParentConfirm .modal-body { max-height: calc(90vh - 159px); } /* 159px is the measured height of header and footer */
 .flexColumn { display: flex; flex-direction: column; }
 .flexRow { display: flex; flex-direction: row; }
-.flexShrink { min-height: 50px; flex-basis: 100vh; } /* allow equal-size shrinking height down to 50px */
+.flexShrink { min-height: 50px; } /* allow equal-size shrinking height down to 50px */
 .scrollbars { overflow: auto; float: none; max-height: 100%; }
 .parentArrow { text-align: center; }
 .parentArrow div { vertical-align: top; display: inline-block; }
