@@ -4,8 +4,8 @@ Template.author.onCreated ->
 Template.author.helpers
   messages: ->
     messagesBy @group, @author
-  messageCount: ->
-    pluralize messagesBy(@group, @author).fetch().length, 'message'
+  messageCountText: ->
+    pluralize messagesBy(@group, @author).count(), 'message'
   wildLink: ->
     if @group != wildGroup
       pathFor 'author',

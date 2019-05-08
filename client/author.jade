@@ -3,13 +3,15 @@ template(name='author')
     .panel.panel-primary
       .panel-heading.clearfix
         span.title.panel-title Author &ldquo;#{displayUser}&rdquo; (username &lsquo;#{author}&rsquo;, email !{email})
-        .message-right-buttons.btn-group.pull-right.hidden-print
-          a.btn.btn-default.statsButton(href="{{pathFor 'stats' group=group username=author}}") Statistics
+        .pull-right
+          span.badge= messageCountText
+          .message-right-buttons.btn-group.hidden-print
+            a.btn.btn-default.statsButton(href="{{pathFor 'stats' group=group username=author}}") Statistics
       .panel-body
         each messages
           +readMessageHeader
       .panel-footer
-        i= messageCount
+        i= messageCountText
         | by #{author} in group #{group}
         span.space
         //-
