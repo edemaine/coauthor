@@ -61,22 +61,40 @@ Template.group.onCreated ->
   @autorun ->
     setTitle()
 
+formatMembers = (sortedMembers) ->
+  members =
+    for member in sortedMembers
+      partial = member.rolesPartial?[escapeGroup @group]
+      if partial?
+        msgs = Messages.find _id: $in: (id for id of partial)
+        .fetch()
+        title = "User '#{member.username}' has access to " + (
+          for msg in msgs
+            "“#{titleOrUntitled msg}”"
+        ).join '; '
+      else
+        title = null
+      linkToAuthor @group, member, title
+  if members.length > 0
+    members.join(', ')
+  else
+    '(none)'
+
 Template.group.helpers
   topMessageCount: ->
     pluralize(groupSortedBy(@group, null).count(), 'message thread')
   groupTags: ->
     groupTags @group
-  membersCount: ->
-    groupMembers(@group).length
-  members: ->
+  fullMembersCount: ->
+    groupFullMembers(@group).count()
+  partialMembersCount: ->
+    groupPartialMembers(@group).count()
+  fullMembers: ->
     tooltipUpdate()
-    members =
-      for member in sortedGroupMembers @group
-        linkToAuthor @group, member
-    if members.length > 0
-      members.join(', ')
-    else
-      '(none)'
+    formatMembers.call @, sortedGroupFullMembers @group
+  partialMembers: ->
+    tooltipUpdate()
+    formatMembers.call @, sortedGroupPartialMembers @group
 
 Template.groupButtons.helpers
   sortBy: ->

@@ -102,14 +102,6 @@ if Meteor.isServer
     @autorun ->
       accessibleGroups @userId
 
-  #@groupMembers = (group, options) ->
-  #  ## Mimic memberOfGroup above
-  #  Meteor.users.find
-  #    "roles.#{escapeGroup group}":
-  #      $exists: true
-  #      $ne: []
-  #  , options
-
   ## Give all groups a 'members' array field, automatically updated to
   ## contain all users that match memberOfGroup defined above.
   ## The initial live query will get all memberships, so reset to empty.
@@ -183,9 +175,35 @@ if Meteor.isServer
 
 @groupMembers = (group) ->
   findGroup(group)?.members ? []
+  ## Mimic memberOfGroup above
+  #Meteor.users.find
+  #  "roles.#{escapeGroup group}":
+  #    $exists: true
+  #    $ne: []
+  #, options
 
 @sortedGroupMembers = (group) ->
   _.sortBy groupMembers(group), userSortKey
+
+@groupFullMembers = (group, options) ->
+  Meteor.users.find
+    "roles.#{escapeGroup group}":
+      $exists: true
+      $ne: []
+  , options
+
+@sortedGroupFullMembers = (group, options) ->
+  _.sortBy groupFullMembers(group, options).fetch(), userSortKey
+
+@groupPartialMembers = (group, options) ->
+  Meteor.users.find
+    "rolesPartial.#{escapeGroup group}":
+      $exists: true
+      $ne: {}
+  , options
+
+@sortedGroupPartialMembers = (group, options) ->
+  _.sortBy groupPartialMembers(group, options).fetch(), userSortKey
 
 Meteor.methods
   setRole: (group, message, user, role, yesno) ->

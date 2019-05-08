@@ -16,8 +16,13 @@ template(name="group")
           +importButtons
         .members.alert.alert-info
           p
-            b #{membersCount} members of this group:
-          p !{members}
+            b #{fullMembersCount} members of this group:
+          p !{fullMembers}
+          if partialMembersCount
+            hr
+            p
+              b #{partialMembersCount} with partial access to this group:
+            p !{partialMembers}
   else
     +badGroup
 
