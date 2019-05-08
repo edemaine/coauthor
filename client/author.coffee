@@ -40,6 +40,7 @@ Template.author.events
     roots =
       messagesBy(group, username).map (message) -> message2root message
     if roots.length
+      roots = _.uniq roots.sort(), true
       console.log "Switching #{username}'s access to the following roots: #{roots.join ', '}"
       for root in roots
         for role in roles
