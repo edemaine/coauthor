@@ -5,7 +5,17 @@ template(name='author')
         span.title.panel-title Author &ldquo;#{displayUser}&rdquo; (username &lsquo;#{author}&rsquo;, email !{email})
         .pull-right
           span.badge= messageCountText
+          if fullMember
+            span.badge member
+          if partialMember
+            span.badge partial
           .message-right-buttons.btn-group.hidden-print
+            if super
+              if fullMember
+                if messages.count
+                  a.btn.btn-danger.makePartialMember Make Partial Member
+                else
+                  a.btn.btn-danger.makePartialMember Remove Membership
             a.btn.btn-default.statsButton(href="{{pathFor 'stats' group=group username=author}}") Statistics
       .panel-body
         each messages
