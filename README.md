@@ -208,11 +208,14 @@ in other fields too.
   maximum collaboration), **private** replies only (useful for solved
   problems/puzzles, to prevent accidentally spoiling the fun), or
   **public and private** replies (useful for feedback on lectures, for example,
-  which can have varying relevance to the entire group).  Replies to replies
-  inherit the public/private state of their parent.  Superusers can
-  see all the messages and change them between public and private.
-  Private messages can @-mention another user (via `@username` in the body)
-  to allow them to see and jointly edit the message.
+  which can have varying relevance to the entire group).
+  * Replies to replies inherit the public/private state of their parent.
+  * Superusers can see all the messages and change them between public and
+    private.
+  * Private messages can @-mention another user (via `@username` in the
+    body) to allow them to see and jointly edit the message.
+    Note, however, that permissions are not inherited by children:
+    replies will also need to @-mention other users to give them access.
 
 * **Email notifications** for subscribed threads, clustering together all
   updates since the last email, with a maximum lag a specified number of
