@@ -66,7 +66,8 @@ if Meteor.isServer
   recurse message
   descendants
 
-naturallyVisibleQuery =
+## Recompute this every time to make sure no one modifies it.
+naturallyVisibleQuery = ->
   published: $ne: false    ## published is false or Date
   deleted: $ne: true
   private: $ne: true
@@ -77,7 +78,7 @@ naturallyVisibleQuery =
     if user?.username
       re = atRe user
       $or: [
-        naturallyVisibleQuery
+        naturallyVisibleQuery()
       ,
         "authors.#{escapeUser user.username}": $exists: true
       ,
@@ -86,7 +87,7 @@ naturallyVisibleQuery =
         body: re
       ]
     else
-      naturallyVisibleQuery
+      naturallyVisibleQuery()
   ## Wild group case effectively unions over all groups
   ## (duplicating logic below when it helps make shorter queries).
   if group == wildGroup
