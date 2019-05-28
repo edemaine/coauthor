@@ -862,12 +862,13 @@ Template.submessage.helpers
     else
       ''
   title: historify 'title'
-  formatTitle: ->
+  formatTitle: historifiedFormatTitle = (bold = false) ->
     history = messageHistory.get(@_id) ? @
     if messageRaw.get @_id
       "<CODE CLASS='raw'>#{_.escape history.title}</CODE>"
     else
-      formatTitleOrFilename history, false  ## don't write (untitled)
+      formatTitleOrFilename history, false, false, bold  ## don't say (untitled)
+  formatTitleBold: -> historifiedFormatTitle.call @, true
   formatBody: ->
     #console.log 'rendering', @_id
     history = messageHistory.get(@_id) ? @
