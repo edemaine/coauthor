@@ -637,7 +637,8 @@ postprocessKaTeX = (text, math, initialBold) ->
     #.replace /&gt;/g, '>'
     #.replace /’/g, "'"
     #.replace /‘/g, "`"  ## remove bad Marked automatic behavior
-    if weights[weights.length-1] == boldWeight
+    bold = (weights[weights.length-1] == boldWeight)
+    if bold
       content = "\\boldsymbol{#{content}}"
     try
       out = katex.renderToString content,
@@ -650,6 +651,9 @@ postprocessKaTeX = (text, math, initialBold) ->
       title = escapeForQuotedHTML e.toString()
       latex = escapeForHTML content
       out = """<span class="katex-error" title="#{title}">#{latex}</span>"""
+    ## Remove \boldsymbol{...} from TeX source, in particular for copy/paste
+    if bold
+      out = out.replace /(<annotation encoding="application\/x-tex">)\\boldsymbol{([^]*?)}(<\/annotation>)/i, '$1$2$3'
     out += punct
     if punct and not block.display
       '<span class="nobr">' + out + '</span>'
