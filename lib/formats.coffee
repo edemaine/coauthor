@@ -185,6 +185,7 @@ latex2htmlCommandsAlpha = (tex, math) ->
   .replace /\\(BY|YEAR)\s*{([^{}]*)}/g, '<span style="border: thin solid; margin-left: 0.5em; padding: 0px 4px; font-variant:small-caps">$2</span>'
   .replace /\\protect\b\s*/g, ''
   .replace /\\par\b\s*/g, '<p>'
+  .replace /\\sout\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<s>$1</s>'
   .replace /\\emph\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<em>$1</em>'
   .replace /\\textit\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="font-style: italic">$1</span>'
   .replace /\\textup\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="font-style: normal">$1</span>'

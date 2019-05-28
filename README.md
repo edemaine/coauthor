@@ -45,7 +45,7 @@ in other fields too.
   * LaTeX, limited.  Beyond extensive math mode support (see below),
     the following features are supported in text mode; feel free to ask
     for more.  `%...`, `\def\macro{...}`, `\let\macro=\mac`, `\protect`,
-    `\emph`, `\textit`, `\textup`, `\textnormal`, `\textrm`, `\textlf`,
+    `\sout`, `\emph`, `\textit`, `\textup`, `\textnormal`, `\textrm`, `\textlf`,
     `\textmd`, `\textbf`, `\textsf`, `\texttt`, `\textsc`, `\textsl`,
     `\em`, `\itshape`, `\upshape`, `\rmfamily`, `\lfseries`, `\mdseries`,
     `\bfseries`, `\rmfamily`, `\sffamily`, `\ttfamily`, `\scshape`, `\slshape`,
