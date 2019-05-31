@@ -239,6 +239,7 @@ submessageCount = 0
 
 messageRaw = new ReactiveDict
 export messageFolded = new ReactiveDict
+defaultFolded = new ReactiveDict
 messageHistory = new ReactiveDict
 messageKeyboard = new ReactiveDict
 messagePreview = new ReactiveDict
@@ -290,6 +291,12 @@ Template.submessage.onCreated ->
   @editBody = new ReactiveVar null
   @lastTitle = null
   @savedTitles = []
+
+  ## Fold naturally folded (minimized and deleted) messages
+  ## by default on initial load.
+  defaultFolded.set @data._id, natural = naturallyFolded @data
+  messageFolded.set @data._id, true if natural
+
   @autorun =>
     data = Template.currentData()
     return unless data?
@@ -389,11 +396,14 @@ checkImage = (id) ->
   ## Image gets unnaturally folded if it's referenced at least once
   ## and doesn't have any children (don't want to hide children, and this
   ## can also lead to infinite loop if children has the image reference).
-  messageFolded.set id, true if images[id].naturallyFolded or
+  newDefault = images[id].naturallyFolded or
     (not images[id].children and
      (images[id].count > 0 or
       (imagesInternal[images[id].file]? and
        imagesInternal[images[id].file].count > 0)))
+  if newDefault != defaultFolded.get id
+    defaultFolded.set id, newDefault
+    messageFolded.set id, newDefault
   ## No longer care about this image if it's not referenced and doesn't have
   ## a rendered template.
   if images[id].count == 0 and id not of id2template
@@ -451,10 +461,6 @@ Template.submessage.onRendered ->
   ## Scroll to this message if it's been requested.
   if scrollToLater == @data._id
     scrollToMessage @data._id
-
-  ## Fold naturally folded (minimized and deleted) messages
-  ## by default on initial load.
-  messageFolded.set @data._id, true if natural = naturallyFolded @data
 
   ## Fold referenced attached files by default on initial load.
   #@$.children('.panel').children('.panel-body').find('a[href|="/file/"]')
