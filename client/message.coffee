@@ -389,7 +389,7 @@ checkImage = (id) ->
   ## Image gets unnaturally folded if it's referenced at least once
   ## and doesn't have any children (don't want to hide children, and this
   ## can also lead to infinite loop if children has the image reference).
-  messageFolded.set id, images[id].naturallyFolded or
+  messageFolded.set id, true if images[id].naturallyFolded or
     (not images[id].children and
      (images[id].count > 0 or
       (imagesInternal[images[id].file]? and
