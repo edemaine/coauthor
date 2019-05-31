@@ -292,11 +292,6 @@ Template.submessage.onCreated ->
   @lastTitle = null
   @savedTitles = []
 
-  ## Fold naturally folded (minimized and deleted) messages
-  ## by default on initial load.
-  defaultFolded.set @data._id, natural = naturallyFolded @data
-  messageFolded.set @data._id, true if natural
-
   @autorun =>
     data = Template.currentData()
     return unless data?
@@ -342,6 +337,87 @@ Template.submessage.onCreated ->
 
     #console.log 'automathjax'
     automathjax()
+
+  ## Fold naturally folded (minimized and deleted) messages by default on
+  ## initial load.  But only if not previously manually overridden.
+  oldDefault = defaultFolded.get @data._id
+  oldFolded = messageFolded.get @data._id
+  defaultFolded.set @data._id, naturallyFolded @data
+
+  ## Fold referenced attached files by default on initial load.
+  #@$.children('.panel').children('.panel-body').find('a[href|="/file/"]')
+  #console.log @$ 'a[href|="/file/"]'
+  #images = Session.get 'images'
+  @images = {}
+  @imagesInternal = {}
+  @autorun =>
+    data = Template.currentData()
+    return unless data._id
+    initImage data._id
+    ## initImage calls updateFileQuery which will do this:
+    #images[data._id].file = data.file
+    #initImageInternal data.file if data.file?
+    id2template[data._id] = @
+    ## If message is naturally folded, don't count images it references.
+    images[data._id].naturallyFolded = naturallyFolded data
+    images[data._id].children = data.children?.length
+    if images[data._id].naturallyFolded
+      for id of @images
+        images[id].count -= 1
+        checkImage id
+      @images = {}
+      for id of @imagesInternal
+        imagesInternal[id].count -= 1
+        checkImageInternal id
+      @imagesInternal = {}
+    else
+      newImages = {}
+      newImagesInternal = {}
+      $($.parseHTML("<div>#{formatBody data.format, data.body}</div>"))
+      .find """
+        img[src^="#{fileUrlPrefix}"],
+        img[src^="#{fileAbsoluteUrlPrefix}"],
+        img[src^="#{internalFileUrlPrefix}"],
+        img[src^="#{internalFileAbsoluteUrlPrefix}"],
+        video source[src^="#{fileUrlPrefix}"],
+        video source[src^="#{fileAbsoluteUrlPrefix}"],
+        video source[src^="#{internalFileUrlPrefix}"],
+        video source[src^="#{internalFileAbsoluteUrlPrefix}"]
+      """
+      .each ->
+        src = @getAttribute('src')
+        if 0 <= src.indexOf 'gridfs'
+          newImagesInternal[url2internalFile src] = true
+        else
+          newImages[url2file src] = true
+      for id of @images
+        unless id of newImages
+          images[id].count -= 1
+          checkImage id
+      for id of newImages
+        unless id of @images
+          #console.log 'source', id
+          initImage id
+          images[id].count += 1
+          checkImage id
+      @images = newImages
+      for id of @imagesInternal
+        unless id of newImagesInternal
+          imagesInternal[id].count -= 1
+          checkImageInternal id
+      for id of newImagesInternal
+        unless id of @imagesInternal
+          #console.log 'source', id
+          initImageInternal id
+          imagesInternal[id].count += 1
+          checkImageInternal id
+      @imagesInternal = newImagesInternal
+
+  if oldFolded? and oldDefault == defaultFolded.get @data._id
+    unless oldFolded == messageFolded.get @data._id
+      messageFolded.set @data._id, oldFolded
+  else
+    messageFolded.set @data._id, defaultFolded.get @data._id
 
 #Session.setDefault 'images', {}
 images = {}
@@ -461,75 +537,6 @@ Template.submessage.onRendered ->
   ## Scroll to this message if it's been requested.
   if scrollToLater == @data._id
     scrollToMessage @data._id
-
-  ## Fold referenced attached files by default on initial load.
-  #@$.children('.panel').children('.panel-body').find('a[href|="/file/"]')
-  #console.log @$ 'a[href|="/file/"]'
-  #images = Session.get 'images'
-  @images = {}
-  @imagesInternal = {}
-  @autorun =>
-    data = Template.currentData()
-    return unless data._id
-    initImage data._id
-    ## initImage calls updateFileQuery which will do this:
-    #images[data._id].file = data.file
-    #initImageInternal data.file if data.file?
-    id2template[data._id] = @
-    ## If message is naturally folded, don't count images it references.
-    images[data._id].naturallyFolded = naturallyFolded data
-    images[data._id].children = data.children?.length
-    if images[data._id].naturallyFolded
-      for id of @images
-        images[id].count -= 1
-        checkImage id
-      @images = {}
-      for id of @imagesInternal
-        imagesInternal[id].count -= 1
-        checkImageInternal id
-      @imagesInternal = {}
-    else
-      newImages = {}
-      newImagesInternal = {}
-      $($.parseHTML("<div>#{formatBody data.format, data.body}</div>"))
-      .find """
-        img[src^="#{fileUrlPrefix}"],
-        img[src^="#{fileAbsoluteUrlPrefix}"],
-        img[src^="#{internalFileUrlPrefix}"],
-        img[src^="#{internalFileAbsoluteUrlPrefix}"],
-        video source[src^="#{fileUrlPrefix}"],
-        video source[src^="#{fileAbsoluteUrlPrefix}"],
-        video source[src^="#{internalFileUrlPrefix}"],
-        video source[src^="#{internalFileAbsoluteUrlPrefix}"]
-      """
-      .each ->
-        src = @getAttribute('src')
-        if 0 <= src.indexOf 'gridfs'
-          newImagesInternal[url2internalFile src] = true
-        else
-          newImages[url2file src] = true
-      for id of @images
-        unless id of newImages
-          images[id].count -= 1
-          checkImage id
-      for id of newImages
-        unless id of @images
-          #console.log 'source', id
-          initImage id
-          images[id].count += 1
-          checkImage id
-      @images = newImages
-      for id of @imagesInternal
-        unless id of newImagesInternal
-          imagesInternal[id].count -= 1
-          checkImageInternal id
-      for id of newImagesInternal
-        unless id of @imagesInternal
-          #console.log 'source', id
-          initImageInternal id
-          imagesInternal[id].count += 1
-          checkImageInternal id
-      @imagesInternal = newImagesInternal
 
   ## Image rotation
   @autorun =>
