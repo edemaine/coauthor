@@ -66,6 +66,14 @@ if Meteor.isServer
   recurse message
   descendants
 
+@ancestorMessages = (message, self = false) ->
+  if self and message?
+    yield findMessage message
+  loop
+    message = findMessageParent message
+    break unless message?
+    yield message
+
 ## Recompute this every time to make sure no one modifies it.
 naturallyVisibleQuery = ->
   published: $ne: false    ## published is false or Date
@@ -757,12 +765,10 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
   ## This can happen only if we are making the message nonroot (parent
   ## nonnull) and the child has children of its own.
   if parent? and cmsg.children?.length
-    ancestor = pmsg
-    while ancestor?
+    for ancestor from ancestorMessages pmsg, true
       if ancestor._id == child
         throw new Meteor.Error 'messageParent.cycle',
           "Attempt to make #{child} its own ancestor (via #{parent})"
-      ancestor = findMessageParent ancestor
 
   oldPosition = null
   oldSiblingsBefore = null
