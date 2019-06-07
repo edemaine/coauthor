@@ -1011,7 +1011,7 @@ Template.registerHelper 'messagePanelClass', ->
   classes.join ' '
 
 Template.registerHelper 'foldedClass', ->
-  if messageFolded.get @_id
+  if (not here @_id) and messageFolded.get @_id
     'folded'
   else
     ''
