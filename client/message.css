@@ -131,6 +131,7 @@ nav.contents { overflow-y: scroll; padding-bottom: 5px; }
 .dark .contents li > a.deleted { color: #d9534f; }
 .dark .contents li > a.unpublished { color: #f0ad4e; }
 .dark .contents li > a.minimized { color: #5cb85c; }
+.contents li.folded li > a { opacity: 0.7; }
 .affix { top: 0px; }
 
 code.raw, pre { white-space: pre-wrap; }

@@ -1010,6 +1010,12 @@ Template.registerHelper 'messagePanelClass', ->
     classes.push 'editing'
   classes.join ' '
 
+Template.registerHelper 'foldedClass', ->
+  if messageFolded.get @_id
+    'folded'
+  else
+    ''
+
 Template.registerHelper 'formatCreator', ->
   tooltipUpdate()
   linkToAuthor @group, @creator

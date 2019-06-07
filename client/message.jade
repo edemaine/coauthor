@@ -62,7 +62,7 @@ template(name="tableOfContents")
           +tableOfContentsMessage
 
 template(name="tableOfContentsMessage")
-  li.btn-group-xs
+  li.btn-group-xs(class=foldedClass)
     div.beforeMessageDrop(data-parent=parent, data-index=index)
     a(href="#{{_id}}", data-id=_id, class=messageClass).tex2jax.onMessageDrop
       if file
