@@ -413,7 +413,11 @@ Template.submessage.onCreated ->
           checkImageInternal id
       @imagesInternal = newImagesInternal
 
-  if oldFolded? and oldDefault == defaultFolded.get @data._id
+  ## Switch messageFolded to defaultFolded if:
+  ## * default has changed
+  ## * default has initialized but messageFolded not already set
+  ##   (e.g. because we just clicked the message)
+  if oldFolded? and (not oldDefault? or oldDefault == defaultFolded.get @data._id)
     unless oldFolded == messageFolded.get @data._id
       messageFolded.set @data._id, oldFolded
   else
@@ -600,6 +604,11 @@ scrollDelay = 750
         $(template.find 'input.title').focus()
   else
     scrollToLater = id
+    ## Unfold ancestors of clicked message so that it becomes visible.
+    for ancestor from ancestorMessages id
+      messageFolded.set ancestor._id, false
+  ## Also unfold message itself, because you probably want to see it.
+  messageFolded.set id, false
 
 Template.submessage.onDestroyed ->
   delete id2template[@data._id]
