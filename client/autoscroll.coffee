@@ -26,7 +26,11 @@ $(window).click (e) ->
   else if e.target?.hash
     delete pastTops[e.target.href]
     ## If we click on a hash link to the same message again, scroll there.
-    if e.target.href == window.location.toString()
+    #if e.target.href == window.location.toString()
+    ## More generally, if we click on a hash link within the current page,
+    ## scroll there smoothly.
+    if e.target.hostname == window.location.hostname and
+       e.target.pathname == window.location.pathname
       scrollToMessage e.target.hash
 
 Router.onBeforeAction ->
