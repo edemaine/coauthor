@@ -192,6 +192,9 @@ s a, del a { text-decoration-color: #c7254e; }
 .dark .message-body table tr:nth-child(2n) { background-color: #222; }
 .dark .message-body table thead tr { background-color: #555; }
 
+blockquote { padding: 5px 10px; }
+blockquote.thm { font-size: 17.5px; padding: 10px 20px; }
+
 em em { font-style: normal }
 em em em { font-style: italic }
 em em em em { font-style: normal }

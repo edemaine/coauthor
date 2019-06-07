@@ -17,11 +17,15 @@ module.exports = (grunt) ->
       light:
         src: 'node_modules/bootstrap/less/bootstrap.less'
         dest: '.bootstrap/light.css'
+        options:
+          modifyVars:
+            'blockquote-font-size': '@font-size-base' # usually * 1.25
       dark:
         ## Colors based in part on Cyborg theme distributed under MIT License:
         ## https://github.com/thomaspark/bootswatch/blob/v3/cyborg/variables.less
         options:
           modifyVars:
+            'blockquote-font-size': '@font-size-base' # usually * 1.25
             #'brand-primary': '#2A9FD6'
             #'brand-success': '#77B300'
             #'brand-info':    '#9933CC'
@@ -101,6 +105,7 @@ module.exports = (grunt) ->
             'list-group-link-heading-color': '#fff'
             'label-color':            '#000'
             'label-link-hover-color': '#000'
+            'blockquote-border-color': '@gray-dark'
         src: 'node_modules/bootstrap/less/bootstrap.less'
         dest: '.bootstrap/dark.css'
     copy:

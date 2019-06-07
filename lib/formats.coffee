@@ -332,7 +332,7 @@ latex2htmlCommandsAlpha = (tex, math) ->
       else
         value = "-#{value}"
       """<span style="margin-top: #{value}#{unit};">#{arg}</span>"""
-  .replace /\\begin\s*{(problem|question|idea|theorem|conjecture|lemma|corollary|fact|observation|proposition|claim|definition)}(\s*\[([^\]]*)\])?/g, (m, env, x, opt) -> "<blockquote><p><b>#{s.capitalize env}#{if opt then " (#{opt})" else ''}:</b> "
+  .replace /\\begin\s*{(problem|question|idea|theorem|conjecture|lemma|corollary|fact|observation|proposition|claim|definition)}(\s*\[([^\]]*)\])?/g, (m, env, x, opt) -> """<blockquote class="thm #{env}"><p><b>#{s.capitalize env}#{if opt then " (#{opt})" else ''}:</b> """
   .replace /\\end\s*{(problem|question|idea|theorem|conjecture|lemma|corollary|fact|observation|proposition|claim|definition)}/g, '</blockquote>'
   .replace /\\begin\s*{(quote)}/g, '<blockquote><p>'
   .replace /\\end\s*{(quote)}/g, '</blockquote>'
