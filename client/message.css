@@ -5,9 +5,11 @@
 .title { font-weight: bold; vertical-align: middle; }
 input.title { width: 100%; }
 .author { font-style: italic; }
-.message-body { text-align: justify; position: relative; }
-  /* We set position: relative so any position: absolute's within have
-   * this as the containing block.
+.message-body { text-align: justify; position: relative; overflow: auto; }
+  /* We set `position: relative` so any position: absolute's within have
+   * this as the containing block. We set `overflow: auto` to prevent hacks
+   * that render outside the rectangle of this message; also, it handles
+   * too-wide formulas in a nicer way.
    */
 .message-footer { width: 100%; padding: 0ex 1em; }
 .panel-body { padding-bottom: 0px; } /* always have a footer right below */
