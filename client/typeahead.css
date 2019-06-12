@@ -1,10 +1,9 @@
 /* Basic typeahead.js style from
  * https://github.com/sergeyt/meteor-typeahead/blob/master/demo/style.css
+ * extended to add dark mode (.dark).
  */
 
-.typeahead,
-.tt-query,
-.tt-hint {
+.typeahead, .tt-query, .tt-hint {
   width: 396px;
   padding: 8px 12px;
   line-height: 30px;
@@ -14,10 +13,10 @@
           border-radius: 8px;
   outline: none;
 }
+.dark .typeahead, .dark .tt-query, .dark .tt-hint { border: 2px solid #333; }
 
-.typeahead {
-  background-color: #fff;
-}
+.typeahead { background-color: #fff; }
+.dark .typeahead { background-color: #222; }
 
 .typeahead:focus {
   border: 2px solid #0097cf;
@@ -29,9 +28,7 @@
           box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
 }
 
-.tt-hint {
-  color: #999
-}
+.tt-hint { color: #999 }
 
 .tt-menu {
   width: 422px;
@@ -47,6 +44,7 @@
      -moz-box-shadow: 0 5px 10px rgba(0,0,0,.2);
           box-shadow: 0 5px 10px rgba(0,0,0,.2);
 }
+.dark .tt-menu { background-color: #222; border: 1px solid #333; }
 
 .tt-suggestion {
   padding: 3px 20px;
@@ -63,7 +61,6 @@
 .tt-suggestion.tt-cursor {
   color: #fff;
   background-color: #0097cf;
-
 }
 
 .tt-suggestion p {
