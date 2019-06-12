@@ -91,19 +91,20 @@ sanitizeHtml.defaults.allowedAttributes.mstyle = ['mathcolor']
 sanitizeHtml.defaults.allowedTags.push 'nobr'
 
 ## https://stackoverflow.com/questions/9329552/explain-regex-that-finds-css-comments
-cssCommentRegex = "\\/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*\\/"
-cssBlankRegex = "(?:\\s|#{cssCommentRegex})*"
+cssCommentRegex = /\/\*[^*]*\*+(?:[^/*][^*]*\*+)*\//g
 
-## We used to always forbid position:absolute/fixed, but KaTeX needs them
-## (see e.g. `\not`).  Now we just ensure the containing block is reasonable.
-#sanitizeHtml.defaults.transformTags =
-#  '*': (tagName, attribs) ->
-#    if attribs.style? and
-#       ///\bposition#{cssBlankRegex}:#{cssBlankRegex}(absolute|fixed)///i.test(
-#         attribs.style)
-#      delete attribs.style
-#    tagName: tagName
-#    attribs: attribs
+## We used to always forbid position:absolute, but KaTeX needs them
+## (see e.g. `\not`).  But we do need to forbid position:fixed, because
+## this can break outside the overflow:auto constraint of the message body.
+sanitizeHtml.defaults.transformTags =
+  '*': (tagName, attribs) ->
+    if attribs.style?
+      ## Remove all CSS comments. Replace them with space to avoid
+      ## accidentally forming a /* from surrounding "/" and "*".
+      attribs.style = attribs.style.replace cssCommentRegex, ' '
+      .replace /\bposition\s*:\s*fixed/ig, ''
+    tagName: tagName
+    attribs: attribs
 
 jsdiff = require 'diff'
 
