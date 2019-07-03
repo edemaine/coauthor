@@ -38,8 +38,8 @@ template(name="rootHeader")
   if root
     with root
       .panel.root(data-message=_id).panel-default
-        .panel-heading.title
-          .message-left-buttons.btn-group.btn-group-xs
+        .panel-heading.compact.title
+          .message-left-buttons.push-down.btn-group.btn-group-xs
             a.btn.btn-info.focusButton(aria-label="Focus", href="{{pathFor 'message' group=group message=_id}}")
               span.fas.fa-sign-in-alt(aria-hidden="true")
           span.space
@@ -83,30 +83,30 @@ template(name="submessage")
     .panel-heading.clearfix
       unless history
         if editingRV
-          input.form-control.title(type="text", placeholder="Title", value=editTitle, tabindex="{{tabindex 18}}")
+          input.push-down.form-control.title(type="text", placeholder="Title", value=editTitle, tabindex="{{tabindex 18}}")
       //-unless editingRV
-      span(class=hideIfEditing)
-        .messageTitle
-          span.message-left-buttons.btn-group.btn-group-xs
-            unless here
-              button.btn.btn-info.foldButton.hidden-print(aria-label="Fold")
-                if folded
-                  span.fas.fa-plus(aria-hidden="true")
-                else
-                  span.fas.fa-minus(aria-hidden="true")
-              a.btn.btn-info.focusButton(aria-label="Focus", href="{{pathFor 'message' group=group message=_id}}", draggable="true")
-                span.fas.fa-sign-in-alt(aria-hidden="true")
-            if here
-              +messageNeighbors
-          span.space
-          if file
-            span.fas.fa-paperclip
-          span.title.panel-title.tex2jax !{formatTitleBold}&#8203;
-          +messageTags
-          +messageLabels
+      span.message-title(class=hideIfEditing)
+        span.message-left-buttons.push-down.btn-group.btn-group-xs
+          unless here
+            button.btn.btn-info.foldButton.hidden-print(aria-label="Fold")
+              if folded
+                span.fas.fa-plus(aria-hidden="true")
+              else
+                span.fas.fa-minus(aria-hidden="true")
+            a.btn.btn-info.focusButton(aria-label="Focus", href="{{pathFor 'message' group=group message=_id}}", draggable="true")
+              span.fas.fa-sign-in-alt(aria-hidden="true")
+          if here
+            +messageNeighbors
+        span.space
+        if file
+          span.fas.fa-paperclip
+        span.title.panel-title.tex2jax !{formatTitleBold}&#8203;
+        +messageTags
+        +messageLabels
       //- http://stackoverflow.com/questions/22390272/how-to-create-a-label-with-close-icon-in-bootstrap
       if editingRV
-        .messageTitle
+        span.message-subtitle
+          span.upper-strut
           span.tags
             each tags
               span.label.label-default.tag.tagWithRemove
@@ -131,8 +131,9 @@ template(name="submessage")
                 li
                   a.tagAdd(href="#",data-tag=key) #{key}
           +messageLabels
+          span.lower-strut
       // Buttons and badge on the right of the message
-      .pull-right.hidden-print
+      .pull-right.hidden-print.message-right-buttons
         unless root
           span.badge(data-toggle="tooltip", title="Number of submessages within thread")= submessageCount
           span.space
@@ -252,7 +253,7 @@ template(name="submessage")
           .resizer
       .message-footer
         +messageAuthor
-        .message-reply-buttons.clearfix.hidden-print
+        .message-response-buttons.clearfix.hidden-print
           if editingRV
             if editStopping
               button.btn.btn-info.editButton.disabled(title="Waiting for save to complete before stopping editing...") Stop Editing
@@ -268,7 +269,7 @@ template(name="submessage")
         if canReply
           .panel-body.panel-secondbody.hidden-print.clearfix
             +replyButtons
-            span.messageTitle
+            span.message-title
               a.btn.btn-default.btn-xs.linkToTop(aria-label="Top", href="#{{_id}}")
                 span.fas.fa-caret-up
               span.space
@@ -388,7 +389,7 @@ template(name="emojiButtons")
 
 template(name="replyButtons")
   if canReply
-    .btn-group.pull-right
+    .btn-group.pull-right.message-reply-buttons
       if canPrivateReply
         if canPublicReply
           button.btn.btn-default.replyButton(data-privacy="public") Public Reply

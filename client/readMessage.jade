@@ -6,8 +6,8 @@ template(name='readMessageHeader')
 
 template(name='readMessage')
   .panel.message(class=messagePanelClass, data-message=_id, id=_id)
-    .panel-heading.clearfix
-      .message-left-buttons.btn-group.btn-group-xs
+    .panel-heading.compact.clearfix
+      span.message-left-buttons.push-down.btn-group.btn-group-xs
         button.btn.btn-info.foldButton(aria-label="Fold")
           if folded
             span.fas.fa-plus(aria-hidden="true")
@@ -21,7 +21,7 @@ template(name='readMessage')
       +messageTags
       +messageLabels
       unless root
-        span.pull-right.badge(data-toggle="tooltip", title="Number of submessages within thread")= submessageCount
+        span.push-down.pull-right.badge(data-toggle="tooltip", title="Number of submessages within thread")= submessageCount
     unless folded
       .panel-body
         .message-body.tex2jax !{formatBody}
@@ -30,7 +30,7 @@ template(name='readMessage')
             with pdf
               +messagePDF
           p.message-file !{formatFile}
-      .message-footer.message-reply-buttons.clearfix
+      .message-footer.message-response-buttons.clearfix
         +emojiButtons
         +messageAuthor
       .children

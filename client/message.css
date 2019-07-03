@@ -2,10 +2,11 @@
 .absolute { position: absolute; }
 
 .fa-paperclip { vertical-align: middle; }
-.title { font-weight: bold; vertical-align: middle; }
-input.title { width: 100%; }
+.title { font-weight: bold; }
+input.title { width: calc(100% + 5px); margin: 0px -5px 0px 0px; }
 .author { font-style: italic; }
-.message-body { text-align: justify; position: relative; overflow: auto; }
+.message-body { text-align: justify; }
+.message-body, .message-title { position: relative; overflow: auto; overflow-wrap: break-word; }
   /* We set `position: relative` so any position: absolute's within have
    * this as the containing block. We set `overflow: auto` to prevent hacks
    * that render outside the rectangle of this message; also, it handles
@@ -14,16 +15,30 @@ input.title { width: 100%; }
 .message-footer { width: 100%; padding: 0ex 1em; }
 .panel-body { padding-bottom: 0px; } /* always have a footer right below */
 .message-deleted > .message-body, .message-unpublished > .message-body { opacity: 0.6; }
-/*.message-right-buttons { margin: -5px -10px -5px 5px; }*/ /* cf. panel-heading's padding of 10px 15px */
-.message > .panel-heading { padding: 5px 5px 5px 10px; }
-.root > .panel-heading { padding: 5px 5px 5px 10px; border-bottom: 0px; }
-.messageTitle { display: inline-block; padding: 5px 5px 5px 0px; }
-.panel-secondbody > .messageTitle { display: inline; color: gray; }
-.panel-secondbody > .messageTitle > .panel-title { font-weight: normal; font-size: small; }
+/* .push-down (e.g. .message-left-buttons) push the title down to compensate
+ * for the missing 5px top-padding of .panel-heading (needed to get the
+ * .message-right-buttons to be higher than the title, without using negative
+ * spacing, which would mess up multiline titles).
+ */
+.push-down { margin-top: 5px; vertical-align: -5px; }
+.message-right-buttons { margin: 0px -5px -5px 0px; } /* cf. panel-heading's padding of 10px */
+.panel-heading { padding: 5px 10px 10px 10px; } /* normally 10px 15px */
+.panel-heading.compact { padding: 0px 5px 5px 10px; }
+/* Fuse together root panel heading with following panel */
+.root, .root > .panel-heading { border-bottom: 0px; border-bottom-left-radius: 0px; border-bottom-right-radius: 0px; }
+.root + .panel, .root + .panel > .panel-heading { border-top: 0px; border-top-left-radius: 0px; border-top-right-radius: 0px;}
+.panel-secondbody > .message-title { display: inline; color: gray; }
+.panel-secondbody > .message-title > .panel-title { font-weight: normal; font-size: small; }
 .linkToTop { margin-top: -4px; }
+.message-title .label { vertical-align: 2px; } /* shift up to center */
+.message-subtitle { margin-top: 5px; }
+.upper-strut { display: inline-block; height: 20px; vertical-align: 0px; }
+.lower-strut { display: inline-block; vertical-align: -10px; }
 .messageTags > a:first-child, .messageLabels > span:first-child { margin-left: 0.5em; }
-input.title ~ .message-right-buttons { margin: 0px; }
-.message-reply-buttons { margin: 8px 0px 10px 0px; }
+.btn.label { float: none; height: 20px; } /* +Tag manual height adjustment */
+/* input.title ~ .message-right-buttons { margin: 0px; } */
+.message-response-buttons { margin: 8px 0px 10px 0px; }
+.message-reply-buttons { margin-left: 4px; }
 .fileDescription { padding: 0.5ex 0.5em; border-bottom: 1px solid #337ab7;
   display: flex; flex-direction: row;
   justify-content: space-between; align-items: center; }
@@ -206,5 +221,5 @@ em em em em em em { font-style: normal }
 /* Author search highlighting */
 .highlight { background: yellow; color: black; }
 
-/* Search results */
-.panel-heading .pull-right.badge { margin-top: 2px; }
+/* Search results: 5px to match title + 2px to center vertically */
+.panel-heading .pull-right.badge { padding-top: 2px; }
