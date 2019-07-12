@@ -14,6 +14,11 @@ input.title { width: calc(100% + 5px); margin: 0px -5px 0px 0px; }
    */
 .katex .katex-mathml { left: 0; }
   /* avoid pushing into right margin, given `position: absolute` layout */
+.katex .vlist-t2 { margin-right: -0.1px; }
+.katex .vlist-s { width: 0.1px; min-width: 0.1px; }
+  /* avoid vlists from pushing into right margin and causing scroll bars;
+   * KaTeX uses 2px for these two numbers instead
+   */
 .message-footer { width: 100%; padding: 0ex 1em; }
 .panel-body { padding-bottom: 0px; } /* always have a footer right below */
 .message-deleted > .message-body, .message-unpublished > .message-body { opacity: 0.6; }
