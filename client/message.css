@@ -12,6 +12,8 @@ input.title { width: calc(100% + 5px); margin: 0px -5px 0px 0px; }
    * that render outside the rectangle of this message; also, it handles
    * too-wide formulas in a nicer way.
    */
+.katex .katex-mathml { left: 0; }
+  /* avoid pushing into right margin, given `position: absolute` layout */
 .message-footer { width: 100%; padding: 0ex 1em; }
 .panel-body { padding-bottom: 0px; } /* always have a footer right below */
 .message-deleted > .message-body, .message-unpublished > .message-body { opacity: 0.6; }
