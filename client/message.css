@@ -28,7 +28,7 @@ input.title { width: calc(100% + 5px); margin: 0px -5px 0px 0px; }
  * spacing, which would mess up multiline titles).
  */
 .push-down { margin-top: 5px; vertical-align: -5px; }
-.message-right-buttons { margin: 0px -5px -5px 0px; } /* cf. panel-heading's padding of 10px */
+.message-right-buttons, .group-right-buttons { margin: 0px -5px -5px 0px; } /* cf. panel-heading's padding of 10px */
 .panel-heading { padding: 5px 10px 10px 10px; } /* normally 10px 15px */
 .panel-heading.compact { padding: 0px 5px 5px 10px; }
 /* Fuse together root panel heading with following panel */

@@ -2,6 +2,8 @@ template(name="group")
   if groupData
     .panel.panel-primary
       .panel-heading.clearfix
+        span.push-down.btn-group.btn-group-xs
+          .fake-btn &#8203;
         span.title.panel-title= group
         +groupButtons
       +messageList
@@ -29,7 +31,7 @@ template(name="group")
 template(name="groupButtons")
   //- button.btn.btn-default.postButton(class=disablePost,name="problem") Pose New Problem
   //- button.btn.btn-default.postButton(class=disablePost,name="discussion") Start Discussion Thread
-  .pull-right
+  .pull-right.group-right-buttons
     if super
       .btn-group
         button.btn.btn-warning.sortSetDefault Set Group Default Sort

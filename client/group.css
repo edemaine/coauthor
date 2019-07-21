@@ -24,3 +24,7 @@ td.subscribe button.subscribe { margin-top: 5px; }
 .dark .table > tbody > tr.messageShort.deleted > td > a { color: #d9534f; }
 .dark .table > tbody > tr.messageShort.unpublished > td > a { color: #f0ad4e; }
 .dark .table > tbody > tr.messageShort.minimized > td > a { color: #5cb85c; }
+
+.fake-btn { position: relative; float: left; display: inline-block; vertical-align: middle;
+  border-top: 1px solid transparent; border-bottom: 1px solid transparent; }
+.btn-group-xs .fake-btn { padding: 1px 0px; font-size: 12px; line-height: 1.5; }
