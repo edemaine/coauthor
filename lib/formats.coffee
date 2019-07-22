@@ -394,6 +394,10 @@ latex2htmlCommandsAlpha = (tex, math) ->
   .replace /\\textasciitilde\b\s*/g, '&Tilde;'  ## Avoid ~ -> \nbsp
   .replace /\\textasciicircum\b\s*/g, '&Hat;'
   .replace /\\textbackslash\b\s*/g, '&backslash;'  ## Avoid \ processing
+  ## The following tweaks are not LaTeX actually, but useful in all modes,
+  ## so we do them here.
+  .replace /\b[0-9]+(x[0-9]+)+\b/ig, (match) ->
+     match.replace /x/ig, '\u00a0×\u00a0'
 
 ## "Light" LaTeX support, using only commands that start with a letter a-z,
 ## so are safe to process in Markdown.  No accent support.
