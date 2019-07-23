@@ -41,7 +41,7 @@ in other fields too.
     links via `[text](url)`, images via `![caption](url)`,
     lists via `*` or `1.`, tables, etc.
     Also supports all LaTeX commands listed below that start with a letter
-    (notably, not accents) and math mode.
+    (notably, not accents) and math mode, and all HTML commands listed below.
   * LaTeX, limited.  Beyond extensive math mode support (see below),
     the following features are supported in text mode; feel free to ask
     for more.  `%...`, `\def\macro{...}`, `\let\macro=\mac`, `\protect`,
@@ -72,6 +72,7 @@ in other fields too.
     `equation`, `eqnarray`, `align`,
     `problem`, `question`, `idea`, `theorem`, `conjecture`, `lemma`,
     `corollary`, `fact`, `observation`, `proposition`, `claim`, `proof`.
+    Also supports all HTML commands listed below.
   * HTML, sanitized.  The following tags are allowed; feel free to ask for
     more.  `<h1>`, `<h2>`, `<h3>`, `<h4>`, `<h5>`, `<h6>`,
     `<blockquote>`, `<p>`, `<div>`, `<span>`,
@@ -80,7 +81,7 @@ in other fields too.
     `<hr>`, `<br>`, `<table>`, `<thead>`, `<caption>`,
     `<tbody>`, `<tr>`, `<th>`, `<td>`, `<pre>`,
     `<img src/alt/width/height>`, `<video controls>`, `<source src>`;
-    attributes `title`, `style`, `class`, `aria-*`.
+    attributes `title`, `style`, `class` (limited), `aria-*`.
     Also supports LaTeX math mode.
 
 * Light and dark themes available under Settings.
