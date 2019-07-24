@@ -1563,6 +1563,10 @@ messageParent = (child, parent, index = null) ->
     oldIndex: oldIndex
 
 Template.messageParentDialog.onCreated ->
+  unless @data.oldParent?
+    @data.oldParent =
+      isGroup: true
+      group: @data.child.group
   @parent = new ReactiveVar @data.parent
   #@index = new ReactiveVar @data.index
 
@@ -1599,6 +1603,10 @@ Template.messageParentDialog.onRendered ->
         msg.text = "#{titleOrUntitled msg} by #{msg.creator} [#{msg._id}]"
         msg.html = "#{_.escape titleOrUntitled msg} <span class=\"author\"><i>by</i> #{_.escape msg.creator}</span> <span class=\"id\">[#{_.escape msg._id}]</span>"
         msg
+    @messages.push
+      text: "Group: #{@data.child.group}"
+      html: "<i>Group</i>: #{@data.child.group}"
+      
   @$('.typeahead').typeahead
     hint: true
     highlight: true
@@ -1616,19 +1624,28 @@ Template.messageParentDialog.onRendered ->
 
 Template.messageParentDialog.events
   "typeahead:autocomplete .parent, typeahead:cursorchange .parent, typeahead:select .parent": (e, t) ->
-    match = /\[([^\[\]]+)\]\s*$/.exec t.find('.tt-input').value
-    return unless match?
-    msg = findMessage(match[1]) ? {_id: match[1]}  # allow unknown message ID
-    t.parent.set msg
+    text = t.find('.tt-input').value
+    if match = /\[([^\[\]]+)\]\s*$/.exec text
+      msg = findMessage(match[1]) ? {_id: match[1]}  # allow unknown message ID
+      t.parent.set msg
+    else if match = /^Group: (.*)$/.exec text
+      t.parent.set
+        isGroup: true
+        group: match[1]
 
   "click .messageParentButton": (e, t) ->
     e.preventDefault()
     e.stopPropagation()
     Modal.hide()
-    if t.data.parent == t.parent.get() # unchanged from drag
+    parent = t.parent.get()
+    if t.data.index? and t.data.parent == parent # unchanged from drag
       Meteor.call 'messageParent', t.data.child._id, t.data.parent._id, t.data.index
     else
-      Meteor.call 'messageParent', t.data.child._id, t.parent.get()._id
+      Meteor.call 'messageParent', t.data.child._id,
+        if parent.isGroup
+          null
+        else
+          parent._id
   "click .cancelButton": (e) ->
     e.preventDefault()
     e.stopPropagation()

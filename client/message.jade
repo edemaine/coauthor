@@ -472,10 +472,10 @@ template(name="messageParentDialog")
           .row.flexShrink.flexRow
             .col-xs-6.scrollbars
               with oldParent
-                +readMessage
+                +groupOrMessage
             .col-xs-6.scrollbars
               with parent
-                +readMessage
+                +groupOrMessage
           .row
             .col-xs-12.parentArrow
               .parentArrow1
@@ -491,3 +491,15 @@ template(name="messageParentDialog")
           //-.flexColumn
           button.btn.btn-danger.messageParentButton Yes, reparent
           button.btn.btn-success.cancelButton.fullwidth Cancel
+
+template(name="groupOrMessage")
+  if isGroup
+    .panel.panel-primary
+      .panel-heading.compact.title
+        span.push-down.btn-group.btn-group-xs
+          .fake-btn &#8203;
+        span.title.panel-title
+          | #{group}
+        i.pull-right.push-down (root message in this group)
+  else
+    +readMessage
