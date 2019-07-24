@@ -67,11 +67,15 @@ if Meteor.isServer
   descendants
 
 @ancestorMessages = (message, self = false) ->
+  start = message._id ? message
   if self and message?
     yield findMessage message
   loop
     message = findMessageParent message
     break unless message?
+    if message._id == start
+      throw new Meteor.Error 'ancestorMessages.cycle',
+        "There is already a cycle in ancestors of #{start}!"
     yield message
 
 ## Recompute this every time to make sure no one modifies it.
@@ -772,12 +776,16 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
 
   ## Check before creating a cycle in the parent pointers.
   ## This can happen only if we are making the message nonroot (parent
-  ## nonnull) and the child has children of its own.
-  if parent? and cmsg.children?.length
-    for ancestor from ancestorMessages pmsg, true
-      if ancestor._id == child
-        throw new Meteor.Error 'messageParent.cycle',
-          "Attempt to make #{child} its own ancestor (via #{parent})"
+  ## nonnull), and either the child has children of its own or parent is child.
+  if parent?
+    if parent == child
+      throw new Meteor.Error 'messageParent.cycle',
+        "Attempt to make #{child} its own parent"
+    if cmsg.children?.length # optimization for new message
+      for ancestor from ancestorMessages pmsg, false # already checked parent
+        if ancestor._id == child
+          throw new Meteor.Error 'messageParent.cycle',
+            "Attempt to make #{child} its own ancestor (via #{parent})"
 
   oldPosition = null
   oldSiblingsBefore = null
