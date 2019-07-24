@@ -1571,7 +1571,9 @@ Template.messageParentDialog.helpers
 
 Template.messageParentDialog.onRendered ->
   @autorun =>
-    @messages = Messages.find {},
+    @messages = Messages.find
+      _id: $ne: @data.child._id # do not offer self
+    ,
       fields:
         _id: true
         title: true
