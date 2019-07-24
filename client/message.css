@@ -80,6 +80,8 @@ input.title { width: calc(100% + 5px); margin: 0px -5px 0px 0px; }
  */
 .message-body li > p:first-child, .message-body li.noitemlab > p:nth-child(2) {
   display: inline-block; width: 100%; vertical-align: top; }
+/* markdown-it-task-checkbox */
+.message-body input[type="checkbox"] { margin-top: 0; margin-right: 2px; vertical-align: -2px; }
 
 /* Emoji */
 .emoji-plus { font-size: 0.7em; margin-top: -2px; vertical-align: middle; }

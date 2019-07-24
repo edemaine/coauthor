@@ -481,6 +481,14 @@ latex2html = (tex) ->
       text = markdownInline text
     else
       text = markdown text
+    ## Wrap markdown-it-task-checkbox checkboxes in <span class="itemlab">
+    text = text.replace /(<li\b[^<>]*>\s*)(<input\b[^<>]*>)\s*/ig,
+      (match, li, input) ->
+        if /type\s*=\s*"checkbox"/.test input
+          "#{li}<span class=\"itemlab\">#{input}</span>"
+        else
+          match
+    .replace /(<label\b[^<>]*>)\s*/ig, '$1'
     [text, math]
   latex: (text, title) ->
     latex2html text

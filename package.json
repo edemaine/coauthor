@@ -38,6 +38,7 @@
     "katex": "^0.10.2",
     "markdown-it": "^8.4.2",
     "markdown-it-replacements": "^1.0.1",
+    "markdown-it-task-checkbox": "^1.0.6",
     "meteor-node-stubs": "^0.4.1",
     "moment-timezone": "^0.5.25",
     "pdfjs-dist": "^2.0.943",

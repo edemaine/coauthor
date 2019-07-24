@@ -31,6 +31,9 @@ switch markdownMode
             return hljs.highlight(lang, str).value
         ''  ## default escaping
     .use require 'markdown-it-replacements'
+    .use require('markdown-it-task-checkbox'),
+      disabled: true
+      liClass: 'task-list-item noitemlab'
     markdownIt.linkify
     .add 'coauthor:', validate: ///^#{coauthorLinkBodyHashRe}///
     @markdown = (text) -> markdownIt.render text
