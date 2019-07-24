@@ -1574,6 +1574,7 @@ Template.messageParentDialog.onRendered ->
     @messages = Messages.find {},
       fields:
         _id: true
+        group: true
         title: true
         file: true
         creator: true
@@ -1590,8 +1591,11 @@ Template.messageParentDialog.onRendered ->
       for child in msg.children
         recurse child
     recurse @data.child._id
+    ## Show (messages from) other groups if superuser for this group
+    acrossGroups = canSuper @data.child.group
     @messages =
-      for msg in @messages when msg._id of byId
+      for msg in @messages when msg._id of byId and (
+          acrossGroups or msg.group == @data.child.group)
         msg.text = "#{titleOrUntitled msg} by #{msg.creator} [#{msg._id}]"
         msg.html = "#{_.escape titleOrUntitled msg} <span class=\"author\"><i>by</i> #{_.escape msg.creator}</span> <span class=\"id\">[#{_.escape msg._id}]</span>"
         msg
