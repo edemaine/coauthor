@@ -1571,18 +1571,30 @@ Template.messageParentDialog.helpers
 
 Template.messageParentDialog.onRendered ->
   @autorun =>
-    @messages = Messages.find
-      _id: $ne: @data.child._id # do not offer self
-    ,
+    @messages = Messages.find {},
       fields:
         _id: true
         title: true
         file: true
         creator: true
+        children: true
     .fetch()
+    byId = {}
     for msg in @messages
-      msg.text = "#{titleOrUntitled msg} by #{msg.creator} [#{msg._id}]"
-      msg.html = "#{_.escape titleOrUntitled msg} <i>by</i> #{_.escape msg.creator} <span class=\"id\">[#{_.escape msg._id}]</span>"
+      byId[msg._id] = msg
+    ## Remove descendants similar to descendantMessageIds, but using fetched.
+    recurse = (id) ->
+      msg = byId[id]
+      return unless msg?
+      delete byId[id]
+      for child in msg.children
+        recurse child
+    recurse @data.child._id
+    @messages =
+      for msg in @messages when msg._id of byId
+        msg.text = "#{titleOrUntitled msg} by #{msg.creator} [#{msg._id}]"
+        msg.html = "#{_.escape titleOrUntitled msg} <span class=\"author\"><i>by</i> #{_.escape msg.creator}</span> <span class=\"id\">[#{_.escape msg._id}]</span>"
+        msg
   @$('.typeahead').typeahead
     hint: true
     highlight: true

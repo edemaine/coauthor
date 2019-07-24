@@ -184,7 +184,8 @@ s a, del a { text-decoration-color: #c7254e; }
 /* Workaround for https://bugs.chromium.org/p/chromium/issues/detail?id=958802
  * (in addition to removing .flexColumn from .modal-content) */
 .messageParentDialog .modal-body { max-height: calc(90vh - 159px); } /* 159px is the measured height of header and footer */
-.messageParentDialog .id { font-size: x-small; }
+.messageParentDialog .tt-menu .id { font-size: x-small; }
+.messageParentDialog .tt-menu .author { font-size: medium; }
 .flexColumn { display: flex; flex-direction: column; }
 .flexRow { display: flex; flex-direction: row; }
 .flexShrink { min-height: 50px; } /* allow equal-size shrinking height down to 50px */
