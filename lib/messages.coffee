@@ -500,7 +500,14 @@ if Meteor.isServer
   child = findMessage child
   parent = findMessage parent
   group ?= parent.group
-  return false unless parent? or group?
+  ## Need target group, either from parent or argument (to make root message)
+  return false unless group?
+  ## Moving a message across groups will cause users in current group to lose
+  ## access to the message; require superuser access in that group.
+  if child.group != group
+    return false unless canSuper child.group
+  ## Need to be able to edit the child message and be able to post within
+  ## the target parent.
   canEdit(child) and canPost group, parent
 
 idle = 1000   ## one second
