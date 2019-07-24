@@ -203,6 +203,10 @@ template(name="submessage")
                       li
                         a.privateButton(href="#")
                           button.btn.btn-danger.btn-block Make Private
+                  if canParent
+                    li
+                      a.parentButton(href="#")
+                        button.btn.btn-warning.btn-block Reparent
             if editingRV
               if editStopping
                 button.btn.btn-info.editButton.disabled(tabindex="{{tabindex 8}}", title="Waiting for save to complete before stopping editing...") Stop Editing
@@ -453,15 +457,18 @@ template(name="messageReplace")
   input.replaceInput(type="file", style="display:none")
   button.btn.btn-info.replaceButton(tabindex=tabindex) Replace File
 
-template(name="messageParentConfirm")
+template(name="messageParentDialog")
   .modal
-    .modal-dialog.modal-lg.messageParentConfirm
+    .modal-dialog.modal-lg.messageParentDialog
       .modal-content
         //-.flexColumn
         .modal-header
-          h2 Confirm Message Reparenting
+          h2 Reparent Message
         .modal-body.flexColumn
-          p Are you sure you want to reparent as follows?
+          .row.header-row
+            .col-xs-6 New parent for bottom message?
+            .col-xs-6
+              input.form-control.parent.typeahead(type="text", placeholder="Message title/ID", value='')
           .row.flexShrink.flexRow
             .col-xs-6.scrollbars
               with oldParent

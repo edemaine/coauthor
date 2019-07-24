@@ -202,7 +202,7 @@ Template.timezoneSelector.onCreated ->
     console.log "Loaded #{timezones.length} timezones."
 
 Template.timezoneSelector.onRendered ->
-  $('.typeahead').typeahead
+  @$('.typeahead').typeahead
     hint: true
     highlight: true
     minLength: 1

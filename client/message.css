@@ -177,10 +177,14 @@ s a, del a { text-decoration-color: #c7254e; }
   background-image: linear-gradient(rgba(0,0,0,0), red, rgba(0,0,0,0)); }
 .onMessageDrop.dragover { background-image: linear-gradient(rgba(0,0,0,0), red, rgba(0,0,0,0)); }
 
-.messageParentConfirm .modal-content { max-height: 90vh; }
+.messageParentDialog .modal-body > .row:first-child { margin-bottom: 1.5ex; }
+.messageParentDialog .modal-body > .row:first-child > .col-xs-6:first-child { padding-top: 0.75ex; }
+.messageParentDialog .modal-body > .row:first-child > .col-xs-6:last-child { padding-right: 30px; }
+.messageParentDialog .modal-content { max-height: 90vh; }
 /* Workaround for https://bugs.chromium.org/p/chromium/issues/detail?id=958802
  * (in addition to removing .flexColumn from .modal-content) */
-.messageParentConfirm .modal-body { max-height: calc(90vh - 159px); } /* 159px is the measured height of header and footer */
+.messageParentDialog .modal-body { max-height: calc(90vh - 159px); } /* 159px is the measured height of header and footer */
+.messageParentDialog .id { font-size: x-small; }
 .flexColumn { display: flex; flex-direction: column; }
 .flexRow { display: flex; flex-direction: row; }
 .flexShrink { min-height: 50px; } /* allow equal-size shrinking height down to 50px */

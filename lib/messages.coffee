@@ -491,6 +491,14 @@ if Meteor.isServer
 @canAdmin = (group, message = null) ->
   messageRoleCheck group, message, 'admin'
 
+@canMaybeParent = canEdit  # could this message may be reparented?
+@canParent = (child, parent, group) ->  # is this parent operation allowed?
+  child = findMessage child
+  parent = findMessage parent
+  group ?= parent.group
+  return false unless parent? or group?
+  canEdit(child) and canPost group, parent
+
 idle = 1000   ## one second
 
 @message2group = (message) ->
@@ -757,7 +765,8 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
     group = cmsg.group  ## xxx can't reparent into root message of other group
     root = null
 
-  unless canEdit(child) and canPost group, parent
+  #unless canEdit(child) and canPost group, parent
+  unless canParent child, parent, group
     throw new Meteor.Error 'messageParent.unauthorized',
       "Insufficient privileges to reparent message #{child} into #{parent}"
 

@@ -935,6 +935,7 @@ Template.submessage.helpers
   canUnminimize: -> canUnminimize @_id
   canSuperdelete: -> canSuperdelete @_id
   canPrivate: -> canPrivate @_id
+  canParent: -> canMaybeParent @_id
 
   history: -> messageHistory.get(@_id)?
   forHistory: ->
@@ -1180,6 +1181,17 @@ Template.submessage.events
     Meteor.call 'messageUpdate', message,
       minimized: not @minimized
     dropdownToggle e
+
+  'click .parentButton': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    child = t.data
+    oldParent = findMessageParent child
+    oldIndex = oldParent?.children.indexOf child._id
+    Modal.show 'messageParentDialog',
+      child: child
+      oldParent: oldParent
+      oldIndex: oldIndex
 
   'click .editorKeyboard': (e, t) ->
     e.preventDefault()
@@ -1543,19 +1555,62 @@ messageParent = (child, parent, index = null) ->
     if index? and index > oldIndex
       index -= 1
       return if index == oldIndex
-  Modal.show 'messageParentConfirm',
+  Modal.show 'messageParentDialog',
     child: childMsg
     parent: parentMsg
     oldParent: oldParent
     index: index
     oldIndex: oldIndex
 
-Template.messageParentConfirm.events
+Template.messageParentDialog.onCreated ->
+  @parent = new ReactiveVar @data.parent
+  #@index = new ReactiveVar @data.index
+
+Template.messageParentDialog.helpers
+  parent: -> Template.instance().parent.get()
+
+Template.messageParentDialog.onRendered ->
+  @autorun =>
+    @messages = Messages.find {},
+      fields:
+        _id: true
+        title: true
+        file: true
+        creator: true
+    .fetch()
+    for msg in @messages
+      msg.text = "#{titleOrUntitled msg} by #{msg.creator} [#{msg._id}]"
+      msg.html = "#{_.escape titleOrUntitled msg} <i>by</i> #{_.escape msg.creator} <span class=\"id\">[#{_.escape msg._id}]</span>"
+  @$('.typeahead').typeahead
+    hint: true
+    highlight: true
+    minLength: 1
+  ,
+    name: 'parent'
+    limit: 50
+    source: (q, callback) =>
+      re = new RegExp (escapeRegExp q), 'i'
+      callback(msg for msg in @messages when msg.text.match re)
+    display: (msg) -> msg.text
+    templates:
+      suggestion: (msg) -> "<div>#{msg.html}</div>"
+      notFound: '<i style="margin: 0ex 1em">No matching messages found.</i>'
+
+Template.messageParentDialog.events
+  "typeahead:autocomplete .parent, typeahead:cursorchange .parent, typeahead:select .parent": (e, t) ->
+    match = /\[([^\[\]]+)\]\s*$/.exec t.find('.tt-input').value
+    return unless match?
+    msg = findMessage(match[1]) ? {_id: match[1]}  # allow unknown message ID
+    t.parent.set msg
+
   "click .messageParentButton": (e, t) ->
     e.preventDefault()
     e.stopPropagation()
     Modal.hide()
-    Meteor.call 'messageParent', t.data.child._id, t.data.parent._id, t.data.index
+    if t.data.parent == t.parent.get() # unchanged from drag
+      Meteor.call 'messageParent', t.data.child._id, t.data.parent._id, t.data.index
+    else
+      Meteor.call 'messageParent', t.data.child._id, t.parent.get()._id
   "click .cancelButton": (e) ->
     e.preventDefault()
     e.stopPropagation()
