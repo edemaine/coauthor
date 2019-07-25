@@ -778,6 +778,9 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
   else
     group = position ? cmsg.group
     position = null  ## henceforth, position should be an integer or null
+    unless findGroup group
+      throw new Meteor.Error 'messageParent.badGroup',
+        "Attempt to reparent #{child} into unknown group #{group}"
     root = null
 
   #unless canEdit(child) and canPost group, parent
