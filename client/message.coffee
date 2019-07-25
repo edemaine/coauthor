@@ -1539,8 +1539,6 @@ for template in [Template.tableOfContentsRoot, Template.tableOfContentsMessage]
     "drop .beforeMessageDrop": dropBefore
 
 messageParent = (child, parent, index = null) ->
-  #console.log 'messageParent', child, parent, index
-  #Meteor.call 'messageParent', child, parent, index
   return if child == parent  ## ignore trivial self-loop
   childMsg = Messages.findOne child
   parentMsg = Messages.findOne parent
@@ -1606,6 +1604,14 @@ Template.messageParentDialog.onRendered ->
     @messages.push
       text: "Group: #{@data.child.group}"
       html: "<i>Group</i>: #{@data.child.group}"
+    if acrossGroups
+      Groups.find
+        name: $ne: @data.child.group
+      , fields: name: true
+      .forEach (group) =>
+        @messages.push
+          text: "Group: #{group.name}"
+          html: "<i>Group</i>: #{group.name}"
       
   @$('.typeahead').typeahead
     hint: true
@@ -1639,13 +1645,13 @@ Template.messageParentDialog.events
     Modal.hide()
     parent = t.parent.get()
     if t.data.index? and t.data.parent == parent # unchanged from drag
+      console.assert not parent.isGroup
       Meteor.call 'messageParent', t.data.child._id, t.data.parent._id, t.data.index
+    else if parent.isGroup
+      Meteor.call 'messageParent', t.data.child._id, null, parent.group
     else
-      Meteor.call 'messageParent', t.data.child._id,
-        if parent.isGroup
-          null
-        else
-          parent._id
+      Meteor.call 'messageParent', t.data.child._id, parent._id
+
   "click .cancelButton": (e) ->
     e.preventDefault()
     e.stopPropagation()

@@ -773,7 +773,8 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
     group = pmsg.group
     root = pmsg.root ? parent
   else
-    group = cmsg.group  ## xxx can't reparent into root message of other group
+    group = position ? cmsg.group
+    position = null  ## henceforth, position should be an integer or null
     root = null
 
   #unless canEdit(child) and canPost group, parent
@@ -812,33 +813,35 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
         $pull: children: child
     else
       oldParent = null
-  return if parent == oldParent == null  ## no-op, root case
+  if parent == oldParent == null and group == cmsg.group
+    return  ## no-op, root case
   if parent?
     _messageAddChild child, parent, position
+  update = msgUpdate = {}
   if root != cmsg.root
-    update = root: root
-    if group != cmsg.group
-      update.group = group
-      ## First MessagesDiff has the initial group; add Diff if it changes.
-      ## (Unclear whether we should track group at all, though.)
-      now = new Date
-      username = Meteor.user().username
-      MessagesDiff.insert
-        id: cmsg._id
-        group: cmsg.group
-        updated: now
-        updators: [username]
-      Messages.update child,
-        $set: _.extend {"authors.#{escapeUser username}": now}, update
-    else
-      Messages.update child,
-        $set: update
+    update.root = root
+  if group != cmsg.group
+    update.group = group
+    ## First MessagesDiff has the initial group; add Diff if it changes.
+    ## (Unclear whether we should track group at all, though.)
+    now = new Date
+    username = Meteor.user().username
+    MessagesDiff.insert
+      id: cmsg._id
+      group: cmsg.group
+      updated: now
+      updators: [username]
+    msgUpdate = _.extend {"authors.#{escapeUser username}": now}, update
+  unless _.isEmpty update  # update root and/or group
+    Messages.update child,
+      $set: msgUpdate
     EmojiMessages.update
       message: child
     ,
       $set: update
     ,
       multi: true
+  if group != cmsg.group
     if cmsg.root?
       ## If we move a nonroot message to have new root, update descendants.
       descendants = descendantMessageIds cmsg
@@ -1018,11 +1021,20 @@ Meteor.methods
     #message
 
   messageParent: (child, parent, position = null) ->
-    ## Notably, disabling oldParent search and importing options are not
-    ## allowed from client, only internal to server.
+    ## `child` is the message to reparent.
+    ## `parent` is the new parent, or null means make `child` a root message.
+    ## `position` normally specifies the integer index to place in parent's
+    ## children list.  When `parent` is null, though, it can specify a group
+    ## to make `child` the root of (when you're superuser).
+    ##
+    ## Notably, disabling `oldParent` setting and `importing` options of
+    ## `_messageParent` are not allowed from client, only internal to server.
     check Meteor.userId(), String  ## should be done by 'canEdit'
     check parent, Match.OneOf String, null
-    check position, Match.Maybe Number
+    if parent?
+      check position, Match.Maybe Number
+    else
+      check position, Match.Maybe String
     _messageParent child, parent, position
 
   messageEditStart: (id) ->
