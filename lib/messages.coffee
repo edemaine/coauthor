@@ -1,6 +1,9 @@
 import { defaultFormat } from './settings.coffee'
 import { ShareJS } from 'meteor/edemaine:sharejs'
 
+## Thanks to https://github.com/aldeed/meteor-simple-schema/blob/4ead24bcc92e9963dd994c07d275eac144733c3e/simple-schema.js#L548-L551
+@idRegex = "[23456789ABCDEFGHJKLMNPQRSTWXYZabcdefghijkmnopqrstuvwxyz]{17}"
+
 @untitledMessage = '(untitled)'
 
 @titleOrUntitled = (msg) ->

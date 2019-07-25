@@ -1629,12 +1629,15 @@ Template.messageParentDialog.onRendered ->
       notFound: '<i style="margin: 0ex 1em">No matching messages found.</i>'
 
 Template.messageParentDialog.events
-  "typeahead:autocomplete .parent, typeahead:cursorchange .parent, typeahead:select .parent": (e, t) ->
+  "typeahead:autocomplete .parent, typeahead:cursorchange .parent, typeahead:select .parent, input .parent": (e, t) ->
     text = t.find('.tt-input').value
-    if match = /\[([^\[\]]+)\]\s*$/.exec text
+    if match = ///(?:^\s*|[\[/:])(#{idRegex})\]?\s*$///.exec text
       msg = findMessage(match[1]) ? {_id: match[1]}  # allow unknown message ID
+      if e.type == 'input' and t.parent.get()?._id != match[1] and
+         msg.creator?  # hand-typed new good message ID
+        t.$('.typeahead').typeahead 'close'
       t.parent.set msg
-    else if match = /^Group: (.*)$/.exec text
+    else if match = /^\s*Group:\s*(.*?)\s*$/i.exec text
       t.parent.set
         isGroup: true
         group: match[1]
@@ -1656,3 +1659,6 @@ Template.messageParentDialog.events
     e.preventDefault()
     e.stopPropagation()
     Modal.hide()
+
+Template.groupOrMessage.helpers
+  loadedMessage: -> @creator?

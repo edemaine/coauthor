@@ -493,13 +493,18 @@ template(name="messageParentDialog")
           button.btn.btn-success.cancelButton.fullwidth Cancel
 
 template(name="groupOrMessage")
-  if isGroup
+  if loadedMessage
+    +readMessage
+  else
     .panel.panel-primary
       .panel-heading.compact.title.clearfix
         span.push-down.btn-group.btn-group-xs
           .fake-btn &#8203;
-        span.title.panel-title
-          | #{group}
-        i.pull-right.push-down (root message in this group)
-  else
-    +readMessage
+        if isGroup
+          span.title.panel-title
+            | #{group}
+          i.pull-right.push-down (root message in this group)
+        else
+          span.title.panel-title
+            | Message #{_id}
+          i.pull-right.push-down (unloaded message)
