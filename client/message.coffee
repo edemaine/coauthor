@@ -745,7 +745,7 @@ Template.submessage.helpers
                 else
                   replacement = "coauthor:#{id}"
             else if match = parseCoauthorMessageUrl text
-              replacement = "coauthor:#{match.message}"
+              replacement = "coauthor:#{match.message}#{match.hash}"
             else if match = parseCoauthorAuthorUrl text
               replacement = "@#{match.author}"
             else
@@ -796,7 +796,7 @@ Template.submessage.helpers
             else if 'text/plain' in e.clipboardData.types
               text = e.clipboardData.getData 'text/plain'
               if match = parseCoauthorMessageUrl text
-                paste = ["coauthor:#{match.message}"]
+                paste = ["coauthor:#{match.message}#{match.hash}"]
               else if match = parseCoauthorAuthorUrl text
                 paste = ["@#{match.author}"]
           editor.on 'beforeChange', (cm, change) ->
@@ -1511,20 +1511,21 @@ dropOn = (e, t) ->
   e.preventDefault()
   e.stopPropagation()
   $(e.target).removeClass 'dragover'
-  dragId = e.originalEvent.dataTransfer?.getData 'application/coauthor-id'
-  dropId = e.target.getAttribute 'data-id'
-  if dragId and dropId
-    messageParent dragId, dropId
-
-dropBefore = (e, t) ->
-  e.preventDefault()
-  e.stopPropagation()
-  $(e.target).removeClass 'dragover'
-  dragId = e.originalEvent.dataTransfer?.getData 'application/coauthor-id'
-  dropId = e.target.getAttribute 'data-parent'
-  index = e.target.getAttribute 'data-index'
-  if dragId and dropId and index
+  dragId = e.originalEvent.dataTransfer?.getData('application/coauthor-id')
+  unless dragId
+    url = e.originalEvent.dataTransfer?.getData 'text/plain'
+    if url?
+      url = parseCoauthorMessageUrl url
+      if url?.hash
+        dragId = url.hash[1..]
+      else
+        dragId = url?.message
+  if index = e.target.getAttribute 'data-index'
     index = parseInt index
+    dropId = e.target.getAttribute 'data-parent'
+  else
+    dropId = e.target.getAttribute 'data-id'
+  if dragId and dropId
     messageParent dragId, dropId, index
 
 for template in [Template.tableOfContentsRoot, Template.tableOfContentsMessage]
@@ -1536,12 +1537,12 @@ for template in [Template.tableOfContentsRoot, Template.tableOfContentsMessage]
     "dragleave .beforeMessageDrop": removeDragOver
     "dragover .beforeMessageDrop": dragOver
     "drop .onMessageDrop": dropOn
-    "drop .beforeMessageDrop": dropBefore
+    "drop .beforeMessageDrop": dropOn
 
 messageParent = (child, parent, index = null) ->
   return if child == parent  ## ignore trivial self-loop
-  childMsg = Messages.findOne child
-  parentMsg = Messages.findOne parent
+  childMsg = findMessage(child) ? _id: child
+  parentMsg = findMessage(parent) ? _id: parent
   oldParent = findMessageParent child
   oldIndex = oldParent?.children.indexOf child
   if parentMsg?._id == oldParent?._id
@@ -1562,9 +1563,13 @@ messageParent = (child, parent, index = null) ->
 
 Template.messageParentDialog.onCreated ->
   unless @data.oldParent?
-    @data.oldParent =
-      isGroup: true
-      group: @data.child.group
+    if @data.child.group?
+      @data.oldParent =
+        isGroup: true
+        group: @data.child.group
+    else
+      @data.oldParent =
+        _id: null  # triggers unloaded view
   @parent = new ReactiveVar @data.parent
   #@index = new ReactiveVar @data.index
 

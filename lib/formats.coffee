@@ -506,10 +506,12 @@ latex2html = (tex) ->
     message: '(.*)'
     0: '*'
     1: '*'
-  }$").exec url
+  .replace /\./g, '[^/#]'
+  }(#.*)?$").exec url
   if match?
     group: match[1]
     message: match[2]
+    hash: match[3] ? ''
 
 @parseCoauthorAuthorUrl = (url) ->
   match = new RegExp("^#{urlFor 'author',
