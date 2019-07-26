@@ -131,13 +131,15 @@ in other fields too.
   folded for all users (e.g., when a discussion/question resolves and is
   no longer important, but you want to preserve it for future reference).
 
-* **Dragging** messages to change the parentage/hierarchy, or move their
-  position within their parent.  You must drag *onto* the table of contents
-  on the right; you can drag *from* the table of contents, or from the
-  right-arrow of a message in the main view.
+* **Reparent** messages by selecting Action / Reparent, or by dragging
+  messages around in the table of contents on the right.
+  (You can also start a drag in the main view from the right-arrow
+  of a message, but the drag must end at the table of contents.)
   Dragging directly onto a message makes the dragged message the last child,
   while dragging onto the slot before a message makes the dragged message the
-  immediately preceding sibling.  Dialog confirms move.
+  immediately preceding sibling.  Dialog confirms move, and allows you to type
+  another message title/creator/ID, or the name of a group if you want to
+  make the message into a new thread's root message.
 
 * **Tags**: attach an arbitrary set of strings to a message.  Find other
   messages with the same tag by clicking on a tag.
