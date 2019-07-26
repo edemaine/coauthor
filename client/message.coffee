@@ -1,3 +1,5 @@
+import { resolveTheme } from './theme.coffee'
+
 sharejsEditor = 'cm'  ## 'ace' or 'cm'; also change template used in message.jade
 
 switch sharejsEditor
@@ -702,14 +704,15 @@ Template.submessage.helpers
             'CodeMirror-linenumbers'
             'CodeMirror-foldgutter'
           ]
+          theme = resolveTheme themeEditor()
           editor.setOption 'theme',
-            switch themeEditor()
+            switch theme
               when 'dark'
                 'blackboard'
               when 'light'
                 'eclipse'
               else
-                themeEditor()
+                theme
           pasteHTML = false
           editor.setOption 'extraKeys',
             Enter: 'xnewlineAndIndentContinueMarkdownList'

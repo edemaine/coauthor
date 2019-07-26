@@ -7,6 +7,17 @@ Template.settings.onCreated ->
   @autorun ->
     setTitle 'Settings'
 
+rotateTheme = (theme) ->
+  switch theme
+    when 'auto'
+      'dark'
+    when 'dark'
+      'light'
+    when 'light'
+      'auto'
+    else
+      'auto'
+
 myAfter = (user) -> user.notifications?.after ? defaultNotificationDelays.after
 
 Template.settings.helpers
@@ -99,21 +110,13 @@ Template.settings.events
     e.preventDefault()
     e.stopPropagation()
     Meteor.users.update Meteor.userId(),
-      $set: "profile.theme.global":
-        if themeGlobal() == 'dark'
-          'light'
-        else
-          'dark'
+      $set: "profile.theme.global": rotateTheme themeGlobal()
 
   'click .themeEditorButton': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
     Meteor.users.update Meteor.userId(),
-      $set: "profile.theme.editor":
-        if themeEditor() == 'dark'
-          'light'
-        else
-          'dark'
+      $set: "profile.theme.editor": rotateTheme themeEditor()
 
   'click .previewButton': (e, t) ->
     e.preventDefault()

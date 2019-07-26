@@ -21,13 +21,13 @@ template(name="settings")
           tr
             th
               label Global theme:
-              .description Throughout Coauthor (except editor): Black text on white background (Light) or white text on black background (Dark).
+              .description Throughout Coauthor (except editor): Black text on white background (Light) or white text on black background (Dark). Auto attempts to <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-color-scheme">detect</a> based on operating system theme.
             td
               button.btn.btn-default.themeGlobalButton(type="button", data-toggle="button", autocomplete="off")= themeGlobal
           tr
             th
               label Editor theme:
-              .description When editing messages: Black text on white background (Light) or white text on black background (Dark).
+              .description When editing messages: Black text on white background (Light) or white text on black background (Dark). Auto attempts to <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-color-scheme">detect</a> based on operating system theme.
             td
               button.btn.btn-default.themeEditorButton(type="button", data-toggle="button", autocomplete="off")= themeEditor
           tr
