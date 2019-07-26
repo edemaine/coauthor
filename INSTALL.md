@@ -26,6 +26,11 @@ Here is how to get a **local test server** running:
 
      `*` means all groups, so this user gets all permissions globally.
 
+Even a test server will be accessible from the rest of the Internet.  However,
+many features (including editing messages) will work only if you set the
+`ROOT_URL` environment variable to `http://your.host.name:3000`
+before running `meteor` in Step 3.
+
 ## Public Server
 
 To deploy to a **public server**, we recommend deploying from a development
