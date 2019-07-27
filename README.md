@@ -37,7 +37,9 @@ in other fields too.
   * [Github-style Markdown](https://guides.github.com/features/mastering-markdown/)
     (default), e.g., `*italic*`, `**bold**`, `~~strikethrough~~`,
     `# Heading`, `## Subheading`, \`code\`, `> Block quote`,
-    <code>\`\`\`multiple lines of code\`\`\`</code>,
+    <code>\`\`\`multiple lines of code\`\`\`</code>
+    (including [language-based highlighting](https://highlightjs.org/)
+     if you start with <code>\`\`\`language</code>),
     links via `[text](url)`, images via `![caption](url)`,
     lists via `*` or `1.`, tables, etc.
     Also supports all LaTeX commands listed below that start with a letter
