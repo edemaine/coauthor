@@ -163,8 +163,10 @@ nav.contents { overflow-y: scroll; padding-bottom: 5px; }
 code.raw, pre { white-space: pre-wrap; }
 /* match <pre>, overriding Bootstrap code defaults */
 code { font-size: 100%; }
-code { color: #333; background-color: #f5f5f5; }
-.dark code { color: #eee; background-color: #222; }
+code { color: inherit; background-color: rgba(200,200,200,0.3); }
+.dark code { background-color: rgba(62,62,62,0.5); }
+pre code { background-color: inherit !important; }
+
 s .katex .base, del .katex .base { position: relative; } /* already in KaTeX */
 s .katex .base:after, del .katex .base:after { content: "";
   position: absolute; left: 0; width: 100%; top: 50%; display: block;
