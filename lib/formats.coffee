@@ -711,6 +711,13 @@ formatEither = (isTitle, format, text, leaveTeX = false, bold = false) ->
   ## to the item label.  Related to CSS rule for "li > p:first-child".
   text = text.replace /(<li[^<>]*>)\s+/ig, '$1'
 
+  ## Add missing <summary>s to <details> tags, for better formatting.
+  text = text.replace /(<details[^<>]*>)([^]*?<\/details>)/ig,
+    (match, head, body) ->
+      unless /<summary/i.test body
+        body = '<summary>Details</summary>' + body
+      head + body
+
   ## Remove surrounding <P> block caused by Markdown and LaTeX formatters.
   if isTitle
     text = text

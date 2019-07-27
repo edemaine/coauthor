@@ -233,6 +233,59 @@ em em em em { font-style: normal }
 em em em em em { font-style: italic }
 em em em em em em { font-style: normal }
 
+/* Treat <details><summary>...</summary>...</details> roughly like
+ * <div class="panel panel-default"><div class="panel-heading
+ * compact">...</div>...</div>
+ */
+details {
+  padding: 0 10px 10px 10px;
+  /* From .panel */
+  margin-bottom: 20px; border: 1px solid transparent; border-radius: 4px;
+  box-shadow: 0 1px 1px rgba(0,0,0,.05);
+  /* From .panel-default */
+  border-color: #ddd;
+}
+.dark details { border-color: #222; }
+summary {
+  /* From .panel-heading */
+  border-bottom: 1px solid transparent;
+  border-top-left-radius: 3px; border-top-right-radius: 3px;
+  /* From .panel-heading.compact */
+  padding: 5px;
+  /* From .panel-default > .panel-heading */
+  border-color: #ddd; background-color: #f5f5f5; color: #333;
+}
+.dark summary { border-color: #222; background-color: #222; color: #eee; }
+details > summary {
+  list-style: none;
+  touch-action: manipulation; cursor: pointer;
+  margin: 0 -10px;
+}
+details:not([open]) > summary { margin-bottom: -10px }
+details[open] > summary { margin-bottom: 10px }
+details > summary::-webkit-details-marker { display: none; } /* Chrome */
+details > summary::before {
+  margin-right: 0.5em; /* like .space */
+  /* From .fas */
+  font-weight: 900; font-family: "Font Awesome 5 Free";
+  /* Tweaked from .btn-group-xs > .btn */
+  padding: 0px 3px; font-size: 12px; border-radius: 3px;
+  /* From .btn-default */
+  color: #333; background-color: #fff; border: 1px solid #ccc;
+  /* From .btn */
+  display: inline-block; margin-bottom: 0; text-align: center;
+  white-space: nowrap; vertical-align: middle; background-image: none;
+}
+.dark details > summary::before { color: #eee; background-color: #4d4d4d; border-color: #404040; }
+details > summary:hover::before, details > summary:active::before, details > summary:focus::before { background-color: #e6e6e6; border-color: #adadad; }
+.dark details > summary:hover::before, .dark details > summary:active::before, .dark details > summary:focus::before { background-color: #333; border-color: #212121; }
+details > summary:active:hover::before, details > summary:active:focus::before { background-color: #d4d4d4; border-color: #8c8c8c; }
+.dark details > summary:active:hover::before, .dark details > summary:active:focus::before { background-color: #212121; border-color: #000; }
+details > summary:focus::before { outline: 5px auto -webkit-focus-ring-color; outline-offset: -2px }
+details:focus, summary:focus { outline: none; }
+details > summary::before { content: "\f067"; }       /* From .fa-plus */
+details[open] > summary::before { content: "\f068"; } /* From .fa-minus */
+
 /* Author search highlighting */
 .highlight { background: yellow; color: black; }
 
