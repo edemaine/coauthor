@@ -80,6 +80,7 @@ in other fields too.
     `<strong>`, `<i>`, `<em>`, `<u>`, `<s>`, `<strike>`, `<del>`, `<code>`,
     `<hr>`, `<br>`, `<table>`, `<thead>`, `<caption>`,
     `<tbody>`, `<tr>`, `<th>`, `<td>`, `<pre>`,
+    `<details><summary>Title</summary> Folded-away text</details>`,
     `<img src/alt/width/height>`, `<video controls>`, `<source src>`;
     attributes `title`, `style`, `class` (limited), `aria-*`.
     Also supports LaTeX math mode.
