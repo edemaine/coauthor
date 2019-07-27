@@ -2,10 +2,14 @@
 ## half a second, or top of page if we haven't been there before.
 ## Inspiration from https://github.com/iron-meteor/iron-router/issues/96 and
 ## https://github.com/sunstorymvp/meteor-iron-router-autoscroll
+##
+## Also support instantly going to certain paths (handled by WebApp)
+## as specified by internalPath.
 
 lastURL = null
 pastTops = {}
 transitioning = false
+internalPath = /^\/(gridfs|file)\//
 
 saveTops = _.debounce ->
   sessionStorage?.setItem? 'pastTops', JSON.stringify pastTops
@@ -32,6 +36,11 @@ $(window).click (e) ->
     if e.target.hostname == window.location.hostname and
        e.target.pathname == window.location.pathname
       scrollToMessage e.target.hash
+  ## Instantly go to internal paths, bypassing Iron Router
+  if e.target?.hostname == window.location.hostname and
+     internalPath.test e.target?.pathname and e.button == 0
+    e.preventDefault()
+    window.location = e.target.href
 
 Router.onBeforeAction ->
   transitioning = true
