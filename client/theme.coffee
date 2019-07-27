@@ -23,5 +23,5 @@ Tracker.autorun updateTheme = ->
     lastTheme = newTheme
 
 ## To implement 'auto' theme, listen to changes to browser's preference.
-## Safari requires `addListener`; others alias this to `addEventListener`.
-prefersDark.addListener? 'change', updateTheme
+## Safari requires `addListener` instead of `addEventListener 'change'`.
+prefersDark.addListener? updateTheme
