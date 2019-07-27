@@ -123,10 +123,11 @@ for className in allowedClasses
 cssCommentRegex = /\/\*[^*]*\*+(?:[^/*][^*]*\*+)*\//g
 
 sanitizeHtml.defaults.transformTags =
-  'input': (tagName, attribs) ->
-    attribs.type = 'checkbox'
-    tagName: tagName
-    attribs: attribs
+  ## Force all <input>s to have type="checkbox" and be disabled
+  'input': sanitizeHtml.simpleTransform 'input',
+    type: 'checkbox'
+    disabled: true
+
   '*': (tagName, attribs) ->
     ## We used to always forbid position:absolute, but KaTeX needs them
     ## (see e.g. `\not`).  But we do need to forbid position:fixed, because
