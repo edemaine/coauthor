@@ -22,9 +22,9 @@ $(window).scroll ->
   #console.log lastURL, $(window).scrollTop()
   saveTops()
 
-$(window).click (e) ->
-  ## Only override clicks on <a> tags
-  return unless e.target?.tagName?.toLowerCase() == 'a'
+## Match event handler spec from https://github.com/iron-meteor/iron-location/blob/c3ad6663c37d3a94f0929c78f3c3fef8adf84dc9/lib/location.js#L242
+## so that we can override that handler via stopImmediatePropagation if needed.
+$(document).on 'click', 'a[href]', (e) ->
   ## Only override left clicks
   return unless e.button == 0
   ## Only override vanilla clicks. Inspired by https://github.com/iron-meteor/iron-location/blob/c3ad6663c37d3a94f0929c78f3c3fef8adf84dc9/lib/location.js#L130
@@ -46,6 +46,7 @@ $(window).click (e) ->
   if e.target?.hostname == window.location.hostname and
      internalPath.test e.target?.pathname
     e.preventDefault()
+    e.stopImmediatePropagation?()
     window.location = e.target.href
 
 Router.onBeforeAction ->
