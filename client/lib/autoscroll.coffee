@@ -23,6 +23,12 @@ $(window).scroll ->
   saveTops()
 
 $(window).click (e) ->
+  ## Only override clicks on <a> tags
+  return unless e.target?.tagName?.toLowerCase() == 'a'
+  ## Only override left clicks
+  return unless e.button == 0
+  ## Only override vanilla clicks. Inspired by https://github.com/iron-meteor/iron-location/blob/c3ad6663c37d3a94f0929c78f3c3fef8adf84dc9/lib/location.js#L130
+  return if e.metaKey or e.ctrlKey or e.shiftKey
   ## If we click on a link with a hash mark in it, forget and therefore
   ## don't scroll to remembered position.
   if e.target?.href?.endsWith? '#'
@@ -38,7 +44,7 @@ $(window).click (e) ->
       scrollToMessage e.target.hash
   ## Instantly go to internal paths, bypassing Iron Router
   if e.target?.hostname == window.location.hostname and
-     internalPath.test e.target?.pathname and e.button == 0
+     internalPath.test e.target?.pathname
     e.preventDefault()
     window.location = e.target.href
 
