@@ -725,6 +725,11 @@ _messageUpdate = (id, message, authors = null, old = null) ->
     minimized: Match.Optional Boolean
     rotate: Match.Optional Match.Where (r) ->
       typeof r == "number" and -180 < r <= 180
+    finished: Match.Optional Boolean
+  ## `finished` is a special indicator to mark the diff as finished,
+  ## when making edits from outside editing mode.
+  finished = message.finished
+  delete message.finished
 
   ## Don't update if there aren't any actual differences.
   difference = false
@@ -745,6 +750,7 @@ _messageUpdate = (id, message, authors = null, old = null) ->
   Messages.update id,
     $set: message
   diff.id = id
+  diff.finished = authors if finished
   diffid = MessagesDiff.insert diff
   diff._id = diffid
   #_submessagesChanged old.root ? id
@@ -983,6 +989,11 @@ Meteor.methods
       minimized: Match.Optional Boolean
       rotate: Match.Optional Match.Where (r) ->
         typeof r == "number" and -180 < r <= 180
+      finished: Match.Optional Boolean
+    ## `finished` is a special indicator to mark the diff as finished,
+    ## when making edits from outside editing mode.
+    finished = message.finished
+    delete message.finished
     user = Meteor.user()
     unless canPost group, parent, user
       throw new Meteor.Error 'messageNew.unauthorized',
@@ -1047,6 +1058,7 @@ Meteor.methods
           $max: submessageLastUpdate: message.updated
     ## Store diff
     diff.id = id
+    diff.finished = diff.updators if finished
     diffid = MessagesDiff.insert diff
     diff._id = diffid
     notifyMessageUpdate message, null if Meteor.isServer  ## null means created
@@ -1169,6 +1181,7 @@ Meteor.methods
     for diff in diffs
       for author in diff.updators
         message.authors[author] = diff.updated
+    diff?.finished = diff.updators  ## last diff gets "finished" flag
     #if parent?
     #  pmsg = Messages.findOne parent
     #  message.root = pmsg.root ? parent

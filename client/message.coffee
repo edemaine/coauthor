@@ -1379,6 +1379,7 @@ attachFiles = (files, e, t) ->
         callbacks[i] = ->
           Meteor.call 'messageNew', group, message, null,
             file: file2.uniqueIdentifier
+            finished: true
           , done
         ## But call all the callbacks in order by file, so that replies
         ## appear in the correct order.
@@ -1400,6 +1401,7 @@ replaceFiles = (files, e, t) ->
     file.callback = (file2, done) ->
       diff =
         file: file2.uniqueIdentifier
+        finished: true
       ## Reset rotation angle on replace
       data = findMessage message
       if data.rotate
