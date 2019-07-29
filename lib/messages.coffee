@@ -548,6 +548,14 @@ if Meteor.isServer
   else
     message
 
+@findLastDiff = (id) ->
+  MessagesDiff.find
+    id: id
+  ,
+    sort: updated: -1
+    limit: 1
+  .fetch()?[0]
+
 @messageEmpty = (message) ->
   message = findMessage message
   message.title.trim().length == 0 and
@@ -660,6 +668,7 @@ export messageContentFields = [
 
 export messageExtraFields = [
   'editing'
+  #'finished'
   'submessageCount'
   'submessageLastUpdated'
   #'children'
@@ -934,9 +943,15 @@ if Meteor.isServer
     Meteor.clearTimeout stopTimers[id]
     stopTimers[id] = Meteor.setTimeout ->
       ## This code is like an extreme form of `messageEditStop` below:
-      editor2messageUpdate id, Messages.findOne(id).editing ? []
+      editing = Messages.findOne(id).editing ? []
+      editor2messageUpdate id, editing
       Messages.update id,
         $set: editing: []
+      lastDiff = findLastDiff id
+      relevant = (editor for editor in editing when editor in (lastDiff?.updators ? []))
+      if relevant.length
+        MessagesDiff.update lastDiff._id,
+          $addToSet: finished: $each: relevant
       ShareJS.model.delete id
     , idleStop
 
@@ -1075,6 +1090,8 @@ Meteor.methods
         $addToSet: editing: Meteor.user().username
 
   messageEditStop: (id) ->
+    ## When updating this method, you might also want to update the "extreme"
+    ## form in `updateStopTimer` above.
     check Meteor.userId(), String
     if Meteor.isServer
       ## We used to do the following update in client too, to do
@@ -1085,8 +1102,12 @@ Meteor.methods
         Meteor.clearTimeout stopTimers[id]
         editor2messageUpdate id, [Meteor.user().username]
         ShareJS.model.delete id
-      ## xxx should add to last MessagesDiff (possibly just made) that
-      ## Meteor.user().username just committed this version.
+      ## If this user was involved in the last edit to this mesage,
+      ## mark it as "finished" version for the user.
+      lastDiff = findLastDiff id
+      if Meteor.user().username in (lastDiff?.updators ? [])
+        MessagesDiff.update lastDiff._id,
+          $addToSet: finished: Meteor.user().username
 
   messageImport: (group, parent, message, diffs) ->
     #check Meteor.userId(), String  ## should be done by 'canImport'
