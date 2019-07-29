@@ -259,10 +259,11 @@ template(name="submessage")
         +messageAuthor
         .message-response-buttons.clearfix.hidden-print
           if editingRV
-            if editStopping
-              button.btn.btn-info.editButton.disabled(title="Waiting for save to complete before stopping editing...") Stop Editing
-            else
-              button.btn.btn-info.editButton Stop Editing
+            .btn-group.pull-right
+              if editStopping
+                button.btn.btn-info.editButton.disabled(title="Waiting for save to complete before stopping editing...") Stop Editing
+              else
+                button.btn.btn-info.editButton Stop Editing
           +emojiButtons
           +replyButtons
       if childrenCount
