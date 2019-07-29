@@ -2,7 +2,7 @@ import { defaultFormat } from './settings.coffee'
 import { ShareJS } from 'meteor/edemaine:sharejs'
 
 idleUpdate = 1000      ## one second of idle time before edits update message
-idleStop = 60*60*1000  ## one hour of idle time before auto stop editing
+export idleStop = 60*60*1000  ## one hour of idle time before auto stop editing
 
 ## Thanks to https://github.com/aldeed/meteor-simple-schema/blob/4ead24bcc92e9963dd994c07d275eac144733c3e/simple-schema.js#L548-L551
 @idRegex = "[23456789ABCDEFGHJKLMNPQRSTWXYZabcdefghijkmnopqrstuvwxyz]{17}"
@@ -414,8 +414,10 @@ if Meteor.isServer
 
 if Meteor.isServer
   ## Remove all editors on server start, so that we can restart listeners.
+  ## Update finished field accordingly.
   Messages.find().forEach (message) ->
     if message.editing?.length
+      finishLastDiff message._id, message.editing
       Messages.update message._id,
         $unset: editing: ''
 
@@ -552,9 +554,17 @@ if Meteor.isServer
   MessagesDiff.find
     id: id
   ,
-    sort: updated: -1
+    sort: [['updated', 'desc']]
     limit: 1
   .fetch()?[0]
+
+@finishLastDiff = (id, editing) ->
+  lastDiff = findLastDiff id
+  return unless lastDiff?
+  relevant = (editor for editor in editing when editor in (lastDiff.updators ? []))
+  if relevant.length
+    MessagesDiff.update lastDiff._id,
+      $addToSet: finished: $each: relevant
 
 @messageEmpty = (message) ->
   message = findMessage message
@@ -946,12 +956,8 @@ if Meteor.isServer
       editing = Messages.findOne(id).editing ? []
       editor2messageUpdate id, editing
       Messages.update id,
-        $set: editing: []
-      lastDiff = findLastDiff id
-      relevant = (editor for editor in editing when editor in (lastDiff?.updators ? []))
-      if relevant.length
-        MessagesDiff.update lastDiff._id,
-          $addToSet: finished: $each: relevant
+        $unset: editing: ''
+      finishLastDiff id, editing
       ShareJS.model.delete id
     , idleStop
 
@@ -1104,10 +1110,7 @@ Meteor.methods
         ShareJS.model.delete id
       ## If this user was involved in the last edit to this mesage,
       ## mark it as "finished" version for the user.
-      lastDiff = findLastDiff id
-      if Meteor.user().username in (lastDiff?.updators ? [])
-        MessagesDiff.update lastDiff._id,
-          $addToSet: finished: Meteor.user().username
+      finishLastDiff id, [Meteor.user().username]
 
   messageImport: (group, parent, message, diffs) ->
     #check Meteor.userId(), String  ## should be done by 'canImport'
