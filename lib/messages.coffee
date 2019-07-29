@@ -412,18 +412,6 @@ if Meteor.isServer
 #    root = root._id if root._id?
 #    MessagesSummary.findOne root
 
-if Meteor.isServer
-  ## Remove all editors on server start, so that we can restart listeners.
-  ## Update finished field accordingly.
-  Messages.find().forEach (message) ->
-    if message.editing?.length
-      finishLastDiff message._id, message.editing
-      Messages.update message._id,
-        $unset: editing: ''
-
-  onExit ->
-    console.log 'EXITING'
-
 @canSee = (message, client = Meteor.isClient, user = Meteor.user(), group) ->
   ## Visibility of a message is implied by its existence in the Meteor.publish
   ## above, so we don't need to check this in the client.  But this function
@@ -928,6 +916,18 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
 if Meteor.isServer
   editorTimers = {}
   stopTimers = {}
+
+  ## Remove all editors on server start, so that we can restart listeners.
+  ## Update finished field accordingly, but don't prevent finished bootstrap.
+  needBootstrap = not MessagesDiff.findOne finished: $exists: true
+  Messages.find().forEach (message) ->
+    if message.editing?.length
+      finishLastDiff message._id, message.editing unless needBootstrap
+      Messages.update message._id,
+        $unset: editing: ''
+
+  onExit ->
+    console.log 'EXITING'
 
   ## If we're using a persistent store for sharejs, we need to cleanup
   ## leftover documents from last time.  This should only be for local
