@@ -243,6 +243,7 @@ messageRaw = new ReactiveDict
 export messageFolded = new ReactiveDict
 defaultFolded = new ReactiveDict
 messageHistory = new ReactiveDict
+messageHistoryAll = new ReactiveDict
 messageKeyboard = new ReactiveDict
 messagePreview = new ReactiveDict
 defaultHeight = 300
@@ -941,8 +942,10 @@ Template.submessage.helpers
   canParent: -> canMaybeParent @_id
 
   history: -> messageHistory.get(@_id)?
+  historyAll: -> messageHistoryAll.get @_id
   forHistory: ->
     _id: @_id
+    historyAll: messageHistoryAll.get @_id
     history: messageHistory.get @_id
 
   raw: -> messageRaw.get @_id
@@ -1253,6 +1256,11 @@ Template.submessage.events
     else
       messageHistory.set @_id, _.clone @
 
+  'click .historyAllButton': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    messageHistoryAll.set @_id, not messageHistoryAll.get @_id
+
   'click .superdeleteButton': (e) ->
     e.preventDefault()
     e.stopPropagation()
@@ -1310,22 +1318,45 @@ Template.messageHistory.onCreated ->
 Template.messageHistory.onRendered ->
   `import('bootstrap-slider')`.then (Slider) =>
     Slider = Slider.default
+    diffs = []
     @autorun =>
-      @slider?.destroy()
+      if @slider?
+        previous = diffs[@slider.getValue()].diffId
+        @slider.destroy()
       diffs = MessagesDiff.find
-          id: @data._id
-        ,
-          sort: ['updated']
-        .fetch()
-      return if diffs.length < 2  ## don't show a zero-length slider
+        id: @data._id
+      ,
+        sort: ['updated']
+      .fetch()
       ## Accumulate diffs
       for diff, i in diffs
+        diff.diffId = diff._id
+        diff._id = @data.id
         if i >= 0
-          for own key, value of diffs[i-1]
+          for own key, value of diffs[i-1] when key != 'finished'
             unless key of diff
               diff[key] = value
-        ## Remove diff IDs
-        delete diff._id
+      ## Restrict to finished diffs if requested, preserving last chosen diff
+      index = -1
+      unless messageHistoryAll.get @data._id
+        finished = []
+        for diff in diffs
+          if diff.diffId == previous
+            index = finished.length
+          if diff.finished
+            finished.push diff
+        diffs = finished
+      else
+        for diff, i in diffs
+          if diff.diffId == previous
+            index = i
+            break
+      unless 0 <= index < diffs.length
+        index = diffs.length - 1
+      previous = diffs[index]?.diffId
+      ## Don't show a zero-length slider
+      return if diffs.length < 2
+      ## Draw slider
       @slider = new Slider @$('input')[0],
         #min: 0                 ## min and max not needed when using ticks
         #max: diffs.length-1
@@ -1339,11 +1370,11 @@ Template.messageHistory.onRendered ->
             formatDate(diffs[i].updated) + '\n' + diffs[i].updators.join ', '
           else
             i
-      @slider.setValue diffs.length-1
+      @slider.setValue index
       #@slider.off 'change'
       @slider.on 'change', (e) =>
         messageHistory.set @data._id, diffs[e.newValue]
-      messageHistory.set @data._id, diffs[diffs.length-1]
+      messageHistory.set @data._id, diffs[index]
 
 uploader = (template, button, input, callback) ->
   Template[template].events {

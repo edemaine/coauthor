@@ -147,7 +147,11 @@ template(name="submessage")
               unless history
                 button.btn.btn-default.historyButton(tabindex="{{tabindex 2}}") History
           if history
-            button.btn.btn-default.historyButton(tabindex="{{tabindex 2}}") Exit History
+            if historyAll
+              button.btn.btn-default.historyAllButton(tabindex="{{tabindex 2}}") Show Finished
+            else
+              button.btn.btn-default.historyAllButton(tabindex="{{tabindex 2}}") Show All
+            button.btn.btn-default.historyButton(tabindex="{{tabindex 3}}") Exit History
           if editingRV
             unless root
               +threadPrivacy

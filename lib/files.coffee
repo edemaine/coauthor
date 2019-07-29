@@ -51,15 +51,14 @@ if Meteor.isServer
   "(?:(#{fileUrlPrefix}|#{fileAbsoluteUrlPrefix})|" +
    "(#{internalFileUrlPrefix}|#{internalFileAbsoluteUrlPrefix}))"
 
-## If given object has a `file` but no `_id` field, then we make a link
-## to the internal file object instead of the file associated with a message.
-## This lets History work with files.
+## If given object has a `file` and either a `diffId` field or no `_id` field,
+## then we make a link to the internal file object instead of the file
+## associated with a message.  This lets History work with files.
 @urlToFile = (id) ->
-  id = id._id if id._id?
-  if id.file?
+  if id.diffId? or (id.file? and not id._id?)
     urlToInternalFile id
   else
-    "#{fileAbsoluteUrlPrefix}#{id}"
+    "#{fileAbsoluteUrlPrefix}#{id._id ? id}"
 
 @url2file = (url) ->
   for prefix in [fileUrlPrefix, fileAbsoluteUrlPrefix]
