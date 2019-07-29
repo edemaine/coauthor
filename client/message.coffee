@@ -1157,6 +1157,7 @@ Template.submessage.events
     #  Meteor.call 'messageEditStop', message
     Meteor.call 'messageUpdate', message,
       published: not @published
+      finished: true
     dropdownToggle e
 
   'click .deleteButton': (e, t) ->
@@ -1169,6 +1170,7 @@ Template.submessage.events
       Meteor.call 'messageEditStop', message
     Meteor.call 'messageUpdate', message,
       deleted: not @deleted
+      finished: true
     dropdownToggle e
 
   'click .privateButton': (e, t) ->
@@ -1177,6 +1179,7 @@ Template.submessage.events
     message = t.data._id
     Meteor.call 'messageUpdate', message,
       private: not @private
+      finished: true
     dropdownToggle e
 
   'click .minimizeButton': (e, t) ->
@@ -1186,6 +1189,7 @@ Template.submessage.events
     messageFolded.set message, @deleted or not @minimized or images[@_id]?.count > 0
     Meteor.call 'messageUpdate', message,
       minimized: not @minimized
+      finished: true
     dropdownToggle e
 
   'click .parentButton': (e, t) ->
