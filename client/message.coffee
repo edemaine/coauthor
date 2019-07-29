@@ -1324,9 +1324,12 @@ Template.messageHistory.onRendered ->
     Slider = Slider.default
     diffs = []
     @autorun =>
+      previous = messageHistory.get(@data._id)?.diffId
       if @slider?
-        previous = diffs[@slider.getValue()].diffId
         @slider.destroy()
+        @slider = null
+        ## Rehide slider's <input> in case we don't make one in this round.
+        @find('input').style.display = 'none'
       diffs = MessagesDiff.find
         id: @data._id
       ,
@@ -1361,7 +1364,7 @@ Template.messageHistory.onRendered ->
       ## Don't show a zero-length slider
       return if diffs.length < 2
       ## Draw slider
-      @slider = new Slider @$('input')[0],
+      @slider = new Slider @find('input'),
         #min: 0                 ## min and max not needed when using ticks
         #max: diffs.length-1
         #value: diffs.length-1  ## doesn't update, unlike setValue method below
