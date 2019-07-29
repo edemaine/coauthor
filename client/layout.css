@@ -24,3 +24,9 @@ li.dropdown.halflink > a.link:first-child { padding-right: 0px; }
 @media (min-width: 768px) {
   .navbar-header + .navbar-collapse { padding-left: 0px; }
 }
+
+/* This one rule from Bootstrap needs to be loaded at all times, even when
+ * switching themes, or else jQuery's .show() won't actually mark modals as
+ * display: block.
+ */
+.modal { display: none; }
