@@ -53,6 +53,11 @@ if Meteor.isServer
   Messages._ensureIndex [
     ['children', 1]
   ]
+  ## Diffs are accessed by message ID, and then sorted by updated date.
+  MessagesDiff._ensureIndex [
+    ['id', 1]
+    ['updated', 1]
+  ]
 
 @rootMessages = (group) ->
   query =
