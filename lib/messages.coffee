@@ -1,6 +1,9 @@
 import { defaultFormat } from './settings.coffee'
 import { ShareJS } from 'meteor/edemaine:sharejs'
 
+idleUpdate = 1000      ## one second of idle time before edits update message
+idleStop = 60*60*1000  ## one hour of idle time before auto stop editing
+
 ## Thanks to https://github.com/aldeed/meteor-simple-schema/blob/4ead24bcc92e9963dd994c07d275eac144733c3e/simple-schema.js#L548-L551
 @idRegex = "[23456789ABCDEFGHJKLMNPQRSTWXYZabcdefghijkmnopqrstuvwxyz]{17}"
 
@@ -513,8 +516,6 @@ if Meteor.isServer
   ## the target parent.
   canEdit(child) and canPost group, parent
 
-idle = 1000   ## one second
-
 @message2group = (message) ->
   findMessage(message)?.group
 @message2root = (message) ->
@@ -901,6 +902,7 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
 
 if Meteor.isServer
   editorTimers = {}
+  stopTimers = {}
 
   ## If we're using a persistent store for sharejs, we need to cleanup
   ## leftover documents from last time.  This should only be for local
@@ -921,11 +923,22 @@ if Meteor.isServer
       , editors, msg
 
   delayedEditor2messageUpdate = (id) ->
+    updateStopTimer id
     Meteor.clearTimeout editorTimers[id]
     editors = findMessage(id).editing
     editorTimers[id] = Meteor.setTimeout ->
       editor2messageUpdate id, editors
-    , idle
+    , idleUpdate
+
+  updateStopTimer = (id) ->
+    Meteor.clearTimeout stopTimers[id]
+    stopTimers[id] = Meteor.setTimeout ->
+      ## This code is like an extreme form of `messageEditStop` below:
+      editor2messageUpdate id, Messages.findOne(id).editing ? []
+      Messages.update id,
+        $set: editing: []
+      ShareJS.model.delete id
+    , idleStop
 
 Meteor.methods
   messageUpdate: (id, message) -> _messageUpdate id, message
@@ -1053,10 +1066,9 @@ Meteor.methods
       unless old.editing?.length
         ShareJS.model.delete id
         ShareJS.initializeDoc id, old.body ? ''
-        timer = null
-        listener = Meteor.bindEnvironment (opData) ->
+        ShareJS.model.listen id, Meteor.bindEnvironment (opData) ->
           delayedEditor2messageUpdate id
-        ShareJS.model.listen id, listener
+        updateStopTimer id
       ## We used to do the following update in client too, to do
       ## speculatively, but it seems problematic for now.
       Messages.update id,
@@ -1069,11 +1081,12 @@ Meteor.methods
       ## speculatively, but it seems problematic for now.
       Messages.update id,
         $pull: editing: Meteor.user().username
-      unless Messages.findOne(id).editing?.length
+      unless Messages.findOne(id).editing?.length  ## removed last editor
+        Meteor.clearTimeout stopTimers[id]
         editor2messageUpdate id, [Meteor.user().username]
         ShareJS.model.delete id
-    ## xxx should add to last MessagesDiff (possibly just made) that
-    ## Meteor.user().username just committed this version.
+      ## xxx should add to last MessagesDiff (possibly just made) that
+      ## Meteor.user().username just committed this version.
 
   messageImport: (group, parent, message, diffs) ->
     #check Meteor.userId(), String  ## should be done by 'canImport'
