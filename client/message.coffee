@@ -1362,7 +1362,7 @@ Template.messageHistory.onRendered ->
         index = diffs.length - 1
       previous = diffs[index]?.diffId
       ## Don't show a zero-length slider
-      return if diffs.length < 2
+      return unless diffs.length
       ## Draw slider
       @slider = new Slider @find('input'),
         #min: 0                 ## min and max not needed when using ticks
@@ -1370,6 +1370,7 @@ Template.messageHistory.onRendered ->
         #value: diffs.length-1  ## doesn't update, unlike setValue method below
         ticks: [0...diffs.length]
         ticks_snap_bounds: 999999999
+        reversed: diffs.length == 1  ## put one tick at far right
         tooltip: 'always'
         tooltip_position: 'bottom'
         formatter: (i) ->
