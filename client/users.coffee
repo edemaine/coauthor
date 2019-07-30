@@ -1,39 +1,3 @@
-haveRole = (role, profile) ->
-  group = routeGroup()
-  message = routeMessage()
-  levels = []
-  if message
-    have = role in (profile.rolesPartial?[escapeGroup group]?[message] ? [])
-  else
-    have = role in (profile.roles?[escapeGroup group] ? [])
-  if have
-    btnclass = 'success'
-    levels.push 'YES'
-  else
-    btnclass = 'danger'
-    levels.push 'NO'
-  if message and role in (profile.roles?[escapeGroup group] ? [])
-    levels.push "<del>#{levels.pop()}</del>"
-    levels.push '<b class="text-success space">YES</b>'
-  if group != wildGroup and role in (profile.roles?[wildGroup] ? [])
-    levels.push "<del>#{levels.pop()}</del>"
-    levels.push '<b class="text-success space">YES*</b>'
-  if messageRoleCheck group, message, 'admin'
-    levels[0] = "<button class='roleButton btn btn-#{btnclass}'>#{levels[0]}</button>"
-  levels.join ' '
-
-anonRole = (role, group) ->
-  roles = groupAnonymousRoles group
-  if role in roles
-    btnclass = 'success'
-    local = 'YES'
-  else
-    btnclass = 'danger'
-    local = 'NO'
-  if groupRoleCheck group, 'admin'
-    local = "<button class='roleButton btn btn-#{btnclass}'>#{local}</button>"
-  local
-
 Template.users.onCreated ->
   @autorun ->
     setTitle 'Users'
@@ -69,17 +33,42 @@ Template.users.helpers
       _id: $in:
         (message for message, roles of @rolesPartial[escapeGroup routeGroup()])
 
-  readRole: -> haveRole 'read', @
-  postRole: -> haveRole 'post', @
-  editRole: -> haveRole 'edit', @
-  superRole: -> haveRole 'super', @
-  adminRole: -> haveRole 'admin', @
+  roles: ->
+    group = routeGroup()
+    escaped = escapeGroup group
+    message = routeMessage()
+    admin = messageRoleCheck group, message, 'admin'
+    for role in allRoles
+      levels = []
+      if message
+        have = role in (@rolesPartial?[escaped]?[message] ? [])
+      else
+        have = role in (@roles?[escaped] ? [])
+      if have
+        btnclass = 'btn-success' if admin
+        levels.push 'YES'
+      else
+        btnclass = 'btn-danger' if admin
+        levels.push 'NO'
+      if message and role in (@roles?[escaped] ? [])
+        levels.push 'YES'
+      if group != wildGroup and role in (@roles?[wildGroup] ? [])
+        levels.push 'YES*'
+      {role, btnclass, level0: levels[0], level1: levels[1], level2: levels[2]}
 
-  anonReadRole: -> anonRole 'read', @group
-  anonPostRole: -> anonRole 'post', @group
-  anonEditRole: -> anonRole 'edit', @group
-  anonSuperRole: -> anonRole 'super', @group
-  anonAdminRole: -> anonRole 'admin', @group
+  anonRoles: ->
+    group = routeGroup()
+    message = routeMessage()
+    admin = messageRoleCheck group, message, 'admin'
+    roles = groupAnonymousRoles group
+    for role in allRoles
+      if role in roles
+        btnclass = 'btn-success' if admin
+        level0 = 'YES'
+      else
+        btnclass = 'btn-danger' if admin
+        level0 = 'NO'
+      {role, btnclass, level0}
 
   groupLink: -> @message and groupRoleCheck @group, 'admin'
   wild: -> @group == wildGroup

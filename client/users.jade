@@ -37,11 +37,26 @@ template(name="users")
             else
               div.name <a href="{{pathFor 'author' group=routeGroup author=username}}">#{username}</a>, #{email}
             div.createdAt created {{formatDate createdAt}}
-          td(data-role="read") !{readRole}
-          td(data-role="post") !{postRole}
-          td(data-role="edit") !{editRole}
-          td(data-role="super") !{superRole}
-          td(data-role="admin") !{adminRole}
+          each roles
+            td(data-role=role)
+              if btnclass
+                button.roleButton.btn(class=btnclass)
+                  if level1
+                    del= level0
+                  else
+                    | #{level0}
+              else
+                if level1
+                  del= level0
+                else
+                  | #{level0}
+              if level1
+                if level2
+                  del.text-success.space= level1
+                else
+                  b.text-success.space #{level1}
+              if level2
+                b.text-success.space #{level2}
         if partialMember
           tr.partialMember
             td(colspan="6")
@@ -52,11 +67,12 @@ template(name="users")
         tr(data-username="*")
           th
             i &lt;anonymous&gt;
-          td(data-role="read") !{anonReadRole}
-          td(data-role="post") !{anonPostRole}
-          td(data-role="edit") !{anonEditRole}
-          td(data-role="super") !{anonSuperRole}
-          td(data-role="admin") !{anonAdminRole}
+          each anonRoles
+            td(data-role=role)
+              if btnclass
+                button.roleButton.btn(class=btnclass)= level0
+              else
+                | #{level0}
       if showInvitations
         tr
           td(colspan='6')
