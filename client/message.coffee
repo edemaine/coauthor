@@ -88,7 +88,9 @@ Template.registerHelper 'linkToTag', ->
     search: "tag:#{@key}"
 
 Template.registerHelper 'folded', ->
-  (not here @_id) and messageFolded.get @_id
+  (messageFolded.get @_id) and
+  (not here @_id) and                       # never fold if top-level message
+  (not Template.instance()?.editing?.get()) # never fold if editing
 
 Template.rootHeader.helpers
   root: ->
