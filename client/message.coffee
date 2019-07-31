@@ -1347,10 +1347,10 @@ Template.messageHistory.onRendered ->
       index = -1
       unless messageHistoryAll.get @data._id
         finished = []
-        for diff in diffs
+        for diff, i in diffs
           if diff.diffId == previous
             index = finished.length
-          if diff.finished
+          if diff.finished or i == diffs.length - 1
             finished.push diff
         diffs = finished
       else
