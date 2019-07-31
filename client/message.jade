@@ -210,7 +210,7 @@ template(name="submessage")
                   if canParent
                     li
                       a.parentButton(href="#")
-                        button.btn.btn-warning.btn-block Reparent
+                        button.btn.btn-warning.btn-block Move
             if editingRV
               if editStopping
                 button.btn.btn-info.editButton.disabled(tabindex="{{tabindex 8}}", title="Waiting for save to complete before stopping editing...") Stop Editing
@@ -468,10 +468,10 @@ template(name="messageParentDialog")
       .modal-content
         //-.flexColumn
         .modal-header
-          h2 Reparent Message
+          h2 Move Message
         .modal-body.flexColumn
           .row.header-row
-            .col-xs-6 New parent for bottom message?
+            .col-xs-6 New parent for bottom message:
             .col-xs-6
               input.form-control.parent.typeahead(type="text", placeholder="Message title/ID", value='')
           .row.flexShrink.flexRow
@@ -492,10 +492,14 @@ template(name="messageParentDialog")
             .col-xs-12.scrollbars
               with child
                 +groupOrMessage
-        .modal-footer
+        .modal-footer.flexRow.flexCenter
           //-.flexColumn
-          button.btn.btn-danger.messageParentButton Yes, reparent
-          button.btn.btn-success.cancelButton.fullwidth Cancel
+          .pull-left
+            span.fas.fa-lightbulb
+          .flexGrow You can move messages by dragging in the table of contents.
+          .btn-group.space.flexNoShrink
+            button.btn.btn-danger.messageParentButton Move
+            button.btn.btn-success.cancelButton.fullwidth Cancel
 
 template(name="groupOrMessage")
   if loadedMessage

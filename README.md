@@ -134,7 +134,7 @@ in other fields too.
   folded for all users (e.g., when a discussion/question resolves and is
   no longer important, but you want to preserve it for future reference).
 
-* **Reparent** messages by selecting Action / Reparent, or by dragging
+* **Move** (reparent) messages by selecting Action / Move, or by dragging
   messages around in the table of contents on the right.
   (You can also start a drag in the main view from the right-arrow
   of a message, but the drag must end at the table of contents.)

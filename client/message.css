@@ -191,9 +191,14 @@ s a, del a { text-decoration-color: #c7254e; }
 .messageParentDialog .tt-menu .id { font-size: x-small; }
 .messageParentDialog .tt-menu .author { font-size: medium; }
 .messageParentDialog .panel { border-bottom: 0; }
+.messageParentDialog .modal-footer { text-align: left; }
+.messageParentDialog .fa-lightbulb { font-size: x-large; margin-right: 0.5em; }
 .flexColumn { display: flex; flex-direction: column; }
 .flexRow { display: flex; flex-direction: row; }
+.flexGrow { flex-grow: 1; }
 .flexShrink { min-height: 50px; } /* allow equal-size shrinking height down to 50px */
+.flexNoShrink { flex-shrink: 0; }
+.flexCenter { align-items: center; }
 .scrollbars { overflow: auto; float: none; max-height: 100%; }
 .parentArrow { text-align: center; }
 .parentArrow div { vertical-align: top; display: inline-block; }
