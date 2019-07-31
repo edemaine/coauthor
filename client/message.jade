@@ -27,7 +27,7 @@ template(name="message")
       if orphanCount
         .orphans.alert.alert-warning
           b
-            span(data-toggle="tooltip", title="Orphan subthreads are caused by someone deleting a message that has (undeleted) children, which become orphans.  You can reparent these orphans to have a valid parent, or delete them, or ask the author or a superuser to undelete the original parent.") #{orphanCount}:
+            span(data-toggle="tooltip", title="Orphan subthreads are caused by someone deleting a message that has (undeleted) children, which become orphans.  You can move these orphans to a valid parent, or delete them, or ask the author or a superuser to undelete the original parent.") #{orphanCount}:
           each orphans
             +submessage
       +credits
