@@ -1,14 +1,14 @@
 template(name='search')
   if groupDataOrWild
-    .panel.panel-primary
+    .panel.panel-primary.search
       .panel-heading.clearfix
-        form.form-inline
-          if wildGroup
-            span.title.panel-title GLOBAL
-          else
-            span.title.panel-title= group
-          | search for #{formatSearch}
-          span.pull-right.badge= messageCountText
+        span.push-down.btn-group.btn-group-xs
+          .fake-btn &#8203;
+        if wildGroup
+          span.title.panel-title GLOBAL search for #{formatSearch}
+        else
+          span.title.panel-title #{group} search for #{formatSearch}
+        span.push-down.pull-right.badge= messageCountText
       .panel-body
         each messages
           +readMessageHeader

@@ -1,6 +1,6 @@
 template(name='since')
   if groupData
-    .panel.panel-primary
+    .panel.panel-primary.since
       .panel-heading.clearfix
         form.form-inline
           span.title.panel-title= group
@@ -8,7 +8,7 @@ template(name='since')
           | since
           input(type='text', size='10', value=since).form-control#sinceInput
           | = #{parseSince}
-          span.pull-right.badge= messageCount
+          span.push-down.pull-right.badge= messageCount
       .panel-body
         if valid
           each messages
