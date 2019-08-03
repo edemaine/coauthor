@@ -19,7 +19,7 @@ template(name='author')
             a.btn.btn-default.statsButton(href="{{pathFor 'stats' group=group username=author}}") Statistics
       .panel-body
         each messages
-          +readMessageHeader
+          +submessageHeader
       .panel-footer
         i= messageCountText
         | by #{author} in group #{group}

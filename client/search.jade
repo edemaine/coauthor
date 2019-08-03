@@ -11,7 +11,7 @@ template(name='search')
         span.push-down.pull-right.badge= messageCountText
       .panel-body
         each messages
-          +readMessageHeader
+          +submessageHeader
       .panel-footer.clearfix
         i= messageCountText
         | match search query

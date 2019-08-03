@@ -34,6 +34,10 @@ template(name="message")
     .col-md-3(role="complementary").hidden-print.hidden-xs.hidden-sm
       +tableOfContentsRoot
 
+template(name="submessageHeader")
+  +rootHeader
+  +submessage
+
 template(name="rootHeader")
   if root
     with root
