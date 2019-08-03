@@ -28,7 +28,7 @@ Template.messageImage.helpers
 
 @imageTransform = (image, rotate) ->
   unless image.width  ## wait for load
-    image.onload = -> imageTransform image, rotate
+    image.onload = -> imageTransform image, rotate if image.style? # still shown
     return
   if rotate
     ## `rotate` is in clockwise degrees
