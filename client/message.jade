@@ -224,7 +224,7 @@ template(name="submessage")
                   button.btn.btn-info.editButton(tabindex="{{tabindex 8}}") Edit
     unless folded
       if history
-        +messageHistory forHistory
+        +messageHistory
       .editorAndBody.clearfix(class=sideBySideClass)
         .editorContainer
           unless history

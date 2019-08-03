@@ -945,10 +945,6 @@ Template.submessage.helpers
 
   history: -> messageHistory.get(@_id)?
   historyAll: -> messageHistoryAll.get @_id
-  forHistory: ->
-    _id: @_id
-    historyAll: messageHistoryAll.get @_id
-    history: messageHistory.get @_id
 
   raw: -> messageRaw.get @_id
 
@@ -1041,10 +1037,12 @@ Template.registerHelper 'formatCreator', ->
 Template.registerHelper 'creator', ->
   displayUser @creator
 
-Template.registerHelper 'formatAuthors', ->
+Template.registerHelper 'formatAuthors', formatAuthors = ->
   tooltipUpdate()
-  a = for own author, date of @authors when author != @creator or date.getTime() != @created.getTime()
-        "#{linkToAuthor @group, unescapeUser author} #{formatDate date, 'on '}"
+  a = for own author, date of @authors
+        author = unescapeUser author
+        continue if author == @creator and date.getTime() == @created?.getTime()
+        "#{linkToAuthor @group, author} #{formatDate date, 'on '}"
   if a.length > 0
     ', edited by ' + a.join ", "
 
@@ -1340,11 +1338,18 @@ Template.messageHistory.onRendered ->
       ## Accumulate diffs
       for diff, i in diffs
         diff.diffId = diff._id
-        diff._id = @data.id
-        if i >= 0
+        diff._id = @data._id
+        if i == 0  # first diff
+          diff.creator = @data.creator
+          diff.created = @data.created
+          diff.authors = {}
+        else  # later diff
+          diff.authors = _.extend {}, diffs[i-1].authors  # avoid aliasing
           for own key, value of diffs[i-1] when key != 'finished'
             unless key of diff
               diff[key] = value
+        for author in diff.updators ? []
+          diff.authors[escapeUser author] = diff.updated
       ## Restrict to finished diffs if requested, preserving last chosen diff
       index = -1
       unless messageHistoryAll.get @data._id
@@ -1454,8 +1459,8 @@ replaceFiles = (files, e, t) ->
 uploader 'messageReplace', 'replaceButton', 'replaceInput', replaceFiles
 
 Template.messageAuthor.helpers
-  creator: ->
-    "!" + @creator
+  formatAuthors: ->
+    formatAuthors.call messageHistory.get(@_id) ? @
 
 privacyOptions = [
   code: 'public'
