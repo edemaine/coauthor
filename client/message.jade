@@ -105,10 +105,11 @@ template(name="submessage")
       span.message-title(class=hideIfEditing)
         span.message-left-buttons.push-down.btn-group.btn-group-xs
           unless here
-            button.btn.btn-info.foldButton.hidden-print(aria-label="Fold")
-              if folded
+            if folded
+              button.btn.btn-info.foldButton.hidden-print(aria-label="Unfold", data-toggle="tooltip", data-container="body", data-title="Open/unfold this message so that you can see its contents. Does not affect other users.")
                 span.fas.fa-plus(aria-hidden="true")
-              else
+            else
+              button.btn.btn-info.foldButton.hidden-print(aria-label="Fold", data-toggle="tooltip", data-container="body", data-title="Close/fold this message, e.g. to skip over its contents. Does not affect other users.")
                 span.fas.fa-minus(aria-hidden="true")
             a.btn.btn-info.focusButton(aria-label="Focus", href="{{pathFor 'message' group=group message=_id}}", draggable="true")
               span.fas.fa-sign-in-alt(aria-hidden="true")
@@ -185,12 +186,12 @@ template(name="submessage")
                     if canUnminimize
                       li
                         a.minimizeButton(href="#")
-                          button.btn.btn-success.btn-block Unminimize
+                          button.btn.btn-success.btn-block(data-toggle="tooltip", data-container="body", data-placement="left", data-html="true", data-title="Open/unfold this message <b>for all users</b>. Use this if a discussion becomes relevant again. If you just want to open/unfold the message to see it yourself temporarily, use the [+] button on the left.") Unminimize
                   else
                     if canMinimize
                       li
                         a.minimizeButton(href="#")
-                          button.btn.btn-danger.btn-block Minimize
+                          button.btn.btn-danger.btn-block(data-toggle="tooltip", data-container="body", data-placement="left", data-html="true", data-title="Close/fold this message <b>for all users</b>. Use this to clean up a thread when the discussion of this message (and all its replies) is resolved/no longer important. If you just want to close/fold the message yourself temporarily, use the [−] button on the left.") Minimize
                   if deleted
                     if canUndelete
                       li

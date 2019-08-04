@@ -38,6 +38,7 @@ switch sharejsEditor
 @dropdownToggle = (e) ->
   #$(e.target).parent().dropdown 'toggle'
   $(e.target).parents('.dropdown-menu').first().parent().find('.dropdown-toggle').dropdown 'toggle'
+  $(e.target).tooltip 'hide'
 
 @routeMessage = ->
   Router.current()?.params?.message
@@ -293,6 +294,8 @@ export messageFoldHandler = (e, t) ->
   e.preventDefault()
   e.stopPropagation()
   messageFolded.set @_id, not messageFolded.get @_id
+  $(e.currentTarget).tooltip 'hide'
+  tooltipUpdate()
 
 threadAuthors = {}
 threadMentions = {}
