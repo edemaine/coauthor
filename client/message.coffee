@@ -115,6 +115,15 @@ Template.registerHelper 'formatBody', ->
 Template.registerHelper 'formatFile', ->
   formatFile @
 
+Template.messageMaybe.helpers
+  matchingGroup: ->
+    @group == routeGroup()
+
+Template.messageMaybe.onRendered ->
+  ## Redirect wild-group message link to group-specific link
+  if routeGroup() == wildGroup
+    Router.go 'message', {group: @group, message: @_id}
+
 Template.messageBad.helpers
   message: -> Router.current().params.message
 

@@ -1,6 +1,9 @@
 template(name="messageMaybe")
   if group
-    +message
+    if matchingGroup
+      +message
+    else
+      +mismatchedGroupMessage
   else
     +messageBad
 
@@ -81,6 +84,16 @@ template(name="messageBad")
       p You probably need to log in.
   else
     .alert.alert-warning Loading message &ldquo;<b>#{message}</b>&rdquo;...
+
+template(name="mismatchedGroupMessage")
+  if wildGroup
+    .alert.alert-warning Redirecting to group &ldquo;<b>#{group}</b>&rdquo;...
+  else
+    .alert.alert-danger
+      p Message &ldquo;<b>#{_id}</b>&rdquo; does not belong to group &ldquo;<b>#{routeGroup}</b>&rdquo;.
+      p Perhaps it moved?  Here is a link to the message in the correct group, &ldquo;<b>#{group}</b>&rdquo;:
+      p
+        a(href="{{pathFor 'message' group=group message=_id}}") {{urlFor 'message' group=group message=_id}}
 
 template(name="submessage")
   .panel.message(class=messagePanelClass, data-message=_id, id=_id)
