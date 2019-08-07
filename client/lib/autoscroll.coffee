@@ -65,11 +65,15 @@ Router.onAfterAction ->
     lastURL = url
     top = pastTops[url] or 0  ## prevent from changing while page loads
     scroll = ->
-      $('html, body').animate
-        scrollTop: top
-      , 200
-    Tracker.autorun (computation) ->
-      if Router.current().ready()
-        scroll()
-        computation.stop()
-  , 100
+      $('html, body').scrollTop top
+      #$('html, body').animate
+      #  scrollTop: top
+      #, 200
+    if top > 0
+      Tracker.autorun (computation) ->
+        if Router.current().ready()
+          scroll()
+          computation.stop()
+    else
+      scroll()
+  , 0
