@@ -111,7 +111,7 @@ template(name="submessage")
             else
               button.btn.btn-info.foldButton.hidden-print(aria-label="Fold", data-toggle="tooltip", data-container="body", data-title="Close/fold this message, e.g. to skip over its contents. Does not affect other users.")
                 span.fas.fa-minus(aria-hidden="true")
-            a.btn.btn-info.focusButton(aria-label="Focus", href="{{pathFor 'message' group=group message=_id}}", draggable="true")
+            a.btn.btn-info.focusButton(aria-label="Focus", href="{{pathFor 'message' group=group message=_id}}", draggable="true", data-toggle="tooltip", data-container="body", data-title="Zoom in/focus on just the subthread of this message and its descendants")
               span.fas.fa-sign-in-alt(aria-hidden="true")
           if here
             +messageNeighbors
