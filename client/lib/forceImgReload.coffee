@@ -18,6 +18,9 @@ blankImg = '/updating.png'
       iframe.parentNode.removeChild iframe
 
   iframe = document.createElement 'iframe'
+  ## Forbid <script> tags or other malicious content in SVG,
+  ## but allow file to realize it is same origin so that reload above works.
+  iframe.sandbox = 'allow-same-origin'
   iframe.style.display = 'none'
   document.body.appendChild iframe
   iframe.addEventListener 'load', loadCallback, false
