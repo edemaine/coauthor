@@ -491,7 +491,7 @@ if Meteor.isServer
       false
     else
       root = findMessageRoot message
-      root.threadPrivacy? and 'public' in root.threadPrivacy and 'private' in root.threadPrivacy
+      root?.threadPrivacy? and 'public' in root.threadPrivacy and 'private' in root.threadPrivacy
 
 @canAdmin = (group, message = null) ->
   messageRoleCheck group, message, 'admin'
