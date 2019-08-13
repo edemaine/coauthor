@@ -8,6 +8,7 @@ Template.messagePDF.onCreated ->
   @fit = new ReactiveVar 'page'
 
 Template.messagePDF.onDestroyed ->
+  window.removeEventListener 'resize', @onResize if @onResize?
   `import('/imports/disappear')`.then (disappear) =>
     disappear.untrack @container
 
@@ -17,7 +18,7 @@ Template.messagePDF.onRendered ->
     @fit.get()
     tooltipUpdate()
   @container = @find 'div.pdf'
-  window.addEventListener 'resize', _.debounce (=> @resize?()), 100
+  window.addEventListener 'resize', @onResize = _.debounce (=> @resize?()), 100
   `import('pdfjs-dist')`.then (pdfjs) =>
     pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'  ## in /public
     @autorun =>

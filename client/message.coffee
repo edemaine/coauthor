@@ -561,10 +561,11 @@ Template.submessage.onRendered ->
 
   ## Image rotation
   @autorun =>
-    data = Template.currentData()
-    messageImageTransform.call @
+    data = Template.currentData()  ## update whenever message does
+    messageFolded.get data._id     ## update when message is unfolded
+    Meteor.defer => messageImageTransform.call @
   window.addEventListener 'resize',
-    _.debounce (=> messageImageTransform.call @), 100
+    @onResize = _.debounce (=> messageImageTransform.call @), 100
 
   ## Update side-by-side height settings when leaving editing mode
   ## and/or changing side-by-side preview setting.
@@ -577,6 +578,9 @@ Template.submessage.onRendered ->
         preview.height
       else
         'auto'
+
+Template.submessage.onDestroyed ->
+  window.removeEventListener 'resize', @onResize if @onResize?
 
 ## Cache EXIF orientations, as files should be static
 image2orientation = {}
@@ -913,9 +917,6 @@ Template.submessage.helpers
     #console.log 'rendering', @_id
     history = messageHistory.get(@_id) ? @
     body = history.body
-    ## Apply image settings (e.g. rotation) on embedded images and image files
-    t = Template.instance()
-    Meteor.defer -> messageImageTransform.call t
     return body unless body
     ## Don't show raw view if editing (editor is a raw view)
     if messageRaw.get(@_id) and not Template.instance().editing?.get()
