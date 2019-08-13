@@ -512,9 +512,10 @@ template(name="messageParentDialog")
                 +groupOrMessage
         .modal-footer.flexRow.flexCenter
           //-.flexColumn
-          .pull-left
+          .pull-left.hidden-xs.hidden-sm
             span.fas.fa-lightbulb
-          .flexGrow You can move messages by dragging in the table of contents.
+          .flexGrow
+            span.hidden-xs.hidden-sm You can move messages by dragging in the table of contents.
           .btn-group.space.flexNoShrink
             button.btn.btn-danger.messageParentButton Move
             button.btn.btn-success.cancelButton.fullwidth Cancel
