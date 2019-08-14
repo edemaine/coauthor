@@ -30,6 +30,7 @@ Template.messageImage.helpers
   unless image.width  ## wait for load
     image.onload = -> imageTransform image, rotate if image.style? # still shown
     return
+  image.onload = null  # cancel any impending and possibly old transform
   if rotate
     ## `rotate` is in clockwise degrees
     radians = -rotate * Math.PI / 180
