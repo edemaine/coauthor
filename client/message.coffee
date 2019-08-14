@@ -1131,6 +1131,7 @@ Template.submessage.events
     false  ## prevent form from submitting
 
   'click .foldButton': messageFoldHandler
+  'click .focusButton': (e) -> $(e.currentTarget).tooltip 'hide'
 
   'click .rawButton': (e, t) ->
     e.preventDefault()
