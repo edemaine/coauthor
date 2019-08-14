@@ -563,7 +563,9 @@ Template.submessage.onRendered ->
   @autorun =>
     data = Template.currentData()  ## update whenever message does
     messageFolded.get data._id     ## update when message is unfolded
+    messageRaw.get data._id        ## update when raw mode turned off
     messageRotate data             ## update when file orientation gets loaded
+    #console.log 'rotating', data._id, data.body, messageRotate data
     Meteor.defer => messageImageTransform.call @
   window.addEventListener 'resize',
     @onResize = _.debounce (=> messageImageTransform.call @), 100
