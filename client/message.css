@@ -32,9 +32,6 @@ input.title { width: calc(100% + 5px); margin: 0px -5px 0px 0px; }
 .message-right-buttons, .group-right-buttons { margin: 0px -5px -5px 0px; } /* cf. panel-heading's padding of 10px */
 .panel-heading { padding: 5px 10px 10px 10px; } /* normally 10px 15px */
 .panel-heading.compact { padding: 0px 5px 5px 10px; }
-@media (min-width: 768px) {
-  .panel-heading .form-control { margin-bottom: -5px; vertical-align: 0px; }
-}
 /* Fuse together root panel heading with following panel */
 .root, .root > .panel-heading { border-bottom: 0px; border-bottom-left-radius: 0px; border-bottom-right-radius: 0px; }
 .root + .panel, .root + .panel > .panel-heading { border-top: 0px; border-top-left-radius: 0px; border-top-right-radius: 0px;}
