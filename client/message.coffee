@@ -612,8 +612,11 @@ image2orientation = {}
   data = messageHistory.get(@data._id) ? @data
   if data.file and 'image' == fileType data.file
     image = @find '.message-file img'
-    return unless image?
-    imageTransform image, messageRotate data
+    if image?
+      imageTransform image, messageRotate data
+    else
+      ## This case occurs e.g. when switching to Raw mode.
+      @find('.message-file')?.style.height = null
 
 scrollDelay = 750
 
