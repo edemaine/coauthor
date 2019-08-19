@@ -20,11 +20,12 @@ Tracker.autorun updateTheme = ->
     $('body').addClass newTheme
     $('#themeLink').remove()
     $('head').prepend """<link rel="stylesheet" href="/bootstrap/#{newTheme}.min.css" id="themeLink"/>"""
-    switch newTheme
-      when 'light'
-        Meteor.Spinner.options.color = '#000'
-      when 'dark'
-        Meteor.Spinner.options.color = '#fff'
+    ## This can happen too late in initial load:
+    #switch newTheme
+    #  when 'light'
+    #    Meteor.Spinner.options.color = '#000'
+    #  when 'dark'
+    #    Meteor.Spinner.options.color = '#fff'
     lastTheme = newTheme
 
 ## To implement 'auto' theme, listen to changes to browser's preference.
