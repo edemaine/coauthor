@@ -10,7 +10,7 @@ messagesSince = (group, since) ->
     deleted: false
     private: $ne: true
   ,
-    sort: [['updated', 'asc']]
+    sort: [['created', 'asc']]
 
 topMessagesSince = (group, since) ->
   #console.log parseSince since
