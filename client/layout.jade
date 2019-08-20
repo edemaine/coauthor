@@ -1,4 +1,8 @@
 head
+  title Coauthor
+  //- These URLs are updated in Template.layout.onRendered
+  link#iconIco(rel="icon", type="image/x-icon", href='/favicon.ico')
+  link#iconPNG(rel="icon", type="image/png", href='/favicon32.png')
   //-link(rel="stylesheet", href="/bootstrap/light.min.css", id="themeLink")
   meteor-bundled-css
   link(href="https://fonts.googleapis.com/css?family=Merriweather:400,400i,700&subset=latin-ext", rel="stylesheet", crossorigin="anonymous")
@@ -87,7 +91,7 @@ template(name="layout")
 
 template(name="credits")
   p.credits.clearfix
-    img(src="/favicon32.png")
+    img(src=favicon)
     | <b>Coauthor</b> written by <a href="http://erikdemaine.org">Erik Demaine</a>, with help from many others.
     span.space
     span.btn-group.btn-group-sm.pull-right

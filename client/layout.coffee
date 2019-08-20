@@ -12,6 +12,10 @@ linkToRoutes =
   search: true
 
 Template.layout.onRendered ->
+  ## In case Coauthor is mounted within a subdirectory, update favicon paths
+  document.getElementById('iconIco').href = Meteor.absoluteUrl 'favicon.ico'
+  document.getElementById('iconPNG').href = Meteor.absoluteUrl 'favicon32.png'
+
   ## Create Google font without italic definition to get slanted (fake-italic)
   ## version for \textsl support.
   ## See https://stackoverflow.com/questions/11042330/force-the-browser-to-use-faux-italic-oblique-and-not-the-real-italic
@@ -26,7 +30,6 @@ Template.layout.onRendered ->
       break
 
 Template.layout.helpers
-  themeGlobal: -> themeGlobal()
   activeGroup: ->
     data = Template.parentData()
     if routeGroup() == @name
@@ -61,6 +64,9 @@ Template.layout.helpers
         group: @name
   creditsWide: ->
     Router.current().route?.getName() != 'message'
+
+Template.registerHelper 'favicon', ->
+  Meteor.absoluteUrl 'favicon32.png'
 
 Template.registerHelper 'couldSuper', ->
   canSuper routeGroupOrWild(), false

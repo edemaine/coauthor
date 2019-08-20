@@ -19,7 +19,9 @@ Tracker.autorun updateTheme = ->
     $('body').removeClass lastTheme
     $('body').addClass newTheme
     $('#themeLink').remove()
-    $('head').prepend """<link rel="stylesheet" href="/bootstrap/#{newTheme}.min.css" id="themeLink"/>"""
+    $('head').prepend """
+      <link rel="stylesheet" href="#{Meteor.absoluteUrl "bootstrap/#{newTheme}.min.css"}" id="themeLink"/>
+    """
     ## This can happen too late in initial load:
     #switch newTheme
     #  when 'light'
