@@ -178,7 +178,7 @@ Router.route '/:group/stats/:username?',
 ## GLOBAL used to be in some URLs rather than *, but don't see why.
 @wildGroupRoute = wildGroup #'GLOBAL'
 
-Router.route '/:group/search/:search',
+Router.route '/:group/search/:search([^]*)',
   name: 'search'
   subscriptions: -> [
     Subscribe.subscribe 'messages.search', @params.group, @params.search

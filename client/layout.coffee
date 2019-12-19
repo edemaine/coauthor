@@ -11,6 +11,14 @@ linkToRoutes =
   settings: true
   search: true
 
+# IronRouter trims leading and trailing /s and combines
+# consecutive /s, so quote them
+protectSlash = (params) ->
+  params.search = params.search.replace /\//g, '%SLASH%' if params.search?
+  params
+resolveSlash = (url) ->
+  url?.replace /%25SLASH%25/g, '%2F'
+
 Template.layout.onRendered ->
   ## In case Coauthor is mounted within a subdirectory, update favicon paths
   document.getElementById('iconIco').href = Meteor.absoluteUrl 'favicon.ico'
@@ -56,8 +64,8 @@ Template.layout.helpers
     router = Router.current()
     route = Router.current().route?.getName()
     if linkToRoutes[route]
-      pathFor route,
-        _.extend _.omit(router.params, 'length'),
+      resolveSlash pathFor route,
+        protectSlash _.extend _.omit(router.params, 'length'),
           group: @name
     else
       pathFor 'group',
@@ -85,19 +93,27 @@ Template.layout.events
   'submit .searchForm': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
-    Router.go 'search',
-      group: routeGroupOrWild()
-      search: t.find('.searchText').value
-      0: '*'
-      1: '*'
-      2: '*'
-      3: '*'
-      4: '*'
-      5: '*'
-      6: '*'
-      7: '*'
-      8: '*'
-      9: '*'
+    search = t.find('.searchText').value
+    unless search  # empty query = clear search -> go to group page
+      if routeGroupOrWild() == wildGroup
+        Router.go 'frontpage'
+      else
+        Router.go 'group',
+          group: routeGroup()
+    else
+      Router.go resolveSlash Router.path 'search', protectSlash
+        group: routeGroupOrWild()
+        search: search
+        0: '*'
+        1: '*'
+        2: '*'
+        3: '*'
+        4: '*'
+        5: '*'
+        6: '*'
+        7: '*'
+        8: '*'
+        9: '*'
   'dragstart a.author': (e) ->
     username = e.target.getAttribute 'data-username'
     dataTransfer = e.originalEvent.dataTransfer

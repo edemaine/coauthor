@@ -48,11 +48,3 @@ Template.search.helpers
     parseSearch(@search)?
   formatSearch: ->
     formatSearch @search
-
-Template.search.events
-  'change #searchInput': (e, t) ->
-    Router.go 'search',
-      group: @group
-      search: t.find('#searchInput').value
-  'submit form': (e, t) ->
-    e.preventDefault()
