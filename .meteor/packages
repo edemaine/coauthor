@@ -8,12 +8,12 @@ iron:router
 email@1.2.3
 coffeescript@2.3.2_1
 underscore@1.0.10
-accounts-password@1.5.1
+accounts-password@1.5.2
 sacha:spin
 
 meteor-base@1.4.0
 mobile-experience@1.0.5
-mongo@1.6.2
+mongo@1.7.0
 blaze-html-templates
 session@1.2.0
 jquery@1.11.10
@@ -36,13 +36,13 @@ bozhao:link-accounts
 gcampax:dropbox-oauth
 http@1.4.2
 underscorestring:underscore.string
-standard-minifier-css@1.5.3
-standard-minifier-js@2.4.1
+standard-minifier-css@1.5.4
+standard-minifier-js@2.5.2
 reactive-dict@1.3.0
-ecmascript@0.12.4
+ecmascript@0.13.2
 shell-server@0.4.0
 meteorhacks:subs-manager
-webapp@1.7.3
+webapp@1.7.5
 sergeyt:typeahead
 dynamic-import@0.5.1
 browser-policy@1.1.0

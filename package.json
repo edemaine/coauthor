@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/edemaine/coauthor",
   "dependencies": {
-    "@babel/runtime": "^7.2.0",
+    "@babel/runtime": "^7.7.7",
     "@edemaine/codemirror-spell-checker": "^0.0.1",
     "babel-runtime": "^6.26.0",
     "bcrypt": "^3.0.6",
@@ -39,7 +39,7 @@
     "markdown-it": "^9.0.1",
     "markdown-it-replacements": "^1.0.1",
     "markdown-it-task-checkbox": "^1.0.6",
-    "meteor-node-stubs": "^0.4.1",
+    "meteor-node-stubs": "^1.0.0",
     "moment-timezone": "^0.5.26",
     "pdfjs-dist": "^2.0.943",
     "roman-numeral": "^0.2.6",
