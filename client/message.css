@@ -294,6 +294,7 @@ details > summary:focus::before { outline: 5px auto -webkit-focus-ring-color; ou
 details:focus, summary:focus { outline: none; }
 details > summary::before { content: "\f067"; }       /* From .fa-plus */
 details[open] > summary::before { content: "\f068"; } /* From .fa-minus */
+details > p:last-child { margin-bottom: 0px; } /* shrink last paragraph space */
 
 /* Author search highlighting */
 .highlight { background: yellow; color: black; }

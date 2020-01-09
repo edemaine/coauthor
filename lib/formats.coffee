@@ -489,6 +489,30 @@ latex2html = (tex) ->
         else
           match
     .replace /(<label\b[^<>]*>)\s*/ig, '$1'
+    ## Markdown wraps paragraphs in <p>...</p>, even if a larger block such as
+    ## <details> is wrapped around the paragraph, resulting in badly nested
+    ## output like <p><details>Paragraph 1</p><p>Paragraph 2</details></p>.
+    ## Tuck <p> inside opening tags that aren't closed within the paragraph,
+    ## and </p> inside closing tags that aren't opened.
+    text = text.replace /(<p>)([^]*?)(<\/p>)/g, (match, startP, body, endP) ->
+      pre = post = ''
+      while match = /^(\s*)(<\s*(details|div|blockquote)\b[^<>]*>)/i.exec body
+        if ///<\s*\/\s*#{match[3]}\s*>///i.test body
+          break
+        else
+          pre += match[0]
+          body = body[match[0].length..]
+      while match = /(<\s*\/\s*(details|div|blockquote)\s*>)\s*$/i.exec body
+        if ///<\s*#{match[3]}\b[^<>]*>///i.test body
+          break
+        else
+          post += match[0]
+          body = body[...body.length - match[0].length]
+      pre + startP + body + endP + post
+    ## Also tuck <p>s after <summary>s, even if they live within the paragraph,
+    ## to avoid gap between <details> (pulled outside <p>) and <summary>.
+    .replace /(<p>)\s*(<\s*summary\s*>([^]*?)<\s*\/\s*summary\s*>)/g, '$2$1'
+    .replace /<p>(\s*<p>)+/g, '<p>'  ## Remove double paragraph breaks
     [text, math]
   latex: (text, title) ->
     latex2html text
