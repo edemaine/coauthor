@@ -41,7 +41,8 @@ in other fields too.
     (including [language-based highlighting](https://highlightjs.org/)
      if you start with <code>\`\`\`language</code>),
     links via `[text](url)`, images via `![caption](url)`,
-    lists via `*` or `1.`, tables, etc.
+    lists via `*` or `1.`,
+    [tables](http://www.tablesgenerator.com/markdown_tables), etc.
     Also supports all LaTeX commands listed below that start with a letter
     (notably, not accents) and math mode, and all HTML commands listed below.
   * LaTeX, limited.  Beyond extensive math mode support (see below),
