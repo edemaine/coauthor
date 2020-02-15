@@ -17,8 +17,7 @@ ext2type =
 upfile_url = ///http://6...\.csail\.mit\.edu/[^/\s"=]*/upfiles/([^/\s"=]*)///g
 
 loadZip = (zipData, callback) ->
-  JSZip = await `import('jszip')`
-  JSZip = JSZip.default
+  JSZip = (await import('jszip')).default
   zip = new JSZip
   console.log 'Loading ZIP file...'
   await zip.loadAsync zipData

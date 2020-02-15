@@ -199,7 +199,7 @@ Template.groupRename.events
     e.stopPropagation()
     Modal.hide()
 
-Template.importButtons.events
+Template.importExportButtons.events
   'click .importButton': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
@@ -222,6 +222,10 @@ Template.importButtons.events
     e.preventDefault()
     e.stopPropagation()
     Modal.show 'superdeleteImport', @
+  'click .downloadButton': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    Modal.show 'downloadGroup', @
 
 Template.superdeleteImport.events
   'click .superdeleteImportConfirm': (e, t) ->
@@ -240,6 +244,17 @@ Template.superdeleteImport.events
         Meteor.call 'messageSuperdelete', msg._id
       console.log 'Superdeleted', count, 'imported messages'
       sub.stop()
+  'click .cancelButton': (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+    Modal.hide()
+
+Template.downloadGroup.events
+  'click .downloadConfirm': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    Modal.hide()
+    (await import('/imports/download.coffee')).downloadGroup @group
   'click .cancelButton': (e) ->
     e.preventDefault()
     e.stopPropagation()

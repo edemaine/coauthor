@@ -4,7 +4,7 @@ template(name="messagePDF")
       .progress-bar(role="progressbar", aria-valuemin="0", aria-valuenow=progress, aria-valuemax="100", style="width: #{progress}%; min-width: 2em") #{progress}%
   else
     //- if multiplePages
-    .btn-group.btn-group-xs
+    .btn-group.btn-group-xs.pdfButtons
       if fitPage
         button.btn.btn-default.fitWidth(data-toggle="tooltip", title="Fit to width", data-container="body")
           span.fas.fa-expand-arrows-alt(aria-hidden="true")
@@ -15,13 +15,14 @@ template(name="messagePDF")
         span.fas.fa-backward(aria-hidden="true")
       button.btn.btn-default.nextPage(class=disableNext, data-toggle="tooltip", title="Next page", data-container="body")
         span.fas.fa-forward(aria-hidden="true")
-    span.space page #{page} of #{pages}
-    if rendering
-      i.space (rendering)
-    //-
-      else
-        if rendering
-          i.absolute (rendering)
+    .pdfStatus
+      span.space page #{page} of #{pages}
+      if rendering
+        i.space (rendering)
+      //-
+        else
+          if rendering
+            i.absolute (rendering)
   //-- Outer box is to properly detect the width (including padding)
   div.pdfBox
     div.pdf

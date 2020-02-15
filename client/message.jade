@@ -178,7 +178,7 @@ template(name="submessage")
           unless history
             if canAction
               .btn-group
-                button.btn.btn-info.dropdown-toggle(tabindex="{{tabindex 4}}", type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
+                button.btn.btn-info.actionButton.dropdown-toggle(tabindex="{{tabindex 4}}", type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
                   | Action
                   span.caret
                 ul.dropdown-menu.dropdown-menu-right.actionMenu(role="menu")
@@ -392,7 +392,7 @@ template(name="threadPrivacy")
             a(href="#",data-code=code)= display
 
 template(name="emojiButtons")
-  .btn-group.pull-left
+  .btn-group.pull-left.emojiButtons
     if canReply
       if emoji.count
         //-button.btn.btn-default.emojiOpenMenu.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="true")

@@ -1,6 +1,7 @@
 .space { padding-left: 0.5em; }
 .absolute { position: absolute; }
 
+.btn .fa, .btn .fab, .btn .fal, .btn .far, .btn .fas { line-height: inherit; }
 .fa-paperclip { vertical-align: middle; }
 .title { font-weight: bold; }
 input.title { width: calc(100% + 5px); margin: 0px -5px 0px 0px; }

@@ -1,4 +1,4 @@
-@formatDate = (date, prefix = '') ->
+@formatDate = (date, prefix = '', absolute) ->
   return '???' unless date?
   return "?#{date}?" unless date instanceof Date  ## have seen this briefly, not sure when
   now = new Date()
@@ -12,7 +12,7 @@
   if date.getMinutes() < 10
     time += '0'
   time += date.getMinutes()
-  if date.getFullYear() == now.getFullYear()
+  if date.getFullYear() == now.getFullYear() and not absolute
     if date.getMonth() == now.getMonth() and date.getDate() == now.getDate()
       "today at #{time}"
     else

@@ -32,6 +32,7 @@
     "cookie": "^0.3.1",
     "diff": "^3.5.0",
     "exif-parser": "^0.1.12",
+    "file-saver": "^2.0.2",
     "highlight.js": "^9.15.8",
     "jquery": "^3.4.1",
     "jszip": "^3.2.1",

@@ -176,3 +176,6 @@ else
   Files.resumable.on 'fileError', (file) ->
     console.error "Error uploading", file.uniqueIdentifier
     updateUploading -> delete @[file.uniqueIdentifier]
+
+# client-only export
+export updateUploading = updateUploading

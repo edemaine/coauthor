@@ -62,6 +62,8 @@ template(name="layout")
                 li.divider
                 li
                   a(href="#") Request Access
+          li
+            a#archive
       .collapse.navbar-collapse#navbar
         form.navbar-form.input-group.searchForm
           input.form-control.searchText(type="text", placeholder="Search", value=search)
@@ -73,11 +75,11 @@ template(name="layout")
               button.superButton.btn.btn-danger Become Superuser
           if admin
             if inUsers
-              a.btn.btn-success(href="{{linkToUsersExit}}") Exit Users
+              a.btn.btn-success.usersButton(href="{{linkToUsersExit}}") Exit Users
             else
-              a.btn.btn-warning(href="{{linkToUsers}}") Users
+              a.btn.btn-warning.usersButton(href="{{linkToUsers}}") Users
           if currentUser
-            a.btn.btn-default(href="{{pathFor 'settings' data=routeGroupOrWildData}}") Settings
+            a.btn.btn-default.settingsButton(href="{{pathFor 'settings' data=routeGroupOrWildData}}") Settings
         ul.nav.navbar-nav.navbar-right
           +loginButtons
     #main.row-fluid

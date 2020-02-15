@@ -8,14 +8,14 @@ template(name="group")
         +groupButtons
       +messageList
       .panel-footer.clearfix
-        p
+        p.clearfix
+          +importExportButtons
           i= topMessageCount
           .groupTags
             each groupTags
               a(href=linkToTag).tagLink
                 span.tag.label.label-default= key
               |  
-          +importButtons
         .members.alert.alert-info
           p
             b #{fullMembersCount} members of this group:
@@ -125,14 +125,15 @@ template(name="messageList")
         //-a.list-group-item(href=messageLink)
         +messageShort
 
-template(name="importButtons")
-  if canImport
-    .btn-group.pull-right
+template(name="importExportButtons")
+  .btn-group.pull-right
+    if canImport
       input.importInput(type="file", style="display:none", data-format="osqa", accept=".zip")
       button.btn.btn-default.importButton(data-format="osqa") Import OSQA
       input.importInput(type="file", style="display:none", data-format="latex", accept=".zip")
       button.btn.btn-default.importButton(data-format="latex") Import LaTeX
       button.btn.btn-danger.superdeleteImportButton Superdelete Imported
+    button.btn.btn-info.downloadButton Download ZIP
 
 template(name="superdeleteImport")
   .modal
@@ -145,6 +146,20 @@ template(name="superdeleteImport")
           p Superdelete destroys all logs of the message ever existing and cannot be undone.  Use only for silly mistakes.
         .modal-footer
           button.btn.btn-danger.superdeleteImportConfirm Yes, superdelete
+          button.btn.btn-success.cancelButton.fullwidth Cancel
+
+template(name="downloadGroup")
+  .modal
+    .modal-dialog
+      .modal-content
+        .modal-header
+          h2 Download Group as ZIP
+        .modal-body
+          p This feature downloads the <i>entire group</i> as a ZIP file containing static HTML, CSS, and attachments, suitable for offline viewing or archival.
+          .alert.alert-danger This feature may take a long time to execute; please wait for it to complete (download a ZIP). It might crash your browser/tab (if it runs out of memory to store the ZIP).
+          p 
+        .modal-footer
+          button.btn.btn-danger.downloadConfirm Download ZIP
           button.btn.btn-success.cancelButton.fullwidth Cancel
 
 template(name="messageShort")
