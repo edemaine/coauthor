@@ -135,6 +135,12 @@ savePage = (zip, group, filename) ->
       zip.file "#{group}/#{file}", await response.blob()
   ## Remove scripts
   html = html.replace ///<script[^<>]*>.*?</script>///g, ''
+  ## Set encoding to UTF8
+  html = html.replace ///<meta\s+charset[^<>]*>///, ''  # in case already there
+  .replace ///<head[^<>]*>///i, """
+    $&
+    <meta charset="utf-8">
+  """
   ## Hide interactive buttons
   html = html.replace ///</head>///i, """
     <link rel="stylesheet" href="css/archive.css">
