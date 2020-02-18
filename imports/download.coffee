@@ -21,6 +21,19 @@ files = {}
 internalFiles = {}
 subthreads = false
 
+downloadAux = (zip, group) ->
+  ## Hide interactive buttons
+  zip.file "#{group}/css/archive.css", """
+    .group-right-buttons,
+    .superButton, .usersButton, .settingsButton, .searchText,
+    .rawButton, .historyButton, .editButton, .replaceButton, .actionButton,
+    .message-reply-buttons, .emojiButtons,
+    .dropdown-toggle .caret, .dropdown-menu,
+    .pdfButtons, .pdfStatus, .pdfBox,
+    .foldButton, #{if subthreads then '' else '.focusButton,'}
+    .footer { display: none !important }
+  """
+
 savePage = (zip, group, filename) ->
   pageUrl = document.URL
   now = formatDate new Date, '', true # absolute
@@ -123,19 +136,10 @@ savePage = (zip, group, filename) ->
   ## Remove scripts
   html = html.replace ///<script[^<>]*>.*?</script>///g, ''
   ## Hide interactive buttons
-  html = html.replace ///</body>///i, (match) -> """
-      <style>
-        .group-right-buttons,
-        .superButton, .usersButton, .settingsButton, .searchText,
-        .rawButton, .historyButton, .editButton, .replaceButton, .actionButton,
-        .message-reply-buttons, .emojiButtons,
-        .dropdown-toggle .caret, .dropdown-menu,
-        .pdfButtons, .pdfStatus, .pdfBox,
-        .foldButton, #{if subthreads then '' else '.focusButton,'}
-        .footer { display: none !important }
-      </style>
-      #{match}
-    """
+  html = html.replace ///</head>///i, """
+    <link rel="stylesheet" href="css/archive.css">
+    $&
+  """
   ## Link to original
   html = """
     <!DOCTYPE html>
@@ -154,6 +158,7 @@ export downloadGroup = (group) ->
   internalFiles = {}
   JSZip = (await import('jszip')).default
   zip = new JSZip
+  downloadAux zip, group
   ## Group page
   await untilReady()
   console.assert Router.current().route.getName() == 'group',
