@@ -18,7 +18,7 @@ module.exports = {
       one: {}
     },
     docker: {
-      image: 'abernix/meteord:node-8.4.0-base', 
+      image: 'abernix/meteord:node-12-base',
       stopAppDuringPrepareBundle: false
     },
     buildOptions: {
