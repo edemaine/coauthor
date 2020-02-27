@@ -15,7 +15,7 @@ template(name="messagePDF")
         span.fas.fa-backward(aria-hidden="true")
       button.btn.btn-default.nextPage(class=disableNext, data-toggle="tooltip", title="Next page", data-container="body")
         span.fas.fa-forward(aria-hidden="true")
-    .pdfStatus
+    span.pdfStatus
       span.space page #{page} of #{pages}
       if rendering
         i.space (rendering)
