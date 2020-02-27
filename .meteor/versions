@@ -4,7 +4,7 @@ accounts-password@1.5.3
 allow-deny@1.1.0
 anti:i18n@0.4.3
 autoupdate@1.6.0
-babel-compiler@7.5.1
+babel-compiler@7.5.2
 babel-runtime@1.5.0
 base64@1.0.12
 benjaminrh:jquery-cookie@0.1.0
@@ -33,7 +33,7 @@ deanius:promise@3.0.1
 deps@1.0.12
 diff-sequence@1.1.1
 dynamic-import@0.5.1
-ecmascript@0.14.1
+ecmascript@0.14.2
 ecmascript-runtime@0.7.0
 ecmascript-runtime-client@0.10.0
 ecmascript-runtime-server@0.9.0
