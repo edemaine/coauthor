@@ -658,6 +658,7 @@ postprocessKaTeX = (text, math, initialBold) ->
       out = katex.renderToString content,
         displayMode: block.display
         throwOnError: false
+        trust: true
         macros: macros
     catch e
       throw e unless e instanceof katex.ParseError
