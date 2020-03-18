@@ -84,9 +84,19 @@ Template.registerHelper 'linkToTag', ->
   #pathFor 'tag',
   #  group: Template.parentData().group
   #  tag: @key
+  search = @key
+  if 0 <= search.indexOf ' '
+    if 0 <= search.indexOf '"'
+      if 0 <= search.indexOf "'"
+        search = "\"#{search.replace /"/g, '"\'"\'"'}\""
+        .replace /^""|""$/g, ''
+      else
+        search = "'#{search}'"
+    else
+      search = "\"#{search}\""
   pathFor 'search',
     group: Template.parentData().group
-    search: "tag:#{@key}"
+    search: "tag:#{search}"
 
 Template.registerHelper 'folded', ->
   (messageFolded.get @_id) and
