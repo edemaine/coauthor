@@ -182,6 +182,55 @@ texAlign =
 ## in Markdown too.
 latex2htmlCommandsAlpha = (tex, math) ->
   tex = tex
+  ## Process tabular environments first in order to split cells at &
+  ## (so e.g. \bf is local to the cell)
+  .replace /\\begin\s*{tabular}\s*{([^{}]*)}([^]*?)\\end\s*{tabular}/g, (m, cols, body) ->
+    cols = cols.replace /|/g, '' # not yet supported
+    body = body.replace /\\hline\s*|\\cline\s*{[^{}]*}/g, '' # not yet supported
+    skip = (0 for colnum in [0...cols.length])
+    '<table>' +
+      (for row in body.split /(?:\\\\|\[DOUBLEBACKSLASH\])/ #(?:\s*\\(?:hline|cline\s*{[^{}]*}))?/
+         #console.log row
+         continue unless row.trim()
+         "<tr>\n" +
+         (for col, colnum in row.split '&'
+            if skip[colnum]
+              skip[colnum] -= 1
+              continue
+            align = cols[colnum]
+            attrs = ''
+            style = ''
+            ## "If you want to use both \multirow and \multicolumn on the same
+            ## entry, you must put the \multirow inside the \multicolumn"
+            ## [http://ctan.mirrors.hoobly.com/macros/latex/contrib/multirow/multirow.pdf]
+            if match = /\\multicolumn\s*(\d+|{\s*(\d+)\s*})\s*(\w|{([^{}]*)})\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/.exec col
+              attrs += " colspan=\"#{match[2] ? match[1]}\""
+              align = match[4] ? match[3]
+              col = match[5]
+            ## In HTML, rowspan means that later rows shouldn't specify <td>s
+            ## for that column, while in LaTeX, they are still present.
+            if match = /\\multirow\s*(\d+|{\s*(\d+)\s*})\s*(\*|{([^{}]*)})\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/.exec col
+              rowspan = parseInt match[2] ? match[1]
+              skip[colnum] += rowspan - 1
+              attrs += " rowspan=\"#{rowspan}\""
+              style = 'vertical-align: middle; '
+              #width = match[4] ? match[3]
+              col = match[5]
+            attrs +=
+              switch align
+                when 'c'
+                  " style=\"#{style}text-align: center\""
+                when 'l'
+                  " style=\"#{style}text-align: left\""
+                when 'r'
+                  " style=\"#{style}text-align: right\""
+                else
+                  style
+            "<td#{attrs}>#{col}</td>\n"
+         ).join('') +
+         "</tr>\n"
+      ).join('') +
+    '</table>'
   .replace /\\(BY|YEAR)\s*{([^{}]*)}/g, '<span style="border: thin solid; margin-left: 0.5em; padding: 0px 4px; font-variant:small-caps">$2</span>'
   .replace /\\protect\b\s*/g, ''
   .replace /\\par\b\s*/g, '<p>'
@@ -341,51 +390,6 @@ latex2htmlCommandsAlpha = (tex, math) ->
   .replace /\\begin\s*{center}([^]*?)\\end\s*{center}/g, (m, body) ->
     '<div style="margin: 10pt auto; width: fit-content">' +
     body + '</div>'
-  .replace /\\begin\s*{tabular}\s*{([^{}]*)}([^]*?)\\end\s*{tabular}/g, (m, cols, body) ->
-    cols = cols.replace /|/g, '' # not yet supported
-    skip = (0 for colnum in [0...cols.length])
-    '<table>' +
-      (for row in body.split /(?:\\\\|\[DOUBLEBACKSLASH\])(?:\s*\\(?:hline|cline\s*{[^{}]*}))?/
-         continue unless row.trim()
-         "<tr>\n" +
-         (for col, colnum in row.split '&'
-            if skip[colnum]
-              skip[colnum] -= 1
-              continue
-            align = cols[colnum]
-            attrs = ''
-            style = ''
-            ## "If you want to use both \multirow and \multicolumn on the same
-            ## entry, you must put the \multirow inside the \multicolumn"
-            ## [http://ctan.mirrors.hoobly.com/macros/latex/contrib/multirow/multirow.pdf]
-            if match = /\\multicolumn\s*(\d+|{\s*(\d+)\s*})\s*(\w|{([^{}]*)})\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/.exec col
-              attrs += " colspan=\"#{match[2] ? match[1]}\""
-              align = match[4] ? match[3]
-              col = match[5]
-            ## In HTML, rowspan means that later rows shouldn't specify <td>s
-            ## for that column, while in LaTeX, they are still present.
-            if match = /\\multirow\s*(\d+|{\s*(\d+)\s*})\s*(\*|{([^{}]*)})\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/.exec col
-              rowspan = parseInt match[2] ? match[1]
-              skip[colnum] += rowspan - 1
-              attrs += " rowspan=\"#{rowspan}\""
-              style = 'vertical-align: middle; '
-              #width = match[4] ? match[3]
-              col = match[5]
-            attrs +=
-              switch align
-                when 'c'
-                  " style=\"#{style}text-align: center\""
-                when 'l'
-                  " style=\"#{style}text-align: left\""
-                when 'r'
-                  " style=\"#{style}text-align: right\""
-                else
-                  style
-            "<td#{attrs}>#{col}</td>\n"
-         ).join('') +
-         "</tr>\n"
-      ).join('') +
-    '</table>'
   .replace /\\bigskip\b\s*/g, '<div style="padding-top:12pt;"></div>\n'
   .replace /\\medskip\b\s*/g, '<div style="padding-top:6pt;"></div>\n'
   .replace /\\smallskip\b\s*/g, '<div style="padding-top:3pt;"></div>\n'
