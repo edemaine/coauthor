@@ -418,7 +418,7 @@ importLaTeX = (group, zip) ->
         body = body.replace /\\label{([^{}]*)}/g, (match, label) ->
           labels[label] = title2section title
           ''
-        .replace /^\s*\\vspace\*?\s*{[^{}]*}/, ''  ## used to place wrapfigures
+        .replace /\\vspace\*?\s*{[^{}]*}/g, ''  ## used to place wrapfigures
         console.log "Importing '#{title}'"
         messages.push
           title: title
