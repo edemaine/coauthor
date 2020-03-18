@@ -69,7 +69,7 @@ in other fields too.
     `\&`, `\$`, `\{`, `\}`, `\%`, `\#`, ``` `` ```, `''`,
     `\,`, `\thinspace`,
     `~`, `--`, `---`, `{`, `}`, `\\`, `\item`, `\item[...]`;
-    `\begin/\end` for environments `verbatim`, `itemize`,
+    `\begin/\end` for environments `verbatim`, `CJK`, `itemize`,
     `enumerate` (including [enumerate.sty's optional argument](http://ctan.mirrors.hoobly.com/macros/latex/required/tools/enumerate.pdf))
     `quote`, `center`,
     `tabular` (basic but including `\multicolumn` and `\multirow`),

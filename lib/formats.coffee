@@ -140,6 +140,10 @@ latex2htmlVerb = (tex) ->
     (match, url, text) ->
       url = latexURL url
       """<a href="#{url}">#{text}</a>"""
+  .replace /\\begin\s*{CJK(\*?)}\s*{UTF8}\s*{[^{}]*}(.*?)\\end{CJK\*?}/g,
+    (match, star, text) ->
+      text = text.replace /\s+/g, '' if star
+      text
 
 ## Remove comments, stripping newlines from the input.
 latexStripComments = (text) ->
