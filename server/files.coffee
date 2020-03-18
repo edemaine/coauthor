@@ -50,6 +50,7 @@ WebApp.rawConnectHandlers.use '/file',
     ## get()
     headers =
       'Content-Type': 'text/plain'
+      'Cache-Control': 'stale-while-revalidate'
     if req.headers['if-modified-since']
       since = Date.parse req.headers['if-modified-since']  ## NaN if invaild
       if since and req.gridFS.uploadDate and (req.headers['if-modified-since'] == req.gridFS.uploadDate.toUTCString() or since >= req.gridFS.uploadDate.getTime())
