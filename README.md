@@ -62,11 +62,12 @@ in other fields too.
     `\BY{...}`, `\YEAR{...}`,
     `\chapter`, `\section`, `\subsection`, `\subsubsection`, `\footnote`,
     `\includegraphics[width/height/scale]{url}`,
-    `\smallskip`, `\medskip`, `\bigskip`, `\noindent`,
+    `\smallskip`, `\medskip`, `\bigskip`, `\noindent`, `\indent`,
     `\"`, `\'`, ```\` ```, `\^`, `\~`, `\=`, `\c`, `\v`, `\u`, `\H`,
     `\textasciitilde`, `\textasciicircum`, `\textbackslash`,
     `\textellipsis`, `\dots`, `\ldots`,
     `\&`, `\$`, `\{`, `\}`, `\%`, `\#`, ``` `` ```, `''`,
+    `\,`, `\thinspace`,
     `~`, `--`, `---`, `{`, `}`, `\\`, `\item`, `\item[...]`;
     `\begin/\end` for environments `verbatim`, `itemize`,
     `enumerate` (including [enumerate.sty's optional argument](http://ctan.mirrors.hoobly.com/macros/latex/required/tools/enumerate.pdf))

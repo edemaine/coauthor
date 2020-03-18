@@ -389,7 +389,8 @@ latex2htmlCommandsAlpha = (tex, math) ->
   .replace /\\bigskip\b\s*/g, '<div style="padding-top:12pt;"></div>\n'
   .replace /\\medskip\b\s*/g, '<div style="padding-top:6pt;"></div>\n'
   .replace /\\smallskip\b\s*/g, '<div style="padding-top:3pt;"></div>\n'
-  .replace /\\noindent\b\s*/g, ''  ## Irrelevant commands
+  .replace /\\thinspace\b\s*/g, '&#8239;' # narrow nonbreaking space
+  .replace /\\(no)indent\b\s*/g, ''  ## Irrelevant commands
   .replace /\\(dots|ldots|textellipsis)\b\s*/g, '&hellip;'
   .replace /\\textasciitilde\b\s*/g, '&Tilde;'  ## Avoid ~ -> \nbsp
   .replace /\\textasciicircum\b\s*/g, '&Hat;'
@@ -454,6 +455,7 @@ latex2html = (tex) ->
   .replace /\\=o|\\={o}/g, '&#333;'
   .replace /\\=u|\\={u}/g, '&#363;'
   .replace /\\=y|\\={y}/g, '&#563;'
+  .replace /\\,/g, '&#8239;' # narrow nonbreaking space
   .replace /\\&/g, '&amp;'
   .replace /\\([${}%#])/g, '$1'
   .replace /\\\s+/g, ' '

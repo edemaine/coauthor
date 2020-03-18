@@ -400,6 +400,7 @@ importLaTeX = (group, zip) ->
     .replace /(^|[^\\])%.*$\n?/mg, '$1'
     .replace /\\begin\s*{(wrap)?figure}[^]*?\\end\s*{(wrap)?figure}\s*/g, ''
     .replace /\\hspace\*?\s*{0pt}/g, ''  ## used to place wrapfigures
+    .replace /\\(new|clear)page\b/g, ''  ## manual pagination
     .replace /\\let\s*\\realbibitem\s*=?\s*\\bibitem/g, ''  ## bibliography
     .replace /\\def\s*\\bibitem\s*{([^{}]|{[^{}]*})*}/g, ''  ## bibliography
     tex = processCites tex
