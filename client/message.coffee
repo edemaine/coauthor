@@ -1106,7 +1106,11 @@ Template.submessage.events
       delete tags[escapeTag tag]
       Meteor.call 'messageUpdate', message,
         tags: tags
-      Meteor.call 'tagDelete', t.data.group, tag, true
+      , (error) ->
+        if error
+          console.error error
+        else
+          Meteor.call 'tagDelete', t.data.group, tag, true
     else
       console.warn "Attempt to delete nonexistant tag '#{tag}' from message #{message}"
 
