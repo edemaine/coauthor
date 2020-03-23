@@ -278,6 +278,9 @@ in other fields too.
   [follow these instructions](http://www.idownloadblog.com/2015/01/14/how-to-enable-key-repeats-on-your-mac/):
   `defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false`
   then restart your web browser.
+* [Vimium](https://vimium.github.io/) is incompatible with the Vim editor mode
+  (specifically, both capture the Escape key), so be sure to disable Vimium if
+  you want to use Vim keybindings in the message editor.
 
 ## [Installation](INSTALL.md) ##
 
