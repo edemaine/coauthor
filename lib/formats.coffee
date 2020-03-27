@@ -29,7 +29,7 @@ escapeForQuotedHTML = (s) ->
 replaceMathBlocks = (text, replacer) ->
   #console.log text
   blocks = []
-  re = /[{}]|\$\$?|\\(begin|end)\s*{(equation|eqnarray|align)\*?}|(\\par\b|\n[ \f\r\t\v]*\n\s*)|\\./g
+  re = /[{}]|\$\$?|\\(begin|end)\s*{(equation|eqnarray|align)\*?}|(\\par(?![a-zA-Z])|\n[ \f\r\t\v]*\n\s*)|\\./g
   block = null
   startBlock = (b) ->
     block = b
@@ -192,7 +192,7 @@ latexSimpleCommands =
   textsterling: '&pound;'
   maltese: '&maltese;'
 latexSimpleCommandsRe =
-  ///\\(#{(x for x of latexSimpleCommands).join '|'})\b\s*///g
+  ///\\(#{(x for x of latexSimpleCommands).join '|'})(?![a-zA-Z])\s*///g
 
 defaultFontFamily = 'Merriweather'
 lightWeight = 100
@@ -309,8 +309,8 @@ latex2htmlCommandsAlpha = (tex, math) ->
       ).join('') +
     '</table>'
   .replace /\\(BY|YEAR)\s*{([^{}]*)}/g, '<span style="border: thin solid; margin-left: 0.5em; padding: 0px 4px; font-variant:small-caps">$2</span>'
-  .replace /\\protect\b\s*/g, ''
-  .replace /\\par\b\s*/g, '<p>'
+  .replace /\\protect(?![a-zA-Z])\s*/g, ''
+  .replace /\\par(?![a-zA-Z])\s*/g, '<p>'
   .replace /\\sout\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<s>$1</s>'
   .replace /\\emph\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<em>$1</em>'
   .replace /\\textit\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="font-style: italic">$1</span>'
@@ -329,40 +329,40 @@ latex2htmlCommandsAlpha = (tex, math) ->
   loop ## Repeat until done to support overlapping matches, e.g. \rm x \it y
     old = tex
     tex = tex
-    .replace /\\em\b\s*((?:[^{}<>]|{[^{}]*})*)/g, '<em>$1</em>'
-    .replace /\\itshape\b\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-style: italic">$1</span>'
-    .replace /\\upshape\b\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-style: normal">$1</span>'
-    .replace /\\lfseries\b\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font-weight: #{lightWeight}">$1</span>"""
-    .replace /\\mdseries\b\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font-weight: #{mediumWeight}">$1</span>"""
-    .replace /\\bfseries\b\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font-weight: #{boldWeight}">$1</span>"""
-    .replace /\\rmfamily\b\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font-family: #{defaultFontFamily}">$1</span>"""
-    .replace /\\sffamily\b\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-family: sans-serif">$1</span>'
-    .replace /\\ttfamily\b\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-family: monospace">$1</span>'
-    .replace /\\scshape\b\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-variant: small-caps">$1</span>'
-    .replace /\\slshape\b\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-style: oblique">$1</span>'
+    .replace /\\em(?![a-zA-Z])\s*((?:[^{}<>]|{[^{}]*})*)/g, '<em>$1</em>'
+    .replace /\\itshape(?![a-zA-Z])\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-style: italic">$1</span>'
+    .replace /\\upshape(?![a-zA-Z])\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-style: normal">$1</span>'
+    .replace /\\lfseries(?![a-zA-Z])\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font-weight: #{lightWeight}">$1</span>"""
+    .replace /\\mdseries(?![a-zA-Z])\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font-weight: #{mediumWeight}">$1</span>"""
+    .replace /\\bfseries(?![a-zA-Z])\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font-weight: #{boldWeight}">$1</span>"""
+    .replace /\\rmfamily(?![a-zA-Z])\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font-family: #{defaultFontFamily}">$1</span>"""
+    .replace /\\sffamily(?![a-zA-Z])\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-family: sans-serif">$1</span>'
+    .replace /\\ttfamily(?![a-zA-Z])\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-family: monospace">$1</span>'
+    .replace /\\scshape(?![a-zA-Z])\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-variant: small-caps">$1</span>'
+    .replace /\\slshape(?![a-zA-Z])\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-style: oblique">$1</span>'
     ## Font size commands.  Bootstrap defines base font-size as 14px.
     ## We multiply this by a scale factor defined by LaTeX's 10pt sizing chart
     ## [https://en.wikibooks.org/wiki/LaTeX/Fonts].
-    .replace /\\tiny\b\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-size: 7px">$1</span>'
-    .replace /\\scriptsize\b\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-size: 9.8px">$1</span>'
-    .replace /\\footnotesize\b\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-size: 11.2px">$1</span>'
-    .replace /\\small\b\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-size: 12.6px">$1</span>'
-    .replace /\\large\b\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-size: 16.8px">$1</span>'
-    .replace /\\Large\b\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-size: 20.2px">$1</span>'
-    .replace /\\LARGE\b\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-size: 24.2px">$1</span>'
-    .replace /\\huge\b\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-size: 29px">$1</span>'
-    .replace /\\Huge\b\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-size: 34.8px">$1</span>'
+    .replace /\\tiny(?![a-zA-Z])\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-size: 7px">$1</span>'
+    .replace /\\scriptsize(?![a-zA-Z])\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-size: 9.8px">$1</span>'
+    .replace /\\footnotesize(?![a-zA-Z])\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-size: 11.2px">$1</span>'
+    .replace /\\small(?![a-zA-Z])\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-size: 12.6px">$1</span>'
+    .replace /\\large(?![a-zA-Z])\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-size: 16.8px">$1</span>'
+    .replace /\\Large(?![a-zA-Z])\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-size: 20.2px">$1</span>'
+    .replace /\\LARGE(?![a-zA-Z])\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-size: 24.2px">$1</span>'
+    .replace /\\huge(?![a-zA-Z])\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-size: 29px">$1</span>'
+    .replace /\\Huge(?![a-zA-Z])\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-size: 34.8px">$1</span>'
     ## Resetting font commands
-    .replace /\\(?:rm|normalfont)\b\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font-family: #{defaultFontFamily}; font-style: normal; font-weight: normal; font-variant: normal">$1</span>"""
-    .replace /\\md\b\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-weight: #{mediumWeight}">$1</span>"""
-    .replace /\\bf\b\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-weight: #{boldWeight}">$1</span>"""
-    .replace /\\it\b\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-style: italic">$1</span>"""
-    .replace /\\sl\b\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-style: oblique">$1</span>"""
-    .replace /\\sf\b\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-family: sans-serif">$1</span>"""
-    .replace /\\tt\b\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-family: monospace">$1</span>"""
-    .replace /\\sc\b\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-variant: small-caps">$1</span>"""
+    .replace /\\(?:rm|normalfont)(?![a-zA-Z])\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font-family: #{defaultFontFamily}; font-style: normal; font-weight: normal; font-variant: normal">$1</span>"""
+    .replace /\\md(?![a-zA-Z])\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-weight: #{mediumWeight}">$1</span>"""
+    .replace /\\bf(?![a-zA-Z])\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-weight: #{boldWeight}">$1</span>"""
+    .replace /\\it(?![a-zA-Z])\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-style: italic">$1</span>"""
+    .replace /\\sl(?![a-zA-Z])\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-style: oblique">$1</span>"""
+    .replace /\\sf(?![a-zA-Z])\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-family: sans-serif">$1</span>"""
+    .replace /\\tt(?![a-zA-Z])\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-family: monospace">$1</span>"""
+    .replace /\\sc(?![a-zA-Z])\s*((?:[^{}<>]|{[^{}]*})*)/g, """<span style="font: #{defaultFontFamily}; font-variant: small-caps">$1</span>"""
     ## Alignment
-    .replace /\\(raggedleft|raggedright|centering)\b\s*((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)/g, (match, align, content) ->
+    .replace /\\(raggedleft|raggedright|centering)(?![a-zA-Z])\s*((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)/g, (match, align, content) ->
       """<div style="text-align:#{texAlign[align]};"><p>#{content}</p></div>"""
     break if old == tex
   listStyles = []
@@ -379,7 +379,7 @@ latex2htmlCommandsAlpha = (tex, math) ->
     \\begin\s*{(itemize)}
    |\\begin\s*{enumerate}(?:\s*\[((?:[^\[\]]|{[^{}]*})*)\])?
    |\\end\s*{(itemize|enumerate)}
-   |\\item\b\s*(?:\[([^\[\]]*)\]\s*)?
+   |\\item(?![a-zA-Z])\s*(?:\[([^\[\]]*)\]\s*)?
   )///g, (match, space, beginItemize, enumArg, end, itemArg) ->
     space.replace(/\n\s*\n|<p>/g, '\n') +  ## eat paragraphs
     switch match[space.length + 1]
