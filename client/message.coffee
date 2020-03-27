@@ -782,7 +782,7 @@ Template.submessage.helpers
                 #  """<video controls><source src="coauthor:#{id}"></video>"""
                 else
                   replacement = "coauthor:#{id}"
-            else if match = parseCoauthorMessageUrl text
+            else if match = parseCoauthorMessageUrl text, true
               replacement = "coauthor:#{match.message}#{match.hash}"
             else if match = parseCoauthorAuthorUrl text
               replacement = "@#{match.author}"
@@ -833,7 +833,7 @@ Template.submessage.helpers
                 paste = (line for line in paste when line.length)
             else if 'text/plain' in e.clipboardData.types
               text = e.clipboardData.getData 'text/plain'
-              if match = parseCoauthorMessageUrl text
+              if match = parseCoauthorMessageUrl text, true
                 paste = ["coauthor:#{match.message}#{match.hash}"]
               else if match = parseCoauthorAuthorUrl text
                 paste = ["@#{match.author}"]

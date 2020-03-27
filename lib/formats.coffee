@@ -510,7 +510,7 @@ latex2html = (tex) ->
 @coauthorLinkRe = "coauthor:#{coauthorLinkBodyRe}"
 @coauthorLinkHashRe = "coauthor:#{coauthorLinkBodyHashRe}"
 
-@parseCoauthorMessageUrl = (url) ->
+@parseCoauthorMessageUrl = (url, simplify) ->
   match = new RegExp("^#{urlFor 'message',
     group: '(.*)'
     message: '(.*)'
@@ -519,9 +519,13 @@ latex2html = (tex) ->
   .replace /\./g, '[^/#]'
   }(#.*)?$").exec url
   if match?
-    group: match[1]
-    message: match[2]
-    hash: match[3] ? ''
+    match =
+      group: match[1]
+      message: match[2]
+      hash: match[3] ? ''
+    if simplify and match.hash[1..] == match.message
+      match.hash = ''
+    match
 
 @parseCoauthorAuthorUrl = (url) ->
   match = new RegExp("^#{urlFor 'author',
