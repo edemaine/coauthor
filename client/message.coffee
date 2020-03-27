@@ -761,6 +761,28 @@ Template.submessage.helpers
                 console.log 'HTML pasting mode turned off.'
           cmDrop = editor.display.dragFunctions.drop
           editor.setOption 'dragDrop', false
+          ## Embed files as images if dragged to beginning of line or after
+          ## a space or table separator (| for Markdown, & for LaTeX).
+          useImage = (pos) ->
+            pos.ch == 0 or
+            /^[\s|&]$/.test editor.getRange
+              line: pos.line
+              ch: pos.ch - 1
+            , pos
+          embedFile = (type, id, pos) ->
+            if useImage pos
+              switch type
+                when 'image', 'video', 'pdf'
+                  switch ti.data.format
+                    when 'markdown'
+                      return "![](coauthor:#{id})"
+                    when 'latex'
+                      return "\\includegraphics{coauthor:#{id}}"
+                    when 'html'
+                      return """<img src="coauthor:#{id}">"""
+                #when 'video'
+                #  """<video controls><source src="coauthor:#{id}"></video>"""
+            "coauthor:#{id}"
           editor.display.dragFunctions.drop = (e) ->
             text = e.dataTransfer?.getData 'text'
             id = e.dataTransfer?.getData 'application/coauthor-id'
@@ -769,19 +791,9 @@ Template.submessage.helpers
             if username
               replacement = "@#{username}"
             else if id
-              switch type
-                when 'image', 'video', 'pdf'
-                  switch ti.data.format
-                    when 'markdown'
-                      replacement = "![](coauthor:#{id})"
-                    when 'latex'
-                      replacement = "\\includegraphics{coauthor:#{id}}"
-                    when 'html'
-                      replacement = """<img src="coauthor:#{id}">"""
-                #when 'video'
-                #  """<video controls><source src="coauthor:#{id}"></video>"""
-                else
-                  replacement = "coauthor:#{id}"
+              pos = require 'codemirror/src/measurement/position_measurement.js'
+              .posFromMouse editor, e, true
+              replacement = embedFile type, id, pos
             else if match = parseCoauthorMessageUrl text, true
               replacement = "coauthor:#{match.message}#{match.hash}"
             else if match = parseCoauthorAuthorUrl text
@@ -835,6 +847,10 @@ Template.submessage.helpers
               text = e.clipboardData.getData 'text/plain'
               if match = parseCoauthorMessageUrl text, true
                 paste = ["coauthor:#{match.message}#{match.hash}"]
+                if not match.hash
+                  msg = findMessage match.message
+                  if msg?.file? and type = fileType msg.file
+                    paste = [embedFile type, match.message, editor.getCursor()]
               else if match = parseCoauthorAuthorUrl text
                 paste = ["@#{match.author}"]
           editor.on 'beforeChange', (cm, change) ->
