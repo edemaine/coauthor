@@ -120,6 +120,79 @@ latexEscape = (x) ->
   x.replace /[-`'~\\$%&<>]/g, (char) -> "&##{char.charCodeAt 0};"
 latexURL = (x) ->
   x.replace /\\([_#@$%&])/g, '$1'
+## Commands with letter names and no arguments, and a universal expansion.
+## Includes text symbols from
+## https://github.com/KaTeX/KaTeX/blob/master/src/symbols.js and
+## https://github.com/KaTeX/KaTeX/blob/master/src/macros.js
+latexSimpleCommands =
+  bigskip: '<div style="padding-top:12pt;"></div>\n'
+  medskip: '<div style="padding-top:6pt;"></div>\n'
+  smallskip: '<div style="padding-top:3pt;"></div>\n'
+  indent: ''    ## Irrelevant with Coauthor's formatting
+  noindent: ''  ## Irrelevant with Coauthor's formatting
+  thinspace: '&thinsp;' # narrow nonbreaking space
+  enspace: '&ensp;'
+  space: ' '
+  nobreakspace: '&nbsp;'
+  negthinspace: '&NegativeThinSpace;'
+  negmedspace: '&NegativeMediumSpace;'
+  negthickspace: '&NegativeThickSpace;'
+  quad: '&emsp;'
+  qquad: '&emsp;&emsp;'
+  dots: '&hellip;'
+  ldots: '&hellip;'
+  textellipsis: '&hellip;'
+  textasciitilde: '&Tilde;'  ## Avoid ~ -> \nbsp
+  textasciicircum: '&Hat;'
+  textbackslash: '&Backslash;'  ## Avoid \ processing
+  textdollar: '&dollar;'  ## Should have already processed $s, but just in case
+  textunderscore: '&lowbar;'  ## Avoid Markdown italic processing
+  textbraceleft: '&lbrace;'  ## Avoid { processing in LaTeX mode
+  textbraceright: '&rbrace;'  ## Avoid } processing in LaTeX mode
+  lbrack: '&lbrack;'  ## Avoid Markdown link processing
+  rbrack: '&rbrack;'  ## Avoid Markdown link processing
+  textless: '&lt;'  ## Avoid HTML tag
+  textgreater: '&gt;'  ## Avoid HTML tag
+  textbar: '&vert;'  ## Avoid Markdown table processing
+  textbardbl: '&parallel;'
+  textendash: '&ndash;'
+  textemdash: '&mdash;'
+  textquoteleft: '&lsquo;'
+  lq: '&lsquo;'
+  textquoteright: '&rsquo;'
+  rq: '&rsquo;'
+  textquotedblleft: '&ldquo;'
+  textquotedblright: '&rdquo;'
+  aa: '&aring;'
+  AA: '&Aring;'
+  i: '\u0131'
+  j: '\u0237'
+  ss: '&szlig;'
+  ae: '&aelig;'
+  AE: '&AElig;'
+  oe: '&oelig;'
+  OE: '&OElig;'
+  o: '&oslash;'
+  O: '&Oslash;'
+  S: '&sect;'
+  P: '&para;'
+  degree: '&deg;'
+  textdegree: '&deg;'
+  dag: '&dagger;'
+  textdagger: '&dagger;'
+  ddag: '&ddagger;'
+  textdaggerdbl: '&ddagger;'
+  checkmark: '&checkmark;'
+  copyright: '&copy;'
+  textcopyright: '&copy;'
+  textregistered: '&reg;'
+  circledR: '&reg;'
+  yen: '&yen;'
+  pounds: '&pound;'
+  textsterling: '&pound;'
+  maltese: '&maltese;'
+latexSimpleCommandsRe =
+  ///\\(#{(x for x of latexSimpleCommands).join '|'})\b\s*///g
 
 defaultFontFamily = 'Merriweather'
 lightWeight = 100
@@ -394,15 +467,7 @@ latex2htmlCommandsAlpha = (tex, math) ->
   .replace /\\begin\s*{center}([^]*?)\\end\s*{center}/g, (m, body) ->
     '<div style="margin: 10pt auto; width: fit-content">' +
     body + '</div>'
-  .replace /\\bigskip\b\s*/g, '<div style="padding-top:12pt;"></div>\n'
-  .replace /\\medskip\b\s*/g, '<div style="padding-top:6pt;"></div>\n'
-  .replace /\\smallskip\b\s*/g, '<div style="padding-top:3pt;"></div>\n'
-  .replace /\\thinspace\b\s*/g, '&#8239;' # narrow nonbreaking space
-  .replace /\\(no)indent\b\s*/g, ''  ## Irrelevant commands
-  .replace /\\(dots|ldots|textellipsis)\b\s*/g, '&hellip;'
-  .replace /\\textasciitilde\b\s*/g, '&Tilde;'  ## Avoid ~ -> \nbsp
-  .replace /\\textasciicircum\b\s*/g, '&Hat;'
-  .replace /\\textbackslash\b\s*/g, '&backslash;'  ## Avoid \ processing
+  .replace latexSimpleCommandsRe, (match, name) -> latexSimpleCommands[name]
   ## The following tweaks are not LaTeX actually, but useful in all modes,
   ## so we do them here.
   .replace /\b[0-9]+(x[0-9]+)+\b/ig, (match) ->
