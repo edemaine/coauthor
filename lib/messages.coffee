@@ -90,6 +90,7 @@ if Meteor.isServer
     yield message
 
 ## These queries mimic the logic of `canSee` below; keep them synchronized!
+
 naturallyVisibleQuery = ->
   ## Users with read permission can see all published undeleted public messages.
   ## Recompute this query every time to make sure no one modifies them.

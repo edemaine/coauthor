@@ -130,13 +130,9 @@ Template.groupButtons.helpers
       group: routeGroup()
       author: Meteor.user().username
   linkToStats: ->
-    if Meteor.userId()?
-      pathFor 'stats',
-        group: routeGroup()
-        username: Meteor.user().username
-    else
-      pathFor 'stats.userless',
-        group: routeGroup()
+    pathFor 'stats',
+      group: routeGroup()
+      username: Meteor.user()?.username
 
   disableClass: ->
     if canPost @group
