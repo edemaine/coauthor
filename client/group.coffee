@@ -82,7 +82,8 @@ formatMembers = (sortedMembers) ->
 
 Template.group.helpers
   topMessageCount: ->
-    pluralize(groupSortedBy(@group, null).count(), 'message thread')
+    msgs = groupSortedBy @group, null
+    pluralize(msgs.count?() ? msgs.length ? 0, 'message thread')
   groupTags: ->
     groupTags @group
   fullMembersCount: ->

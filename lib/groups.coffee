@@ -349,6 +349,7 @@ Meteor.methods
 
 @groupSortedBy = (group, sort, options, user = Meteor.user()) ->
   query = accessibleMessagesQuery group, user
+  return [] unless query?
   query.root = null
   options = {} unless options?
   if sort?
