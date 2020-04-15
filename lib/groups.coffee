@@ -65,11 +65,12 @@ if Meteor.isServer
   not _.isEmpty(user?.roles?[escaped]) or
   not _.isEmpty(user?.rolesPartial?[escaped])
 
-## General group features are available for all readable groups (including
+## General group features are available for all visible groups (including
 ## anonymous groups) and all groups of which you are a full or partial member.
-@memberOfGroupOrReadable = (group, user = Meteor.user()) ->
+@groupVisible = (group, user = Meteor.user()) ->
   memberOfGroup(group, user) or
-  groupRoleCheck group, 'read', user
+  groupRoleCheck(group, 'read', user) or
+  groupRoleCheck(group, 'post', user)
 
 ## List all groups that the user is a member of.
 ## (Mimicking memberOfGroup above.)
@@ -158,9 +159,9 @@ if Meteor.isServer
     @autorun ->
       groupData = findGroup group
       user = findUser @userId
-      ## Publish members of all readable groups (including anonymous groups)
+      ## Publish members of all visible groups (including anonymous groups)
       ## and all groups of which you are a full or partial member.
-      if memberOfGroupOrReadable groupData, user
+      if groupVisible groupData, user
         Meteor.users.find
           username: $in: groupMembers groupData
         ,

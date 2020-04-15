@@ -106,18 +106,19 @@ if Meteor.isServer
   Meteor.publish 'files', (group) ->
     check group, String
     @autorun ->
-      if memberOfGroupOrReadable group, findUser @userId
+      if groupVisible group, findUser @userId
         Files.find
           'metadata._Resumable': $exists: false
           'metadata.group': group
       else
-        ## This is a bit of a hack for groups with anonymous write-only access
-        ## (but not anonymous read access, else the above case would apply),
+        @ready()
+        ## This was a bit of a hack for groups with anonymous write-only access
         ## so that you can at least see files that you uploaded.
-        Files.find
-          'metadata._Resumable': $exists: false
-          'metadata.group': group
-          'metadata.uploader': @userId
+        ## But that case is now included in `groupVisible`.
+        #Files.find
+        #  'metadata._Resumable': $exists: false
+        #  'metadata.group': group
+        #  'metadata.uploader': @userId
 
   Files.allow
     insert: (userId, file) ->

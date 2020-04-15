@@ -22,7 +22,7 @@ if Meteor.isServer
 else  ## client
   Meteor.subscribe 'emoji.global'
 
-## Group-level emoji are available for all readable groups (including
+## Group-level emoji are available for all visible groups (including
 ## anonymous groups) and all groups of which you are a full or partial member.
 ## There's no actual way to add these emoji yet, though, so we don't yet
 ## subscribe to this publication anywhere.
@@ -31,7 +31,7 @@ if Meteor.isServer
     check group, String
     user = findUser @userId
     @autorun ->
-      if memberOfGroupOrReadable group, user
+      if groupVisible group, user
         Emoji.find
           group: group
           deleted: $exists: false
@@ -60,7 +60,7 @@ if Meteor.isServer
     check group, String
     user = findUser @userId
     @autorun ->
-      if memberOfGroupOrReadable group, user
+      if groupVisible group, user
         EmojiMessages.find
           group: group
           root: null
