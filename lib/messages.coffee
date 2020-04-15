@@ -89,28 +89,36 @@ if Meteor.isServer
         "There is already a cycle in ancestors of #{start}!"
     yield message
 
-## Recompute this every time to make sure no one modifies it.
+## These queries mimic the logic of `canSee` below; keep them synchronized!
 naturallyVisibleQuery = ->
+  ## Users with read permission can see all published undeleted public messages.
+  ## Recompute this query every time to make sure no one modifies them.
+  ## Query guaranteed to not include `group` or `$or` qualifiers.
   published: $ne: false    ## published is false or Date
   deleted: $ne: true
   private: $ne: true
+explicitlyVisibleQuery = (user) ->
+  ## In any group, user can see messages they authored or are @mentioned in.
+  ## Guaranteed to be a sole $or query.
+  return null unless user?.username
+  re = atRe user
+  $or: [
+    "authors.#{escapeUser user.username}": $exists: true
+  ,
+    title: re
+  ,
+    body: re
+  ]
+readableCanSeeQuery = (user) ->
+  ## Users with read permission can see the union of above two queries.
+  if query = explicitlyVisibleQuery user
+    # ASSERT: query consists solely of an $or node
+    query.$or.unshift naturallyVisibleQuery()
+    query
+  else
+    naturallyVisibleQuery()
 
 @accessibleMessagesQuery = (group, user = Meteor.user(), client = Meteor.isClient) ->
-  ## Mimic logic of `canSee` below.
-  canSeeQuery = ->
-    if user?.username
-      re = atRe user
-      $or: [
-        naturallyVisibleQuery()
-      ,
-        "authors.#{escapeUser user.username}": $exists: true
-      ,
-        title: re
-      ,
-        body: re
-      ]
-    else
-      naturallyVisibleQuery()
   ## Wild group case effectively unions over all groups
   ## (duplicating logic below when it helps make shorter queries).
   if group == wildGroup
@@ -127,42 +135,66 @@ naturallyVisibleQuery = ->
         else
           partialGroups.push group
       ## Groups with full membership can be combined into one query.
-      fullQuery = canSeeQuery()
-      fullQuery.group = $in: fullGroups
+      if fullGroups.length > 0
+        ## Use naturallyVisibleQuery instead of readableCanSeeQuery
+        ## because we $or on explicitlyVisibleQuery once later.
+        fullQuery = naturallyVisibleQuery()
+        fullQuery.group = $in: fullGroups
+      ## Groups with partial membership need their queries $or'd together.
       if partialGroups.length > 0
-        ## Groups with partial membership need their queries OR'd together.
         partialQuery = $or:
           for group in partialGroups
-            accessibleMessagesQuery group, user, client
-        if fullGroups.length > 0 and partialGroups.length > 0
-          $or: [
-            fullQuery
-            partialQuery
-          ]
-        else
+            ## Simulate `accessibleMessagesQuery group, user, client`
+            ## but without $or'ing in explicitlyVisibleQuery (done once later).
+            msgs = groupPartialMessagesWithRole group, 'read', user
+            query = naturallyVisibleQuery()
+            query.group = group
+            query.$or = [
+              _id: $in: msgs
+            ,
+              root: $in: msgs
+            ]
+            query
+      ## Combine above queries with explicitlyVisibleQuery.
+      explicitQuery = explicitlyVisibleQuery user
+      if explicitQuery? or fullQuery? or partialQuery?
+        $or: [
+          fullQuery
           partialQuery
+          explicitQuery
+        ].filter (x) -> x?  # omit undefined/null queries
       else
-        fullQuery  ## also works when fullGroups.length == 0
+        null
   else if canSuper group, client, user #groupRoleCheck group, 'super', user
     ## Super-user can see all messages, even unpublished/deleted messages.
     group: group
   else if groupRoleCheck group, 'read', user
     ## Regular users can see all messages they authored, or are @mentioned in,
     ## plus published undeleted messages by others.
-    query = canSeeQuery()
+    query = readableCanSeeQuery user
+    # ASSERT: query does not already have group qualifier.
     query.group = group
     query
-  else if msgs = groupPartialMessagesWithRole group, 'read', user
-    $and: [
-      group: group
-      $or: [
-        _id: $in: msgs
-      , root: $in: msgs
-      ]
-      canSeeQuery()
+  else if (msgs = groupPartialMessagesWithRole group, 'read', user).length
+    ## Partial users can see all messages they authored, or are @mentioned in,
+    ## plus published undeleted messages among the root messages they can read.
+    query = naturallyVisibleQuery()
+    # ASSERT: query does not already have $or qualifier.
+    query.$or = [
+      _id: $in: msgs
+    ,
+      root: $in: msgs
     ]
+    group: group
+    $or: [
+      query
+    ,
+      explicitlyVisibleQuery user
+    ].filter (x) -> x?  # in case explicitlyVisibleQuery returns null
   else
-    null
+    query = explicitlyVisibleQuery user
+    query.group = group if query?
+    query
 
 @messageReaders = (msg, options = {}) ->
   group = findGroup message2group msg
@@ -428,11 +460,14 @@ if Meteor.isServer
   if canSuper group, client, user #groupRoleCheck group, 'super', user
     ## Super-user can see all messages, even unpublished/deleted messages.
     true
+  else if amAuthor message, user
+    ## Regular users can see all messages they authored.
+    true
   else if messageRoleCheck group, message, 'read', user
-    ## Regular users can see all messages they authored, plus
-    ## published undeleted public messages by others.
-    (message.published and not message.deleted and not message.private) or
-    amAuthor message, user
+    ## Users with read permission can see all
+    ## published undeleted public messages.
+    ## (See also `naturallyVisibleQuery` above which mimics this test.)
+    message.published and not message.deleted and not message.private
   else
     false
 
@@ -473,11 +508,12 @@ if Meteor.isServer
   canSuper message2group message
 
 @amAuthor = (message, user = Meteor.user()) ->
-  message = findMessage message
   return false unless user?.username
+  message = findMessage message
+  re = atRe user
   escapeUser(user.username) of (message.authors ? {}) or
-  (message.title and atRe(user).test message.title) or
-  (message.body and atRe(user).test message.body)
+  (message.title and re.test message.title) or
+  (message.body and re.test message.body)
 
 @canPrivate = (message) ->
   message = findMessage message

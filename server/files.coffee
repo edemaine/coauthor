@@ -32,18 +32,22 @@ WebApp.rawConnectHandlers.use '/file',
       return res.end "Invalid X-Auth-Token #{authToken}"
 
     ## Map message -> file
-    msg = Messages.findOne match[1],
-      fields:
-        group: true
-        file: true
-        root: true  ## for messageRoleCheck
+    msg = Messages.findOne match[1]
+    ## Used to restrict to these fields, but also need authors, title, body
+    ## to determine whether we can see the message, so just get everything.
+    # fields:
+    #   group: true
+    #   file: true
+    #   root: true  ## for messageRoleCheck
     unless msg? and msg.file and (req.gridFS = findFile msg.file)?
       res.writeHead 403
       return res.end "Invalid file message ID: #{match[1]}"
-    # xxx This allows users to see files attached to messages that have been
-    # deleted/unpublished, even though those messages can't be seen...
-    # Debatable whether it's a bug or feature.
-    unless messageRoleCheck(msg.group, msg, 'read', user) and (msg.group == req.gridFS.metadata.group or groupRoleCheck req.gridFS.metadata.group, 'read', user)
+    # The following allowed users to see files attached to messages that have
+    # been deleted/unpublished, even though those messages can't be seen...
+    # Debatable whether that would be a bug or feature.
+    #unless messageRoleCheck(msg.group, msg, 'read', user) and (msg.group == req.gridFS.metadata.group or groupRoleCheck req.gridFS.metadata.group, 'read', user)
+    unless canSee msg, false, user
+      console.log msg, amAuthor msg, user
       res.writeHead 401
       return res.end "Lack read permissions for group of message/file #{match[1]}"
 

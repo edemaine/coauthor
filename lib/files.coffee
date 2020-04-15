@@ -97,9 +97,11 @@ if Meteor.isServer
   @readableFiles = (userid) ->
     Files.find
       'metadata._Resumable': $exists: false
-      #$or:
-      #  'metadata.updator': @userId
-      'metadata.group': $in: accessibleGroupNames userid
+      $or: [
+        'metadata.uploader': userId
+      ,
+        'metadata.group': $in: accessibleGroupNames userid
+      ]
 
   Meteor.publish 'files', (group) ->
     check group, String
@@ -109,7 +111,13 @@ if Meteor.isServer
           'metadata._Resumable': $exists: false
           'metadata.group': group
       else
-        @ready()
+        ## This is a bit of a hack for groups with anonymous write-only access
+        ## (but not anonymous read access, else the above case would apply),
+        ## so that you can at least see files that you uploaded.
+        Files.find
+          'metadata._Resumable': $exists: false
+          'metadata.group': group
+          'metadata.uploader': @userId
 
   Files.allow
     insert: (userId, file) ->
