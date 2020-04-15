@@ -70,7 +70,7 @@ template(name="users")
           each anonRoles
             td(data-role=role)
               if btnclass
-                button.roleButton.btn(class=btnclass)= level0
+                button.roleButton.btn(class=btnclass,disabled=disabled)= level0
               else
                 | #{level0}
       if showInvitations

@@ -68,7 +68,11 @@ Template.users.helpers
       else
         btnclass = 'btn-danger' if admin
         level0 = 'NO'
-      {role, btnclass, level0}
+      ## Can't set anonymous permission for individual messages.
+      if message
+        btnclass += ' disabled'
+        disabled = 'disabled'
+      {role, btnclass, disabled, level0}
 
   groupLink: -> @message and groupRoleCheck @group, 'admin'
   wild: -> @group == wildGroup
