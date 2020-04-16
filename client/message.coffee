@@ -270,7 +270,7 @@ messageKeyboard = new ReactiveDict
 messagePreview = new ReactiveDict
 defaultHeight = 300
 @messagePreviewDefault = ->
-  profile = Meteor.user().profile?.preview
+  profile = Meteor.user()?.profile?.preview
   on: profile?.on ? true
   sideBySide: profile?.sideBySide ? false
   height: profile?.height ? defaultHeight

@@ -120,18 +120,26 @@ if Meteor.isServer
         #  'metadata.group': group
         #  'metadata.uploader': @userId
 
+  ## User can read or upload a file if they have read or post permission
+  ## respectively, either in the group or for any thread within the group.
+  fileRoleCheck = (file, role, userId) ->
+    group = file.metadata.group ? wildGroup
+    user = findUser userId
+    groupRoleCheck(group, role, user) or
+    groupPartialMessagesWithRole(group, role, user).length
+
   Files.allow
     insert: (userId, file) ->
       file.metadata = {} unless file.metadata?
       check file.metadata,
         group: Match.Optional String
       file.metadata.uploader = userId
-      memberOfGroup file.metadata.group ? wildGroup, findUser userId
-    remove: (userId, file) ->
-      file.metadata?.uploader == userId
+      fileRoleCheck file, 'post', userId
     read: (userId, file) ->
       file.metadata?.uploader == userId or
-      memberOfGroup file.metadata?.group, findUser userId
+      fileRoleCheck file, 'read', userId
+    remove: (userId, file) ->
+      file.metadata?.uploader == userId
     write: (userId, file, fields) ->
       file.metadata?.uploader == userId
 else

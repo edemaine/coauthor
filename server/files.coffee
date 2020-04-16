@@ -16,23 +16,31 @@ WebApp.rawConnectHandlers.use '/file',
     match = url.path.match fileRe
     unless req.method in ['GET', 'HEAD'] and match?
       return next()
+    msgId = match[1]
 
     ## handle_auth()
     req.cookies = cookie.parse req.headers.cookie if req.headers.cookie?
     authToken = req.headers?['x-auth-token'] ? req.cookies?['X-Auth-Token']
-    unless authToken?
-      res.writeHead 400
-      return res.end "Missing X-Auth-Token header/token"
-    user = Meteor.users?.findOne
-      'services.resume.loginTokens':
-        $elemMatch:
-          hashedToken: Accounts?._hashLoginToken authToken
-    unless user?
-      res.writeHead 400
-      return res.end "Invalid X-Auth-Token #{authToken}"
+    ## Coauthor will send a string 'null' X-Auth-Token cookie when not logged
+    ## in.  We expect an undefined token for (bad) requests from elsewhere.
+    if authToken? and authToken != 'null'
+      user = Meteor.users?.findOne
+        'services.resume.loginTokens':
+          $elemMatch:
+            hashedToken: Accounts?._hashLoginToken authToken
+      unless user?
+        res.writeHead 400
+        return res.end "Invalid X-Auth-Token #{authToken}"
+      username = "User '#{user.username}'"
+    else
+      ## Allow null user, and check below for anonymous access.
+      user = null
+      username = "Not-logged-in user"
+      #res.writeHead 400
+      #return res.end "Missing X-Auth-Token header/token"
 
     ## Map message -> file
-    msg = Messages.findOne match[1]
+    msg = Messages.findOne msgId
     ## Used to restrict to these fields, but also need authors, title, body
     ## to determine whether we can see the message, so just get everything.
     # fields:
@@ -41,15 +49,16 @@ WebApp.rawConnectHandlers.use '/file',
     #   root: true  ## for messageRoleCheck
     unless msg? and msg.file and (req.gridFS = findFile msg.file)?
       res.writeHead 403
-      return res.end "Invalid file message ID: #{match[1]}"
+      ## Use same error message whether file exists or not, so don't leak info.
+      #return res.end "Invalid file message ID: #{msgId}"
+      return res.end "#{username} lacks read permissions for group of message/file #{msgId}"
     # The following allowed users to see files attached to messages that have
     # been deleted/unpublished, even though those messages can't be seen...
     # Debatable whether that would be a bug or feature.
     #unless messageRoleCheck(msg.group, msg, 'read', user) and (msg.group == req.gridFS.metadata.group or groupRoleCheck req.gridFS.metadata.group, 'read', user)
     unless canSee msg, false, user
-      console.log msg, amAuthor msg, user
-      res.writeHead 401
-      return res.end "Lack read permissions for group of message/file #{match[1]}"
+      res.writeHead 403
+      return res.end "#{username} lacks read permissions for group of message/file #{msgId}"
 
     ## get()
     headers =
