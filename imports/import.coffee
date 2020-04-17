@@ -557,7 +557,7 @@ importers =
   'osqa': importOSQA
   'latex': importLaTeX
 
-@importFiles = (format, group, files) ->
+export importFiles = (format, group, files) ->
   importer = importers[format]
   unless importer?
     console.warn "Unrecognized import format '#{format}'"

@@ -202,8 +202,8 @@ Template.importExportButtons.events
     e.stopPropagation()
     t.find(".importInput[data-format='#{e.target.getAttribute('data-format')}']").click()
   'change .importInput': (e, t) ->
-    importFiles e.target.getAttribute('data-format'), t.data.group, e.target.files
-    e.target.value = ''
+    args = [e.target.getAttribute('data-format'), t.data.group, e.target.files]
+    import('/imports/import.coffee').then (i) -> i.importFiles ...args
   'dragenter .importButton': (e) ->
     e.preventDefault()
     e.stopPropagation()
@@ -213,7 +213,8 @@ Template.importExportButtons.events
   'drop .importButton': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
-    importFiles e.target.getAttribute('data-format'), t.data.group, e.originalEvent.dataTransfer.files
+    args = [e.target.getAttribute('data-format'), t.data.group, e.originalEvent.dataTransfer.files]
+    import('/imports/import.coffee').then (i) -> i.importFiles ...args
 
   'click .superdeleteImportButton': (e, t) ->
     e.preventDefault()
@@ -251,7 +252,7 @@ Template.downloadGroup.events
     e.preventDefault()
     e.stopPropagation()
     Modal.hide()
-    (await import('/imports/download.coffee')).downloadGroup @group
+    import('/imports/download.coffee').then (d) => d.downloadGroup @group
   'click .cancelButton': (e) ->
     e.preventDefault()
     e.stopPropagation()
