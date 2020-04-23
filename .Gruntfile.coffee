@@ -252,7 +252,7 @@ module.exports = (grunt) ->
 
   grunt.loadNpmTasks 'grunt-contrib-clean'
   grunt.loadNpmTasks 'grunt-contrib-copy'
-  grunt.loadNpmTasks 'grunt-replace'
+  grunt.loadNpmTasks 'grunt-replace-regex'
   grunt.loadNpmTasks 'grunt-contrib-less'
   grunt.loadNpmTasks 'grunt-contrib-cssmin'
   grunt.registerTask 'default', [

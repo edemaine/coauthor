@@ -52,6 +52,6 @@
     "grunt-contrib-copy": "^1.0.0",
     "grunt-contrib-cssmin": "^3.0.0",
     "grunt-contrib-less": "^2.0.0",
-    "grunt-replace": "^1.0.1"
+    "grunt-replace-regex": "^1.0.3"
   }
 }
