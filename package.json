@@ -41,13 +41,13 @@
     "markdown-it-replacements": "^1.0.1",
     "markdown-it-task-checkbox": "^1.0.6",
     "meteor-node-stubs": "^1.0.0",
-    "moment-timezone": "^0.5.26",
+    "moment-timezone": "^0.5.28",
     "pdfjs-dist": "^2.0.943",
     "roman-numeral": "^0.2.6",
     "sanitize-html": "^1.20.1"
   },
   "devDependencies": {
-    "grunt": "^1.0.4",
+    "grunt": "^1.1.0",
     "grunt-contrib-clean": "^2.0.0",
     "grunt-contrib-copy": "^1.0.0",
     "grunt-contrib-cssmin": "^3.0.0",
