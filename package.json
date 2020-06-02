@@ -1,7 +1,7 @@
 {
   "name": "coauthor",
   "version": "1.0.0",
-  "description": "Coauthor collaboration/discussion forum",
+  "description": "Coauthor supercollaboration/discussion forum",
   "main": "index.js",
   "scripts": {
     "postinstall": "node node_modules/grunt/bin/grunt --gruntfile .Gruntfile.coffee"
