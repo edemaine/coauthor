@@ -3,7 +3,7 @@ module.exports = {
     one: {
       host: 'coauthor.csail.mit.edu',
       username: 'ubuntu',
-      pem: "/afs/csail/u/e/edemaine/.ssh/private/id_dsa"
+      pem: "/afs/csail/u/e/edemaine/.ssh/private/id_rsa"
       // pem:
       // password:
       // or leave blank for authenticate from ssh-agent
