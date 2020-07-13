@@ -221,6 +221,12 @@ Meteor.methods
       if message
         throw new Meteor.Error 'setRole.anonymousMessage',
           "Message-specific role setting not allowed for anonymous user"
+      if group == wildGroup
+        throw new Meteor.Error 'setRole.anonymousGlobal',
+          "Global role setting not allowed for anonymous user"
+      unless messageRoleCheck wildGroup, message, 'admin'
+        throw new Meteor.Error 'setRole.unauthorized',
+          "You need global 'admin' permissions to set anonymous roles"
       if yesno
         Groups.update
           name: group

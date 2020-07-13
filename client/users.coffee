@@ -16,7 +16,7 @@ Template.users.helpers
     else
       "#{email.address} unverified"
   showAnonymous: ->
-    @group != wildGroup
+    true
   showInvitations: ->
     @group != wildGroup and false ## xxx disabled for now
   invitations: ->
@@ -60,6 +60,7 @@ Template.users.helpers
     group = routeGroup()
     message = routeMessage()
     admin = messageRoleCheck group, message, 'admin'
+    wildAdmin = messageRoleCheck wildGroup, message, 'admin'
     roles = groupAnonymousRoles group
     for role in allRoles
       if role in roles
@@ -68,11 +69,16 @@ Template.users.helpers
       else
         btnclass = 'btn-danger' if admin
         level0 = 'NO'
-      ## Can't set anonymous permission for individual messages.
-      if message
-        btnclass += ' disabled'
+      if group == wildGroup or message or not wildAdmin
+        btnclass += ' disabled' if btnclass
         disabled = 'disabled'
-      {role, btnclass, disabled, level0}
+        if group == wildGroup
+          title = 'Cannot give anonymous access to all groups globally'
+        else if message
+          title = 'Cannot give anonymous access to individual threads'
+        else if not wildAdmin
+          title = 'Need global administrator priviledges to change anonymous access'
+      {role, btnclass, disabled, title, level0}
 
   groupLink: -> @message and groupRoleCheck @group, 'admin'
   wild: -> @group == wildGroup

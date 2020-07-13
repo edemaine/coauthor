@@ -63,6 +63,7 @@ if Meteor.isServer
         Meteor.users.find
           _id: @userId
         , fields:
+            createdAt: true
             roles: true
             rolesPartial: true
             'services.dropbox.id': true
