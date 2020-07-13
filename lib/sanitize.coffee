@@ -3,6 +3,8 @@
 
 sanitizeHtml = require 'sanitize-html'
 
+sanitizeHtml.defaults.disallowedTagsMode = 'escape'
+
 sanitizeHtml.defaults.allowIframeRelativeUrls = false
 
 sanitizeHtml.defaults.allowedAttributes['*'] = [
@@ -45,40 +47,41 @@ sanitizeHtml.defaults.allowedTags.push 'details', 'summary'
 
 ## SVG, based on
 ## https://github.com/alnorris/SVG-Sanitizer/blob/master/SvgSanitizer.php
+## but without 'id'
 sanitizeHtml.defaults.allowedTags.push 'circle', 'clipPath', 'defs',
   'desc', 'ellipse', 'feGaussianBlur', 'filter', 'foreignObject', 'g',
   'image', 'line', 'linearGradient', 'marker', 'mask', 'metadata', 'path',
   'pattern', 'polygon', 'polyline', 'radialGradient', 'rect', 'stop', 'svg',
   'switch', 'text', 'textPath', 'title', 'tspan', 'use'
-#sanitizeHtml.defaults.allowedAttributes.a = ["clip-path", "clip-rule", "fill", "fill-opacity", "fill-rule", "filter", "id", "mask", "opacity", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "systemlanguage", "transform", "href", "xlink:href", "xlink:title"]
-sanitizeHtml.defaults.allowedAttributes.circle = ["clip-path", "clip-rule", "cx", "cy", "fill", "fill-opacity", "fill-rule", "filter", "id", "mask", "opacity", "r", "requiredfeatures", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "systemlanguage", "transform"]
-sanitizeHtml.defaults.allowedAttributes.clippath = ["clippathunits", "id"]
+#sanitizeHtml.defaults.allowedAttributes.a = ["clip-path", "clip-rule", "fill", "fill-opacity", "fill-rule", "filter", "mask", "opacity", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "systemlanguage", "transform", "href", "xlink:href", "xlink:title"]
+sanitizeHtml.defaults.allowedAttributes.circle = ["clip-path", "clip-rule", "cx", "cy", "fill", "fill-opacity", "fill-rule", "filter", "mask", "opacity", "r", "requiredfeatures", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "systemlanguage", "transform"]
+sanitizeHtml.defaults.allowedAttributes.clippath = ["clippathunits"]
 #sanitizeHtml.defaults.allowedAttributes.style  = ["type"]
-sanitizeHtml.defaults.allowedAttributes.ellipse = ["clip-path", "clip-rule", "cx", "cy", "fill", "fill-opacity", "fill-rule", "filter", "id", "mask", "opacity", "requiredfeatures", "rx", "ry", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "systemlanguage", "transform"]
-sanitizeHtml.defaults.allowedAttributes.fegaussianblur = ["color-interpolation-filters", "id", "requiredfeatures", "stddeviation"]
-sanitizeHtml.defaults.allowedAttributes.filter = ["color-interpolation-filters", "filterres", "filterunits", "height", "id", "primitiveunits", "requiredfeatures", "width", "x", "xlink:href", "y"]
-sanitizeHtml.defaults.allowedAttributes.foreignobject = ["font-size", "height", "id", "opacity", "requiredfeatures", "transform", "width", "x", "y"]
-sanitizeHtml.defaults.allowedAttributes.g = ["clip-path", "clip-rule", "id", "display", "fill", "fill-opacity", "fill-rule", "filter", "mask", "opacity", "requiredfeatures", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "systemlanguage", "transform", "font-family", "font-size", "font-style", "font-weight", "text-anchor"]
-sanitizeHtml.defaults.allowedAttributes.image = ["clip-path", "clip-rule", "filter", "height", "id", "mask", "opacity", "requiredfeatures", "systemlanguage", "transform", "width", "x", "xlink:href", "xlink:title", "y"]
-sanitizeHtml.defaults.allowedAttributes.line = ["clip-path", "clip-rule", "fill", "fill-opacity", "fill-rule", "filter", "id", "marker-end", "marker-mid", "marker-start", "mask", "opacity", "requiredfeatures", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "systemlanguage", "transform", "x1", "x2", "y1", "y2"]
-sanitizeHtml.defaults.allowedAttributes.lineargradient = ["id", "gradienttransform", "gradientunits", "requiredfeatures", "spreadmethod", "systemlanguage", "x1", "x2", "xlink:href", "y1", "y2"]
-sanitizeHtml.defaults.allowedAttributes.marker = ["id", "markerheight", "markerunits", "markerwidth", "orient", "preserveaspectratio", "refx", "refy", "systemlanguage", "viewbox"]
-sanitizeHtml.defaults.allowedAttributes.mask = ["height", "id", "maskcontentunits", "maskunits", "width", "x", "y"]
-sanitizeHtml.defaults.allowedAttributes.metadata = ["id"]
-sanitizeHtml.defaults.allowedAttributes.path = ["clip-path", "clip-rule", "d", "fill", "fill-opacity", "fill-rule", "filter", "id", "marker-end", "marker-mid", "marker-start", "mask", "opacity", "requiredfeatures", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "systemlanguage", "transform"]
-sanitizeHtml.defaults.allowedAttributes.pattern = ["height", "id", "patterncontentunits", "patterntransform", "patternunits", "requiredfeatures", "systemlanguage", "viewbox", "width", "x", "xlink:href", "y"]
-sanitizeHtml.defaults.allowedAttributes.polygon = ["clip-path", "clip-rule", "id", "fill", "fill-opacity", "fill-rule", "filter", "id", "marker-end", "marker-mid", "marker-start", "mask", "opacity", "points", "requiredfeatures", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "systemlanguage", "transform"]
-sanitizeHtml.defaults.allowedAttributes.polyline = ["clip-path", "clip-rule", "id", "fill", "fill-opacity", "fill-rule", "filter", "marker-end", "marker-mid", "marker-start", "mask", "opacity", "points", "requiredfeatures", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "systemlanguage", "transform"]
-sanitizeHtml.defaults.allowedAttributes.radialgradient = ["cx", "cy", "fx", "fy", "gradienttransform", "gradientunits", "id", "r", "requiredfeatures", "spreadmethod", "systemlanguage", "xlink:href"]
-sanitizeHtml.defaults.allowedAttributes.rect = ["clip-path", "clip-rule", "fill", "fill-opacity", "fill-rule", "filter", "height", "id", "mask", "opacity", "requiredfeatures", "rx", "ry", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "systemlanguage", "transform", "width", "x", "y"]
-sanitizeHtml.defaults.allowedAttributes.stop = ["id", "offset", "requiredfeatures", "stop-color", "stop-opacity", "systemlanguage"]
-sanitizeHtml.defaults.allowedAttributes.svg = ["clip-path", "clip-rule", "filter", "id", "height", "mask", "preserveaspectratio", "requiredfeatures", "systemlanguage", "viewbox", "width", "x", "xmlns", "xmlns:se", "xmlns:xlink", "y"]
-sanitizeHtml.defaults.allowedAttributes.switch = ["id", "requiredfeatures", "systemlanguage"]
-sanitizeHtml.defaults.allowedAttributes.symbol = ["fill", "fill-opacity", "fill-rule", "filter", "font-family", "font-size", "font-style", "font-weight", "id", "opacity", "preserveaspectratio", "requiredfeatures", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "systemlanguage", "transform", "viewbox"]
-sanitizeHtml.defaults.allowedAttributes.text = ["clip-path", "clip-rule", "fill", "fill-opacity", "fill-rule", "filter", "font-family", "font-size", "font-style", "font-weight", "id", "mask", "opacity", "requiredfeatures", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "systemlanguage", "text-anchor", "transform", "x", "xml:space", "y"]
-sanitizeHtml.defaults.allowedAttributes.textpath = ["id", "method", "requiredfeatures", "spacing", "startoffset", "systemlanguage", "transform", "xlink:href"]
-sanitizeHtml.defaults.allowedAttributes.tspan = ["clip-path", "clip-rule", "dx", "dy", "fill", "fill-opacity", "fill-rule", "filter", "font-family", "font-size", "font-style", "font-weight", "id", "mask", "opacity", "requiredfeatures", "rotate", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "systemlanguage", "text-anchor", "textlength", "transform", "x", "xml:space", "y"]
-sanitizeHtml.defaults.allowedAttributes.use = ["clip-path", "clip-rule", "fill", "fill-opacity", "fill-rule", "filter", "height", "id", "mask", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "transform", "width", "x", "xlink:href", "y"]
+sanitizeHtml.defaults.allowedAttributes.ellipse = ["clip-path", "clip-rule", "cx", "cy", "fill", "fill-opacity", "fill-rule", "filter", "mask", "opacity", "requiredfeatures", "rx", "ry", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "systemlanguage", "transform"]
+sanitizeHtml.defaults.allowedAttributes.fegaussianblur = ["color-interpolation-filters", "requiredfeatures", "stddeviation"]
+sanitizeHtml.defaults.allowedAttributes.filter = ["color-interpolation-filters", "filterres", "filterunits", "height", "primitiveunits", "requiredfeatures", "width", "x", "xlink:href", "y"]
+sanitizeHtml.defaults.allowedAttributes.foreignobject = ["font-size", "height", "opacity", "requiredfeatures", "transform", "width", "x", "y"]
+sanitizeHtml.defaults.allowedAttributes.g = ["clip-path", "clip-rule", "display", "fill", "fill-opacity", "fill-rule", "filter", "mask", "opacity", "requiredfeatures", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "systemlanguage", "transform", "font-family", "font-size", "font-style", "font-weight", "text-anchor"]
+sanitizeHtml.defaults.allowedAttributes.image = ["clip-path", "clip-rule", "filter", "height", "mask", "opacity", "requiredfeatures", "systemlanguage", "transform", "width", "x", "xlink:href", "xlink:title", "y"]
+sanitizeHtml.defaults.allowedAttributes.line = ["clip-path", "clip-rule", "fill", "fill-opacity", "fill-rule", "filter", "marker-end", "marker-mid", "marker-start", "mask", "opacity", "requiredfeatures", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "systemlanguage", "transform", "x1", "x2", "y1", "y2"]
+sanitizeHtml.defaults.allowedAttributes.lineargradient = ["gradienttransform", "gradientunits", "requiredfeatures", "spreadmethod", "systemlanguage", "x1", "x2", "xlink:href", "y1", "y2"]
+sanitizeHtml.defaults.allowedAttributes.marker = ["markerheight", "markerunits", "markerwidth", "orient", "preserveaspectratio", "refx", "refy", "systemlanguage", "viewbox"]
+sanitizeHtml.defaults.allowedAttributes.mask = ["height", "maskcontentunits", "maskunits", "width", "x", "y"]
+sanitizeHtml.defaults.allowedAttributes.metadata = []
+sanitizeHtml.defaults.allowedAttributes.path = ["clip-path", "clip-rule", "d", "fill", "fill-opacity", "fill-rule", "filter", "marker-end", "marker-mid", "marker-start", "mask", "opacity", "requiredfeatures", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "systemlanguage", "transform"]
+sanitizeHtml.defaults.allowedAttributes.pattern = ["height", "patterncontentunits", "patterntransform", "patternunits", "requiredfeatures", "systemlanguage", "viewbox", "width", "x", "xlink:href", "y"]
+sanitizeHtml.defaults.allowedAttributes.polygon = ["clip-path", "clip-rule", "fill", "fill-opacity", "fill-rule", "filter", "marker-end", "marker-mid", "marker-start", "mask", "opacity", "points", "requiredfeatures", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "systemlanguage", "transform"]
+sanitizeHtml.defaults.allowedAttributes.polyline = ["clip-path", "clip-rule", "fill", "fill-opacity", "fill-rule", "filter", "marker-end", "marker-mid", "marker-start", "mask", "opacity", "points", "requiredfeatures", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "systemlanguage", "transform"]
+sanitizeHtml.defaults.allowedAttributes.radialgradient = ["cx", "cy", "fx", "fy", "gradienttransform", "gradientunits", "r", "requiredfeatures", "spreadmethod", "systemlanguage", "xlink:href"]
+sanitizeHtml.defaults.allowedAttributes.rect = ["clip-path", "clip-rule", "fill", "fill-opacity", "fill-rule", "filter", "height", "mask", "opacity", "requiredfeatures", "rx", "ry", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "systemlanguage", "transform", "width", "x", "y"]
+sanitizeHtml.defaults.allowedAttributes.stop = ["offset", "requiredfeatures", "stop-color", "stop-opacity", "systemlanguage"]
+sanitizeHtml.defaults.allowedAttributes.svg = ["clip-path", "clip-rule", "filter", "height", "mask", "preserveaspectratio", "requiredfeatures", "systemlanguage", "viewbox", "width", "x", "xmlns", "xmlns:se", "xmlns:xlink", "y"]
+sanitizeHtml.defaults.allowedAttributes.switch = ["requiredfeatures", "systemlanguage"]
+sanitizeHtml.defaults.allowedAttributes.symbol = ["fill", "fill-opacity", "fill-rule", "filter", "font-family", "font-size", "font-style", "font-weight", "opacity", "preserveaspectratio", "requiredfeatures", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "systemlanguage", "transform", "viewbox"]
+sanitizeHtml.defaults.allowedAttributes.text = ["clip-path", "clip-rule", "fill", "fill-opacity", "fill-rule", "filter", "font-family", "font-size", "font-style", "font-weight", "mask", "opacity", "requiredfeatures", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "systemlanguage", "text-anchor", "transform", "x", "xml:space", "y"]
+sanitizeHtml.defaults.allowedAttributes.textpath = ["method", "requiredfeatures", "spacing", "startoffset", "systemlanguage", "transform", "xlink:href"]
+sanitizeHtml.defaults.allowedAttributes.tspan = ["clip-path", "clip-rule", "dx", "dy", "fill", "fill-opacity", "fill-rule", "filter", "font-family", "font-size", "font-style", "font-weight", "mask", "opacity", "requiredfeatures", "rotate", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "systemlanguage", "text-anchor", "textlength", "transform", "x", "xml:space", "y"]
+sanitizeHtml.defaults.allowedAttributes.use = ["clip-path", "clip-rule", "fill", "fill-opacity", "fill-rule", "filter", "height", "mask", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "transform", "width", "x", "xlink:href", "y"]
 
 ## KaTeX/MathML
 ## (tag list from https://developer.mozilla.org/en-US/docs/Web/MathML/Element)
