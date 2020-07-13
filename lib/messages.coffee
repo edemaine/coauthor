@@ -1132,22 +1132,22 @@ Meteor.methods
 
   messageEditStart: (id) ->
     #check Meteor.userId(), String  ## should be done by 'canEdit'
+    return if @isSimulation
     unless canEdit id
       throw new Meteor.Error 'messageEditStart.unauthorized',
         "Insufficient permissions to edit message '#{id}'"
-    if Meteor.isServer
-      old = Messages.findOne id
-      return unless old?
-      unless old.editing?.length
-        ShareJS.model.delete id
-        ShareJS.initializeDoc id, old.body ? ''
-        ShareJS.model.listen id, Meteor.bindEnvironment (opData) ->
-          delayedEditor2messageUpdate id
-        updateStopTimer id
-      ## We used to do the following update in client too, to do
-      ## speculatively, but it seems problematic for now.
-      Messages.update id,
-        $addToSet: editing: Meteor.user().username
+    old = Messages.findOne id
+    return unless old?
+    unless old.editing?.length
+      ShareJS.model.delete id
+      ShareJS.initializeDoc id, old.body ? ''
+      ShareJS.model.listen id, Meteor.bindEnvironment (opData) ->
+        delayedEditor2messageUpdate id
+      updateStopTimer id
+    ## We used to do the following update in client too, to do
+    ## speculatively, but it seems problematic for now.
+    Messages.update id,
+      $addToSet: editing: Meteor.user().username
 
   messageEditStop: (id) ->
     ## When updating this method, you might also want to update the "extreme"
