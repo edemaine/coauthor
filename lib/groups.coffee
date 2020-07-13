@@ -64,6 +64,10 @@ if Meteor.isServer
   escaped = escapeGroup (group?.name ? group)
   not _.isEmpty(user?.roles?[escaped]) or
   not _.isEmpty(user?.rolesPartial?[escaped])
+@fullMemberOfGroup = (group, user = Meteor.user()) ->
+  not _.isEmpty user?.roles?[escapeGroup (group?.name ? group)]
+@memberOfThread = (message, user = Meteor.user()) ->
+  not _.isEmpty user?.rolesPartial?[escapeGroup message.group]?[message.root ? message._id]
 
 ## General group features are available for all visible groups (including
 ## anonymous groups) and all groups of which you are a full or partial member.

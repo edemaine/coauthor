@@ -197,15 +197,22 @@ readableCanSeeQuery = (user) ->
     query.group = group if query?
     query
 
+## Analog of `messageSubscribers`, but listing everyone who might potentially
+## be subscribed.
 @messageReaders = (msg, options = {}) ->
-  group = findGroup message2group msg
+  msg = findMessage msg
+  return [] unless msg?
+  group = findGroup msg.group
   if options.fields?
     options.fields.roles = true
     options.fields.rolesPartial = true
   users = Meteor.users.find
     username: $in: groupMembers group
   .fetch()
-  (user for user in users when canSee msg, false, user, group)
+  for user in users
+    continue unless canSee msg, false, user, group
+    continue unless fullMemberOfGroup(group, user) or memberOfThread(msg, user)
+    user
 
 @sortedMessageReaders = (msg, options = {}) ->
   if options.fields?

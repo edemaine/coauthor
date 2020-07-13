@@ -114,7 +114,11 @@ if Meteor.isServer
         true
   , options
   .fetch()
-  (user for user in users when subscribedToMessage(msg, user) and canSee msg, false, user, group)
+  for user in users
+    continue unless subscribedToMessage msg, user
+    continue unless canSee msg, false, user, group
+    continue unless fullMemberOfGroup(group, user) or memberOfThread(msg, user)
+    user
 @messageSubscribers =
   profiling @messageSubscribers, 'notifications.messageSubscribers'
 
