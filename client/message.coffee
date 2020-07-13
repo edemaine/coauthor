@@ -281,13 +281,11 @@ defaultHeight = 300
 ##     to get the message ID, because we should be editing.
 ##   * From the betweenEditorAndBody subtemplate.  Then we can use `_id` data.
 messagePreviewGet = (template = Template.instance()) ->
-  unless id?
-    id = template?.editing?.get()
-    unless id?
-      id = Template.currentData()?._id
-      unless id?
-        id = template?.data?._id
-        return unless id?
+  if template?.editing?
+    id = template.editing.get()
+  else
+    id = Template.currentData()?._id ? template?.data?._id
+  return unless id?
   messagePreview.get(id) ? messagePreviewDefault()
 messagePreviewSet = (change, template = Template.instance()) ->
   unless id?
