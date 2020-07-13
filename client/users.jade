@@ -58,8 +58,11 @@ template(name="users")
               if level2
                 b.text-success.space #{level2}
         if partialMember
+          //- Extra row to get parity right
+          tr.partialMemberSep
           tr.partialMember
             td(colspan="6")
+              span.fa.fa-id-card(aria-hidden="true")
               | Partial access to messages:
               each partialMember
                 |  &bull; <a href="{{pathFor 'users.message' group=group message=_id}}">#{titleOrUntitled}</a>

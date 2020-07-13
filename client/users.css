@@ -1,2 +1,4 @@
 .createdAt { font-weight: normal; font-size: smaller; font-style: italic; }
-tr.partialMember > td { padding-left: 2em; }
+/* `tr.partialMemberSep +` is increases specificity to overrule table */
+tr.partialMemberSep + tr.partialMember > td {
+  padding-left: 2.5em; padding-top: 0px; border-top: none; }
