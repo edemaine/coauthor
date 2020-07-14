@@ -10,14 +10,15 @@ template(name="settings")
               .description Your first and last name. This is how your name will generally be displayed to others. Don't forget to click Save after editing.
             td
               +fullNameEditor
-          tr
-            th
-              label Email address:
-              .description A verified email address is necessary if you want email notifications about posts. Don't forget to click Save after editing.
-            td
-              +emailEditor
-              div
-                +_loginButtonsAdditionalLoggedInDropdownActions
+          unless emailless
+            tr
+              th
+                label Email address:
+                .description A verified email address is necessary if you want email notifications about posts. Don't forget to click Save after editing.
+              td
+                +emailEditor
+                div
+                  +_loginButtonsAdditionalLoggedInDropdownActions
           tr
             th
               label Global theme:
@@ -69,106 +70,107 @@ template(name="settings")
                 button.btn.btn-default.sideBySideButton(type="button", data-toggle="button", autocomplete="off") Side-by-Side
               else
                 button.btn.btn-default.sideBySideButton(type="button", data-toggle="button", autocomplete="off") Top-on-Bottom
-      h2 Email Notifications
-      table.table.table-striped.settings
-        tbody
-          tr
-            th
-              label Enable:
-              .description Setting to No will globally turn off all your email notifications about all posts.
-            td
-              if notificationsOn
-                button.btn.btn-success.notificationsButton(type="button", data-toggle="button", autocomplete="off")
-                  if notificationsDefault
-                    | Default (Yes)
-                  else
-                    | Yes
-              else
-                button.btn.btn-warning.notificationsButton(type="button", data-toggle="button", autocomplete="off")
-                  if notificationsDefault
-                    | Default (No)
-                  else
-                    | No
-          tr
-            th
-              label Separate by group:
-              .description If enabled (Yes), each notification email is about only one group at a time. "No" generates fewer email messages.
-            td
-              button.btn.btn-success.notificationsSeparateButton(type="button", data-toggle="button", autocomplete="off")
-                if notificationsSeparate
-                  | Yes
-                else
-                  | No
-          tr
-            th
-              label Notify after:
-              .description How long after a message update before you get an email notification about it, and all other updates during that period. Smaller value means you're more up-to-date, but larger value means fewer email messages.
-            td
-              .btn-group
-                button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
-                  | #{notificationsAfter}
-                  span.caret
-                ul.dropdown-menu(role="menu")
-                  li.notificationAfter(class="{{activeNotificationAfter after=5 unit='minute'}}")
-                    a(href="#",data-after="5",data-unit="minute") 5 minutes
-                  li.notificationAfter(class="{{activeNotificationAfter after=15 unit='minute'}}")
-                    a(href="#",data-after="15",data-unit="minute") 15 minutes
-                  li.notificationAfter(class="{{activeNotificationAfter after=30 unit='minute'}}")
-                    a(href="#",data-after="30",data-unit="minute") 30 minutes
-                  li.notificationAfter(class="{{activeNotificationAfter after=1 unit='hour'}}")
-                    a(href="#",data-after="1",data-unit="hour") 1 hour
-                  li.notificationAfter(class="{{activeNotificationAfter after=2 unit='hour'}}")
-                    a(href="#",data-after="2",data-unit="hour") 2 hours
-                  li.notificationAfter(class="{{activeNotificationAfter after=3 unit='hour'}}")
-                    a(href="#",data-after="3",data-unit="hour") 3 hours
-                  li.notificationAfter(class="{{activeNotificationAfter after=4 unit='hour'}}")
-                    a(href="#",data-after="4",data-unit="hour") 4 hours
-                  li.notificationAfter(class="{{activeNotificationAfter after=6 unit='hour'}}")
-                    a(href="#",data-after="6",data-unit="hour") 6 hours
-                  li.notificationAfter(class="{{activeNotificationAfter after=8 unit='hour'}}")
-                    a(href="#",data-after="8",data-unit="hour") 8 hours
-                  li.notificationAfter(class="{{activeNotificationAfter after=12 unit='hour'}}")
-                    a(href="#",data-after="12",data-unit="hour") 12 hours
-          tr
-            th
-              label Timezone:
-              .description Email notifications will report times in this timezone (or by default, the server's timezone). The web UI always uses the browser's local timezone, not this.
-            td
-              +timezoneSelector
-          tr
-            th
-              label Subscribe to threads by default (unless overwritten by group subscription):
-              .description Global default for whether to autosubscribe to all threads in all groups that don't specify their own autosubscribe flag below. <i>If set to No, you will not be notified about new threads.</i>
-            td
-              if autosubscribeGlobal
-                button.btn.btn-success.autosubscribeGlobalButton(type="button", data-toggle="button", autocomplete="off")
-                  | Yes
-              else
-                button.btn.btn-warning.autosubscribeGlobalButton(type="button", data-toggle="button", autocomplete="off")
-                  | No
-          unless wildGroup
+      unless emailless
+        h2 Email Notifications
+        table.table.table-striped.settings
+          tbody
             tr
               th
-                label Subscribe to threads in group &ldquo;#{routeGroup}&rdquo; by default:
-                .description Group default for whether to autosubscribe to all threads within this group, overriding the global default above.
+                label Enable:
+                .description Setting to No will globally turn off all your email notifications about all posts.
               td
-                if autosubscribeGroup
-                  button.btn.btn-success.autosubscribeGroupButton(type="button", data-toggle="button", autocomplete="off")
+                if notificationsOn
+                  button.btn.btn-success.notificationsButton(type="button", data-toggle="button", autocomplete="off")
+                    if notificationsDefault
+                      | Default (Yes)
+                    else
+                      | Yes
+                else
+                  button.btn.btn-warning.notificationsButton(type="button", data-toggle="button", autocomplete="off")
+                    if notificationsDefault
+                      | Default (No)
+                    else
+                      | No
+            tr
+              th
+                label Separate by group:
+                .description If enabled (Yes), each notification email is about only one group at a time. "No" generates fewer email messages.
+              td
+                button.btn.btn-success.notificationsSeparateButton(type="button", data-toggle="button", autocomplete="off")
+                  if notificationsSeparate
+                    | Yes
+                  else
+                    | No
+            tr
+              th
+                label Notify after:
+                .description How long after a message update before you get an email notification about it, and all other updates during that period. Smaller value means you're more up-to-date, but larger value means fewer email messages.
+              td
+                .btn-group
+                  button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
+                    | #{notificationsAfter}
+                    span.caret
+                  ul.dropdown-menu(role="menu")
+                    li.notificationAfter(class="{{activeNotificationAfter after=5 unit='minute'}}")
+                      a(href="#",data-after="5",data-unit="minute") 5 minutes
+                    li.notificationAfter(class="{{activeNotificationAfter after=15 unit='minute'}}")
+                      a(href="#",data-after="15",data-unit="minute") 15 minutes
+                    li.notificationAfter(class="{{activeNotificationAfter after=30 unit='minute'}}")
+                      a(href="#",data-after="30",data-unit="minute") 30 minutes
+                    li.notificationAfter(class="{{activeNotificationAfter after=1 unit='hour'}}")
+                      a(href="#",data-after="1",data-unit="hour") 1 hour
+                    li.notificationAfter(class="{{activeNotificationAfter after=2 unit='hour'}}")
+                      a(href="#",data-after="2",data-unit="hour") 2 hours
+                    li.notificationAfter(class="{{activeNotificationAfter after=3 unit='hour'}}")
+                      a(href="#",data-after="3",data-unit="hour") 3 hours
+                    li.notificationAfter(class="{{activeNotificationAfter after=4 unit='hour'}}")
+                      a(href="#",data-after="4",data-unit="hour") 4 hours
+                    li.notificationAfter(class="{{activeNotificationAfter after=6 unit='hour'}}")
+                      a(href="#",data-after="6",data-unit="hour") 6 hours
+                    li.notificationAfter(class="{{activeNotificationAfter after=8 unit='hour'}}")
+                      a(href="#",data-after="8",data-unit="hour") 8 hours
+                    li.notificationAfter(class="{{activeNotificationAfter after=12 unit='hour'}}")
+                      a(href="#",data-after="12",data-unit="hour") 12 hours
+            tr
+              th
+                label Timezone:
+                .description Email notifications will report times in this timezone (or by default, the server's timezone). The web UI always uses the browser's local timezone, not this.
+              td
+                +timezoneSelector
+            tr
+              th
+                label Subscribe to threads by default (unless overwritten by group subscription):
+                .description Global default for whether to autosubscribe to all threads in all groups that don't specify their own autosubscribe flag below. <i>If set to No, you will not be notified about new threads.</i>
+              td
+                if autosubscribeGlobal
+                  button.btn.btn-success.autosubscribeGlobalButton(type="button", data-toggle="button", autocomplete="off")
                     | Yes
                 else
-                  button.btn.btn-warning.autosubscribeGroupButton(type="button", data-toggle="button", autocomplete="off")
+                  button.btn.btn-warning.autosubscribeGlobalButton(type="button", data-toggle="button", autocomplete="off")
                     | No
-          tr
-            th
-              label Notify about own messages:
-              .description Do you want notifications about messages that only you create/update? This lets you see what others see, but it is in some sense redundant.
-            td
-              if notifySelf
-                button.btn.btn-success.notifySelfButton(type="button", data-toggle="button", autocomplete="off")
-                  | Yes
-              else
-                button.btn.btn-warning.notifySelfButton(type="button", data-toggle="button", autocomplete="off")
-                  | No
+            unless wildGroup
+              tr
+                th
+                  label Subscribe to threads in group &ldquo;#{routeGroup}&rdquo; by default:
+                  .description Group default for whether to autosubscribe to all threads within this group, overriding the global default above.
+                td
+                  if autosubscribeGroup
+                    button.btn.btn-success.autosubscribeGroupButton(type="button", data-toggle="button", autocomplete="off")
+                      | Yes
+                  else
+                    button.btn.btn-warning.autosubscribeGroupButton(type="button", data-toggle="button", autocomplete="off")
+                      | No
+            tr
+              th
+                label Notify about own messages:
+                .description Do you want notifications about messages that only you create/update? This lets you see what others see, but it is in some sense redundant.
+              td
+                if notifySelf
+                  button.btn.btn-success.notifySelfButton(type="button", data-toggle="button", autocomplete="off")
+                    | Yes
+                else
+                  button.btn.btn-warning.notifySelfButton(type="button", data-toggle="button", autocomplete="off")
+                    | No
         //-
           tr
             th

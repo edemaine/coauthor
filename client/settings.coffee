@@ -3,6 +3,10 @@ import { defaultFormat } from '../lib/settings.coffee'
 Template.registerHelper 'defaultFormat', ->
   defaultFormat
 
+Template.registerHelper 'emailless', @emailless = ->
+  Meteor.settings.public.coauthor?.emailless and
+  not canSuper wildGroup
+
 Template.settings.onCreated ->
   @autorun ->
     setTitle 'Settings'

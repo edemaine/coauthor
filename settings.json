@@ -3,6 +3,10 @@
     "timezone": "US/Eastern",
     "profiling": false
   },
+  "public": {
+    "coauthor": {
+    }
+  },
   "sharejs": {
     "options": {
       "browserChannel": {

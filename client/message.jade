@@ -25,7 +25,10 @@ template(name="message")
           p !{mentions}
       .subscribers.alert.alert-success
         p
-          b Users who can read this message, and whether they are subscribed to notifications:
+          if emailless
+            b Users who can read this message:
+          else
+            b Users who can read this message, and whether they are subscribed to notifications:
         p !{subscribers}
       if orphanCount
         .orphans.alert.alert-warning

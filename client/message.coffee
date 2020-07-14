@@ -201,6 +201,7 @@ Template.message.helpers
           title += "Autosubscribe turned off, and not explicitly subscribed to thread"
         else
           title += "Explicitly unsubscribed from thread"
+      title = icon = undefined if emailless()
       linkToAuthor @group, user.username, title, icon
     ).join ', '
   orphans: ->

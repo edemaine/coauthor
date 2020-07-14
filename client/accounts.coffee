@@ -1,5 +1,9 @@
 Accounts.ui.config
-  passwordSignupFields: 'USERNAME_AND_EMAIL'
+  passwordSignupFields:
+    if Meteor.settings.public.coauthor?.emailless
+      'USERNAME_ONLY'
+    else
+      'USERNAME_AND_EMAIL'
   extraSignupFields: [
     fieldName: 'fullname'
     fieldLabel: 'Full name (FirstName LastName)'

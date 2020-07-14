@@ -245,14 +245,15 @@ support, but it has proved useful in other fields too.
   access.
 
 * **Email notifications** for subscribed threads, clustering together all
-  updates since the last email, with a maximum lag a specified number of
+  updates since the last email, with a maximum lag of a specified number of
   hours or minutes (default 1 hour).
   Each user can specify in Settings whether they are, by default, subscribed
   to all threads or none, both globally and local to each group.
   Either way, the default can be overridden in the group view using the
   checkbox on the right (checked means "subscribed").
   Users can choose in Settings whether to receive notifications
-  about their own edits.
+  about their own edits, and whether to receive separate email messages for
+  each group or bundle them altogether.
 
 * **Time travel**: You can drag through history and see past versions.
   In general, there should be good, automatic history tracking of everything.

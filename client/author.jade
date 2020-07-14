@@ -2,7 +2,10 @@ template(name='author')
   if groupData
     .panel.panel-primary
       .panel-heading.clearfix
-        span.title.panel-title Author &ldquo;#{displayUser}&rdquo; (username &lsquo;#{author}&rsquo;, email !{email})
+        if emailless
+          span.title.panel-title Author &ldquo;#{displayUser}&rdquo; (username &lsquo;#{author}&rsquo;)
+        else
+          span.title.panel-title Author &ldquo;#{displayUser}&rdquo; (username &lsquo;#{author}&rsquo;, email !{email})
         .pull-right
           span.badge= messageCountText
           if fullMember

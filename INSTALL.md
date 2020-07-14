@@ -85,6 +85,28 @@ If you want `coauthor@yourhostname.com` to receive email,
 add an alias like `coauthor: edemaine@mit.edu` to `/etc/aliases`
 and then run `sudo newaliases`.
 
+### Disabling Email
+
+If you do not want Coauthor to even ask users for their email address when
+signing up (for example, to [protect minors](https://minors.mit.edu/),
+modify `settings.json` to add the following setting:
+
+```json
+  "public": {
+    "coauthor": {
+      "emailless": true
+    }
+  },
+```
+
+If you're running a test server, be sure to run it via
+`meteor --settings settings.json`.
+
+Of course, email notifications generally won't work in this setup.
+But global superusers can still edit and enter their email address under
+Settings (if they Become Superuser), so they could still sign up for
+email notifications.
+
 ## Kadira
 
 To monitor server performance, you can install an
