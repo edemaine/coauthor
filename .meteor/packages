@@ -29,7 +29,6 @@ reactive-var@1.0.11
 
 peppelg:bootstrap-3-modal
 edemaine:file-collection
-benjaminrh:jquery-cookie
 peerlibrary:reactive-publish
 gcampax:accounts-dropbox
 bozhao:link-accounts

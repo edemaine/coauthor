@@ -143,14 +143,18 @@ if Meteor.isServer
     write: (userId, file, fields) ->
       file.metadata?.uploader == userId
 else
+  Cookies = require 'js-cookie'
+
   Tracker.autorun ->
     Meteor.userId()  ## rerun when userId changes
     if Meteor.isCordova
       window.cookieEmperor.setCookie Meteor.absoluteUrl(),
         'X-Auth-Token', Accounts._storedLoginToken()
     else
-      $.cookie 'X-Auth-Token', Accounts._storedLoginToken(),
+      Cookies.set 'X-Auth-Token', Accounts._storedLoginToken(),
         path: '/'
+        secure: true
+        sameSite: 'none'
 
   Session.set 'uploading', {}
   updateUploading = (changer) =>

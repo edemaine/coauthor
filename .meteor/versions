@@ -7,7 +7,6 @@ autoupdate@1.6.0
 babel-compiler@7.5.2
 babel-runtime@1.5.0
 base64@1.0.12
-benjaminrh:jquery-cookie@0.1.0
 binary-heap@1.0.11
 blaze@2.3.4
 blaze-html-templates@1.1.2
