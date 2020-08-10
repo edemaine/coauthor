@@ -8,3 +8,6 @@ BrowserPolicy.content.allowConnectOrigin '*'
 
 ## Allow blob source for images, as needed by pdf.js
 BrowserPolicy.content.allowImageOrigin 'blob:'
+
+## Allow <iframe>ing Coauthor, for Comingle
+BrowserPolicy.framing.allowAll()
