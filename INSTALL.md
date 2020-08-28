@@ -34,30 +34,94 @@ before running `meteor` in Step 3.
 ## Public Server
 
 To deploy to a **public server**, we recommend deploying from a development
-machine via [meteor-up](https://github.com/kadirahq/meteor-up).
-Installation instructions:
+machine via [Meteor Up](https://github.com/kadirahq/meteor-up).  This software
+allows you to build the code on your own machine and deploy it to a remote
+server with a minimum of hassle.  In particular, it will set up Docker
+containerization automatically, as well as an HTTPS proxy.
 
-1. Install Meteor and download Coauthor as above.
-2. Install `mup` via `npm install -g mup`
-   (after installing [Node](https://nodejs.org/en/) and thus NPM).
-3. Edit `.deploy/mup.js` to point to your SSH key (for accessing the server),
-   your SSL certificate (for an https server), and your SMTP server in the
-   [`MAIL_URL` environment variable](https://docs.meteor.com/api/email.html)
-   (for sending email notifications &mdash; to run a local SMTP server,
-   see below, and use e.g. `smtp://yourhostname.org:25/`).
-   [`smtp://localhost:25/` may not work because of mup's use of docker.]
-   If you want the "From" address in email notifications to be something
-   other than coauthor@*deployed-host-name*, set the `MAIL_FROM` variable.
-4. Edit `settings.json` to set the server's
-   [timezone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
-   (used as the default email notification timezone for all users).
-5. `cd .deploy`
-6. `mup setup` to install all necessary software on the server
-7. `mup deploy` each time you want to deploy code to server
-   (initially and after each `git pull`)
-8. If you proxy the resulting server from another web server,
-   you'll probably want to `meteor remove force-ssl` to remove the automatic
-   redirection from `http` to `https`.
+### Setting Up a Server
+
+1. Coauthor requires a server to run.  If you don't have one, you can get one
+   easily from [DigitalOcean](https://www.digitalocean.com/).  Their most
+   basic plan costs US$5/mo and works fine for small classes.
+2. Coauthor needs a domain name to send email from.  You can buy them cheaply
+   online from any domain name registrar.  Your hosting provider will tell you
+   how to connect your domain name to your server using DNS.  Make sure you
+   set up both forward and reverse DNS: the first connects your domain name to
+   your server and the second lets your server, and other devices that only know
+   your server's IP address, figure out its domain name.  Again, your hosting
+   provider will tell you how to do this.
+3. You may or may not be given an HTTPS or SSL certificate.  If you are, hang
+   on to it.  If not, don't worry.
+4. Once your server is up, running, and paid for, you don't have to touch it for
+   a while.  The main steps in publicly deploying Coauthor are all done on your
+   own computer.  Make sure you know how to SSH into your server, though.  Your
+   hosting provider will tell you how.
+
+### On Your Local Machine
+
+1. (Optional but recommended) Set up a virtual machine.  This process requires
+   installing a significant amount of software that could otherwise pollute
+   your environment.  You can use [Multipass](https://multipass.run) for this.
+   We recommmend no less than 4GB RAM and 10GB hard disk space.  The Multipass
+   defaults are too stingy.
+2. (In your virtual machine if you have one) Install
+   [Node Version Manager](https://github.com/nvm-sh/nvm), not forgetting to
+   restart your terminal, and use it to install the latest long-term support
+   version of Node.js.  At the time of writing, that would be `lts/erbium`.
+3. Install [Meteor](https://www.meteor.com/install).
+4. Install Meteor Up, or `mup`, via `npm install -g mup`.
+5. Set up an SSH key file that will allow you to access the server.  If you're
+   on Linux, which you will be if you use Multipass, you can follow
+   [this tutorial](https://www.digitalocean.com/community/tutorials/how-to-set-up-ssh-keys--2).
+6. Download Coauthor: `git clone https://github.com/edemaine/coauthor.git`
+7. Enter the `.deploy` folder: `cd coauthor/.deploy`.  This folder contains
+   a file called `mup.js` which contains the settings for deployment to the
+   server.
+   1. In the `servers` section, for server `one`, set `host` to the address
+      you use to SSH into your server, `username` to the username you use, and
+      `pem` to the path to your SSH key file.
+   2. Set `path` to the path to where you saved your copy of the Coauthor
+      GitHub project.
+   3. In the `buildOptions` section, the `buildLocation` parameter gives the
+      path to a folder which Meteor Up will create and where it will store
+      intermediate files during the build process.  Set this to a path where you
+      know you can create folders without running into permission issues.
+   4. In the `env` section, in `ROOT_URL` and `MAIL_URL`, replace
+      `coauthor.csail.mit.edu` with your domain name.
+   5. In the `proxy` section, in `ssl`, you have two options.  If you have an
+      SSL certificate already, set the `crt` and `key` parameters to the paths
+      to your `pem` and `key` files respectively.  (This may involve uploading
+      these two files to your virtual machine.)  If not, delete both those lines
+      and replace them with `letsEncryptEmail: 'your@email.com',`, filling in
+      your email and not forgetting the comma at the end.  This will cause
+      Meteor Up to use [Let's Encrypt](https://letsencrypt.org/) to automatically
+      get you a free, secure SSL certificate.
+8. Still in the `.deploy` folder, run `mup setup` to prepare the remote
+   server, and `mup deploy` to push your code.  This will take some time.
+9. Remember to shut down your virtual machine if you're using one.
+
+### On the Server
+
+1. Install and configure a mail server.  If you're on a Linux server,
+   which, if you're using DigitalOcean, you probably are, you can use
+   Postfix, which you can configure following
+   [this tutorial](https://www.digitalocean.com/community/tutorials/how-to-install-and-configure-postfix-on-ubuntu-20-04),
+   **except** that, when prompted to list local networks, you should
+   add `172.17.0.0/16` after the default list.  The section below on email
+   goes into this in more detail, but if you follow this step and your DNS
+   is properly configured you should, usually, be fine.
+2. Coauthor should now be running on the server.  Open it up in a browser
+   and create an account for yourself.
+3. You now need to access the database on the server and make yourself an
+   admin, so SSH into the server.  Since Meteor Up set up its database to
+   run in a Docker container, you should run `docker exec -it mongodb mongo coauthor`
+   to get a MongoDB shell.
+4. In this shell, run `db.users.update({username: '<username>'}, {$set: {'roles.*': ['read', 'post', 'edit', 'super', 'admin']}})`,
+   replacing `<username>` with the username you created for yourself.  You
+   should see `WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })`.
+   Press <kbd>Ctrl</kbd>+<kbd>D</kbd> to exit the MongoDB shell.  Log off.
+   You're done!
 
 ### Email
 
@@ -76,6 +140,9 @@ follows (substituting your own hostname):
  * Add ` 172.17.0.0/16` to `mynetworks`:
 
    `mynetworks = 127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128 172.17.0.0/16`
+
+The first two of these modifications are done automatically for you if you
+select "Internet site" when setting up Postfix.
 
 Set the `MAIL_FROM` environment variable (in `.deploy/mup.js`) to the
 return email address (typically `coauthor@yourhostname.com`) you'd like
