@@ -111,7 +111,9 @@ email notifications.
 
 To monitor server performance, you can install an
 [open-source Kadira server](https://github.com/kadira-open/kadira-server),
-and set the `KADIRA_OPTIONS_ENDPOINT` environment variable in `.deploy/mup.js`.
+and either add the `Kadira.connect` call to `server/kadira.coffee` or
+set the `KADIRA_APP_ID` and `KADIRA_APP_SECRET` environment variables in
+`.deploy/mup.js` (but don't publish these credentials).
 
 To get open-source Kadira running (on a different server), I recommend
 [kadira-compose](https://github.com/edemaine/kadira-compose).
