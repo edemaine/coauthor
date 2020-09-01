@@ -107,16 +107,23 @@ But global superusers can still edit and enter their email address under
 Settings (if they Become Superuser), so they could still sign up for
 email notifications.
 
-## Kadira
+## Application Performance Management (APM)
 
-To monitor server performance, you can install an
-[open-source Kadira server](https://github.com/kadira-open/kadira-server),
-and either add the `Kadira.connect` call to `server/kadira.coffee` or
-set the `KADIRA_APP_ID` and `KADIRA_APP_SECRET` environment variables in
-`.deploy/mup.js` (but don't publish these credentials).
+To monitor server performance, you can use one of the following:
+* [Monti APM](https://montiapm.com/)
+  (no setup required, free for 8-hour retention); or
+* deploy your own
+  [open-source Kadira server](https://github.com/kadira-open/kadira-server).
+  To get this running (on a different machine), I recommend
+  [kadira-compose](https://github.com/edemaine/kadira-compose).
 
-To get open-source Kadira running (on a different server), I recommend
-[kadira-compose](https://github.com/edemaine/kadira-compose).
+After creating an application on one of the servers above,
+create `server/kadira.coffee` with the following lines:
+
+```coffee
+Kadira.connect 'xxxxxxxxxxxxxxxxx', 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+  endpoint: 'https://your-kadira-server:22022'  # omit this line if using Monti
+```
 
 ## MongoDB
 
