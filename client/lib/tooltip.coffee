@@ -13,7 +13,10 @@
 ## define tooltip `title`s.
 @tooltipUpdate = (template = Template.instance()) ->
   template.debounced ?= _.debounce ->
-    template.$('[data-toggle="tooltip"]')
-    .tooltip 'fixTitle'
+    try
+      template.$('[data-toggle="tooltip"]')
+      .tooltip 'fixTitle'
+    catch e
+      console.warn e  # e.g. DomRange removed
   , 50
   Meteor.defer template.debounced

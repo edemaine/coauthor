@@ -1535,7 +1535,7 @@ Template.threadPrivacy.helpers
   privacyOptions: privacyOptions
   active: ->
     if _.isEqual(_.sortBy(privacyOptionsByCode[@code].list),
-                 _.sortBy(Template.parentData(2).threadPrivacy ? ['public']))
+                 _.sortBy(Template.parentData(2)?.threadPrivacy ? ['public']))
       'active'
     else
       ''
