@@ -31,7 +31,7 @@ module.exports = {
       //MAIL_FROM: 'coauthor@coauthor.csail.mit.edu',
       MONGO_URL: 'mongodb://mongodb/meteor',
       MONGO_OPLOG_URL: 'mongodb://mongodb/local',
-      NODE_OPTIONS: '--trace-warnings'
+      NODE_OPTIONS: '--trace-warnings --max-old-space-size=8192'
     },
     deployCheckWaitTime: 200,
     /* Old mup-frontend-server configuration:
