@@ -164,8 +164,10 @@ nav.contents { overflow-y: scroll; padding-bottom: 5px; }
 .affix { top: 0px; }
 
 code.raw, pre { white-space: pre-wrap; }
+/* line-height normal to make box drawing look right */
+code.raw, pre, .CodeMirror { line-height: normal; }
 /* match <pre>, overriding Bootstrap code defaults */
-code { font-size: 100%; }
+code, pre { font-size: 100%; }
 code { color: inherit; background-color: rgba(200,200,200,0.3); }
 .dark code { background-color: rgba(62,62,62,0.5); }
 pre code { background-color: inherit !important; }
