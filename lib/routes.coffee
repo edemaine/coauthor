@@ -116,6 +116,7 @@ Router.route '/:group/since/:since?',
   subscriptions: -> [
     Subscribe.subscribe 'messages.since', @params.group, (@params.since ? defaultSince)
     Subscribe.subscribe 'groups.members', @params.group
+    Subscribe.subscribe 'tags', @params.group
     Subscribe.subscribe 'files', @params.group
   ]
   data: ->
@@ -130,6 +131,7 @@ Router.route '/:group/live/:limit?',
   subscriptions: -> [
     Subscribe.subscribe 'messages.live', @params.group, (@params.limit ? defaultLiveLimit)
     Subscribe.subscribe 'groups.members', @params.group
+    Subscribe.subscribe 'tags', @params.group
     Subscribe.subscribe 'files', @params.group
   ]
   data: ->
