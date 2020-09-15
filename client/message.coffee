@@ -215,14 +215,14 @@ Template.message.onCreated ->
   @autorun ->
     setTitle titleOrUntitled Template.currentData()
 
+$(window).resize ->
+  $('.affix-top').height $(window).height() - $('#top').outerHeight true
 Template.message.onRendered ->
   $('body').scrollspy
     target: 'nav.contents'
   $('nav.contents').affix
     offset: top: $('#top').outerHeight true
   $('.affix-top').height $(window).height() - $('#top').outerHeight true
-  $(window).resize ->
-    $('.affix-top').height $(window).height() - $('#top').outerHeight true
   $('nav.contents').on 'affixed.bs.affix', ->
     $('.affix').height $(window).height()
   $('nav.contents').on 'affixed-top.bs.affix', ->
