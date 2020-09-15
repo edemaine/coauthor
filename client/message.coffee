@@ -215,18 +215,18 @@ Template.message.onCreated ->
   @autorun ->
     setTitle titleOrUntitled Template.currentData()
 
-$(window).resize ->
+$(window).resize affixResize = _.debounce ->
+  $('.affix').height $(window).height()
   $('.affix-top').height $(window).height() - $('#top').outerHeight true
+, 100
 Template.message.onRendered ->
   $('body').scrollspy
     target: 'nav.contents'
   $('nav.contents').affix
     offset: top: $('#top').outerHeight true
-  $('.affix-top').height $(window).height() - $('#top').outerHeight true
-  $('nav.contents').on 'affixed.bs.affix', ->
-    $('.affix').height $(window).height()
-  $('nav.contents').on 'affixed-top.bs.affix', ->
-    $('.affix-top').height $(window).height() - $('#top').outerHeight true
+  affixResize()
+  $('nav.contents').on 'affixed.bs.affix', affixResize
+  $('nav.contents').on 'affixed-top.bs.affix', affixResize
   tooltipInit()
 
   ## Give focus to first Title input, if there is one.
