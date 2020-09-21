@@ -130,7 +130,7 @@ input.title { width: calc(100% + 5px); margin: 0px -5px 0px 0px; }
 .dropdown-menu.actionMenu > li > a { padding: 2px 10px; }
 .dropdown-menu.actionMenu > li > a:hover { min-width: 100px; background: white; }
 
-img, video { max-width: 100%; max-height: 100vh; }
+img, video { max-width: 100%; max-height: 100vh; width: fit-content; }
 img { image-orientation: none; } /* we do manual EXIF rotation */
 .pdfBox { width: 100%; }
 .pdf > svg { width: 100%; height: auto; }
