@@ -465,8 +465,7 @@ latex2htmlCommandsAlpha = (tex, math) ->
   .replace /\\begin\s*{(proof|pf)}(\s*\[([^\]]*)\])?/g, (m, env, x, opt) -> "<b>Proof#{if opt then " (#{opt})" else ''}:</b> "
   .replace /\\end\s*{(proof|pf)}/g, ' <span class="pull-right">&#8718;</span></p><p class="clearfix">'
   .replace /\\begin\s*{center}([^]*?)\\end\s*{center}/g, (m, body) ->
-    '<div style="margin: 10pt 0; display: flex; flex-direction: column; place-items: center">' +
-    body + '</div>'
+    """<div class="center">#{body}</div>"""
   .replace latexSimpleCommandsRe, (match, name) -> latexSimpleCommands[name]
   ## The following tweaks are not LaTeX actually, but useful in all modes,
   ## so we do them here.
