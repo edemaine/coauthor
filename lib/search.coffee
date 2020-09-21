@@ -26,6 +26,7 @@ SEARCH LANGUAGE:
 * is:file matches file messages (resulting from Attach button)
 * is:deleted, is:published, is:private, is:minimized
   match those statuses of messages
+* is:empty matches nonfile messages with no title or body
 ###
 
 @escapeRegExp = (regex) ->
@@ -156,6 +157,22 @@ unescapeRegExp = (regex) ->
               wants.push "#{token}": $ne: true
             else
               wants.push "#{token}": true
+          when 'empty'
+            if negate
+              wants.push $or: [
+                title: $ne: ''
+              ,
+                body: $ne: ''
+              ,
+                file: $ne: null
+              ]
+            else
+              wants.push
+                title: ''
+              ,
+                body: ''
+              ,
+                file: null
           else
             console.warn "Unknown 'is:' specification '#{token}'"
   options =
@@ -226,9 +243,19 @@ formatParsedSearch = (query) ->
   else if _.isEqual keys, ['$not']
     "#{formatParsedSearch query.$not} not"
   else if _.isEqual keys, ['title']
-    "#{formatParsedSearch query.title} in title"
+    if query.title == ''
+      "empty title"
+    else if _.isEqual query.title, $ne: ''
+      "nonempty title"
+    else
+      "#{formatParsedSearch query.title} in title"
   else if _.isEqual keys, ['body']
-    "#{formatParsedSearch query.body} in body"
+    if query.body == ''
+      "empty body"
+    else if _.isEqual query.body, $ne: ''
+      "nonempty body"
+    else
+      "#{formatParsedSearch query.body} in body"
   else if keys.length == 1 and keys[0][...5] == 'tags.'
     key = keys[0]
     value = query[key]

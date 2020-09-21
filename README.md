@@ -193,6 +193,7 @@ support, but it has proved useful in other fields too.
   `is:file` matches file messages (made via Attach).
   `is:deleted`, `is:published`, `is:private`, `is:minimized` match various
   states of messages.
+  `is:empty` matches empty messages (no title, body, or file).
 
 * **User search**:
   find posts by a particular user by clicking on their username.
