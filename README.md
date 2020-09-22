@@ -97,10 +97,11 @@ support, but it has proved useful in other fields too.
   * HTML, sanitized.  The following tags are allowed; feel free to ask for
     more.  `<h1>`, `<h2>`, `<h3>`, `<h4>`, `<h5>`, `<h6>`,
     `<blockquote>`, `<p>`, `<div>`, `<span>`,
-    `<a href/name/target>`, `<ul>`, `<ol start>`, `<nl>`, `<li>`, `<b>`,
-    `<strong>`, `<i>`, `<em>`, `<u>`, `<s>`, `<strike>`, `<del>`, `<code>`,
+    `<a href/name/target>`, `<ul>`, `<ol start>`, `<nl>`, `<li>`,
+    `<b>`, `<strong>`, `<i>`, `<em>`, `<u>`, `<s>`, `<strike>`, `<del>`,
+    `<code>`, `<tt>`, `<kbd>`, `<pre>`,
     `<hr>`, `<br>`, `<table>`, `<thead>`, `<caption>`,
-    `<tbody>`, `<tr>`, `<th>`, `<td>`, `<pre>`,
+    `<tbody>`, `<tr>`, `<th>`, `<td>`,
     `<details><summary>Title</summary> Folded-away text</details>`,
     `<img src/alt/width/height>`, `<video controls>`, `<source src>`;
     attributes `title`, `style`, `class` (limited), `aria-*`.

@@ -41,7 +41,7 @@ sanitizeHtml.defaults.allowedTags.push 'input'
 sanitizeHtml.defaults.allowedAttributes.input = ['type', 'disabled', 'checked']
 
 ## Additional HTML features
-sanitizeHtml.defaults.allowedTags.push 's', 'u', 'tt'
+sanitizeHtml.defaults.allowedTags.push 's', 'u', 'tt', 'kbd'
 sanitizeHtml.defaults.allowedAttributes.ol = ['start']
 sanitizeHtml.defaults.allowedTags.push 'details', 'summary'
 
