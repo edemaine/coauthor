@@ -566,6 +566,7 @@ Template.submessage.onRendered ->
 
   ## Scroll to this message if it's been requested.
   if scrollToLater == @data._id
+    scrollToLater = null
     scrollToMessage @data._id
 
   ## Image rotation. Also triggered in formatBody.
@@ -637,7 +638,10 @@ scrollDelay = 750
     $('html, body').animate
       scrollTop: template.firstNode.offsetTop
     , 200, 'swing', ->
-        $(template.find 'input.title').focus()
+      ## We'd like to use `template.$('input.title')`
+      ## but want to exclude children.
+      heading = template.firstNode?.firstChild
+      $(heading).find('input.title').focus() if heading?
   else
     scrollToLater = id
     ## Unfold ancestors of clicked message so that it becomes visible.
