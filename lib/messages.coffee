@@ -886,11 +886,15 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
     return  ## no-op, root case
   if parent?
     _messageAddChild child, parent, position
-  update = msgUpdate = {}
+  msgUpdate = {}
+  msgOnlyUpdate = {}
+  descendantUpdate = {}
   if root != cmsg.root
-    update.root = root
+    msgUpdate.root = root
+    descendantUpdate.root = root ? child
   if group != cmsg.group
-    update.group = group
+    msgUpdate.group = group
+    descendantUpdate.group = group
     ## First MessagesDiff has the initial group; add Diff if it changes.
     ## (Unclear whether we should track group at all, though.)
     now = new Date
@@ -900,48 +904,63 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
       group: cmsg.group
       updated: now
       updators: [username]
-    msgUpdate = _.extend {"authors.#{escapeUser username}": now}, update
-  unless _.isEmpty update  # update root and/or group
+    msgOnlyUpdate["authors.#{escapeUser username}"] = now
+  unless _.isEmpty msgUpdate  # update root and/or group
     Messages.update child,
-      $set: msgUpdate
+      $set: _.extend msgOnlyUpdate, msgUpdate
     EmojiMessages.update
       message: child
     ,
-      $set: update
+      $set: msgUpdate
     ,
       multi: true
-    if cmsg.root?
-      ## If we move a nonroot message to have new root, update descendants.
-      descendants = descendantMessageIds cmsg
-      if descendants.length > 0
-        Messages.update
-          _id: $in: descendants
-        ,
-          $set: root: root ? child
-        ,
-          multi: true
-        EmojiMessages.update
-          message: $in: descendants
-        ,
-          $set: root: root ? child
-        ,
-          multi: true
-    else if cmsg.children?.length
-      ## To reparent root message (with children),
-      ## change the root of all descendants.
+    ## Update descendants to use new root and/or group
+    descendants = descendantMessageIds cmsg
+    if descendants.length > 0
       Messages.update
-        root: child
+        _id: $in: descendants
       ,
-        $set: update  # root: root ? child  ## actually must be root
+        $set: descendantUpdate
       ,
         multi: true
       EmojiMessages.update
-        root: child
+        message: $in: descendants
       ,
-        $set: update  # root: root ? child  ## actually must be root
+        $set: descendantUpdate
       ,
         multi: true
-      _noLongerRoot child if root?
+    ## Update group of files for moved message and its descendants
+    if group != cmsg.group
+      fileIds = _.uniq(
+        MessagesDiff.find
+          id: $in: [cmsg._id].concat descendants
+          file: $exists: true
+        .map (diff) -> new Meteor.Collection.ObjectID diff.file
+      )
+      if fileIds.length > 0
+        Files.update
+          _id: $in: fileIds
+        ,
+          $set: "metadata.group": group
+        , multi: true
+    #if cmsg.root?
+    #  ## If we move a nonroot message to have new root, update descendants.
+    #else if cmsg.children?.length
+    #  ## To reparent root message (with children),
+    #  ## change the root of all descendants.
+    #  Messages.update
+    #    root: child
+    #  ,
+    #    $set: update  # root: root ? child  ## actually must be root
+    #  ,
+    #    multi: true
+    #  EmojiMessages.update
+    #    root: child
+    #  ,
+    #    $set: update  # root: root ? child  ## actually must be root
+    #  ,
+    #    multi: true
+    _noLongerRoot child if root? and not cmsg.root?
     _submessagesChanged cmsg.root     ## old root
     _submessagesChanged root ? child  ## new root
 
