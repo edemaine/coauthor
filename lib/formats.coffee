@@ -759,8 +759,9 @@ formatSearch = (isTitle, text) ->
      (search = Router.current()?.params?.search)?
     recurse = (query) ->
       if (query.title and isTitle) or (query.body and not isTitle)
-        pattern = (query.title ? query.body)
+        pattern = query.title ? query.body
         unless pattern.$not
+          pattern = new RegExp pattern, 'g' if pattern instanceof RegExp
           text = text.replace pattern, '<span class="highlight">$&</span>'
       for list in [query.$and, query.$or]
         continue unless list
