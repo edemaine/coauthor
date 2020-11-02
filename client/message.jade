@@ -289,8 +289,9 @@ template(name="submessage")
                 button.btn.btn-info.editButton.disabled(title="Waiting for save to complete before stopping editing...") Stop Editing
               else
                 button.btn.btn-info.editButton Stop Editing
-          +emojiButtons
-          +replyButtons
+          else
+            +emojiButtons
+            +replyButtons
       if childrenCount
         .children.clearfix
           each children
