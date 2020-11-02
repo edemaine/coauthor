@@ -43,8 +43,10 @@ Template.settings.helpers
   notifySelf: notifySelf
   autosubscribeGroup: -> autosubscribe routeGroup()
   autosubscribeGlobal: -> autosubscribe wildGroup
-  themeGlobal: -> capitalize themeGlobal()
-  themeEditor: -> capitalize themeEditor()
+  themeGlobal: -> (if Session.get 'coop:themeGlobal' then 'Coop: ' else '') +
+                  capitalize themeGlobal()
+  themeEditor: -> (if Session.get 'coop:themeEditor' then 'Coop: ' else '') +
+                  capitalize themeEditor()
   previewOn: -> messagePreviewDefault().on
   previewSideBySide: -> messagePreviewDefault().sideBySide
   dropbox: ->
@@ -113,12 +115,16 @@ Template.settings.events
   'click .themeGlobalButton': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
+    if Session.get 'coop:themeGlobal'
+      return Session.set 'coop:themeGlobal', null
     Meteor.users.update Meteor.userId(),
       $set: "profile.theme.global": rotateTheme themeGlobal()
 
   'click .themeEditorButton': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
+    if Session.get 'coop:themeEditor'
+      return Session.set 'coop:themeEditor', null
     Meteor.users.update Meteor.userId(),
       $set: "profile.theme.editor": rotateTheme themeEditor()
 
