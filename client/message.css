@@ -56,8 +56,10 @@ input.title { width: calc(100% + 5px); margin: 0px -5px 0px 0px; }
 /* White background for uploaded images or embedded SVG, in case of
  * transparency + dark theme.  But don't touch KaTeX's SVG! (e.g. \sqrt)
  */
-.message-body img, .message-body svg, .message-file img { background: white; }
-.message-body .katex svg { background: inherit; }
+.message-body img, .message-body svg, .message-file img {
+  background: white; outline: solid 10px white;
+}
+.message-body .katex svg { background: inherit; outline: none; }
 
 /* LaTeX-like nested <ol> */
 .message-body ol { counter-reset: enum; }
