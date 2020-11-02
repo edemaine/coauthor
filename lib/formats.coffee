@@ -865,13 +865,16 @@ We therefore don't display any file that is still in the zero-length state.
   file = findFile msg.file unless file?
   return formatBadFile msg.file unless file?
   return formatEmptyFile msg.file unless file.length
-  switch fileType file
-    when 'image'
-      """<img src="#{urlToFile msg}">"""
-    when 'video'
-      formatVideo file, urlToFile msg
-    else  ## 'unknown'
-      formatFileDescription msg, file
+  formatted =
+    switch fileType file
+      when 'image'
+        """<img src="#{urlToFile msg}">"""
+      when 'video'
+        formatVideo file, urlToFile msg
+      else  ## 'unknown'
+        ''
+  formatted = "<p>#{formatted}</p>" if formatted
+  formatted + formatFileDescription msg, file
 
 @formatFilename = (msg, orUntitled = false) ->
   if msg.file
