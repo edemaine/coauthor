@@ -230,9 +230,10 @@ Template.message.onRendered ->
   tooltipInit()
 
   ## Give focus to first Title input, if there is one.
-  setTimeout ->
-    $('input.title').first().focus()
-  , 100
+  ## This can actually be disruptive, so leave focus to `scrollToMessage`.
+  #setTimeout ->
+  #  $('input.title').first().focus()
+  #, 100
 
 editing = (self) ->
   Meteor.user()? and Meteor.user().username in (self.editing ? [])
@@ -638,6 +639,7 @@ scrollDelay = 750
     $('html, body').animate
       scrollTop: template.firstNode.offsetTop
     , 200, 'swing', ->
+      ## Focus on title edit box when scrolling to message being edited.
       ## We'd like to use `template.$('input.title')`
       ## but want to exclude children.
       heading = template.firstNode?.firstChild
