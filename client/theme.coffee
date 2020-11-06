@@ -18,10 +18,13 @@ Tracker.autorun updateTheme = ->
   if newTheme != lastTheme
     $('body').removeClass lastTheme
     $('body').addClass newTheme
-    $('#themeLink').remove()
-    $('head').prepend """
-      <link rel="stylesheet" href="#{Meteor.absoluteUrl "bootstrap/#{newTheme}.min.css"}" id="themeLink"/>
-    """
+    themeLink = $('#themeLink')
+    if themeLink.length
+      themeLink.attr 'href', Meteor.absoluteUrl "bootstrap/#{newTheme}.min.css"
+    else
+      $('head').prepend """
+        <link rel="stylesheet" href="#{Meteor.absoluteUrl "bootstrap/#{newTheme}.min.css"}" id="themeLink"/>
+      """
     ## This can happen too late in initial load:
     #switch newTheme
     #  when 'light'
