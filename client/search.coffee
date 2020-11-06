@@ -16,6 +16,7 @@ topMessagesSearch = (group, search) ->
   .fetch()
   ## xxx should use default sort, not title sort?
   msgs = _.sortBy msgs, (msg) ->
+    msg.group + '/' +
     if msg.root
       titleSort (Messages.findOne(msg.root)?.title ? '')
     else
@@ -31,7 +32,12 @@ topMessagesSearch = (group, search) ->
   for msg in msgs
     for child in msg.readChildren
       delete byId[child._id]
-  msg for msg in msgs when msg._id of byId
+  lastGroup = null
+  for msg in msgs
+    continue unless msg._id of byId
+    if lastGroup != msg.group
+      msg.newGroup = lastGroup = msg.group
+    msg
   #groups = _.groupBy msgs, (msg) ->
   #pairs = _.pairs groups
   #pairs.sort()

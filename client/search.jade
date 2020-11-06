@@ -11,9 +11,21 @@ template(name='search')
         span.push-down.pull-right.badge= messageCountText
       .panel-body
         each messages
+          if wildGroup
+            if newGroup
+              +groupHeader
           +submessageHeader
       .panel-footer.clearfix
         i= messageCountText
         | match search query
   else
     +badGroup
+
+template(name="groupHeader")
+  .panel.group(data-message=_id).panel-default
+    .panel-heading.compact.title
+      .message-left-buttons.push-down.btn-group.btn-group-xs
+        a.btn.btn-info.focusButton(aria-label="Focus", href="{{pathFor 'group' group=group}}")
+          span.fas.fa-sign-in-alt(aria-hidden="true")
+      span.space
+      span.title.panel-title Matches in group: {{group}}
