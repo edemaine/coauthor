@@ -5,9 +5,13 @@
 ## This code is written from scratch in CoffeeScript
 ## and with a completely different API designed for `client/messagePDF.coffee`.
 
+## Whether user is in print dialog, which forces everything visible
+export printing = false
+
 ## appear's `viewable` function adapted from
 ## https://raw.githubusercontent.com/creativelive/appear/master/dist/appear.js
 export visible = (node) ->
+  return true if printing
   rect = node.getBoundingClientRect()
   windowHeight = window.innerHeight || document.documentElement.clientHeight
   windowWidth = window.innerWidth || document.documentElement.clientWidth
@@ -17,7 +21,7 @@ export visible = (node) ->
   (rect.right - rect.width) <= 2 * windowWidth
   ## `2 *` and `-` means view anything within one screenful of visible
 
-tracking = []
+export tracking = []
 
 checkOne = (tracked) ->
   now = visible tracked.node
@@ -38,9 +42,16 @@ export check = _.debounce ->
 , 50
 
 ## Called automatically when needed by `track`
-enable = ->
+enable = (printEverything = true) ->
   window.addEventListener 'resize', check, false
   window.addEventListener 'scroll', check, false
+  if printEverything
+    window.addEventListener 'beforeprint', ->
+      printing = true
+      check()
+    window.addEventListener 'afterprint', ->
+      printing = false
+      check()
 
 ## Called automatically when needed by `untrack`
 disable = ->
