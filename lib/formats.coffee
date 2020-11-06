@@ -762,7 +762,9 @@ formatSearch = (isTitle, text) ->
         pattern = query.title ? query.body
         unless pattern.$not
           pattern = new RegExp pattern, 'g' if pattern instanceof RegExp
-          text = text.replace pattern, '<span class="highlight">$&</span>'
+          text = text.replace pattern, (match, ...args, offset, string, grps) ->
+            return match if inTag string, offset
+            """<span class="highlight">#{match}</span>"""
       for list in [query.$and, query.$or]
         continue unless list
         for part in list
@@ -773,7 +775,6 @@ formatSearch = (isTitle, text) ->
 
 formatEither = (isTitle, format, text, leaveTeX = false, bold = false) ->
   return text unless text?
-  text = formatSearch isTitle, text
 
   ## LaTeX and Markdown formats are special because they do their own math
   ## preprocessing at a specific time during its formatting.  Other formats
@@ -811,6 +812,7 @@ formatEither = (isTitle, format, text, leaveTeX = false, bold = false) ->
   text = postprocessCoauthorLinks text
   text = postprocessLinks text
   text = postprocessAtMentions text
+  text = formatSearch isTitle, text
   sanitize text
 
 formatEitherSafe = (isTitle, format, text, leaveTeX = false, bold = false) ->
