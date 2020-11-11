@@ -227,7 +227,7 @@ Template.statsGood.events
                                  atMentioned msg, username
         when 'tsvAuthor'
           (username) -> (msg) -> escapeUser(username) of msg.authors
-        when 'tsvAt'
+        when 'tsvAts'
           (username) -> (msg) -> atMentioned msg, username
     stats =
       type: 'users'
@@ -256,7 +256,8 @@ Template.statsGood.events
         ).join '\t'
       ).join('\n') + '\n'
     blob = new Blob [tsv], type: 'text/plain;charset=utf-8'
-    (await import('file-saver')).saveAs blob, "#{t.data.group}.tsv"
+    filename = "#{t.data.group}-#{e.target.className[3..].toLowerCase()}.tsv"
+    (await import('file-saver')).saveAs blob, filename
 
 ## https://en.wikipedia.org/wiki/Tab-separated_values
 escapeTSVmap =
