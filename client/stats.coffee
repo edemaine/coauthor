@@ -232,16 +232,23 @@ Template.statsGood.events
     stats =
       type: 'users'
       query: -> group: @group
-      datasets: Meteor.users.find({}, sort: username: 1).map (user) ->
+      datasets: [
+        fullname: 'ALL MESSAGES'
+        msgFilter: (msg) -> true
+      ].concat Meteor.users.find({}, sort: username: 1).map (user) ->
         username: user.username
         fullname: user.profile?.fullname
         email: user.emails?[0]?.address
         msgFilter: msgFilter user.username
     buildStats stats, t.data
-    rows = [['username', 'fullname', 'email'].concat stats.labels]
+    rows = [['Username', 'Fullname', 'Email', 'Total'].concat stats.labels]
     for dataset in stats.datasets
-      rows.push [dataset.username, dataset.fullname, dataset.email ? ''] \
-        .concat dataset.data
+      rows.push [
+        dataset.username ? ''
+        dataset.fullname ? ''
+        dataset.email ? ''
+        dataset.data.reduce ((x, y) -> x+y), 0
+      ].concat dataset.data
     tsv =
       (for row in rows
         (for cell in row
