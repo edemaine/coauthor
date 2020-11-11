@@ -216,7 +216,19 @@ Template.statsGood.events
     e.stopPropagation()
     dropdownToggle e
     Meteor.call 'groupWeekStart', @group, parseInt e.target.getAttribute 'data-day'
-  'click .downloadTSV': (e, t) ->
+  'click .downloadTSV a': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    dropdownToggle e
+    msgFilter =
+      switch e.target.className
+        when 'tsvBoth'
+          (username) -> (msg) -> escapeUser(username) of msg.authors or
+                                 atMentioned msg, username
+        when 'tsvAuthor'
+          (username) -> (msg) -> escapeUser(username) of msg.authors
+        when 'tsvAt'
+          (username) -> (msg) -> atMentioned msg, username
     stats =
       type: 'users'
       query: -> group: @group
@@ -224,15 +236,12 @@ Template.statsGood.events
         username: user.username
         fullname: user.profile?.fullname
         email: user.emails?[0]?.address
-        msgFilter: (msg) ->
-          escapeUser(user.username) of msg.authors or
-          atMentioned msg, user.username
+        msgFilter: msgFilter user.username
     buildStats stats, t.data
     rows = [['username', 'fullname', 'email'].concat stats.labels]
     for dataset in stats.datasets
       rows.push [dataset.username, dataset.fullname, dataset.email ? ''] \
         .concat dataset.data
-    console.log rows
     tsv =
       (for row in rows
         (for cell in row

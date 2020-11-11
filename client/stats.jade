@@ -53,6 +53,15 @@ template(name='statsGood')
     canvas.userStats(width="800", height="400")
   h2 Global Statistics: {{postCount 'global'}} posts
   canvas.globalStats(width="800", height="400")
-  button.btn.btn-default.downloadTSV Download TSV
+  .dropdown.downloadTSV
+    button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false") Download TSV
+      span.caret
+    ul.dropdown-menu
+      li
+        a(href="#").tsvBoth Authored or @mentioned posts
+      li
+        a(href="#").tsvAuthor Authored posts only
+      li
+        a(href="#").tsvAt @mentioned posts only
   hr
   p.small * Data represents <b>undeleted</b>, <b>published</b> messages <b>visible to you</b>. Messages are plotted according to their <b>creation date</b>.
