@@ -15,128 +15,136 @@ Template.stats.onCreated ->
   else
     setTitle "Statistics"
 
+unitFormat = (unit) ->
+  switch unit
+    when 'hour'
+      'HH:mm'
+    when 'weekday'
+      'ddd'
+    when 'day', 'week'
+      'ddd, MMM DD, YYYY' #'YYYY-MM-DD'
+    when 'month'
+      'MMM YYYY' #'YYYY-MM'
+    when 'year'
+      'YYYY'
+
+buildStats = (stats, t) ->
+  unit = currentUnit()
+  if unit == 'week'
+    weekDay = weekStart()
+  format = unitFormat unit
+  stats.labels = []
+  for dataset in stats.datasets
+    dataset.data = []
+  lastDate = null
+  makeDay = =>
+    stats.labels.push lastDate.format format
+    for dataset in stats.datasets
+      dataset.data.push 0
+  msgs = Messages.find stats.query.call(t)
+  ,
+    fields:
+      created: true
+      body: true
+      title: true
+      authors: true
+    sort: created: 1
+  switch unit
+    when 'hour'
+      msgs = _.sortBy msgs.fetch(), (msg) -> moment(msg.created).format 'HH:mm'
+    when 'weekday'
+      msgs = _.sortBy msgs.fetch(), (msg) -> moment(msg.created).day()
+  msgs.forEach (msg) =>
+    increment = unit
+    switch unit
+      when 'week'
+        day = moment(msg.created).startOf 'day'
+        if day.day() < weekDay
+          day.day -7 + weekDay  ## previous week
+        else
+          day.day weekDay  ## same week
+      when 'hour'
+        day = moment(msg.created).startOf unit
+        .year 2000
+        .dayOfYear 1
+      when 'weekday'
+        day = moment(msg.created).startOf 'day'
+        day = day.date 1 + moment(msg.created).day()
+        .month 9
+        .year 2000  ## 1st day of October 2000 is a Sunday
+        increment = 'day'
+      else
+        day = moment(msg.created).startOf unit
+    if lastDate?
+      if lastDate.valueOf() > day.valueOf()
+        console.warn "Backwards time travel from #{lastDate.format()} to #{day.format()}"
+        lastDate = day
+        makeDay()
+      else
+        while lastDate.valueOf() != day.valueOf()
+          lastDate = lastDate.add 1, increment
+          makeDay()
+          if lastDate.valueOf() > day.valueOf()
+            console.warn "Bad day handling (Coauthor bug)"
+            break
+    else
+      lastDate = day
+      makeDay()
+    for dataset in stats.datasets
+      if dataset.msgFilter?
+        continue unless dataset.msgFilter.call t, msg
+      dataset.data[dataset.data.length-1] += 1
+  for dataset in stats.datasets
+    dataset.pointBorderColor = []
+  for i in [0...stats.labels.length]
+    zero = true
+    for dataset in stats.datasets
+      unless dataset.data[i] == 0
+        zero = false
+        break
+    for dataset in stats.datasets
+      if zero
+        dataset.pointBorderColor.push 'red'
+      else if dataset.colorFunc?
+        dataset.pointBorderColor.push dataset.colorFunc 1
+      else
+        dataset.pointBorderColor.push 'purple'
+  stats
+
 Template.statsGood.onCreated ->
-  @stats =
-    user:
-      query: -> messagesByQuery(@group, @username)
-      datasets: [
-        label: 'Authored posts',
-        borderWidth: 4
-        colorFunc: purple
-      ,
-        label: 'Posts that @-mention user',
-        borderWidth: 4
-        colorFunc: blue
-      ]
-    global:
-      query: -> group: @group
-      datasets: [
-        label: 'All posts',
-        borderWidth: 4
-        colorFunc: purple
-      ]
-  datasets = _.flatten (stats.datasets for key, stats of @stats), true
+  @stats = [
+    type: 'user'
+    query: -> messagesByQuery(@group, @username)
+    datasets: [
+      msgFilter: (msg) -> escapeUser(@username) of msg.authors
+      label: 'Authored posts'
+      borderWidth: 4
+      colorFunc: purple
+    ,
+      msgFilter: (msg) -> atMentioned msg, @username
+      label: 'Posts that @-mention user'
+      borderWidth: 4
+      colorFunc: blue
+    ]
+  ,
+    type: 'global'
+    query: -> group: @group
+    datasets: [
+      label: 'All posts',
+      borderWidth: 4
+      colorFunc: purple
+    ]
+  ]
+  datasets = _.flatten (stats.datasets for stats in @stats), true
   for dataset in datasets
     dataset.borderColor = dataset.colorFunc 0.6
     dataset.backgroundColor = dataset.colorFunc 0.1
   @autorun =>
     t = Template.currentData()
-    unit = currentUnit()
-    if unit == 'week'
-      weekDay = weekStart()
-    format =
-      switch unit
-        when 'hour'
-          'HH:mm'
-        when 'weekday'
-          'ddd'
-        when 'day', 'week'
-          'ddd, MMM DD, YYYY' #'YYYY-MM-DD'
-        when 'month'
-          'MMM YYYY' #'YYYY-MM'
-        when 'year'
-          'YYYY'
-    for key, stats of @stats
-      if key == 'user'
+    for stats in @stats
+      if stats.type == 'user'
         continue unless t.username?
-      stats.labels = []
-      for dataset in stats.datasets
-        dataset.data = []
-      lastDate = null
-      makeDay = =>
-        stats.labels.push lastDate.format format
-        for dataset in stats.datasets
-          dataset.data.push 0
-      msgs = Messages.find stats.query.call(t)
-      ,
-        fields:
-          created: true
-          body: true
-          title: true
-          authors: true
-        sort: created: 1
-      switch unit
-        when 'hour'
-          msgs = _.sortBy msgs.fetch(), (msg) -> moment(msg.created).format 'HH:mm'
-        when 'weekday'
-          msgs = _.sortBy msgs.fetch(), (msg) -> moment(msg.created).day()
-      msgs.forEach (msg) =>
-        increment = unit
-        switch unit
-          when 'week'
-            day = moment(msg.created).startOf 'day'
-            if day.day() < weekDay
-              day.day -7 + weekDay  ## previous week
-            else
-              day.day weekDay  ## same week
-          when 'hour'
-            day = moment(msg.created).startOf unit
-            .year 2000
-            .dayOfYear 1
-          when 'weekday'
-            day = moment(msg.created).startOf 'day'
-            day = day.date 1 + moment(msg.created).day()
-            .month 9
-            .year 2000  ## 1st day of October 2000 is a Sunday
-            increment = 'day'
-          else
-            day = moment(msg.created).startOf unit
-        if lastDate?
-          if lastDate.valueOf() > day.valueOf()
-            console.warn "Backwards time travel from #{lastDate.format()} to #{day.format()}"
-            lastDate = day
-            makeDay()
-          else
-            while lastDate.valueOf() != day.valueOf()
-              lastDate = lastDate.add 1, increment
-              makeDay()
-              if lastDate.valueOf() > day.valueOf()
-                console.warn "Bad day handling (Coauthor bug)"
-                break
-        else
-          lastDate = day
-          makeDay()
-        switch key
-          when 'user'
-            if escapeUser(t.username) of msg.authors
-              stats.datasets[0].data[stats.datasets[0].data.length-1] += 1
-            if atMentioned msg, t.username
-              stats.datasets[1].data[stats.datasets[1].data.length-1] += 1
-          when 'global'
-            stats.datasets[0].data[stats.datasets[0].data.length-1] += 1
-      for dataset in stats.datasets
-        dataset.pointBorderColor = []
-      for i in [0...stats.labels.length]
-        zero = true
-        for dataset in stats.datasets
-          unless dataset.data[i] == 0
-            zero = false
-            break
-        for dataset in stats.datasets
-          if zero
-            dataset.pointBorderColor.push 'red'
-          else
-            dataset.pointBorderColor.push dataset.colorFunc 1
+      buildStats stats, t
       stats.chart?.update 1000
 
 Template.statsGood.onRendered ->
@@ -146,8 +154,8 @@ Template.statsGood.onRendered ->
     Chart.defaults.global.tooltips.intersect = false
     Chart.defaults.global.tooltips.mode = 'index'
 
-    for key, stats of @stats
-      dom = @find "canvas.#{key}Stats"
+    for stats in @stats
+      dom = @find "canvas.#{stats.type}Stats"
       stats.chart = new Chart.Chart dom,
         type: 'line'
         data: stats
@@ -188,9 +196,11 @@ Template.statsGood.helpers
       ''
   linkToAuthor: ->
     tooltipUpdate()
-    linkToAuthor @group, @username
+    if @group? and @username?
+      linkToAuthor @group, @username
   postCount: (type) ->
-    Messages.find Template.instance().stats[type].query.call(@)
+    stats = (s for s in Template.instance().stats when s.type == type)[0]
+    Messages.find stats.query.call(@)
     .count()
 
 Template.statsGood.events
@@ -206,3 +216,38 @@ Template.statsGood.events
     e.stopPropagation()
     dropdownToggle e
     Meteor.call 'groupWeekStart', @group, parseInt e.target.getAttribute 'data-day'
+  'click .downloadTSV': (e, t) ->
+    stats =
+      type: 'users'
+      query: -> group: @group
+      datasets: Meteor.users.find({}, sort: username: 1).map (user) ->
+        username: user.username
+        fullname: user.profile?.fullname
+        email: user.emails?[0]?.address
+        msgFilter: (msg) ->
+          escapeUser(user.username) of msg.authors or
+          atMentioned msg, user.username
+    buildStats stats, t.data
+    rows = [['username', 'fullname', 'email'].concat stats.labels]
+    for dataset in stats.datasets
+      rows.push [dataset.username, dataset.fullname, dataset.email ? ''] \
+        .concat dataset.data
+    console.log rows
+    tsv =
+      (for row in rows
+        (for cell in row
+          escapeTSV cell
+        ).join '\t'
+      ).join('\n') + '\n'
+    blob = new Blob [tsv], type: 'text/plain;charset=utf-8'
+    (await import('file-saver')).saveAs blob, "#{t.data.group}.tsv"
+
+## https://en.wikipedia.org/wiki/Tab-separated_values
+escapeTSVmap =
+  '\\': '\\\\'
+  '\n': '\\n'
+  '\t': '\\t'
+  '\r': '\\r'
+escapeTSVre = new RegExp "[#{(key for key of escapeTSVmap).join ''}]", 'g'
+escapeTSV = (x) ->
+  x.toString().replace escapeTSVre, (match) -> escapeTSVmap[match]
