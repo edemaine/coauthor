@@ -48,6 +48,7 @@ Template.registerHelper 'titleOrUntitled', ->
 
 Template.registerHelper 'childrenCount', ->
   return 0 unless @children and @children.length > 0
+  return @readChildren.length if @readChildren
   msgs = Messages.find
     _id: $in: @children
   .fetch()

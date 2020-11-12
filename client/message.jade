@@ -297,9 +297,13 @@ template(name="submessage")
             +replyButtons
       if childrenCount
         .children.clearfix
-          each children
-            with childLookup @index
+          if readChildren
+            each readChildren
               +submessage
+          else
+            each children
+              with childLookup @index
+                +submessage
         if canReply
           .panel-body.panel-secondbody.hidden-print.clearfix
             +replyButtons
