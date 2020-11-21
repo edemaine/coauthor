@@ -155,28 +155,14 @@ sanitizeHtml.defaults.transformTags =
     tagName: tagName
     attribs: attribs
 
-jsdiff = require 'diff'
-
-maxDiffSize = 200
+@sanitized = []
 
 @sanitize = (html) ->
-  sanitized = sanitizeHtml html
-  if Meteor.isClient and sanitized != html
-    context = ''
-    if html.length + sanitized.length < maxDiffSize
-      diffs =
-        for diff in jsdiff.diffChars html, sanitized
-          if diff.removed
-            "?#{diff.value}?"
-          else if diff.added
-            "!#{diff.value}!"
-          else
-            if diff.value.length > 40
-              diff.value = diff.value[...20] + "..." + diff.value[diff.value.length-20..]
-            diff.value
-      console.warn "Sanitized", diffs.join ''
-    else
-      console.warn "Sanitized",
-        before: html
-        after: sanitized
-  sanitized
+  htmlSanitized = sanitizeHtml html
+  if Meteor.isClient and htmlSanitized != html
+    unless sanitized.length
+      console.warn "Sanitized some messages' HTML; see global variable `sanitized` for details."
+    sanitized.push
+      before: html
+      after: htmlSanitized
+  htmlSanitized

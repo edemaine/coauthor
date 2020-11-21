@@ -29,7 +29,6 @@
     "chart.js": "^2.9.4",
     "codemirror": "^5.47.0",
     "cookie": "^0.4.1",
-    "diff": "^3.5.0",
     "exif-parser": "^0.1.12",
     "file-saver": "^2.0.5",
     "highlight.js": "^10.4.0",
