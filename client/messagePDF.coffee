@@ -36,6 +36,8 @@ Template.messagePDF.onRendered ->
           appear: => @resize() #; console.log 'hi', msg.file
           disappear: => @container.innerHTML = '' #; console.log 'bye', msg.file
         @renderPage = =>
+          annotationsDiv = document.createElement 'div'
+          annotationsDiv.className = 'annotations'
           pdf.getPage(@page.get()).then (page) =>
             viewport = page.getViewport scale: 1
             @resize = =>
@@ -66,18 +68,22 @@ Template.messagePDF.onRendered ->
                 #unless dpiScale == 1
                 canvas.style.transform = "scale(#{1/dpiScale},#{1/dpiScale})"
                 canvas.style.transformOrigin = "0% 0%"
+                scaledViewport = page.getViewport scale: dpiScale * width / viewport.width
+                annotationsDiv.style.transform = "scale(#{1/dpiScale},#{1/dpiScale}) matrix(#{scaledViewport.transform.join ','})"
+                annotationsDiv.style.transformOrigin = "0% 0%"
                 ## Cancel any ongoing page render, then render the page.
                 @renderTask.cancel() if @renderTask?
                 @rendering.set true
                 @renderTask = page.render
                   canvasContext: context
-                  viewport: page.getViewport scale: dpiScale * width / viewport.width
+                  viewport: scaledViewport
                 renderTask = @renderTask
                 @renderTask.promise.then (=>
                   ## Replace existing canvas with this one, if still fresh.
                   if renderTask == @renderTask
                     @container.innerHTML = ''
                     @container.appendChild canvas
+                    @container.appendChild annotationsDiv
                   ## Mark renderTask done (no longer needs to be canceled).
                   @renderTask = null
                   @rendering.set false
@@ -97,6 +103,20 @@ Template.messagePDF.onRendered ->
                   #svg.preserveAspectRatio = true
                   @container.innerHTML = ''
                   @container.appendChild svg
+            ## Annotation links, based loosely on
+            ## https://stackoverflow.com/a/20141227/7797661
+            page.getAnnotations().then (annotations) =>
+              for annotation in annotations
+                return unless annotation.subtype == 'Link'
+                return unless annotation.rect
+                return unless annotation.url
+                anchor = document.createElement 'a'
+                anchor.href = annotation.url
+                anchor.style.left = "#{annotation.rect[0]}px"
+                anchor.style.top = "#{annotation.rect[1]}px"
+                anchor.style.width = "#{annotation.rect[2] - annotation.rect[0]}px"
+                anchor.style.height = "#{annotation.rect[3] - annotation.rect[1]}px"
+                annotationsDiv.appendChild anchor
         @renderPage()
 
 Template.messagePDF.helpers

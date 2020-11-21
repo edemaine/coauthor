@@ -143,6 +143,12 @@ img { image-orientation: none; } /* we do manual EXIF rotation */
 .pdfBox { width: 100%; }
 .pdf > svg { width: 100%; height: auto; }
 .pdf > canvas { position: absolute; }
+.pdf > .annotations { position: absolute; }
+.pdf > .annotations > a { position: absolute; border: hsla(250,75%,50%,33%) solid; }
+.pdf > .annotations > a:hover { border: hsla(250,75%,50%,66%) solid; }
+@media print {
+  .pdf > .annotations > a { display: none; }
+}
 
 .historySlider { margin-left: 25px; margin-right: 25px; margin-top: 5px; }
   /* 15px to match panel + 10px for tick radius */
