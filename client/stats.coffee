@@ -235,18 +235,20 @@ Template.statsGood.events
       datasets: [
         fullname: 'ALL MESSAGES'
         msgFilter: (msg) -> true
-      ].concat Meteor.users.find({}, sort: username: 1).map (user) ->
+      ].concat Meteor.users.find({}, sort: username: 1).map (user) =>
         username: user.username
         fullname: user.profile?.fullname
+        member: if fullMemberOfGroup @group, user then 'full' else 'partial'
         email: user.emails?[0]?.address
         msgFilter: msgFilter user.username
     buildStats stats, t.data
-    rows = [['Username', 'Fullname', 'Email', 'Total'].concat stats.labels]
+    rows = [['Username', 'Fullname', 'Email', 'Membership', 'Total'].concat stats.labels]
     for dataset in stats.datasets
       rows.push [
         dataset.username ? ''
         dataset.fullname ? ''
         dataset.email ? ''
+        dataset.member ? ''
         dataset.data.reduce ((x, y) -> x+y), 0
       ].concat dataset.data
     tsv =
