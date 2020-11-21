@@ -28,7 +28,7 @@ Template.messagePDF.onRendered ->
       loader = pdfjs.getDocument urlToInternalFile file
       loader.onProgress = (data) =>
         @progress.set Math.round 100 * data.loaded / size
-      loader.then (pdf) =>
+      loader.promise.then (pdf) =>
         @progress.set null
         @pages.set pdf.numPages
         @track =
@@ -37,7 +37,7 @@ Template.messagePDF.onRendered ->
           disappear: => @container.innerHTML = '' #; console.log 'bye', msg.file
         @renderPage = =>
           pdf.getPage(@page.get()).then (page) =>
-            viewport = page.getViewport 1
+            viewport = page.getViewport scale: 1
             @resize = =>
               ## Simulate width: 100%
               width = @container.parentElement.clientWidth
@@ -71,9 +71,9 @@ Template.messagePDF.onRendered ->
                 @rendering.set true
                 @renderTask = page.render
                   canvasContext: context
-                  viewport: page.getViewport dpiScale * width / viewport.width
+                  viewport: page.getViewport scale: dpiScale * width / viewport.width
                 renderTask = @renderTask
-                @renderTask.then (=>
+                @renderTask.promise.then (=>
                   ## Replace existing canvas with this one, if still fresh.
                   if renderTask == @renderTask
                     @container.innerHTML = ''

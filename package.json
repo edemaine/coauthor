@@ -41,7 +41,7 @@
     "markdown-it-task-checkbox": "^1.0.6",
     "meteor-node-stubs": "^1.0.1",
     "moment-timezone": "^0.5.32",
-    "pdfjs-dist": "^2.0.943",
+    "pdfjs-dist": "^2.5.207",
     "roman-numeral": "^0.2.6",
     "sanitize-html": "^1.27.5"
   },
