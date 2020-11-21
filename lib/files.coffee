@@ -151,10 +151,11 @@ else
       window.cookieEmperor.setCookie Meteor.absoluteUrl(),
         'X-Auth-Token', Accounts._storedLoginToken()
     else
-      Cookies.set 'X-Auth-Token', Accounts._storedLoginToken(),
-        path: '/'
-        secure: true
-        sameSite: 'none'
+      options = path: '/'
+      if Meteor.absoluteUrl().startsWith 'https'
+        options.secure = true
+        options.sameSite = 'None'
+      Cookies.set 'X-Auth-Token', Accounts._storedLoginToken(), options
 
   Session.set 'uploading', {}
   updateUploading = (changer) =>
