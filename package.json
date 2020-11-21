@@ -27,7 +27,7 @@
     "bootstrap": "^3.4.1",
     "bootstrap-slider": "^10.6.2",
     "chart.js": "^2.9.4",
-    "codemirror": "^5.47.0",
+    "codemirror": "^5.58.3",
     "cookie": "^0.4.1",
     "exif-parser": "^0.1.12",
     "file-saver": "^2.0.5",
