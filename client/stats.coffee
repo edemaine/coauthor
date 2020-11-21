@@ -148,6 +148,7 @@ Template.statsGood.onCreated ->
       stats.chart?.update 1000
 
 Template.statsGood.onRendered ->
+  tooltipInit()
   `import('chart.js')`.then (Chart) =>
     Chart.defaults.global.hover.intersect = false
     Chart.defaults.global.hover.mode = 'index'

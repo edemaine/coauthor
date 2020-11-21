@@ -53,15 +53,19 @@ template(name='statsGood')
     canvas.userStats(width="800", height="400")
   h2 Global Statistics: {{postCount 'global'}} posts
   canvas.globalStats(width="800", height="400")
-  .dropdown.downloadTSV
-    button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false") Download TSV
-      span.caret
-    ul.dropdown-menu
-      li
-        a(href="#").tsvBoth Authored or @mentioned posts
-      li
-        a(href="#").tsvAuthor Authored posts only
-      li
-        a(href="#").tsvAts @mentioned posts only
+  if ready
+    .dropdown.downloadTSV
+      button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false") Download TSV
+        span.caret
+      ul.dropdown-menu
+        li
+          a(href="#").tsvBoth Authored or @mentioned posts
+        li
+          a(href="#").tsvAuthor Authored posts only
+        li
+          a(href="#").tsvAts @mentioned posts only
+  else
+    button.btn.btn-default.disabled(type="button", data-toggle="tooltip", title="Please wait for all messages to load before downloading TSV.", data-container="body") Download TSV
+      span.fas.fa-spinner.fa-spin
   hr
   p.small * Data represents <b>undeleted</b>, <b>published</b> messages <b>visible to you</b>. Messages are plotted according to their <b>creation date</b>.
