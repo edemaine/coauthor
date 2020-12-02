@@ -73,7 +73,7 @@ replaceMathBlocks = (text, replacer) ->
       else
         if match[3]  ## paragraph break
           if block? #and not block.display
-            console.warn "Paragraph break within math block; auto-closing math (as LaTeX would)"
+            console.warn "Paragraph break within math block; auto-closing math (as LaTeX would)" if Meteor.isClient
             endBlock true  ## don't include paragraph break in math block
         else if match[1] == 'begin' and not block?
           startBlock
