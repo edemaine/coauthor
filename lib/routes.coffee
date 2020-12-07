@@ -144,6 +144,7 @@ Router.route '/:group/author/:author',
   subscriptions: -> [
     Subscribe.subscribe 'messages.author', @params.group, @params.author
     Subscribe.subscribe 'groups.members', @params.group
+    Subscribe.subscribe 'tags', @params.group
     Subscribe.subscribe 'files', @params.group
   ]
   data: ->
@@ -185,6 +186,7 @@ Router.route '/:group/search/:search([^]*)',
   subscriptions: -> [
     Subscribe.subscribe 'messages.search', @params.group, @params.search
     Subscribe.subscribe 'groups.members', @params.group
+    Subscribe.subscribe 'tags', @params.group
     Subscribe.subscribe 'files', @params.group
   ]
   data: ->
