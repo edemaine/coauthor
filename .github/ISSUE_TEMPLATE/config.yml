@@ -1,4 +1,7 @@
 contact_links:
-  - name: OOEP Support
-    url: https://ooep.freshdesk.com/support/home
-    about: If you need help with how to use Coauthor (as opposed to reporting bugs or feature requests), feel free to ask questions here.
+  - name: Discussions
+    url: https://github.com/edemaine/coauthor/discussions
+    about: To ask a question about Coauthor, e.g. about how to use it, start a new discussion!
+  #- name: OOEP Support
+  #  url: https://ooep.freshdesk.com/support/home
+  #  about: If you need help with how to use Coauthor (as opposed to reporting bugs or feature requests), feel free to ask questions here.
