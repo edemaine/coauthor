@@ -109,13 +109,34 @@ Template.messagePDF.onRendered ->
               for annotation in annotations
                 return unless annotation.subtype == 'Link'
                 return unless annotation.rect
-                return unless annotation.url
+                return unless annotation.url or annotation.dest
                 anchor = document.createElement 'a'
-                anchor.href = annotation.url
                 anchor.style.left = "#{annotation.rect[0]}px"
                 anchor.style.top = "#{annotation.rect[1]}px"
                 anchor.style.width = "#{annotation.rect[2] - annotation.rect[0]}px"
                 anchor.style.height = "#{annotation.rect[3] - annotation.rect[1]}px"
+                anchor.href = annotation.url or '#'
+                if annotation.url  # open URL links in new tab
+                  anchor.target = '_blank'
+                  anchor.rel = 'noopener noreferrer'
+                else if annotation.dest  # local link
+                  ## Refer to https://github.com/mozilla/pdf.js/blob/master/web/pdf_link_service.js goToDestination & _goToDestinationHelper
+                  do (dest = annotation.dest) =>
+                    anchor.addEventListener 'click', (e) =>
+                      e.preventDefault()
+                      pdf.getDestination dest
+                      .then (explicit) =>
+                        unless Array.isArray explicit
+                          return console.error "Invalid link destination #{dest} -> #{explicit}"
+                        if Number.isInteger explicit[0]
+                          @page.set explicit[0] + 1
+                          @renderPage?()
+                        else
+                          pdf.getPageIndex explicit[0]
+                          .then (pageNum) =>
+                            @page.set pageNum + 1
+                            @renderPage?()
+                            ## x,y coordinates given by explicit[1..4]: https://github.com/mozilla/pdf.js/blob/master/web/base_viewer.js scrollPageIntoView
                 annotationsDiv.appendChild anchor
         @renderPage()
 
