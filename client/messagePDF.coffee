@@ -116,28 +116,34 @@ Template.messagePDF.onRendered ->
                 anchor.style.width = "#{annotation.rect[2] - annotation.rect[0]}px"
                 anchor.style.height = "#{annotation.rect[3] - annotation.rect[1]}px"
                 anchor.href = annotation.url or '#'
+                #anchor.dataset.toggle = 'tooltip'
+                #anchor.dataset.container = 'body'
                 if annotation.url  # open URL links in new tab
                   anchor.target = '_blank'
                   anchor.rel = 'noopener noreferrer'
+                  try
+                    title = (new URL annotation.url).host
+                  catch
+                    title = annotation.url
+                  anchor.setAttribute 'title', "Open #{title} in new tab"
                 else if annotation.dest  # local link
                   ## Refer to https://github.com/mozilla/pdf.js/blob/master/web/pdf_link_service.js goToDestination & _goToDestinationHelper
-                  do (dest = annotation.dest) =>
+                  explicit = await pdf.getDestination annotation.dest
+                  unless Array.isArray explicit
+                    return console.error "Invalid link destination #{annotation.dest} -> #{explicit}"
+                  if Number.isInteger explicit[0]
+                    targetPage = 1 + explicit[0]
+                  else
+                    targetPage = 1 + await pdf.getPageIndex explicit[0]
+                  anchor.setAttribute 'title', "Page #{targetPage}"
+                  ## x,y coordinates given by explicit[1..4]: https://github.com/mozilla/pdf.js/blob/master/web/base_viewer.js scrollPageIntoView
+                  do (targetPage) =>
                     anchor.addEventListener 'click', (e) =>
                       e.preventDefault()
-                      pdf.getDestination dest
-                      .then (explicit) =>
-                        unless Array.isArray explicit
-                          return console.error "Invalid link destination #{dest} -> #{explicit}"
-                        if Number.isInteger explicit[0]
-                          @page.set explicit[0] + 1
-                          @renderPage?()
-                        else
-                          pdf.getPageIndex explicit[0]
-                          .then (pageNum) =>
-                            @page.set pageNum + 1
-                            @renderPage?()
-                            ## x,y coordinates given by explicit[1..4]: https://github.com/mozilla/pdf.js/blob/master/web/base_viewer.js scrollPageIntoView
+                      @page.set targetPage
+                      @renderPage?()
                 annotationsDiv.appendChild anchor
+              #tooltipInit @
         @renderPage()
 
 Template.messagePDF.helpers
