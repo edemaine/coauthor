@@ -38,6 +38,7 @@ Template.messagePDF.onRendered ->
         @renderPage = =>
           annotationsDiv = document.createElement 'div'
           annotationsDiv.className = 'annotations'
+          @container.appendChild annotationsDiv  # for tooltips
           pdf.getPage(@page.get()).then (page) =>
             viewport = page.getViewport scale: 1
             @resize = =>
@@ -116,8 +117,8 @@ Template.messagePDF.onRendered ->
                 anchor.style.width = "#{annotation.rect[2] - annotation.rect[0]}px"
                 anchor.style.height = "#{annotation.rect[3] - annotation.rect[1]}px"
                 anchor.href = annotation.url or '#'
-                #anchor.dataset.toggle = 'tooltip'
-                #anchor.dataset.container = 'body'
+                anchor.dataset.toggle = 'tooltip'
+                anchor.dataset.container = 'body'
                 if annotation.url  # open URL links in new tab
                   anchor.target = '_blank'
                   anchor.rel = 'noopener noreferrer'
@@ -143,7 +144,7 @@ Template.messagePDF.onRendered ->
                       @page.set targetPage
                       @renderPage?()
                 annotationsDiv.appendChild anchor
-              #tooltipInit @
+              tooltipInit @
         @renderPage()
 
 Template.messagePDF.helpers
