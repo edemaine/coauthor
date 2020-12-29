@@ -459,7 +459,7 @@ scrollToLater = null
 fileQuery = null
 
 updateFileQuery = _.debounce ->
-  fileQuery.stop() if fileQuery?
+  fileQuery?.stop()
   fileQuery = Messages.find
     _id: $in: _.keys images
   ,
@@ -467,12 +467,14 @@ updateFileQuery = _.debounce ->
   .observeChanges
     added: (id, fields) ->
       #console.log "#{id} added:", fields
+      return unless images[id]?
       images[id].file = fields.file
       if images[id].file?
         initImageInternal images[id].file, id
         checkImageInternal images[id].file
     changed: (id, fields) ->
       #console.log "#{id} changed:", fields
+      return unless images[id]?
       if fields.file? and images[id].file != fields.file
         if fileType(fields.file) in ['image', 'video']
           forceImgReload urlToFile id

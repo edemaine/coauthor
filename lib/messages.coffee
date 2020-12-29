@@ -518,6 +518,7 @@ if Meteor.isServer
 @amAuthor = (message, user = Meteor.user()) ->
   return false unless user?.username
   message = findMessage message
+  return false unless message?
   re = atRe user
   escapeUser(user.username) of (message.authors ? {}) or
   (message.title and re.test message.title) or
@@ -525,6 +526,7 @@ if Meteor.isServer
 
 @canPrivate = (message) ->
   message = findMessage message
+  return false unless message?.group?
   if canSuper message.group
     ## Superuser can always change private flag
     true
