@@ -1,3 +1,4 @@
+import React from 'react'
 import { resolveTheme } from './theme.coffee'
 
 sharejsEditor = 'cm'  ## 'ace' or 'cm'; also change template used in message.jade
