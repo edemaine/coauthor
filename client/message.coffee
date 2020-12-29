@@ -1,5 +1,7 @@
-import React from 'react'
-import { resolveTheme } from './theme.coffee'
+import React, {useMemo, useState} from 'react'
+import {useTracker} from 'meteor/react-meteor-data'
+
+import {resolveTheme} from './theme.coffee'
 
 sharejsEditor = 'cm'  ## 'ace' or 'cm'; also change template used in message.jade
 
@@ -237,8 +239,8 @@ Template.message.onRendered ->
   #  $('input.title').first().focus()
   #, 100
 
-editing = (self) ->
-  Meteor.user()? and Meteor.user().username in (self.editing ? [])
+editingMessage = (message) ->
+  Meteor.user()? and Meteor.user().username in (message.editing ? [])
 
 safeToStopEditing = ->
   data = Template.currentData()
@@ -325,7 +327,7 @@ Template.submessage.onCreated ->
     data = Template.currentData()
     return unless data?
     #@myid = data._id
-    if editing data
+    if editingMessage data
       ## Maintain @editing == this message's ID when message is being edited.
       ## Also initialize title and body only when we start editing.
       if data._id != @editing.get()
@@ -697,6 +699,8 @@ here = (id) ->
   Router.current().params?.message == id
 
 Template.submessage.helpers
+  Submessage: -> Submessage
+  message: -> @
   canReply: -> canPost @group, @_id
   tabindex: tabindex
   tabindex5: -> tabindex 5
@@ -1078,6 +1082,13 @@ Template.registerHelper 'messagePanelClass', ->
   classes.push mclass = messageClass.call @
   classes.push panelClass[mclass]
   if Template.instance().editing?.get()
+    classes.push 'editing'
+  classes.join ' '
+messagePanelClass = (message, editing) ->
+  classes = []
+  classes.push mclass = messageClass.call message
+  classes.push panelClass[mclass]
+  if editing
     classes.push 'editing'
   classes.join ' '
 
@@ -1780,3 +1791,317 @@ Template.messageParentDialog.events
 
 Template.groupOrMessage.helpers
   loadedMessage: -> @creator?
+
+submessageCount = 0
+Submessage = ({message}) ->
+  return null unless message?
+  tabindex0 = useMemo -> 1 + 20 * submessageCount++
+  user = useTracker -> Meteor.user()
+  editing = (user? and user.username in (self.editing ? []))
+  folded = useTracker ->
+    (messageFolded.get message._id) and
+    (not here message._id) and                # never fold if top-level message
+    not editing                               # never fold if editing
+  , [message._id]
+  history = useTracker ->
+    messageHistory.get message._id
+  , [message._id]
+  historified = history ? message
+  [editTitle, setEditTitle] = useState()
+  preview = useTracker ->
+    history? or
+    messagePreview.get(message._id) ? messagePreviewDefault()
+  , [history?, message._id]
+  formattedTitle =
+    for bold in [false, true]
+      useTracker ->
+        if messageRaw.get message._id
+          "<CODE CLASS='raw'>#{_.escape historified.title}</CODE>"
+        else
+          formatTitleOrFilename historified, false, false, bold  ## don't say (untitled)
+      , [message._id, historified]
+  formattedBody = useTracker ->
+    formatBody historified.format, historified.body
+  , [historified.format, historified.body]
+
+  <div className="panel message #{messagePanelClass message, editing}" data-message={message._id} id={message._id}>
+    <div className="panel-heading clearfix">
+      {if editing and not history?
+        <input className="push-down form-control title" type="text" placeholder="Title" value={editTitle} tabindex={tabindex0+18}/>
+      else
+        <span className="message-title">
+          <span className="message-left-buttons push-down btn-group btn-group-xs">
+            {unless here message._id
+              <>
+                {if folded
+                  <button className="btn btn-info foldButton hidden-print" aria-label="Unfold" data-toggle="tooltip" data-container="body" data-title="Open/unfold this message so that you can see its contents. Does not affect other users.">
+                    <span className="fas fa-plus" aria-hidden="true"/>
+                  </button>
+                else
+                  <button className="btn btn-info foldButton hidden-print" aria-label="Fold" data-toggle="tooltip" data-container="body" data-title="Close/fold this message, e.g. to skip over its contents. Does not affect other users.">
+                    <span className="fas fa-minus" aria-hidden="true"/>
+                  </button>
+                }
+                <a className="btn btn-info focusButton" aria-label="Focus" href={pathFor 'message', {group: message.group, message: message._id}} draggable="true" data-toggle="tooltip" data-container="body" data-title="Zoom in/focus on just the subthread of this message and its descendants">
+                  <span className="fas fa-sign-in-alt" aria-hidden="true"/>
+                </a>
+              </>
+            }
+            {###else +messageNeighbors###}
+          </span>
+          <span className="space"/>
+          {if historified.file
+            <span className="fas fa-paperclip"/>
+          }
+          <span className="title panel-title tex2jax"
+          dangerouslySetInnerHTML={__html: formattedTitle[1]}/>
+          {###+messageTags###}
+          {###+messageLabels###}
+        </span>
+      }
+      {###http://stackoverflow.com/questions/22390272/how-to-create-a-label-with-close-icon-in-bootstrap
+      if editing
+        <span message-subtitle
+          span.upper-strut
+          span.tags
+            each tags
+              span.label.label-default.tag.tagWithRemove
+                | #{key}
+                span.tagRemove.fas.fa-times-circle(aria-label="Remove",data-tag=key)
+              |  
+          span.btn-group
+            button.btn.btn-default.label.label-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
+              span.fas.fa-plus
+              | Tag
+            ul.dropdown-menu(role="menu").tagMenu
+              li.disabled
+                a
+                  form.input-group.input-group-sm
+                    input.tagAddText.form-control(type="text", placeholder="New Tag...")
+                    .input-group-btn
+                      button.btn.btn-default.tagAddNew(type="submit")
+                        span.fas.fa-plus
+              if absentTagsCount
+                li.divider(role="separator")
+              each absentTags
+                li
+                  a.tagAdd(href="#",data-tag=key) #{key}
+          +messageLabels
+          span.lower-strut
+      // Buttons and badge on the right of the message
+      .pull-right.hidden-print.message-right-buttons
+        unless root
+          span.badge(data-toggle="tooltip", title="Number of submessages within thread")= submessageCount
+          span.space
+        .btn-group
+          unless folded
+            unless editing
+              if raw
+                button.btn.btn-default.rawButton(tabindex={tabindex0+1}) Formatted
+              else
+                button.btn.btn-default.rawButton(tabindex={tabindex0+1}) Raw
+              unless history
+                button.btn.btn-default.historyButton(tabindex={tabindex0+2}) History
+          if history
+            if historyAll
+              button.btn.btn-default.historyAllButton(tabindex={tabindex0+2}) Show Finished
+            else
+              button.btn.btn-default.historyAllButton(tabindex={tabindex0+2}) Show All
+            button.btn.btn-default.historyButton(tabindex={tabindex0+3}) Exit History
+          if editing
+            unless root
+              +threadPrivacy
+            +keyboardSelector _id=_id tabindex=tabindex0+6
+            +formatSelector format=format tabindex=tabindex0+7
+          unless history
+            if canAction
+              .btn-group
+                button.btn.btn-info.actionButton.dropdown-toggle(tabindex={tabindex0+4}, type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
+                  | Action
+                  span.caret
+                ul.dropdown-menu.dropdown-menu-right.actionMenu(role="menu")
+                  if minimized
+                    if canUnminimize
+                      li
+                        a.minimizeButton(href="#")
+                          button.btn.btn-success.btn-block(data-toggle="tooltip", data-container="body", data-placement="left", data-html="true", data-title="Open/unfold this message <b>for all users</b>. Use this if a discussion becomes relevant again. If you just want to open/unfold the message to see it yourself temporarily, use the [+] button on the left.") Unminimize
+                  else
+                    if canMinimize
+                      li
+                        a.minimizeButton(href="#")
+                          button.btn.btn-danger.btn-block(data-toggle="tooltip", data-container="body", data-placement="left", data-html="true", data-title="Close/fold this message <b>for all users</b>. Use this to clean up a thread when the discussion of this message (and all its replies) is resolved/no longer important. If you just want to close/fold the message yourself temporarily, use the [−] button on the left.") Minimize
+                  if deleted
+                    if canUndelete
+                      li
+                        a.deleteButton(href="#")
+                          button.btn.btn-success.btn-block Undelete
+                    if canSuperdelete
+                      li
+                        a.superdeleteButton(href="#")
+                          button.btn.btn-danger.btn-block Superdelete
+                  unless published
+                    if canPublish
+                      li
+                        a.publishButton(href="#")
+                          button.btn.btn-success.btn-block Publish
+                  unless deleted
+                    if canDelete
+                      li
+                        a.deleteButton(href="#")
+                          button.btn.btn-danger.btn-block Delete
+                  if published
+                    if canUnpublish
+                      li
+                        a.publishButton(href="#")
+                          button.btn.btn-danger.btn-block Unpublish
+                  if canPrivate
+                    if private
+                      li
+                        a.privateButton(href="#")
+                          button.btn.btn-success.btn-block Make Public
+                    else
+                      li
+                        a.privateButton(href="#")
+                          button.btn.btn-danger.btn-block Make Private
+                  if canParent
+                    li
+                      a.parentButton(href="#")
+                        button.btn.btn-warning.btn-block Move
+            if editing
+              if editStopping
+                button.btn.btn-info.editButton.disabled(tabindex={tabindex0+8}, title="Waiting for save to complete before stopping editing...") Stop Editing
+              else
+                button.btn.btn-info.editButton(tabindex={tabindex0+8}) Stop Editing
+            else
+              unless folded
+                if canEdit
+                  if file
+                    +messageReplace _id=_id group=group tabindex=tabindex0+7
+                  button.btn.btn-info.editButton(tabindex={tabindex0+8}) Edit
+      ###}
+    </div>
+    {unless folded
+      previewSideBySide = editing and preview.on and preview.sideBySide
+      <>
+        {###if history
+          +messageHistory
+        ###}
+        <div className="editorAndBody clearfix #{if previewSideBySide then 'sideBySide' else ''}">
+          <div className="editorContainer">
+            {###unless history
+              with nothing
+                if editing
+                  +sharejsCM docid=editingNR onRender=config
+                  //- +sharejsAce docid=editingNR onRender=config
+              if editing
+                unless previewSideBySide
+                  +belowEditor editData
+                  .resizer
+            ###}
+          </div>
+          {if preview.on
+            <div className="bodyContainer">
+              {if historified.file and editing
+                <div className="fileDescription">
+                  <div className="fileDescriptionText">
+                    <span className="fas fa-paperclip"
+                      dangerouslySetInnerHTML={__html: formatFileDescription}/>
+                  </div>
+                  <div className="file-right-buttons btn-group hidden-print">
+                    {###if image
+                      +messageImage
+                    +messageReplace _id=_id group=group tabindex=tabindex0+9
+                    ###}
+                  </div>
+                </div>
+              }
+              <div className="panel-body">
+                <div className="message-body"
+                 dangerouslySetInnerHTML={__html: formattedBody}/>
+                {if historified.file
+                  {###if pdf
+                    with pdf
+                      +messagePDF
+                  ###}
+                  <p className="message-file"
+                   dangerouslySetInnerHTML={__html: formatFile}/>
+                }
+              </div>
+            </div>
+          }
+        </div>
+        {###if editing and previewSideBySide
+          +belowEditor editData
+          .resizer
+        ###}
+        <div className="message-footer">
+          {###+messageAuthor###}
+          <div className="message-response-buttons clearfix hidden-print">
+            {if editing
+              <div className="btn-group pull-right">
+                {if editStopping
+                  <button className="btn btn-info editButton disabled" title="Waiting for save to complete before stopping editing...">
+                    Stop Editing
+                  </button>
+                else
+                  <button className="btn btn-info editButton">
+                    Stop Editing
+                  </button>
+                }
+                {###if canReply
+                  +messageAttach
+                ###}
+                {###//- +replyButtons -- but want to omit reply buttons which confuse###}
+              </div>
+            ###
+            else
+              +emojiButtons
+              +replyButtons
+            ###
+            }
+          </div>
+        </div>
+        {if message.children?.length
+          <>
+            <div className="children clearfix">
+              {if message.readChildren
+                for child in message.readChildren
+                  <Submessage key={child._id} message={child}/>
+              else
+                for childID, index in message.children
+                  child = Messages.findOne childID
+                  continue unless child?
+                  ## Use canSee to properly fake non-superuser mode.
+                  continue unless canSee child
+                  ## Parent ID is nonreactive: If we get reparented,
+                  ## a totally new template should get created.
+                  child.parent = message._id
+                  child.index = index
+                  <Submessage key={childID} message={child}/>
+              }
+            </div>
+            {if canReply message
+              <div className="panel-body panel-secondbody hidden-print clearfix">
+                {###+replyButtons###}
+                <span className="message-title">
+                  <a className="btn btn-default btn-xs linkToTop" aria-label="Top" href="##{message._id}">
+                    <span className="fas fa-caret-up"/>
+                  </a>
+                  <span className="space"/>
+                  {if historified.file
+                    <span className="fas fa-paperclip"/>
+                  }
+                  <span className="panel-title"
+                  dangerouslySetInnerHTML={__html: formattedTitle[0]}/>
+                  {###
+                  +messageTags
+                  +messageLabels
+                  ###}
+                </span>
+              </div>
+            }
+          </>
+        }
+      </>
+    }
+  </div>

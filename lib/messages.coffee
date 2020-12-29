@@ -484,6 +484,9 @@ if Meteor.isServer
   user? and
   messageRoleCheck group, parent, 'post', user
 
+@canReply = (message) ->
+  canPost message.group, message._id
+
 @canEdit = (message, user = Meteor.user()) ->
   ## Can edit message if an "author" (e.g. the creator or edited in the past),
   ## or if we have global edit privileges in this group or thread.
