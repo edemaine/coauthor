@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react'
+import React, {useEffect, useMemo, useState} from 'react'
 import {useTracker} from 'meteor/react-meteor-data'
 
 import {useRefTooltip} from './lib/tooltip'
@@ -355,13 +355,6 @@ Message.displayName = 'Message'
 editingMessage = (message, user = Meteor.user()) ->
   user? and user.username in (message.editing ? [])
 
-safeToStopEditing = ->
-  data = Template.currentData()
-  instance = Template.instance()
-  #data.editing.length > 1 or (
-  data.title == instance.editTitle.get() and
-  data.body == instance.editBody.get()
-
 idle = 1000   ## one second
 
 messageClass = ->
@@ -423,7 +416,6 @@ threadMentions = {}
 Template.submessage.onCreated ->
   @count = submessageCount++
   @editing = new ReactiveVar null
-  @editStopping = new ReactiveVar false
   @editTitle = new ReactiveVar null
   @editBody = new ReactiveVar null
   @lastTitle = null
@@ -810,7 +802,6 @@ Template.submessage.helpers
   canReply: -> canPost @group, @_id
   editingRV: -> Template.instance().editing.get()
   editingNR: -> Tracker.nonreactive -> Template.instance().editing.get()
-  editStopping: -> Template.instance().editStopping.get()
   editTitle: -> Template.instance().editTitle.get()
   editData: ->
     #_.extend @,
@@ -819,7 +810,6 @@ Template.submessage.helpers
     body: @body
     group: @group
     editing: @editing  ## to list other editors
-    editStopping: Template.instance().editStopping.get()
     editTitle: Template.instance().editTitle.get()
     editBody: Template.instance().editBody.get()
   hideIfEditing: ->
@@ -1311,24 +1301,6 @@ Template.submessage.events
     false  ## prevent form from submitting
 
   'click .focusButton': (e) -> $(e.currentTarget).tooltip 'hide'
-
-  'click .editButton': (e, t) ->
-    e.preventDefault()
-    e.stopPropagation()
-    message = @_id  #e.target.getAttribute 'data-message'
-    if editing @
-      stop = -> Meteor.call 'messageEditStop', message
-      if safeToStopEditing()
-        stop()
-      else
-        t.editStopping.set true
-        t.autorun (computation) ->
-          if safeToStopEditing()
-            t.editStopping.set false
-            stop()
-            computation.stop()
-    else
-      Meteor.call 'messageEditStart', message
 
   'click .togglePreview': (e, t) ->
     e.preventDefault()
@@ -1981,6 +1953,18 @@ Submessage = React.memo ({message}) ->
   , [message._id]
   historified = history ? message
   [editTitle, setEditTitle] = useState()
+  [editBody, setEditBody] = useState()
+  [editStopping, setEditStopping] = useState()
+  safeToStopEditing = ->
+    message.title == editTitle and message.body == editBody
+  useEffect ->
+    if editStopping and safeToStopEditing()
+      Meteor.call 'messageEditStop', message._id, (error, result) ->
+        if error?
+          console.error error
+        else
+          setEditStopping false
+    undefined
   preview = useTracker ->
     history? or
     messagePreview.get(message._id) ? messagePreviewDefault()
@@ -2023,6 +2007,16 @@ Submessage = React.memo ({message}) ->
     e.preventDefault()
     e.stopPropagation()
     messageHistoryAll.set message._id, not messageHistoryAll.get message._id
+  onEdit = (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+    if editing
+      if safeToStopEditing()
+        Meteor.call 'messageEditStop', message._id
+      else
+        setEditStopping true
+    else
+      Meteor.call 'messageEditStart', message._id
 
   <div className="panel message #{messagePanelClass message, editing}" data-message={message._id} id={message._id} ref={ref}>
     <div className="panel-heading clearfix">
@@ -2143,73 +2137,81 @@ Submessage = React.memo ({message}) ->
             +formatSelector format=format tabIndex=tabindex0+7
           }
           ###}
-          {###
-          unless history
-            if canAction
-              .btn-group
-                button.btn.btn-info.actionButton.dropdown-toggle(tabIndex={tabindex0+4}, type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
-                  | Action
-                  span.caret
-                ul.dropdown-menu.dropdown-menu-right.actionMenu(role="menu")
-                  if minimized
-                    if canUnminimize
-                      li
-                        a.minimizeButton(href="#")
-                          button.btn.btn-success.btn-block(data-toggle="tooltip", data-container="body", data-placement="left", data-html="true", title="Open/unfold this message <b>for all users</b>. Use this if a discussion becomes relevant again. If you just want to open/unfold the message to see it yourself temporarily, use the [+] button on the left.") Unminimize
-                  else
-                    if canMinimize
-                      li
-                        a.minimizeButton(href="#")
-                          button.btn.btn-danger.btn-block(data-toggle="tooltip", data-container="body", data-placement="left", data-html="true", title="Close/fold this message <b>for all users</b>. Use this to clean up a thread when the discussion of this message (and all its replies) is resolved/no longer important. If you just want to close/fold the message yourself temporarily, use the [−] button on the left.") Minimize
-                  if deleted
-                    if canUndelete
-                      li
-                        a.deleteButton(href="#")
-                          button.btn.btn-success.btn-block Undelete
-                    if canSuperdelete
-                      li
-                        a.superdeleteButton(href="#")
-                          button.btn.btn-danger.btn-block Superdelete
-                  unless published
-                    if canPublish
-                      li
-                        a.publishButton(href="#")
-                          button.btn.btn-success.btn-block Publish
-                  unless deleted
-                    if canDelete
-                      li
-                        a.deleteButton(href="#")
-                          button.btn.btn-danger.btn-block Delete
-                  if published
-                    if canUnpublish
-                      li
-                        a.publishButton(href="#")
-                          button.btn.btn-danger.btn-block Unpublish
-                  if canPrivate
-                    if private
-                      li
-                        a.privateButton(href="#")
-                          button.btn.btn-success.btn-block Make Public
+          {unless history
+            <>
+              {###
+              if canAction
+                .btn-group
+                  button.btn.btn-info.actionButton.dropdown-toggle(tabIndex={tabindex0+4}, type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
+                    | Action
+                    span.caret
+                  ul.dropdown-menu.dropdown-menu-right.actionMenu(role="menu")
+                    if minimized
+                      if canUnminimize
+                        li
+                          a.minimizeButton(href="#")
+                            button.btn.btn-success.btn-block(data-toggle="tooltip", data-container="body", data-placement="left", data-html="true", title="Open/unfold this message <b>for all users</b>. Use this if a discussion becomes relevant again. If you just want to open/unfold the message to see it yourself temporarily, use the [+] button on the left.") Unminimize
                     else
+                      if canMinimize
+                        li
+                          a.minimizeButton(href="#")
+                            button.btn.btn-danger.btn-block(data-toggle="tooltip", data-container="body", data-placement="left", data-html="true", title="Close/fold this message <b>for all users</b>. Use this to clean up a thread when the discussion of this message (and all its replies) is resolved/no longer important. If you just want to close/fold the message yourself temporarily, use the [−] button on the left.") Minimize
+                    if deleted
+                      if canUndelete
+                        li
+                          a.deleteButton(href="#")
+                            button.btn.btn-success.btn-block Undelete
+                      if canSuperdelete
+                        li
+                          a.superdeleteButton(href="#")
+                            button.btn.btn-danger.btn-block Superdelete
+                    unless published
+                      if canPublish
+                        li
+                          a.publishButton(href="#")
+                            button.btn.btn-success.btn-block Publish
+                    unless deleted
+                      if canDelete
+                        li
+                          a.deleteButton(href="#")
+                            button.btn.btn-danger.btn-block Delete
+                    if published
+                      if canUnpublish
+                        li
+                          a.publishButton(href="#")
+                            button.btn.btn-danger.btn-block Unpublish
+                    if canPrivate
+                      if private
+                        li
+                          a.privateButton(href="#")
+                            button.btn.btn-success.btn-block Make Public
+                      else
+                        li
+                          a.privateButton(href="#")
+                            button.btn.btn-danger.btn-block Make Private
+                    if canParent
                       li
-                        a.privateButton(href="#")
-                          button.btn.btn-danger.btn-block Make Private
-                  if canParent
-                    li
-                      a.parentButton(href="#")
-                        button.btn.btn-warning.btn-block Move
-            if editing
-              if editStopping
-                button.btn.btn-info.editButton.disabled(tabIndex={tabindex0+8}, title="Waiting for save to complete before stopping editing...") Stop Editing
+                        a.parentButton(href="#")
+                          button.btn.btn-warning.btn-block Move
+              ###}
+              {if editing
+                if editStopping
+                  <button className="btn btn-info editButton disabled" tabIndex={tabindex0+8} title="Waiting for save to complete before stopping editing...">Stop Editing</button>
+                else
+                  <button className="btn btn-info editButton" tabIndex={tabindex0+8} onClick={onEdit}>Stop Editing</button>
               else
-                button.btn.btn-info.editButton(tabIndex={tabindex0+8}) Stop Editing
-            else
-              unless folded
-                if canEdit
-                  if message.file
-                    +messageReplace _id=_id group=group tabIndex=tabindex0+7
-                  button.btn.btn-info.editButton(tabIndex={tabindex0+8}) Edit
-          ###}
+                if canEdit and not folded
+                  <>
+                    {###
+                    {if message.file
+                      +messageReplace _id=_id group=group tabIndex=tabindex0+7
+                    }
+                    ###}
+                    <button className="btn btn-info editButton" tabIndex={tabindex0+8} onClick={onEdit}>Edit</button>
+                  </>
+              }
+            </>
+          }
         </div>
       </div>
     </div>
@@ -2277,7 +2279,7 @@ Submessage = React.memo ({message}) ->
                     Stop Editing
                   </button>
                 else
-                  <button className="btn btn-info editButton">
+                  <button className="btn btn-info editButton" onClick={onEdit}>
                     Stop Editing
                   </button>
                 }
