@@ -85,8 +85,12 @@ Template.registerHelper 'childLookup', (index) ->
 childrenLookup = (message) ->
   ## Lookup children in message.children, and annotate with extra fields
   ## `parent` and `index`.
+  ## Alternate approach: single call to Messages.find
+  #childrenByID = {}
+  #Messages.find _id: $in: message.children
+  #.forEach (child) -> childrenByID[child._id] = child
   for childID, index in message.children
-    child = Messages.findOne childID
+    child = Messages.findOne childID #childrenByID[childID]
     continue unless child?
     ## Use canSee to properly fake non-superuser mode.
     continue unless canSee child
@@ -95,6 +99,11 @@ childrenLookup = (message) ->
     child.parent = message._id
     child.index = index
     child
+useChildren = (message) ->
+  useTracker ->
+    childrenLookup message
+  , [message._id, message.children.join ',']
+    ## Depend on actual sequence of message children, not the array object
 
 Template.registerHelper 'tags', ->
   sortTags @tags
@@ -1599,9 +1608,7 @@ TableOfContents = React.memo ({message, root}) ->
   creator = useTracker ->
     displayUser message.creator
   , [message.creator]
-  children = useTracker ->
-    childrenLookup message
-  , [message]
+  children = useChildren message
   inner =
     <>
       {unless root
@@ -1869,9 +1876,7 @@ Submessage = React.memo ({message}) ->
   formattedBody = useTracker ->
     formatBody historified.format, historified.body
   , [historified.format, historified.body]
-  children = useTracker ->
-    childrenLookup message
-  , [message]
+  children = useChildren message
   ref = useRefTooltip()
 
   onFold = (e) ->
