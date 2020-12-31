@@ -145,18 +145,6 @@ template(name="messageLabels")
     if minimized
       span.label.label-success Minimized
 
-template(name="messageAuthor")
-  .author.text-right
-    if published
-      | (posted by
-    else
-      | (created by
-    | !{formatCreator}
-    if published
-      | {{formatDate published prefix='on '}}!{formatAuthors})
-    else
-      | {{formatDate created prefix='on '}}!{formatAuthors})
-
 template(name="threadPrivacy")
   if canSuper
     .btn-group

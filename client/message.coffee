@@ -1,7 +1,8 @@
 import React, {useMemo, useState} from 'react'
 import {useTracker} from 'meteor/react-meteor-data'
 
-import {resolveTheme} from './theme.coffee'
+import {useRefTooltip} from './lib/tooltip'
+import {resolveTheme} from './theme'
 
 sharejsEditor = 'cm'  ## 'ace' or 'cm'; also change template used in message.jade
 
@@ -83,7 +84,7 @@ Template.registerHelper 'childLookup', (index) ->
 
 childrenLookup = (message) ->
   ## Lookup children in message.children, and annotate with extra fields
-  ## `parent` and `index`.  Output in an iterator.
+  ## `parent` and `index`.
   for childID, index in message.children
     child = Messages.findOne childID
     continue unless child?
@@ -93,7 +94,7 @@ childrenLookup = (message) ->
     ## a totally new template should get created.
     child.parent = message._id
     child.index = index
-    yield child
+    child
 
 Template.registerHelper 'tags', ->
   sortTags @tags
@@ -245,7 +246,7 @@ Template.message.onRendered ->
   affixResize()
   $('nav.contents').on 'affixed.bs.affix', affixResize
   $('nav.contents').on 'affixed-top.bs.affix', affixResize
-  tooltipInit()
+  #tooltipInit()
 
   ## Give focus to first Title input, if there is one.
   ## This can actually be disruptive, so leave focus to `scrollToMessage`.
@@ -317,13 +318,6 @@ messagePreviewSet = (change, template = Template.instance()) ->
         return unless id?
   preview = messagePreview.get(id) ? messagePreviewDefault()
   messagePreview.set id, change preview
-
-export messageFoldHandler = (e, t) ->
-  e.preventDefault()
-  e.stopPropagation()
-  messageFolded.set @_id, not messageFolded.get @_id
-  $(e.currentTarget).tooltip 'hide'
-  tooltipUpdate()
 
 threadAuthors = {}
 threadMentions = {}
@@ -1012,11 +1006,6 @@ Template.submessage.helpers
   canPrivate: -> canPrivate @_id
   canParent: -> canMaybeParent @_id
 
-  history: -> messageHistory.get(@_id)?
-  historyAll: -> messageHistoryAll.get @_id
-
-  raw: -> messageRaw.get @_id
-
   preview: ->
     messageHistory.get(@_id)? or
     (messagePreviewGet() ? on: true).on  ## on if not editing
@@ -1191,13 +1180,7 @@ Template.submessage.events
     dropdownToggle e
     false  ## prevent form from submitting
 
-  'click .foldButton': messageFoldHandler
   'click .focusButton': (e) -> $(e.currentTarget).tooltip 'hide'
-
-  'click .rawButton': (e, t) ->
-    e.preventDefault()
-    e.stopPropagation()
-    messageRaw.set @_id, not messageRaw.get @_id
 
   'click .editButton': (e, t) ->
     e.preventDefault()
@@ -1332,19 +1315,6 @@ Template.submessage.events
           #Router.go 'message', {group: group, message: result}
         else
           console.error "messageNew did not return problem -- not authorized?"
-
-  'click .historyButton': (e, t) ->
-    e.preventDefault()
-    e.stopPropagation()
-    if messageHistory.get(@_id)?
-      messageHistory.set @_id, null
-    else
-      messageHistory.set @_id, _.clone @
-
-  'click .historyAllButton': (e, t) ->
-    e.preventDefault()
-    e.stopPropagation()
-    messageHistoryAll.set @_id, not messageHistoryAll.get @_id
 
   'click .superdeleteButton': (e) ->
     e.preventDefault()
@@ -1539,10 +1509,6 @@ replaceFiles = (files, e, t) ->
 
 uploader 'messageReplace', 'replaceButton', 'replaceInput', replaceFiles
 
-Template.messageAuthor.helpers
-  formatAuthors: ->
-    formatAuthors.call messageHistory.get(@_id) ? @
-
 privacyOptions = [
   code: 'public'
   list: ['public']
@@ -1621,7 +1587,7 @@ Template.replyButtons.helpers
   canPublicReply: -> 'public' in (@threadPrivacy ? ['public'])
   canPrivateReply: -> 'private' in (@threadPrivacy ? ['public'])
 
-TableOfContents = ({message, root}) ->
+TableOfContents = React.memo ({message, root}) ->
   return null unless message?
   formattedTitle = useMemo ->
     formatTitleOrFilename message, false, false, root  ## don't say (untitled)
@@ -1633,6 +1599,9 @@ TableOfContents = ({message, root}) ->
   creator = useTracker ->
     displayUser message.creator
   , [message.creator]
+  children = useTracker ->
+    childrenLookup message
+  , [message]
   inner =
     <>
       {unless root
@@ -1650,10 +1619,10 @@ TableOfContents = ({message, root}) ->
         [{creator}]
       </a>
     </>
-  children =
+  renderedChildren =
     if message.children.length
       <ul className="nav subcontents">
-        {for child from childrenLookup message
+        {for child in children
           <TableOfContents key={child._id} message={child}/>
         }
       </ul>
@@ -1664,14 +1633,13 @@ TableOfContents = ({message, root}) ->
           {inner}
         </li>
       </ul>
-      {children}
+      {renderedChildren}
     </nav>
   else
     <li className="btn-group-xs #{foldedClass.call message}">
       {inner}
-      {children}
+      {renderedChildren}
     </li>
-    
 TableOfContents.displayName = 'TableOfContents'
 
 Template.tableOfContentsRoot.helpers
@@ -1862,18 +1830,26 @@ Template.groupOrMessage.helpers
   loadedMessage: -> @creator?
 
 submessageCount = 0
-Submessage = ({message}) ->
+Submessage = React.memo ({message}) ->
   return null unless message?
-  tabindex0 = useMemo -> 1 + 20 * submessageCount++
-  user = useTracker -> Meteor.user()
+  tabindex0 = useMemo ->
+    1 + 20 * submessageCount++
+  , []
+  user = useTracker ->
+    Meteor.user()
+  , []
   editing = editingMessage message, user
+  raw = useTracker ->
+    messageRaw.get message._id
+  , [message._id]
   folded = useTracker ->
     (messageFolded.get message._id) and
     (not here message._id) and                # never fold if top-level message
     not editing                               # never fold if editing
   , [message._id]
-  history = useTracker ->
-    messageHistory.get message._id
+  {history, historyAll} = useTracker ->
+    history: messageHistory.get message._id
+    historyAll: messageHistoryAll.get message._id
   , [message._id]
   historified = history ? message
   [editTitle, setEditTitle] = useState()
@@ -1881,37 +1857,63 @@ Submessage = ({message}) ->
     history? or
     messagePreview.get(message._id) ? messagePreviewDefault()
   , [history?, message._id]
-  formattedTitle =
-    for bold in [false, true]
-      useTracker ->
-        if messageRaw.get message._id
-          "<CODE CLASS='raw'>#{_.escape historified.title}</CODE>"
-        else
-          formatTitleOrFilename historified, false, false, bold  ## don't say (untitled)
-      , [message._id, historified]
+  formattedTitle = useTracker ->
+    for bold in [true, false]
+      ## Only render unbold title if we have children (for back pointer)
+      continue unless bold or message.children.length
+      if messageRaw.get message._id
+        "<CODE CLASS='raw'>#{_.escape historified.title}</CODE>"
+      else
+        formatTitleOrFilename historified, false, false, bold  ## don't say (untitled)
+  , [message._id, historified.title, historified.format]
   formattedBody = useTracker ->
     formatBody historified.format, historified.body
   , [historified.format, historified.body]
+  children = useTracker ->
+    childrenLookup message
+  , [message]
+  ref = useRefTooltip()
 
-  <div className="panel message #{messagePanelClass message, editing}" data-message={message._id} id={message._id}>
+  onFold = (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+    messageFolded.set message._id, not messageFolded.get message._id
+    #$(e.currentTarget).tooltip 'hide'
+  onRaw = (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+    messageRaw.set message._id, not messageRaw.get message._id
+  onHistory = (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+    if messageHistory.get(message._id)?
+      messageHistory.set message._id, null
+    else
+      messageHistory.set message._id, _.clone message
+  onHistoryAll = (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+    messageHistoryAll.set message._id, not messageHistoryAll.get message._id
+
+  <div className="panel message #{messagePanelClass message, editing}" data-message={message._id} id={message._id} ref={ref}>
     <div className="panel-heading clearfix">
       {if editing and not history?
-        <input className="push-down form-control title" type="text" placeholder="Title" value={editTitle} tabindex={tabindex0+18}/>
+        <input className="push-down form-control title" type="text" placeholder="Title" value={editTitle} tabIndex={tabindex0+18}/>
       else
         <span className="message-title">
           <span className="message-left-buttons push-down btn-group btn-group-xs">
             {unless here message._id
               <>
                 {if folded
-                  <button className="btn btn-info foldButton hidden-print" aria-label="Unfold" data-toggle="tooltip" data-container="body" data-title="Open/unfold this message so that you can see its contents. Does not affect other users.">
+                  <button className="btn btn-info foldButton hidden-print" aria-label="Unfold" data-toggle="tooltip" data-container="body" title="Open/unfold this message so that you can see its contents. Does not affect other users." onClick={onFold}>
                     <span className="fas fa-plus" aria-hidden="true"/>
                   </button>
                 else
-                  <button className="btn btn-info foldButton hidden-print" aria-label="Fold" data-toggle="tooltip" data-container="body" data-title="Close/fold this message, e.g. to skip over its contents. Does not affect other users.">
+                  <button className="btn btn-info foldButton hidden-print" aria-label="Fold" data-toggle="tooltip" data-container="body" title="Close/fold this message, e.g. to skip over its contents. Does not affect other users." onClick={onFold}>
                     <span className="fas fa-minus" aria-hidden="true"/>
                   </button>
                 }
-                <a className="btn btn-info focusButton" aria-label="Focus" href={pathFor 'message', {group: message.group, message: message._id}} draggable="true" data-toggle="tooltip" data-container="body" data-title="Zoom in/focus on just the subthread of this message and its descendants">
+                <a className="btn btn-info focusButton" aria-label="Focus" href={pathFor 'message', {group: message.group, message: message._id}} draggable="true" data-toggle="tooltip" data-container="body" title="Zoom in/focus on just the subthread of this message and its descendants">
                   <span className="fas fa-sign-in-alt" aria-hidden="true"/>
                 </a>
               </>
@@ -1923,69 +1925,102 @@ Submessage = ({message}) ->
             <span className="fas fa-paperclip"/>
           }
           <span className="title panel-title tex2jax"
-          dangerouslySetInnerHTML={__html: formattedTitle[1]}/>
+          dangerouslySetInnerHTML={__html: formattedTitle[0]}/>
           {###+messageTags###}
           {###+messageLabels###}
         </span>
       }
-      {###http://stackoverflow.com/questions/22390272/how-to-create-a-label-with-close-icon-in-bootstrap
-      if editing
-        <span message-subtitle
-          span.upper-strut
-          span.tags
+      {###http://stackoverflow.com/questions/22390272/how-to-create-a-label-with-close-icon-in-bootstrap###}
+      {if editing
+        <span className="message-subtitle">
+          <span className="upper-strut"/>
+          <span className="tags">
+          {###
             each tags
               span.label.label-default.tag.tagWithRemove
                 | #{key}
                 span.tagRemove.fas.fa-times-circle(aria-label="Remove",data-tag=key)
               |  
-          span.btn-group
-            button.btn.btn-default.label.label-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
-              span.fas.fa-plus
+          ###}
+          </span>
+          <span className="btn-group">
+            <button className="btn btn-default label label-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <span className="fas fa-plus">
               | Tag
-            ul.dropdown-menu(role="menu").tagMenu
-              li.disabled
-                a
-                  form.input-group.input-group-sm
-                    input.tagAddText.form-control(type="text", placeholder="New Tag...")
-                    .input-group-btn
-                      button.btn.btn-default.tagAddNew(type="submit")
-                        span.fas.fa-plus
+              </span>
+            </button>
+            <ul className="dropdown-menu tagMenu" role="menu">
+              <li className="disabled">
+                <a>
+                  <form className="input-group input-group-sm">
+                    <input className="tagAddText form-control" type="text" placeholder="New Tag..."/>
+                    <div className="input-group-btn">
+                      <button className="btn btn-default tagAddNew" type="submit">
+                        <span className="fas fa-plus"/>
+                      </button>
+                    </div>
+                  </form>
+                </a>
+              </li>
+              {###
               if absentTagsCount
                 li.divider(role="separator")
               each absentTags
                 li
                   a.tagAdd(href="#",data-tag=key) #{key}
+              ###}
+            </ul>
+          </span>
+          {###
           +messageLabels
-          span.lower-strut
-      // Buttons and badge on the right of the message
-      .pull-right.hidden-print.message-right-buttons
-        unless root
-          span.badge(data-toggle="tooltip", title="Number of submessages within thread")= submessageCount
-          span.space
-        .btn-group
-          unless folded
-            unless editing
-              if raw
-                button.btn.btn-default.rawButton(tabindex={tabindex0+1}) Formatted
+          ###}
+          <span className="lower-strut"/>
+        </span>
+      }
+      {### Buttons and badge on the right of the message ###}
+      <div className="pull-right hidden-print message-right-buttons">
+        {unless message.root
+          <span className="badge" data-toggle="tooltip" title="Number of submessages within thread">
+            {message.submessageCount}
+          </span>
+          <span className="space"/>
+        }
+        <div className="btn-group">
+          {unless folded or editing
+            <>
+              {if raw
+                <button className="btn btn-default rawButton" tabIndex={tabindex0+1} onClick={onRaw}>Formatted</button>
               else
-                button.btn.btn-default.rawButton(tabindex={tabindex0+1}) Raw
-              unless history
-                button.btn.btn-default.historyButton(tabindex={tabindex0+2}) History
-          if history
-            if historyAll
-              button.btn.btn-default.historyAllButton(tabindex={tabindex0+2}) Show Finished
-            else
-              button.btn.btn-default.historyAllButton(tabindex={tabindex0+2}) Show All
-            button.btn.btn-default.historyButton(tabindex={tabindex0+3}) Exit History
-          if editing
-            unless root
+                <button className="btn btn-default rawButton" tabIndex={tabindex0+1} onClick={onRaw}>Raw</button>
+              }
+              {unless history
+                <button className="btn btn-default historyButton" tabIndex={tabindex0+2} onClick={onHistory}>History</button>
+              }
+            </>
+          }
+          {if history
+            <>
+              {if historyAll
+                <button className="btn btn-default historyAllButton" tabIndex={tabindex0+2} onClick={onHistoryAll}>Show Finished</button>
+              else
+                <button className="btn btn-default historyAllButton" tabIndex={tabindex0+2} onClick={onHistoryAll}>Show All</button>
+              }
+              <button className="btn btn-default historyButton" tabIndex={tabindex0+3} onClick={onHistory}>Exit History</button>
+            </>
+          }
+          {###
+          {if editing
+            unless message.root
               +threadPrivacy
-            +keyboardSelector _id=_id tabindex=tabindex0+6
-            +formatSelector format=format tabindex=tabindex0+7
+            +keyboardSelector _id=_id tabIndex=tabindex0+6
+            +formatSelector format=format tabIndex=tabindex0+7
+          }
+          ###}
+          {###
           unless history
             if canAction
               .btn-group
-                button.btn.btn-info.actionButton.dropdown-toggle(tabindex={tabindex0+4}, type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
+                button.btn.btn-info.actionButton.dropdown-toggle(tabIndex={tabindex0+4}, type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
                   | Action
                   span.caret
                 ul.dropdown-menu.dropdown-menu-right.actionMenu(role="menu")
@@ -1993,12 +2028,12 @@ Submessage = ({message}) ->
                     if canUnminimize
                       li
                         a.minimizeButton(href="#")
-                          button.btn.btn-success.btn-block(data-toggle="tooltip", data-container="body", data-placement="left", data-html="true", data-title="Open/unfold this message <b>for all users</b>. Use this if a discussion becomes relevant again. If you just want to open/unfold the message to see it yourself temporarily, use the [+] button on the left.") Unminimize
+                          button.btn.btn-success.btn-block(data-toggle="tooltip", data-container="body", data-placement="left", data-html="true", title="Open/unfold this message <b>for all users</b>. Use this if a discussion becomes relevant again. If you just want to open/unfold the message to see it yourself temporarily, use the [+] button on the left.") Unminimize
                   else
                     if canMinimize
                       li
                         a.minimizeButton(href="#")
-                          button.btn.btn-danger.btn-block(data-toggle="tooltip", data-container="body", data-placement="left", data-html="true", data-title="Close/fold this message <b>for all users</b>. Use this to clean up a thread when the discussion of this message (and all its replies) is resolved/no longer important. If you just want to close/fold the message yourself temporarily, use the [−] button on the left.") Minimize
+                          button.btn.btn-danger.btn-block(data-toggle="tooltip", data-container="body", data-placement="left", data-html="true", title="Close/fold this message <b>for all users</b>. Use this to clean up a thread when the discussion of this message (and all its replies) is resolved/no longer important. If you just want to close/fold the message yourself temporarily, use the [−] button on the left.") Minimize
                   if deleted
                     if canUndelete
                       li
@@ -2038,16 +2073,18 @@ Submessage = ({message}) ->
                         button.btn.btn-warning.btn-block Move
             if editing
               if editStopping
-                button.btn.btn-info.editButton.disabled(tabindex={tabindex0+8}, title="Waiting for save to complete before stopping editing...") Stop Editing
+                button.btn.btn-info.editButton.disabled(tabIndex={tabindex0+8}, title="Waiting for save to complete before stopping editing...") Stop Editing
               else
-                button.btn.btn-info.editButton(tabindex={tabindex0+8}) Stop Editing
+                button.btn.btn-info.editButton(tabIndex={tabindex0+8}) Stop Editing
             else
               unless folded
                 if canEdit
                   if message.file
-                    +messageReplace _id=_id group=group tabindex=tabindex0+7
-                  button.btn.btn-info.editButton(tabindex={tabindex0+8}) Edit
-      ###}
+                    +messageReplace _id=_id group=group tabIndex=tabindex0+7
+                  button.btn.btn-info.editButton(tabIndex={tabindex0+8}) Edit
+          ###}
+        </div>
+      </div>
     </div>
     {unless folded
       previewSideBySide = editing and preview.on and preview.sideBySide
@@ -2079,7 +2116,7 @@ Submessage = ({message}) ->
                   <div className="file-right-buttons btn-group hidden-print">
                     {###if image
                       +messageImage
-                    +messageReplace _id=_id group=group tabindex=tabindex0+9
+                    +messageReplace _id=_id group=group tabIndex=tabindex0+9
                     ###}
                   </div>
                 </div>
@@ -2104,7 +2141,7 @@ Submessage = ({message}) ->
           .resizer
         ###}
         <div className="message-footer">
-          {###+messageAuthor###}
+          <MessageAuthor message={historified}/>
           <div className="message-response-buttons clearfix hidden-print">
             {if editing
               <div className="btn-group pull-right">
@@ -2130,14 +2167,14 @@ Submessage = ({message}) ->
             }
           </div>
         </div>
-        {if message.children?.length
+        {if children.length
           <>
             <div className="children clearfix">
               {if message.readChildren
                 for child in message.readChildren
                   <Submessage key={child._id} message={child}/>
               else
-                for child from childrenLookup message
+                for child in children
                   <Submessage key={child._id} message={child}/>
               }
             </div>
@@ -2153,7 +2190,7 @@ Submessage = ({message}) ->
                     <span className="fas fa-paperclip"/>
                   }
                   <span className="panel-title"
-                  dangerouslySetInnerHTML={__html: formattedTitle[0]}/>
+                  dangerouslySetInnerHTML={__html: formattedTitle[1]}/>
                   {###
                   +messageTags
                   +messageLabels
@@ -2167,3 +2204,34 @@ Submessage = ({message}) ->
     }
   </div>
 Submessage.displayName = 'Submessage'
+
+MessageAuthor = React.memo ({message}) ->
+  formatted = useTracker ->
+    a =
+      for own author, date of message.authors
+        author = unescapeUser author
+        continue if author == message.creator and date.getTime() == message.created?.getTime()
+        "#{linkToAuthor message.group, author}#{formatDate date, ' on '}"
+    creator: linkToAuthor message.group, message.creator
+    date:
+      if message.published
+        formatDate message.published, ' on '
+      else
+        formatDate message.created, ' on '
+    authors:
+      if a.length
+        ", edited by #{a.join ', '}"
+  , [message]
+
+  <div className="author text-right">
+    {if message.published
+      '(posted by '
+    else
+      '(created by '
+    }
+    <span dangerouslySetInnerHTML={__html: formatted.creator}/>
+    {formatted.date}
+    <span dangerouslySetInnerHTML={__html: formatted.authors}/>
+    {')'}
+  </div>
+MessageAuthor.displayName = 'MessageAuthor'
