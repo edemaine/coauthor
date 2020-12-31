@@ -37,7 +37,7 @@ template(name="message")
           each orphans
             +submessage
       +credits
-    //-.col-md-3(role="complementary").hidden-print.hidden-xs.hidden-sm
+    .col-md-3(role="complementary").hidden-print.hidden-xs.hidden-sm
       +tableOfContentsRoot
 
 template(name="submessageHeader")
@@ -59,7 +59,7 @@ template(name="rootHeader")
 
 template(name="tableOfContentsRoot")
   div
-    +React component=TableOfContentsRoot message=message
+    +React component=TableOfContents message=message root=true
 
 template(name="messageBad")
   if ready
