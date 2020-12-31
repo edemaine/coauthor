@@ -81,6 +81,20 @@ Template.registerHelper 'childLookup', (index) ->
   msg.index = index
   msg
 
+childrenLookup = (message) ->
+  ## Lookup children in message.children, and annotate with extra fields
+  ## `parent` and `index`.  Output in an iterator.
+  for childID, index in message.children
+    msg = Messages.findOne childID
+    continue unless msg?
+    ## Use canSee to properly fake non-superuser mode.
+    continue unless canSee msg
+    ## Parent ID and index are nonreactive: If we get reparented,
+    ## a totally new template should get created.
+    child.parent = message._id
+    child.index = index
+    yield child
+
 Template.registerHelper 'tags', ->
   sortTags @tags
 
@@ -702,12 +716,6 @@ Template.submessage.helpers
   Submessage: -> Submessage
   message: -> @
   canReply: -> canPost @group, @_id
-  tabindex: tabindex
-  tabindex5: -> tabindex 5
-  tabindex7: -> tabindex 7
-  tabindex9: -> tabindex 9
-  here: -> here @_id
-  nothing: {}
   editingRV: -> Template.instance().editing.get()
   editingNR: -> Tracker.nonreactive -> Template.instance().editing.get()
   editStopping: -> Template.instance().editStopping.get()
@@ -1613,6 +1621,61 @@ Template.replyButtons.helpers
   canPublicReply: -> 'public' in (@threadPrivacy ? ['public'])
   canPrivateReply: -> 'private' in (@threadPrivacy ? ['public'])
 
+Template.tableOfContentsRoot.helpers
+  TableOfContentsRoot: -> TableOfContentsRoot
+  message: -> @
+
+TableOfContentsRoot = ({message}) ->
+  return null unless message?
+  formattedTitleBold = useMemo ->
+    formatTitleOrFilename message, false, false, true  ## don't say (untitled)
+  , [message]
+  <nav className="contents">
+    <ul className="nav contents">
+      <li>
+        <a href="##{message._id}" data-id={message._id} class={messageClass.call message} className="title onMessageDrop">
+          {if editing
+            <span className="fas fa-edit"/>
+          }
+          {if file
+            <span className="fas fa-paperclip"/>
+          }
+          <span dangerouslySetInnerHTML={__html: formattedTitleBold}/>
+          [{creator}]
+        </a>
+      </li>
+    </ul>
+    <TableOfContents message={message}/>
+  </nav>
+
+TableOfContents = ({message}) ->
+  return null unless message?
+  return null unless message.children.length
+  <ul className="nav subcontents">
+    {for child from childrenLookup message
+      <TableOfContentsMessage key={child._id} message={child}/>
+    }
+  </ul>
+
+TableOfContentsMessage = ({message}) ->
+  formattedTitle = useMemo ->
+    formatTitleOrFilename message, false, false, false  ## don't say (untitled)
+  , [message]
+  <li className="btn-group-xs #{foldedClass.call message}">
+    <div className="beforeMessageDrop" data-parent={message.parent} data-index={message.index}/>
+    <a href="##{message._id}" data-id={message._id} className="onMessageDrop #{messageClass.call message}">
+      {if editing
+        <span className="fas fa-edit"/>
+      }
+      {if file
+        <span className="fas fa-paperclip"/>
+      }
+      <span dangerouslySetInnerHTML={__html: formattedTitle}/>
+      [{creator}]
+    </a>
+    <TableOfContents message={message}/>
+  </li>
+
 Template.tableOfContentsMessage.onRendered ->
   @autorun =>
     listener = messageDrag.call @, @find('a'), false, listener
@@ -2068,16 +2131,8 @@ Submessage = ({message}) ->
                 for child in message.readChildren
                   <Submessage key={child._id} message={child}/>
               else
-                for childID, index in message.children
-                  child = Messages.findOne childID
-                  continue unless child?
-                  ## Use canSee to properly fake non-superuser mode.
-                  continue unless canSee child
-                  ## Parent ID is nonreactive: If we get reparented,
-                  ## a totally new template should get created.
-                  child.parent = message._id
-                  child.index = index
-                  <Submessage key={childID} message={child}/>
+                for child from childrenLookup message
+                  <Submessage key={child._id} message={child}/>
               }
             </div>
             {if canReply message

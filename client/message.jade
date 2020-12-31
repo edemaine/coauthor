@@ -58,34 +58,8 @@ template(name="rootHeader")
           +messageLabels
 
 template(name="tableOfContentsRoot")
-  nav.contents
-    ul.nav.contents
-      li
-        a(href="#{{_id}}", data-id=_id, class=messageClass).title.tex2jax.onMessageDrop
-          if editing
-            span.fas.fa-edit
-          if file
-            span.fas.fa-paperclip
-          | !{formatTitleBold} [#{creator}]
-    +tableOfContents
-
-template(name="tableOfContents")
-  if children.length
-    ul.nav.subcontents
-      each children
-        with childLookup @index
-          +tableOfContentsMessage
-
-template(name="tableOfContentsMessage")
-  li.btn-group-xs(class=foldedClass)
-    div.beforeMessageDrop(data-parent=parent, data-index=index)
-    a(href="#{{_id}}", data-id=_id, class=messageClass).tex2jax.onMessageDrop
-      if editing
-        span.fas.fa-edit
-      if file
-        span.fas.fa-paperclip
-      | !{formatTitle} [#{creator}]
-    +tableOfContents
+  div
+    +React component=TableOfContentsRoot message=message
 
 template(name="messageBad")
   if ready
