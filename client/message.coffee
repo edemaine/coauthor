@@ -166,7 +166,7 @@ Template.messageMaybe.onRendered ->
 Template.messageBad.helpers
   message: -> Router.current().params.message
 
-orphans = (message) ->
+messageOrphans = (message) ->
   descendants = []
   Messages.find
     $or: [
@@ -178,6 +178,7 @@ orphans = (message) ->
   Messages.find
     root: message
     _id: $nin: descendants
+  .fetch()
 
 authorCountHelper = (field) -> ->
   tooltipUpdate()
@@ -194,6 +195,8 @@ authorCountHelper = (field) -> ->
   authors.join ', '
 
 Template.message.helpers
+  Message: -> Message
+  messageID: -> @_id
   authors: authorCountHelper 'threadAuthors'
   mentions: authorCountHelper 'threadMentions'
   subscribers: ->
@@ -232,12 +235,6 @@ Template.message.helpers
       title = icon = undefined if emailless()
       linkToAuthor @group, user.username, title, icon
     ).join ', '
-  orphans: ->
-    orphans @_id
-  orphanCount: ->
-    count = orphans(@_id).count()
-    if count > 0
-      pluralize count, 'orphaned subthread'
 
 Template.message.onCreated ->
   @autorun ->
@@ -262,6 +259,73 @@ Template.message.onRendered ->
   #setTimeout ->
   #  $('input.title').first().focus()
   #, 100
+
+Message = React.memo ({messageID}) ->
+  return null unless messageID?
+  message = useTracker ->
+    Messages.findOne messageID
+  , [messageID]
+  orphans = useTracker ->
+    messageOrphans messageID
+  , [messageID]
+  authors = mentions = subscribers = '' # TODO
+
+  <div className="row">
+    <div className="col-md-9" role="main">
+      {###
+      +rootHeader
+      ###}
+      <Submessage message={message}/>
+      <div className="authors.alert.alert-info">
+        {if authors
+          <>
+            <p>
+              <b>Authors of visible messages in this thread:</b>
+            </p>
+            <p dangerouslySetInnerHTML={__html: authors}/>
+          </>
+        }
+        {if mentions
+          <>
+            {if authors
+              <hr/>
+            }
+            <p>
+              <b>Users @mentioned in visible messages in this thread:</b>
+            </p>
+            <p dangerouslySetInnerHTML={__html: mentions}/>
+          </>
+        }
+      </div>
+      <div className="subscribers alert alert-success">
+        <p>
+          {if emailless()
+            <b>Users who can read this message:</b>
+          else
+            <b>Users who can read this message, and whether they are subscribed to notifications:</b>
+          }
+        </p>
+        <p dangerouslySetInnerHTML={__html: subscribers}/>
+      </div>
+      {if orphans.length
+        <div className="orphans alert alert-warning">
+          <b data-toggle="tooltip" title="Orphan subthreads are caused by someone deleting a message that has (undeleted) children, which become orphans.  You can move these orphans to a valid parent, or delete them, or ask the author or a superuser to undelete the original parent.">
+            {pluralize orphans.length, 'orphaned subthread'}
+          </b>
+          {for orphan in orphans
+            <Submessage key={orphan._id} message={orphan}/>
+          }
+        </div>
+      }
+      {###
+      +credits
+      ###}
+    </div>
+    <div className="col-md-3 hidden-print hidden-xs hidden-sm" role="complementary">
+      <TableOfContents message={message}/>
+    </div>
+  </div>
+Message.displayName = 'Message'
 
 editingMessage = (message, user = Meteor.user()) ->
   user? and user.username in (message.editing ? [])

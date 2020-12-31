@@ -8,37 +8,8 @@ template(name="messageMaybe")
     +messageBad
 
 template(name="message")
-  .row
-    .col-md-9(role="main")
-      +rootHeader
-      +submessage
-      .authors.alert.alert-info
-        if authors
-          p
-            b Authors of visible messages in this thread:
-          p !{authors}
-        if mentions
-          if authors
-            hr
-          p
-            b Users @mentioned in visible messages in this thread:
-          p !{mentions}
-      .subscribers.alert.alert-success
-        p
-          if emailless
-            b Users who can read this message:
-          else
-            b Users who can read this message, and whether they are subscribed to notifications:
-        p !{subscribers}
-      if orphanCount
-        .orphans.alert.alert-warning
-          b
-            span(data-toggle="tooltip", title="Orphan subthreads are caused by someone deleting a message that has (undeleted) children, which become orphans.  You can move these orphans to a valid parent, or delete them, or ask the author or a superuser to undelete the original parent.") #{orphanCount}:
-          each orphans
-            +submessage
-      +credits
-    .col-md-3(role="complementary").hidden-print.hidden-xs.hidden-sm
-      +tableOfContentsRoot
+  div
+    +React component=Message messageID=messageID
 
 template(name="submessageHeader")
   +rootHeader
