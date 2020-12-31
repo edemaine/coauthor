@@ -109,8 +109,10 @@ Template.registerHelper 'tags', ->
   sortTags @tags
 
 Template.registerHelper 'linkToTag', ->
+  linkToTag Template.parentData().group
+linkToTag = (group) ->
   #pathFor 'tag',
-  #  group: Template.parentData().group
+  #  group: group
   #  tag: @key
   search = @key
   if 0 <= search.indexOf ' '
@@ -123,7 +125,7 @@ Template.registerHelper 'linkToTag', ->
     else
       search = "\"#{search}\""
   pathFor 'search',
-    group: Template.parentData().group
+    group: group
     search: "tag:#{search}"
 
 Template.registerHelper 'folded', ->
@@ -135,6 +137,31 @@ Template.rootHeader.helpers
   root: ->
     if @root
       Messages.findOne @root
+
+RootHeader = React.memo ({message}) ->
+  return null unless message.root
+  root = useTracker ->
+    Messages.findOne message.root
+  , [message.root]
+  formattedTitle = useMemo ->
+    formatTitleOrFilename root.title, false, false, true
+  , [root]
+
+  <div className="panel panel-default root" data-message={root._id}>
+    <div className="panel-heading compact title">
+      <div className="message-left-buttons push-down btn-group btn-group-xs">
+        <a className="btn btn-info focusButton" aria-label="Focus" href={pathFor 'message', {group: root.group, message: root._id}}>
+          <span className="fas fa-sign-in-alt" aria-hidden="true"/>
+        </a>
+      </div>
+      <span className="space"/>
+      <span className="title panel-title"
+       dangerouslySetInnerHTML={__html: formattedTitle}/>
+      <MessageTags message={message}/>
+      <MessageLabels message={message}/>
+    </div>
+  </div>
+RootHeader.displayName = 'RootHeader'
 
 Template.registerHelper 'formatTitle', ->
   formatTitleOrFilename @, false
@@ -272,11 +299,9 @@ Message = React.memo ({messageID}) ->
 
   <div className="row">
     <div className="col-md-9" role="main">
-      {###
-      +rootHeader
-      ###}
+      <RootHeader message={message}/>
       <Submessage message={message}/>
-      <div className="authors.alert.alert-info">
+      <div className="authors alert alert-info">
         {if authors
           <>
             <p>
@@ -322,7 +347,7 @@ Message = React.memo ({messageID}) ->
       ###}
     </div>
     <div className="col-md-3 hidden-print hidden-xs hidden-sm" role="complementary">
-      <TableOfContents message={message}/>
+      <TableOfContents message={message} root={true}/>
     </div>
   </div>
 Message.displayName = 'Message'
@@ -1103,11 +1128,43 @@ Template.submessage.helpers
 Template.messageTags.helpers
   tags: historify 'tags', sortTags
 
+MessageTags = React.memo ({message}) ->
+  <span className="messageTags">
+    {for tag in sortTags message.tags
+      <>
+        <a href={linkToTag.call tag, message.group} className="tagLink">
+          <span className="tag label label-default">
+            {tag.key}
+          </span>
+        </a>
+        ' '
+      </>
+    }
+  </span>
+MessageTags.displayName = 'MessageTags'
+
 Template.messageLabels.helpers
   deleted: historify 'deleted'
   published: historify 'published'
   minimized: historify 'minimized'
   private: historify 'private'
+
+MessageLabels = React.memo ({message}) ->
+  <span className="messageLabels">
+    {if message.deleted
+      <span className="label label-danger">Deleted</span>
+    }
+    {unless message.published
+      <span className="label label-warning">Unpublished</span>
+    }
+    {if message.private
+      <span className="label label-info">Private</span>
+    }
+    {if message.minimized
+      <span className="label label-success">Minimized</span>
+    }
+  </span>
+MessageLabels.displayName = 'MessageLabels'
 
 Template.messageNeighbors.helpers
   parent: ->
@@ -1911,7 +1968,7 @@ Submessage = React.memo ({message}) ->
   , []
   editing = editingMessage message, user
   raw = useTracker ->
-    messageRaw.get message._id
+    not editing and messageRaw.get message._id
   , [message._id]
   folded = useTracker ->
     (messageFolded.get message._id) and
@@ -1928,18 +1985,21 @@ Submessage = React.memo ({message}) ->
     history? or
     messagePreview.get(message._id) ? messagePreviewDefault()
   , [history?, message._id]
-  formattedTitle = useTracker ->
+  formattedTitle = useMemo ->
     for bold in [true, false]
       ## Only render unbold title if we have children (for back pointer)
-      continue unless bold or message.children.length
-      if messageRaw.get message._id
+      continue unless bold or message.children.length > 0
+      if raw
         "<CODE CLASS='raw'>#{_.escape historified.title}</CODE>"
       else
         formatTitleOrFilename historified, false, false, bold  ## don't say (untitled)
-  , [message._id, historified.title, historified.format]
-  formattedBody = useTracker ->
-    formatBody historified.format, historified.body
-  , [historified.format, historified.body]
+  , [historified.title, historified.format, raw, message.children.length > 0]
+  formattedBody = useMemo ->
+    if raw
+      "<PRE CLASS='raw'>#{_.escape historified.body}</PRE>"
+    else
+      formatBody historified.format, historified.body
+  , [historified.body, historified.format, raw]
   children = useChildren message
   ref = useRefTooltip()
 
@@ -1995,8 +2055,8 @@ Submessage = React.memo ({message}) ->
           }
           <span className="title panel-title tex2jax"
           dangerouslySetInnerHTML={__html: formattedTitle[0]}/>
-          {###+messageTags###}
-          {###+messageLabels###}
+          <MessageTags message={historified}/>
+          <MessageLabels message={historified}/>
         </span>
       }
       {###http://stackoverflow.com/questions/22390272/how-to-create-a-label-with-close-icon-in-bootstrap###}
@@ -2040,9 +2100,7 @@ Submessage = React.memo ({message}) ->
               ###}
             </ul>
           </span>
-          {###
-          +messageLabels
-          ###}
+          <MessageLabels message={message}/>
           <span className="lower-strut"/>
         </span>
       }
@@ -2260,10 +2318,8 @@ Submessage = React.memo ({message}) ->
                   }
                   <span className="panel-title"
                   dangerouslySetInnerHTML={__html: formattedTitle[1]}/>
-                  {###
-                  +messageTags
-                  +messageLabels
-                  ###}
+                  <MessageTags message={message}/>
+                  <MessageLabels message={message}/>
                 </span>
               </div>
             }
