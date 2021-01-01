@@ -1645,7 +1645,7 @@ ReplyButtons = React.memo ({message, prefix}) ->
     {if canPrivateReply message
       <button className="btn btn-default replyButton" data-privacy="private" onClick={onReply}>{prefix}Private Reply</button>
     }
-    <input className="attachInput" type="file" multiple style={display:'none'}/>
+    <input className="attachInput" type="file" multiple/>
     <button className="btn btn-default attachButton">Attach</button>
   </div>
 ReplyButtons.displayName = 'ReplyButtons'
@@ -2312,13 +2312,13 @@ MessageAuthor = React.memo ({message}) ->
       for own author, date of message.authors
         author = unescapeUser author
         continue if author == message.creator and date.getTime() == message.created?.getTime()
-        "#{linkToAuthor message.group, author}#{formatDate date, ' on '}"
+        "#{linkToAuthor message.group, author} #{formatDate date, 'on '}"
     creator: linkToAuthor message.group, message.creator
     date:
       if message.published
-        formatDate message.published, ' on '
+        formatDate message.published, 'on '
       else
-        formatDate message.created, ' on '
+        formatDate message.created, 'on '
     authors:
       if a.length
         ", edited by #{a.join ', '}"
@@ -2331,6 +2331,7 @@ MessageAuthor = React.memo ({message}) ->
       '(created by '
     }
     <span dangerouslySetInnerHTML={__html: formatted.creator}/>
+    {' '}
     {formatted.date}
     <span dangerouslySetInnerHTML={__html: formatted.authors}/>
     {')'}
