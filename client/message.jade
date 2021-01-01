@@ -28,10 +28,6 @@ template(name="rootHeader")
           +messageTags
           +messageLabels
 
-template(name="tableOfContentsRoot")
-  div
-    +React component=TableOfContents message=message root=true
-
 template(name="messageBad")
   if ready
     .alert.alert-danger The message &ldquo;<b>#{message}</b>&rdquo; does not exist or you do not have permission to access it.

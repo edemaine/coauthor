@@ -50,61 +50,6 @@ switch sharejsEditor
 Template.registerHelper 'titleOrUntitled', ->
   titleOrUntitled @
 
-Template.registerHelper 'childrenCount', ->
-  return 0 unless @children and @children.length > 0
-  return @readChildren.length if @readChildren
-  msgs = Messages.find
-    _id: $in: @children
-  .fetch()
-  msgs = (msg for msg in msgs when canSee msg)
-  msgs.length
-
-Template.registerHelper 'childLookup', (index) ->
-  ## Usage:
-  ##   each children
-  ##     with childLookup @index
-  ## Assumes `this` is a String object whose value is a message ID,
-  ## and the argument is the index of interation.  Fetches the message,
-  ## and populates it with additional `index` and `parent` fields.
-  ## In this careful usage, we don't spill reactive dependencies
-  ## between parents and children.
-  #console.log 'looking up', @valueOf()
-  msg = Messages.findOne @valueOf()
-  return msg unless msg
-  ## Use canSee to properly fake non-superuser mode.
-  return unless canSee msg
-  ## Import _id information from parent nonreactively.
-  ## If we get reparented, a totally new template should get created,
-  ## so we don't need to be reactive to changes to parentData.
-  parentData = Tracker.nonreactive -> Template.parentData()
-  msg.parent = parentData._id
-  #msg.depth = parentData.depth
-  msg.index = index
-  msg
-
-childrenLookup = (message) ->
-  ## Lookup children in message.children, and annotate with extra fields
-  ## `parent` and `index`.
-  ## Alternate approach: single call to Messages.find
-  #childrenByID = {}
-  #Messages.find _id: $in: message.children
-  #.forEach (child) -> childrenByID[child._id] = child
-  for childID, index in message.children
-    child = Messages.findOne childID #childrenByID[childID]
-    continue unless child?
-    ## Use canSee to properly fake non-superuser mode.
-    continue unless canSee child
-    ## Parent ID and index are nonreactive: If we get reparented,
-    ## a totally new template should get created.
-    child.parent = message._id
-    child.index = index
-    child
-useChildren = (message) ->
-  useTracker ->
-    childrenLookup message
-  , [message._id, message.children.join ',']
-    ## Depend on actual sequence of message children, not the array object
-
 Template.registerHelper 'tags', ->
   sortTags @tags
 
@@ -263,10 +208,6 @@ Template.message.helpers
       linkToAuthor @group, user.username, title, icon
     ).join ', '
 
-Template.message.onCreated ->
-  @autorun ->
-    setTitle titleOrUntitled Template.currentData()
-
 $(window).resize affixResize = _.debounce ->
   $('.affix').height $(window).height()
   $('.affix-top').height $(window).height() - $('#top').outerHeight true
@@ -292,6 +233,10 @@ Message = React.memo ({messageID}) ->
   message = useTracker ->
     Messages.findOne messageID
   , [messageID]
+  useEffect ->
+    setTitle titleOrUntitled message
+    undefined
+  , [message.title]
   orphans = useTracker ->
     messageOrphans messageID
   , [messageID]
@@ -333,21 +278,24 @@ Message = React.memo ({messageID}) ->
         <p dangerouslySetInnerHTML={__html: subscribers}/>
       </div>
       {if orphans.length
-        <div className="orphans alert alert-warning">
-          <b data-toggle="tooltip" title="Orphan subthreads are caused by someone deleting a message that has (undeleted) children, which become orphans.  You can move these orphans to a valid parent, or delete them, or ask the author or a superuser to undelete the original parent.">
-            {pluralize orphans.length, 'orphaned subthread'}
-          </b>
-          {for orphan in orphans
+        orphans =
+          for orphan in orphans
             <Submessage key={orphan._id} message={orphan}/>
-          }
-        </div>
+        orphans = (orphan for orphan in orphans when orphan?)
+        if orphans.length
+          <div className="orphans alert alert-warning">
+            <b data-toggle="tooltip" title="Orphan subthreads are caused by someone deleting a message that has (undeleted) children, which become orphans.  You can move these orphans to a valid parent, or delete them, or ask the author or a superuser to undelete the original parent.">
+              {pluralize orphans.length, 'orphaned subthread'}
+            </b>
+            {orphans}
+          </div>
       }
       {###
       +credits
       ###}
     </div>
     <div className="col-md-3 hidden-print hidden-xs hidden-sm" role="complementary">
-      <TableOfContents message={message} root={true}/>
+      <TableOfContents messageID={messageID} root={true}/>
     </div>
   </div>
 Message.displayName = 'Message'
@@ -1689,11 +1637,18 @@ Template.replyButtons.helpers
   canPublicReply: -> 'public' in (@threadPrivacy ? ['public'])
   canPrivateReply: -> 'private' in (@threadPrivacy ? ['public'])
 
-TableOfContents = React.memo ({message, root}) ->
+TableOfContents = React.memo ({messageID, parent, index}) ->
+  return null unless messageID?
+  isRoot = not parent?
+  message = useTracker ->
+    Messages.findOne messageID
+  , [messageID]
   return null unless message?
+  ## Use canSee to properly fake non-superuser mode.
+  return null unless isRoot or canSee message
   formattedTitle = useMemo ->
-    formatTitleOrFilename message, false, false, root  ## don't say (untitled)
-  , [message, root]
+    formatTitleOrFilename message, false, false, isRoot  ## don't say (untitled)
+  , [message, isRoot]
   user = useTracker ->
     Meteor.user()
   , []
@@ -1701,13 +1656,12 @@ TableOfContents = React.memo ({message, root}) ->
   creator = useTracker ->
     displayUser message.creator
   , [message.creator]
-  children = useChildren message
   inner =
     <>
-      {unless root
-        <div className="beforeMessageDrop" data-parent={message.parent} data-index={message.index}/>
+      {unless isRoot
+        <div className="beforeMessageDrop" data-parent={parent} data-index={index}/>
       }
-      <a href="##{message._id}" data-id={message._id} className="onMessageDrop #{if root then 'title' else ''} #{messageClass.call message}">
+      <a href="##{message._id}" data-id={message._id} className="onMessageDrop #{if isRoot then 'title' else ''} #{messageClass.call message}">
         {if editing
           <span className="fas fa-edit"/>
         }
@@ -1719,14 +1673,17 @@ TableOfContents = React.memo ({message, root}) ->
         [{creator}]
       </a>
     </>
-  renderedChildren =
-    if message.children.length
+  renderedChildren = useMemo ->
+    rendereds =
+      for childID, index in message.children
+        <TableOfContents key={childID} messageID={childID} parent={messageID} index={index}/>
+    rendereds = (rendered for rendered in rendereds when rendered?)
+    if rendereds.length
       <ul className="nav subcontents">
-        {for child in children
-          <TableOfContents key={child._id} message={child}/>
-        }
+        {rendereds}
       </ul>
-  if root
+  , [message.children.join ',']  # depend on children IDs, not the array
+  if isRoot
     <nav className="contents">
       <ul className="nav contents">
         <li className="btn-group-xs #{foldedClass.call message}">
@@ -1741,10 +1698,6 @@ TableOfContents = React.memo ({message, root}) ->
       {renderedChildren}
     </li>
 TableOfContents.displayName = 'TableOfContents'
-
-Template.tableOfContentsRoot.helpers
-  TableOfContents: -> TableOfContents
-  message: -> @
 
 ###
 Template.tableOfContentsMessage.onRendered ->
@@ -1929,9 +1882,18 @@ Template.messageParentDialog.events
 Template.groupOrMessage.helpers
   loadedMessage: -> @creator?
 
+SubmessageID = React.memo ({messageID}) ->
+  message = useTracker ->
+    Messages.findOne messageID
+  , [messageID]
+  <Submessage message={message}/>
+SubmessageID.displayName = 'SubmessageID'
+
 submessageCount = 0
 Submessage = React.memo ({message}) ->
   return null unless message?
+  ## Use canSee to properly fake non-superuser mode.
+  return null unless here(message._id) or canSee message
   tabindex0 = useMemo ->
     1 + 20 * submessageCount++
   , []
@@ -1984,7 +1946,6 @@ Submessage = React.memo ({message}) ->
     else
       formatBody historified.format, historified.body
   , [historified.body, historified.format, raw]
-  children = useChildren message
   ref = useRefTooltip()
 
   onFold = (e) ->
@@ -2296,18 +2257,20 @@ Submessage = React.memo ({message}) ->
             }
           </div>
         </div>
-        {if children.length
-          <>
-            <div className="children clearfix">
-              {if message.readChildren
-                for child in message.readChildren
-                  <Submessage key={child._id} message={child}/>
-              else
-                for child in children
-                  <Submessage key={child._id} message={child}/>
-              }
-            </div>
-            {if canReply message
+        {if message.children.length
+          renderedChildren =
+            if message.readChildren?
+              for child in message.readChildren
+                <Submessage key={child._id} message={child}/>
+            else
+              for childID in message.children
+                <SubmessageID key={childID} messageID={childID}/>
+          renderedChildren = (rendered for rendered in renderedChildren when rendered?)
+          if renderedChildren.length
+            <>
+              <div className="children clearfix">
+                {renderedChildren}
+              </div>
               <div className="panel-body panel-secondbody hidden-print clearfix">
                 {###+replyButtons###}
                 <span className="message-title">
@@ -2324,8 +2287,7 @@ Submessage = React.memo ({message}) ->
                   <MessageLabels message={message}/>
                 </span>
               </div>
-            }
-          </>
+            </>
         }
       </>
     }
