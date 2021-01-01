@@ -1344,28 +1344,6 @@ Template.submessage.events
         title: newTitle
     , idle
 
-  'click .replyButton': (e, t) ->
-    e.preventDefault()
-    e.stopPropagation()
-    message = @_id
-    if canPost @group, @_id
-      msg = {}
-      privacy = e.target.getAttribute 'data-privacy'
-      switch privacy
-        when 'public'
-          msg.private = false
-        when 'private'
-          msg.private = true
-      Meteor.call 'messageNew', @group, @_id, null, msg, (error, result) ->
-        if error
-          console.error error
-        else if result
-          Meteor.call 'messageEditStart', result
-          scrollToMessage result
-          #Router.go 'message', {group: group, message: result}
-        else
-          console.error "messageNew did not return problem -- not authorized?"
-
   'click .superdeleteButton': (e) ->
     e.preventDefault()
     e.stopPropagation()
@@ -1536,7 +1514,9 @@ attachFiles = (files, e, t) ->
     file.group = group
     Files.resumable.addFile file, e
 
+###
 uploader 'messageAttach', 'attachButton', 'attachInput', attachFiles
+###
 
 replaceFiles = (files, e, t) ->
   message = t.data._id
@@ -1632,10 +1612,43 @@ Template.emojiButtons.events
     symbol = e.currentTarget.getAttribute 'data-symbol'
     Meteor.call 'emojiToggle', message, symbol
 
-Template.replyButtons.helpers
-  canReply: -> canPost @group, @_id
-  canPublicReply: -> 'public' in (@threadPrivacy ? ['public'])
-  canPrivateReply: -> 'private' in (@threadPrivacy ? ['public'])
+canPublicReply = (message) -> 'public' in (message.threadPrivacy ? ['public'])
+canPrivateReply = (message) -> 'private' in (message.threadPrivacy ? ['public'])
+
+ReplyButtons = React.memo ({message, prefix}) ->
+  return null unless canReply message
+
+  onReply = (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+    return unless canReply message
+    reply = {}
+    switch e.target.getAttribute 'data-privacy'
+      when 'public'
+        reply.private = false
+      when 'private'
+        reply.private = true
+    Meteor.call 'messageNew', message.group, message._id, null, reply, (error, result) ->
+      if error
+        console.error error
+      else if result
+        Meteor.call 'messageEditStart', result
+        scrollToMessage result
+        #Router.go 'message', {group: group, message: result}
+      else
+        console.error "messageNew did not return message ID -- not authorized?"
+
+  <div className="btn-group pull-right message-reply-buttons">
+    {if canPublicReply message
+      <button className="btn btn-default replyButton" data-privacy="public" onClick={onReply}>{prefix}{if canPrivateReply message then 'Public '}Reply</button>
+    }
+    {if canPrivateReply message
+      <button className="btn btn-default replyButton" data-privacy="private" onClick={onReply}>{prefix}Private Reply</button>
+    }
+    <input className="attachInput" type="file" multiple style={display:'none'}/>
+    <button className="btn btn-default attachButton">Attach</button>
+  </div>
+ReplyButtons.displayName = 'ReplyButtons'
 
 TableOfContents = React.memo ({messageID, parent, index}) ->
   return null unless messageID?
@@ -2244,16 +2257,15 @@ Submessage = React.memo ({message}) ->
                     Stop Editing
                   </button>
                 }
-                {###if canReply
-                  +messageAttach
-                ###}
-                {###//- +replyButtons -- but want to omit reply buttons which confuse###}
+                <ReplyButtons message={message} prefix="Another "/>
               </div>
-            ###
             else
-              +emojiButtons
-              +replyButtons
-            ###
+              <>
+                {###
+                +emojiButtons
+                ###}
+                <ReplyButtons message={message}/>
+              </>
             }
           </div>
         </div>
@@ -2272,7 +2284,7 @@ Submessage = React.memo ({message}) ->
                 {renderedChildren}
               </div>
               <div className="panel-body panel-secondbody hidden-print clearfix">
-                {###+replyButtons###}
+                <ReplyButtons message={message}/>
                 <span className="message-title">
                   <a className="btn btn-default btn-xs linkToTop" aria-label="Top" href="##{message._id}">
                     <span className="fas fa-caret-up"/>
