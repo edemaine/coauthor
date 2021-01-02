@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react'
+import React, {useEffect, useMemo, useRef, useState} from 'react'
 import {useTracker} from 'meteor/react-meteor-data'
 
 import {useRefTooltip} from './lib/tooltip'
@@ -1395,80 +1395,92 @@ Template.superdelete.events
     e.stopPropagation()
     Modal.hide()
 
-Template.messageHistory.onCreated ->
-  @diffsub = @subscribe 'messages.diff', @data._id
-
-Template.messageHistory.onRendered ->
-  `import('bootstrap-slider')`.then (Slider) =>
-    Slider = Slider.default
+Slider = null
+MessageHistory = React.memo ({message}) ->
+  ready = useTracker ->
+    Meteor.subscribe 'messages.diff', message._id
+    .ready
+  , [message._id]
+  input = useRef()
+  slider = useRef()
+  useTracker ->
+    unless Slider?
+      Session.set 'SliderLoading', true
+      Session.get 'SliderLoading'  # rerun tracker once Slider loaded
+      return `import('bootstrap-slider')`.then (imported) ->
+        Slider = imported.default
+        Session.set 'SliderLoading', false
+    return unless input.current?
     diffs = []
-    @autorun =>
-      previous = messageHistory.get(@data._id)?.diffId
-      if @slider?
-        @slider.destroy()
-        @slider = null
-        ## Rehide slider's <input> in case we don't make one in this round.
-        @find('input').style.display = 'none'
-      diffs = MessagesDiff.find
-        id: @data._id
-      ,
-        sort: ['updated']
-      .fetch()
-      ## Accumulate diffs
+    previous = messageHistory.get(message._id)?.diffId
+    if slider.current?
+      slider.current.destroy()
+      slider.current = null
+    diffs = MessagesDiff.find
+      id: message._id
+    ,
+      sort: ['updated']
+    .fetch()
+    ## Accumulate diffs
+    for diff, i in diffs
+      diff.diffId = diff._id
+      diff._id = message._id
+      if i == 0  # first diff
+        diff.creator = message.creator
+        diff.created = message.created
+        diff.authors = {}
+      else  # later diff
+        diff.authors = _.extend {}, diffs[i-1].authors  # avoid aliasing
+        for own key, value of diffs[i-1] when key != 'finished'
+          unless key of diff
+            diff[key] = value
+      for author in diff.updators ? []
+        diff.authors[escapeUser author] = diff.updated
+    ## Restrict to finished diffs if requested, preserving last chosen diff
+    index = -1
+    unless messageHistoryAll.get message._id
+      finished = []
       for diff, i in diffs
-        diff.diffId = diff._id
-        diff._id = @data._id
-        if i == 0  # first diff
-          diff.creator = @data.creator
-          diff.created = @data.created
-          diff.authors = {}
-        else  # later diff
-          diff.authors = _.extend {}, diffs[i-1].authors  # avoid aliasing
-          for own key, value of diffs[i-1] when key != 'finished'
-            unless key of diff
-              diff[key] = value
-        for author in diff.updators ? []
-          diff.authors[escapeUser author] = diff.updated
-      ## Restrict to finished diffs if requested, preserving last chosen diff
-      index = -1
-      unless messageHistoryAll.get @data._id
-        finished = []
-        for diff, i in diffs
-          if diff.diffId == previous
-            index = finished.length
-          if diff.finished or i == diffs.length - 1
-            finished.push diff
-        diffs = finished
-      else
-        for diff, i in diffs
-          if diff.diffId == previous
-            index = i
-            break
-      unless 0 <= index < diffs.length
-        index = diffs.length - 1
-      previous = diffs[index]?.diffId
-      ## Don't show a zero-length slider
-      return unless diffs.length
-      ## Draw slider
-      @slider = new Slider @find('input'),
-        #min: 0                 ## min and max not needed when using ticks
-        #max: diffs.length-1
-        #value: diffs.length-1  ## doesn't update, unlike setValue method below
-        ticks: [0...diffs.length]
-        ticks_snap_bounds: 999999999
-        reversed: diffs.length == 1  ## put one tick at far right
-        tooltip: 'always'
-        tooltip_position: 'bottom'
-        formatter: (i) ->
-          if i of diffs
-            formatDate(diffs[i].updated) + '\n' + diffs[i].updators.join ', '
-          else
-            i
-      @slider.setValue index
-      #@slider.off 'change'
-      @slider.on 'change', (e) =>
-        messageHistory.set @data._id, diffs[e.newValue]
-      messageHistory.set @data._id, diffs[index]
+        if diff.diffId == previous
+          index = finished.length
+        if diff.finished or i == diffs.length - 1
+          finished.push diff
+      diffs = finished
+    else
+      for diff, i in diffs
+        if diff.diffId == previous
+          index = i
+          break
+    unless 0 <= index < diffs.length
+      index = diffs.length - 1
+    previous = diffs[index]?.diffId
+    ## Don't show a zero-length slider
+    return unless diffs.length
+    ## Draw slider
+    slider.current = new Slider input.current,
+      #min: 0                 ## min and max not needed when using ticks
+      #max: diffs.length-1
+      #value: diffs.length-1  ## doesn't update, unlike setValue method below
+      ticks: [0...diffs.length]
+      ticks_snap_bounds: 999999999
+      reversed: diffs.length == 1  ## put one tick at far right
+      tooltip: 'always'
+      tooltip_position: 'bottom'
+      formatter: (i) ->
+        if i of diffs
+          formatDate(diffs[i].updated) + '\n' + diffs[i].updators.join ', '
+        else
+          i
+    slider.current.setValue index
+    #slider.current.off 'change'
+    slider.current.on 'change', (e) =>
+      messageHistory.set message._id, diffs[e.newValue]
+    messageHistory.set message._id, diffs[index]
+  , [message._id, message.creator, message.created, input.current]
+
+  <div className="historySlider">
+    <input type="text" ref={input}/>
+  </div>
 
 uploader = (template, button, input, callback) ->
   Template[template].events {
@@ -2093,7 +2105,7 @@ Submessage = React.memo ({message}) ->
               }
             </>
           }
-          {if history
+          {if history?
             <>
               {if historyAll
                 <button className="btn btn-default historyAllButton" tabIndex={tabindex0+2} onClick={onHistoryAll}>Show Finished</button>
@@ -2192,9 +2204,9 @@ Submessage = React.memo ({message}) ->
     {unless folded
       previewSideBySide = editing and preview.on and preview.sideBySide
       <>
-        {###if history
-          +messageHistory
-        ###}
+        {if history?
+          <MessageHistory message={message}/>
+        }
         <div className="editorAndBody clearfix #{if previewSideBySide then 'sideBySide' else ''}">
           <div className="editorContainer">
             {###unless history
