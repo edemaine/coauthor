@@ -75,7 +75,7 @@ linkToTag = (tag, group) ->
 
 Template.registerHelper 'folded', ->
   (messageFolded.get @_id) and
-  (not here @_id) and                       # never fold if top-level message
+  (not routeHere @_id) and                  # never fold if top-level message
   (not Template.instance()?.editing?.get()) # never fold if editing
 
 Template.rootHeader.helpers
@@ -84,7 +84,6 @@ Template.rootHeader.helpers
       Messages.findOne @root
 
 RootHeader = React.memo ({message}) ->
-  return null unless message.root
   root = useTracker ->
     Messages.findOne message.root
   , [message.root]
@@ -229,7 +228,6 @@ Template.message.onRendered ->
   #, 100
 
 Message = React.memo ({messageID}) ->
-  return null unless messageID?
   message = useTracker ->
     Messages.findOne messageID
   , [messageID]
@@ -244,7 +242,9 @@ Message = React.memo ({messageID}) ->
 
   <div className="row">
     <div className="col-md-9" role="main">
-      <RootHeader message={message}/>
+      {if message.root?
+        <RootHeader message={message}/>
+      }
       <Submessage message={message}/>
       <div className="authors alert alert-info">
         {if authors
@@ -295,7 +295,7 @@ Message = React.memo ({messageID}) ->
       ###}
     </div>
     <div className="col-md-3 hidden-print hidden-xs hidden-sm" role="complementary">
-      <TableOfContents messageID={messageID} root={true}/>
+      <TableOfContentsID messageID={messageID}/>
     </div>
   </div>
 Message.displayName = 'Message'
@@ -740,7 +740,7 @@ absentTags = ->
   ,
     sort: ['key']
 
-here = (id) ->
+routeHere = (id) ->
   id? and Router.current().route?.getName() == 'message' and
   Router.current().params?.message == id
 
@@ -1140,7 +1140,6 @@ MessageNeighbors = React.memo ({message}) ->
 MessageNeighbors.displayName = 'MessageNeighbors'
 
 MessageParent = React.memo ({message}) ->
-  return unless message._id?
   parent = useTracker ->
     findMessageParent message._id
   , [message._id]
@@ -1190,7 +1189,7 @@ messagePanelClass = (message, editing) ->
   classes.join ' '
 
 Template.registerHelper 'foldedClass', @foldedClass = ->
-  if (not here @_id) and messageFolded.get @_id
+  if (not routeHere @_id) and messageFolded.get @_id
     'folded'
   else
     ''
@@ -1660,8 +1659,6 @@ canPublicReply = (message) -> 'public' in (message.threadPrivacy ? ['public'])
 canPrivateReply = (message) -> 'private' in (message.threadPrivacy ? ['public'])
 
 ReplyButtons = React.memo ({message, prefix}) ->
-  return null unless canReply message
-
   onReply = (e) ->
     e.preventDefault()
     e.stopPropagation()
@@ -1682,6 +1679,7 @@ ReplyButtons = React.memo ({message, prefix}) ->
       else
         console.error "messageNew did not return message ID -- not authorized?"
 
+  return null unless canReply message
   <div className="btn-group pull-right message-reply-buttons">
     {if canPublicReply message
       <button className="btn btn-default replyButton" data-privacy="public" onClick={onReply}>{prefix}{if canPrivateReply message then 'Public '}Reply</button>
@@ -1694,15 +1692,20 @@ ReplyButtons = React.memo ({message, prefix}) ->
   </div>
 ReplyButtons.displayName = 'ReplyButtons'
 
-TableOfContents = React.memo ({messageID, parent, index}) ->
-  return null unless messageID?
-  isRoot = not parent?
+TableOfContentsID = React.memo ({messageID, parent, index}) ->
   message = useTracker ->
     Messages.findOne messageID
   , [messageID]
   return null unless message?
+  <TableOfContents message={message} parent={parent} index={index}/>
+TableOfContentsID.displayName = 'TableOfContentsID'
+
+TableOfContents = React.memo ({message, parent, index}) ->
+  isRoot = not parent?
   ## Use canSee to properly fake non-superuser mode.
-  return null unless isRoot or canSee message
+  visible = useTracker ->
+    canSee message
+  , [message]
   formattedTitle = useMemo ->
     formatTitleOrFilename message, false, false, isRoot  ## don't say (untitled)
   , [message, isRoot]
@@ -1733,13 +1736,15 @@ TableOfContents = React.memo ({messageID, parent, index}) ->
   renderedChildren = useMemo ->
     rendereds =
       for childID, index in message.children
-        <TableOfContents key={childID} messageID={childID} parent={messageID} index={index}/>
+        <TableOfContentsID key={childID} messageID={childID} parent={message._id} index={index}/>
     rendereds = (rendered for rendered in rendereds when rendered?)
     if rendereds.length
       <ul className="nav subcontents">
         {rendereds}
       </ul>
   , [message.children.join ',']  # depend on children IDs, not the array
+
+  return null unless visible or isRoot
   if isRoot
     <nav className="contents">
       <ul className="nav contents">
@@ -1943,14 +1948,19 @@ SubmessageID = React.memo ({messageID}) ->
   message = useTracker ->
     Messages.findOne messageID
   , [messageID]
+  return null unless message?
   <Submessage message={message}/>
 SubmessageID.displayName = 'SubmessageID'
 
 submessageCount = 0
 Submessage = React.memo ({message}) ->
-  return null unless message?
   ## Use canSee to properly fake non-superuser mode.
-  return null unless here(message._id) or canSee message
+  visible = useTracker ->
+    canSee message
+  , [message]
+  here = useTracker ->
+    routeHere message._id
+  , [message._id]
   tabindex0 = useMemo ->
     1 + 20 * submessageCount++
   , []
@@ -1960,12 +1970,12 @@ Submessage = React.memo ({message}) ->
   editing = editingMessage message, user
   raw = useTracker ->
     not editing and messageRaw.get message._id
-  , [message._id]
+  , [message._id, editing]
   folded = useTracker ->
     (messageFolded.get message._id) and
-    (not here message._id) and                # never fold if top-level message
+    not here and                              # never fold if top-level message
     not editing                               # never fold if editing
-  , [message._id]
+  , [message._id, here, editing]
   {history, historyAll} = useTracker ->
     history: messageHistory.get message._id
     historyAll: messageHistoryAll.get message._id
@@ -2036,6 +2046,7 @@ Submessage = React.memo ({message}) ->
     else
       Meteor.call 'messageEditStart', message._id
 
+  return null unless visible or here
   <div className="panel message #{messagePanelClass message, editing}" data-message={message._id} id={message._id} ref={ref}>
     <div className="panel-heading clearfix">
       {if editing and not history?
@@ -2043,7 +2054,7 @@ Submessage = React.memo ({message}) ->
       else
         <span className="message-title">
           <span className="message-left-buttons push-down btn-group btn-group-xs">
-            {unless here message._id
+            {unless here
               <>
                 {if folded
                   <button className="btn btn-info foldButton hidden-print" aria-label="Unfold" data-toggle="tooltip" data-container="body" title="Open/unfold this message so that you can see its contents. Does not affect other users." onClick={onFold}>
