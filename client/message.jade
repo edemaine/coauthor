@@ -11,6 +11,10 @@ template(name="message")
   div
     +React component=Message messageID=messageID
 
+template(name="readMessage")
+  div
+    +React component=ReadMessage message=message
+
 template(name="submessageHeader")
   +rootHeader
   +submessage

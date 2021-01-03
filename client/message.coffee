@@ -83,14 +83,21 @@ Template.rootHeader.helpers
     if @root
       Messages.findOne @root
 
+MaybeRootHeader = ({message}) ->
+  return null unless message?.root?
+  <RootHeader message={message}/>
+MaybeRootHeader.displayName = 'MaybeRootHeader'
+
 RootHeader = React.memo ({message}) ->
   root = useTracker ->
     Messages.findOne message.root
   , [message.root]
   formattedTitle = useMemo ->
-    formatTitleOrFilename root.title, false, false, true
+    return unless root?
+    formatTitleOrFilename root, false, false, true
   , [root]
 
+  return null unless root?
   <div className="panel panel-default root" data-message={root._id}>
     <div className="panel-heading compact title">
       <div className="message-left-buttons push-down btn-group btn-group-xs">
@@ -242,9 +249,7 @@ Message = React.memo ({messageID}) ->
 
   <div className="row">
     <div className="col-md-9" role="main">
-      {if message.root?
-        <RootHeader message={message}/>
-      }
+      <MaybeRootHeader message={message}/>
       <Submessage message={message}/>
       <div className="authors alert alert-info">
         {if authors
@@ -744,6 +749,16 @@ routeHere = (id) ->
   id? and Router.current().route?.getName() == 'message' and
   Router.current().params?.message == id
 
+Template.readMessage.helpers
+  ReadMessage: -> ReadMessage
+  message: -> Object.assign {}, @, children: []
+
+ReadMessage = ({message}) ->
+  <>
+    <MaybeRootHeader message={message}/>
+    <Submessage message={message} read={true}/>
+  </>
+
 Template.submessage.helpers
   Submessage: -> Submessage
   message: -> @
@@ -982,12 +997,6 @@ Template.submessage.helpers
       editorMode editor, ti.data.format
       editorKeyboard editor, messageKeyboard.get(ti.data._id) ? userKeyboard()
 
-  tex2jax: ->
-    history = messageHistory.get(@_id) ? @
-    if history.format in mathjaxFormats
-      'tex2jax'
-    else
-      ''
   title: historify 'title'
   formatTitle: historifiedFormatTitle = (bold = false) ->
     history = messageHistory.get(@_id) ? @
@@ -1019,37 +1028,6 @@ Template.submessage.helpers
     history = messageHistory.get(@_id) ? @
     'image' == fileType history.file
 
-  canEdit: -> canEdit @_id
-  canAction: ->
-    canEdit @_id
-    #canDelete(@_id) or canUndelete(@_id) or canPublish(@_id) or canUnpublish(@_id) or canSuperdelete(@_id) or canPrivate(@_id)
-  canDelete: -> canDelete @_id
-  canUndelete: -> canUndelete @_id
-  canPublish: -> canPublish @_id
-  canUnpublish: -> canUnpublish @_id
-  canMinimize: -> canMinimize @_id
-  canUnminimize: -> canUnminimize @_id
-  canSuperdelete: -> canSuperdelete @_id
-  canPrivate: -> canPrivate @_id
-  canParent: -> canMaybeParent @_id
-
-  preview: ->
-    messageHistory.get(@_id)? or
-    (messagePreviewGet() ? on: true).on  ## on if not editing
-  sideBySide: -> messagePreviewGet()?.sideBySide
-  previewSideBySide: ->
-    preview = messagePreviewGet()
-    preview?.on and preview?.sideBySide
-  sideBySideClass: ->
-    if Template.instance().editing.get()
-      preview = messagePreviewGet()
-      if preview? and preview.on and preview.sideBySide
-        'sideBySide'
-      else
-        ''
-    else
-      ''  ## no side-by-side if we're not editing
-
   absentTags: absentTags
   absentTagsCount: ->
     absentTags().count()
@@ -1061,12 +1039,12 @@ MessageTags = React.memo ({message}) ->
   <span className="messageTags">
     {for tag in sortTags message.tags
       <React.Fragment key={tag.key}>
+        {' '}
         <a href={linkToTag tag, message.group} className="tagLink">
           <span className="tag label label-default">
             {tag.key}
           </span>
         </a>
-        {' '}
       </React.Fragment>
     }
   </span>
@@ -1081,16 +1059,28 @@ Template.messageLabels.helpers
 MessageLabels = React.memo ({message}) ->
   <span className="messageLabels">
     {if message.deleted
-      <span className="label label-danger">Deleted</span>
+      <>
+        {' '}
+        <span className="label label-danger">Deleted</span>
+      </>
     }
     {unless message.published
-      <span className="label label-warning">Unpublished</span>
+      <>
+        {' '}
+        <span className="label label-warning">Unpublished</span>
+      </>
     }
     {if message.private
-      <span className="label label-info">Private</span>
+      <>
+        {' '}
+        <span className="label label-info">Private</span>
+      </>
     }
     {if message.minimized
-      <span className="label label-success">Minimized</span>
+      <>
+        {' '}
+        <span className="label label-success">Minimized</span>
+      </>
     }
   </span>
 MessageLabels.displayName = 'MessageLabels'
@@ -1270,8 +1260,6 @@ Template.submessage.events
     dropdownToggle e
     false  ## prevent form from submitting
 
-  'click .focusButton': (e) -> $(e.currentTarget).tooltip 'hide'
-
   'click .togglePreview': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
@@ -1283,61 +1271,6 @@ Template.submessage.events
     e.stopPropagation()
     messagePreviewSet (preview) -> _.extend {}, preview,
       sideBySide: not preview.sideBySide
-
-  'click .publishButton': (e, t) ->
-    e.preventDefault()
-    e.stopPropagation()
-    message = t.data._id
-    ## Stop editing if we are publishing.
-    #if not @published and editing @
-    #  Meteor.call 'messageEditStop', message
-    Meteor.call 'messageUpdate', message,
-      published: not @published
-      finished: true
-    dropdownToggle e
-
-  'click .deleteButton': (e, t) ->
-    e.preventDefault()
-    e.stopPropagation()
-    message = t.data._id
-    messageFolded.set message, not @deleted or @minimized or images[@_id]?.count > 0
-    ## Stop editing if we are deleting.
-    if not @deleted and editing @
-      Meteor.call 'messageEditStop', message
-    Meteor.call 'messageUpdate', message,
-      deleted: not @deleted
-      finished: true
-    dropdownToggle e
-
-  'click .privateButton': (e, t) ->
-    e.preventDefault()
-    e.stopPropagation()
-    message = t.data._id
-    Meteor.call 'messageUpdate', message,
-      private: not @private
-      finished: true
-    dropdownToggle e
-
-  'click .minimizeButton': (e, t) ->
-    e.preventDefault()
-    e.stopPropagation()
-    message = t.data._id
-    messageFolded.set message, @deleted or not @minimized or images[@_id]?.count > 0
-    Meteor.call 'messageUpdate', message,
-      minimized: not @minimized
-      finished: true
-    dropdownToggle e
-
-  'click .parentButton': (e, t) ->
-    e.preventDefault()
-    e.stopPropagation()
-    child = t.data
-    oldParent = findMessageParent child
-    oldIndex = oldParent?.children.indexOf child._id
-    Modal.show 'messageParentDialog',
-      child: child
-      oldParent: oldParent
-      oldIndex: oldIndex
 
   'click .editorKeyboard': (e, t) ->
     e.preventDefault()
@@ -1365,11 +1298,6 @@ Template.submessage.events
       Meteor.call 'messageUpdate', message,
         title: newTitle
     , idle
-
-  'click .superdeleteButton': (e) ->
-    e.preventDefault()
-    e.stopPropagation()
-    Modal.show 'superdelete', @
 
   'click .replaceButton': (e, t) ->
     e.preventDefault()
@@ -1941,16 +1869,16 @@ Template.messageParentDialog.events
 Template.groupOrMessage.helpers
   loadedMessage: -> @creator?
 
-SubmessageID = React.memo ({messageID}) ->
+SubmessageID = React.memo ({messageID, read}) ->
   message = useTracker ->
     Messages.findOne messageID
   , [messageID]
   return null unless message?
-  <Submessage message={message}/>
+  <Submessage message={message} read={read}/>
 SubmessageID.displayName = 'SubmessageID'
 
 submessageCount = 0
-Submessage = React.memo ({message}) ->
+Submessage = React.memo ({message, read}) ->
   ## Use canSee to properly fake non-superuser mode.
   visible = useTracker ->
     canSee message
@@ -1958,6 +1886,7 @@ Submessage = React.memo ({message}) ->
   here = useTracker ->
     routeHere message._id
   , [message._id]
+  here = true if read
   tabindex0 = useMemo ->
     1 + 20 * submessageCount++
   , []
@@ -1965,18 +1894,22 @@ Submessage = React.memo ({message}) ->
     Meteor.user()
   , []
   editing = editingMessage message, user
+  editing = false if read
   raw = useTracker ->
     not editing and messageRaw.get message._id
   , [message._id, editing]
+  raw = false if read
   folded = useTracker ->
     (messageFolded.get message._id) and
     not here and                              # never fold if top-level message
-    not editing                               # never fold if editing
+    not editing and                           # never fold if editing
+    not read
   , [message._id, here, editing]
   {history, historyAll} = useTracker ->
     history: messageHistory.get message._id
     historyAll: messageHistoryAll.get message._id
   , [message._id]
+  history = historyAll = null if read
   historified = history ? message
   [editTitle, setEditTitle] = useState()
   [editBody, setEditBody] = useState()
@@ -1992,8 +1925,11 @@ Submessage = React.memo ({message}) ->
           setEditStopping false
     undefined
   preview = useTracker ->
-    history? or
-    messagePreview.get(message._id) ? messagePreviewDefault()
+    if history?
+      on: true
+      sideBySide: false
+    else
+      messagePreview.get(message._id) ? messagePreviewDefault()
   , [history?, message._id]
   formattedTitle = useTracker ->
     for bold in [true, false]
@@ -2019,6 +1955,18 @@ Submessage = React.memo ({message}) ->
       else
         formatted
   , [historified.file, historified._id]
+  can = useTracker ->
+    delete: canDelete message._id
+    undelete: canUndelete message._id
+    publish: canPublish message._id
+    unpublish: canUnpublish message._id
+    minimize: canMinimize message._id
+    unminimize: canUnminimize message._id
+    superdelete: canSuperdelete message._id
+    private: canPrivate message._id
+    parent: canMaybeParent message._id
+    edit: canEdit message._id
+  , [message._id]
   ref = useRefTooltip()
 
   onFold = (e) ->
@@ -2062,14 +2010,15 @@ Submessage = React.memo ({message}) ->
           <span className="message-left-buttons push-down btn-group btn-group-xs">
             {unless here
               <>
-                {if folded
-                  <button className="btn btn-info foldButton hidden-print" aria-label="Unfold" data-toggle="tooltip" data-container="body" title="Open/unfold this message so that you can see its contents. Does not affect other users." onClick={onFold}>
-                    <span className="fas fa-plus" aria-hidden="true"/>
-                  </button>
-                else
-                  <button className="btn btn-info foldButton hidden-print" aria-label="Fold" data-toggle="tooltip" data-container="body" title="Close/fold this message, e.g. to skip over its contents. Does not affect other users." onClick={onFold}>
-                    <span className="fas fa-minus" aria-hidden="true"/>
-                  </button>
+                {unless read
+                  if folded
+                    <button className="btn btn-info foldButton hidden-print" aria-label="Unfold" data-toggle="tooltip" data-container="body" title="Open/unfold this message so that you can see its contents. Does not affect other users." onClick={onFold}>
+                      <span className="fas fa-plus" aria-hidden="true"/>
+                    </button>
+                  else
+                    <button className="btn btn-info foldButton hidden-print" aria-label="Fold" data-toggle="tooltip" data-container="body" title="Close/fold this message, e.g. to skip over its contents. Does not affect other users." onClick={onFold}>
+                      <span className="fas fa-minus" aria-hidden="true"/>
+                    </button>
                 }
                 <a className="btn btn-info focusButton" aria-label="Focus" href={pathFor 'message', {group: message.group, message: message._id}} draggable="true" data-toggle="tooltip" data-container="body" title="Zoom in/focus on just the subthread of this message and its descendants">
                   <span className="fas fa-sign-in-alt" aria-hidden="true"/>
@@ -2086,7 +2035,7 @@ Submessage = React.memo ({message}) ->
               {' '}
             </>
           }
-          <span className="title panel-title tex2jax"
+          <span className="title panel-title"
           dangerouslySetInnerHTML={__html: formattedTitle[0]}/>
           <MessageTags message={historified}/>
           <MessageLabels message={historified}/>
@@ -2146,7 +2095,7 @@ Submessage = React.memo ({message}) ->
           <span className="space"/>
         }
         <div className="btn-group">
-          {unless folded or editing
+          {unless folded or editing or read
             <>
               {if raw
                 <button className="btn btn-default rawButton" tabIndex={tabindex0+1} onClick={onRaw}>Formatted</button>
@@ -2168,78 +2117,26 @@ Submessage = React.memo ({message}) ->
               <button className="btn btn-default historyButton" tabIndex={tabindex0+3} onClick={onHistory}>Exit History</button>
             </>
           }
-          {###
           {if editing
-            unless message.root
-              +threadPrivacy
-            +keyboardSelector _id=_id tabIndex=tabindex0+6
-            +formatSelector format=format tabIndex=tabindex0+7
-          }
-          ###}
-          {unless history
             <>
               {###
-              if canAction
-                .btn-group
-                  button.btn.btn-info.actionButton.dropdown-toggle(tabIndex={tabindex0+4}, type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
-                    | Action
-                    span.caret
-                  ul.dropdown-menu.dropdown-menu-right.actionMenu(role="menu")
-                    if minimized
-                      if canUnminimize
-                        li
-                          a.minimizeButton(href="#")
-                            button.btn.btn-success.btn-block(data-toggle="tooltip", data-container="body", data-placement="left", data-html="true", title="Open/unfold this message <b>for all users</b>. Use this if a discussion becomes relevant again. If you just want to open/unfold the message to see it yourself temporarily, use the [+] button on the left.") Unminimize
-                    else
-                      if canMinimize
-                        li
-                          a.minimizeButton(href="#")
-                            button.btn.btn-danger.btn-block(data-toggle="tooltip", data-container="body", data-placement="left", data-html="true", title="Close/fold this message <b>for all users</b>. Use this to clean up a thread when the discussion of this message (and all its replies) is resolved/no longer important. If you just want to close/fold the message yourself temporarily, use the [−] button on the left.") Minimize
-                    if deleted
-                      if canUndelete
-                        li
-                          a.deleteButton(href="#")
-                            button.btn.btn-success.btn-block Undelete
-                      if canSuperdelete
-                        li
-                          a.superdeleteButton(href="#")
-                            button.btn.btn-danger.btn-block Superdelete
-                    unless published
-                      if canPublish
-                        li
-                          a.publishButton(href="#")
-                            button.btn.btn-success.btn-block Publish
-                    unless deleted
-                      if canDelete
-                        li
-                          a.deleteButton(href="#")
-                            button.btn.btn-danger.btn-block Delete
-                    if published
-                      if canUnpublish
-                        li
-                          a.publishButton(href="#")
-                            button.btn.btn-danger.btn-block Unpublish
-                    if canPrivate
-                      if private
-                        li
-                          a.privateButton(href="#")
-                            button.btn.btn-success.btn-block Make Public
-                      else
-                        li
-                          a.privateButton(href="#")
-                            button.btn.btn-danger.btn-block Make Private
-                    if canParent
-                      li
-                        a.parentButton(href="#")
-                          button.btn.btn-warning.btn-block Move
+              unless message.root
+                +threadPrivacy
+              +keyboardSelector _id=_id tabIndex=tabindex0+6
+              +formatSelector format=format tabIndex=tabindex0+7
               ###}
+            </>
+          }
+          {unless history or read
+            <>
+              <MessageActions message={message} can={can} editing={editing} tabindex0={tabindex0}/>
               {if editing
                 if editStopping
                   <button className="btn btn-info editButton disabled" tabIndex={tabindex0+8} title="Waiting for save to complete before stopping editing...">Stop Editing</button>
                 else
                   <button className="btn btn-info editButton" tabIndex={tabindex0+8} onClick={onEdit}>Stop Editing</button>
               else
-                if canEdit and not folded
+                if can.edit and not folded
                   <>
                     {###
                     {if message.file
@@ -2324,7 +2221,7 @@ Submessage = React.memo ({message}) ->
                 }
                 <ReplyButtons message={message} prefix="Another "/>
               </div>
-            else
+            else unless read
               <>
                 {###
                 +emojiButtons
@@ -2338,10 +2235,10 @@ Submessage = React.memo ({message}) ->
           renderedChildren =
             if message.readChildren?
               for child in message.readChildren
-                <Submessage key={child._id} message={child}/>
+                <Submessage key={child._id} message={child} read={read}/>
             else
               for childID in message.children
-                <SubmessageID key={childID} messageID={childID}/>
+                <SubmessageID key={childID} messageID={childID} read={read}/>
           renderedChildren = (rendered for rendered in renderedChildren when rendered?)
           if renderedChildren.length
             <>
@@ -2370,6 +2267,136 @@ Submessage = React.memo ({message}) ->
     }
   </div>
 Submessage.displayName = 'Submessage'
+
+MessageActions = React.memo ({message, can, editing, tabindex0}) ->
+  onPublish = (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+    ## Stop editing if we are publishing.
+    #if not message.published and editing
+    #  Meteor.call 'messageEditStop', message._id
+    Meteor.call 'messageUpdate', message._id,
+      published: not message.published
+      finished: true
+    dropdownToggle e
+  onDelete = (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+    messageFolded.set message, not message.deleted or message.minimized or images[message._id]?.count > 0
+    ## Stop editing if we are deleting.
+    if not message.deleted and editing
+      Meteor.call 'messageEditStop', message._id
+    Meteor.call 'messageUpdate', message._id,
+      deleted: not message.deleted
+      finished: true
+    dropdownToggle e
+  onSuperdelete = (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+    Modal.show 'superdelete', message
+  onPrivate = (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+    Meteor.call 'messageUpdate', message._id,
+      private: not message.private
+      finished: true
+    dropdownToggle e
+  onMinimize = (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+    messageFolded.set message, message.deleted or not message.minimized or images[message._id]?.count > 0
+    Meteor.call 'messageUpdate', message._id,
+      minimized: not message.minimized
+      finished: true
+    dropdownToggle e
+  onParent = (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+    oldParent = findMessageParent message
+    oldIndex = oldParent?.children.indexOf message._id
+    Modal.show 'messageParentDialog',
+      child: message
+      oldParent: oldParent
+      oldIndex: oldIndex
+    dropdownToggle e
+
+  return null unless can.delete or can.undelete or can.publish or can.unpublish or can.superdelete or can.private
+  <div className="btn-group">
+    <button className="btn btn-info actionButton dropdown-toggle" tabIndex={tabindex0+4} type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+      Action
+      <span className="caret"/>
+    </button>
+    <ul className="dropdown-menu dropdown-menu-right actionMenu" role="menu">
+      {if message.minimized
+        if can.unminimize
+          <li>
+            <a className="minimizeButton" href="#">
+              <button className="btn btn-success btn-block" data-toggle="tooltip" data-container="body" data-placement="left" data-html="true" title="Open/unfold this message <b>for all users</b>. Use this if a discussion becomes relevant again. If you just want to open/unfold the message to see it yourself temporarily, use the [+] button on the left." onClick={onMinimize}>Unminimize</button>
+            </a>
+          </li>
+      else
+        if can.minimize
+          <li>
+            <a className="minimizeButton" href="#">
+              <button className="btn btn-danger btn-block" data-toggle="tooltip" data-container="body" data-placement="left" data-html="true" title="Close/fold this message <b>for all users</b>. Use this to clean up a thread when the discussion of this message (and all its replies) is resolved/no longer important. If you just want to close/fold the message yourself temporarily, use the [−] button on the left." onClick={onMinimize}>Minimize</button>
+            </a>
+          </li>
+      }
+      {if message.deleted and can.undelete
+        <li>
+          <a className="deleteButton" href="#">
+            <button className="btn btn-success btn-block" onClick={onDelete}>Undelete</button>
+          </a>
+        </li>
+      }
+      {if message.deleted and can.superdelete
+        <li>
+          <a className="superdeleteButton" href="#">
+            <button className="btn btn-danger btn-block" onClick={onSuperdelete}>Superdelete</button>
+          </a>
+        </li>
+      }
+      {if not message.published and can.publish
+        <li>
+          <a className="publishButton" href="#">
+            <button className="btn btn-success btn-block" onClick={onPublish}>Publish</button>
+          </a>
+        </li>
+      }
+      {if not message.deleted and can.delete
+        <li>
+          <a className="deleteButton" href="#">
+            <button className="btn btn-danger btn-block" onClick={onDelete}>Delete</button>
+          </a>
+        </li>
+      }
+      {if message.published and can.unpublish
+        <li>
+          <a className="publishButton" href="#">
+            <button className="btn btn-danger btn-block" onClick={onPublish}>Unpublish</button>
+          </a>
+        </li>
+      }
+      {if can.private
+        <li>
+          <a className="privateButton" href="#">
+            {if message.private
+              <button className="btn btn-success btn-block" onClick={onPrivate}>Make Public</button>
+            else
+              <button className="btn btn-danger btn-block" onClick={onPrivate}>Make Private</button>
+            }
+          </a>
+        </li>
+      }
+      {if can.parent
+        <li>
+          <a className="parentButton" href="#">
+            <button className="btn btn-warning btn-block" onClick={onParent}>Move</button>
+          </a>
+        </li>
+      }
+    </ul>
+  </div>
 
 MessageAuthor = React.memo ({message}) ->
   formatted = useTracker ->
