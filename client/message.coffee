@@ -1,6 +1,7 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react'
 import {useTracker} from 'meteor/react-meteor-data'
 
+import {ErrorBoundary} from './ErrorBoundary'
 import {useRefTooltip} from './lib/tooltip'
 import {resolveTheme} from './theme'
 
@@ -85,7 +86,9 @@ Template.rootHeader.helpers
 
 MaybeRootHeader = ({message}) ->
   return null unless message?.root?
-  <RootHeader message={message}/>
+  <ErrorBoundary>
+    <RootHeader message={message}/>
+  </ErrorBoundary>
 MaybeRootHeader.displayName = 'MaybeRootHeader'
 
 RootHeader = React.memo ({message}) ->
@@ -234,7 +237,13 @@ Template.message.onRendered ->
   #  $('input.title').first().focus()
   #, 100
 
-Message = React.memo ({messageID}) ->
+Message = ({messageID}) ->
+  <ErrorBoundary>
+    <WrappedMessage messageID={messageID}/>
+  </ErrorBoundary>
+Message.displayName = 'Message'
+
+WrappedMessage = React.memo ({messageID}) ->
   message = useTracker ->
     Messages.findOne messageID
   , [messageID]
@@ -303,7 +312,7 @@ Message = React.memo ({messageID}) ->
       <TableOfContentsID messageID={messageID}/>
     </div>
   </div>
-Message.displayName = 'Message'
+WrappedMessage.displayName = 'WrappedMessage'
 
 editingMessage = (message, user = Meteor.user()) ->
   user? and user.username in (message.editing ? [])
@@ -1616,7 +1625,9 @@ TableOfContentsID = React.memo ({messageID, parent, index}) ->
     Messages.findOne messageID
   , [messageID]
   return null unless message?
-  <TableOfContents message={message} parent={parent} index={index}/>
+  <ErrorBoundary>
+    <TableOfContents message={message} parent={parent} index={index}/>
+  </ErrorBoundary>
 TableOfContentsID.displayName = 'TableOfContentsID'
 
 TableOfContents = React.memo ({message, parent, index}) ->
@@ -1625,7 +1636,7 @@ TableOfContents = React.memo ({message, parent, index}) ->
   visible = useTracker ->
     canSee message
   , [message]
-  formattedTitle = useMemo ->
+  formattedTitle = useTracker ->
     formatTitleOrFilename message, false, false, isRoot  ## don't say (untitled)
   , [message, isRoot]
   user = useTracker ->
@@ -1877,8 +1888,14 @@ SubmessageID = React.memo ({messageID, read}) ->
   <Submessage message={message} read={read}/>
 SubmessageID.displayName = 'SubmessageID'
 
+Submessage = ({message, read}) ->
+  <ErrorBoundary>
+    <WrappedSubmessage message={message} read={read}/>
+  </ErrorBoundary>
+Submessage.displayName = 'Submessage'
+
 submessageCount = 0
-Submessage = React.memo ({message, read}) ->
+WrappedSubmessage = React.memo ({message, read}) ->
   ## Use canSee to properly fake non-superuser mode.
   visible = useTracker ->
     canSee message
@@ -1940,7 +1957,7 @@ Submessage = React.memo ({message, read}) ->
       else
         formatTitleOrFilename historified, false, false, bold  ## don't say (untitled)
   , [historified.title, historified.format, raw, message.children.length > 0]
-  formattedBody = useMemo ->
+  formattedBody = useTracker ->
     if raw
       "<PRE CLASS='raw'>#{_.escape historified.body}</PRE>"
     else
@@ -2266,7 +2283,7 @@ Submessage = React.memo ({message, read}) ->
       </>
     }
   </div>
-Submessage.displayName = 'Submessage'
+WrappedSubmessage.displayName = 'WrappedSubmessage'
 
 MessageActions = React.memo ({message, can, editing, tabindex0}) ->
   onPublish = (e) ->
