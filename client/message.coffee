@@ -54,12 +54,12 @@ Template.registerHelper 'tags', ->
   sortTags @tags
 
 Template.registerHelper 'linkToTag', ->
-  linkToTag Template.parentData().group
-linkToTag = (group) ->
+  linkToTag @, Template.parentData().group
+linkToTag = (tag, group) ->
   #pathFor 'tag',
   #  group: group
-  #  tag: @key
-  search = @key
+  #  tag: tag.key
+  search = tag.key
   if 0 <= search.indexOf ' '
     if 0 <= search.indexOf '"'
       if 0 <= search.indexOf "'"
@@ -1069,14 +1069,14 @@ Template.messageTags.helpers
 MessageTags = React.memo ({message}) ->
   <span className="messageTags">
     {for tag in sortTags message.tags
-      <>
-        <a href={linkToTag.call tag, message.group} className="tagLink">
+      <React.Fragment key={tag.key}>
+        <a href={linkToTag tag, message.group} className="tagLink">
           <span className="tag label label-default">
             {tag.key}
           </span>
         </a>
-        ' '
-      </>
+        {' '}
+      </React.Fragment>
     }
   </span>
 MessageTags.displayName = 'MessageTags'
