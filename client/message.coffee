@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react'
+import React, {useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react'
 import {useTracker} from 'meteor/react-meteor-data'
 
 import {ErrorBoundary} from './ErrorBoundary'
@@ -161,8 +161,7 @@ messageOrphans = (message) ->
     _id: $nin: descendants
   .fetch()
 
-authorCountHelper = (field) -> ->
-  tooltipUpdate()
+authorCount = (field) ->
   authors =
     for username, count of Session.get field
       continue unless count
@@ -178,8 +177,6 @@ authorCountHelper = (field) -> ->
 Template.message.helpers
   Message: -> Message
   messageID: -> @_id
-  authors: authorCountHelper 'threadAuthors'
-  mentions: authorCountHelper 'threadMentions'
   subscribers: ->
     tooltipUpdate()
     subscribers = messageSubscribers @_id,
@@ -254,7 +251,11 @@ WrappedMessage = React.memo ({messageID}) ->
   orphans = useTracker ->
     messageOrphans messageID
   , [messageID]
-  authors = mentions = subscribers = '' # TODO
+  {authors, mentions} = useTracker ->
+    authors: authorCount 'threadAuthors'
+    mentions: authorCount 'threadMentions'
+  , []
+  subscribers = '' # TODO
 
   <div className="row">
     <div className="col-md-9" role="main">
@@ -269,11 +270,11 @@ WrappedMessage = React.memo ({messageID}) ->
             <p dangerouslySetInnerHTML={__html: authors}/>
           </>
         }
+        {if authors and mentions
+          <hr/>
+        }
         {if mentions
           <>
-            {if authors
-              <hr/>
-            }
             <p>
               <b>Users @mentioned in visible messages in this thread:</b>
             </p>
@@ -376,59 +377,6 @@ threadAuthors = {}
 threadMentions = {}
 
 Template.submessage.onCreated ->
-  @count = submessageCount++
-  @editing = new ReactiveVar null
-  @editTitle = new ReactiveVar null
-  @editBody = new ReactiveVar null
-  @lastTitle = null
-  @savedTitles = []
-
-  @autorun =>
-    data = Template.currentData()
-    return unless data?
-    #@myid = data._id
-    if editingMessage data
-      ## Maintain @editing == this message's ID when message is being edited.
-      ## Also initialize title and body only when we start editing.
-      if data._id != @editing.get()
-        @editing.set data._id
-        @editTitle.set data.title
-        @editBody.set data.body
-      ## Update input's value when title changes on server
-      if data.title != @lastTitle
-        @lastTitle = data.title
-        ## Ignore an update that matches a title we sent to the server,
-        ## to avoid weird reversion while live typing with network delays.
-        ## (In steady state, we expect our saves to match later updates,
-        ## so this should acquiesce with an empty savedTitles.)
-        if data.title in @savedTitles
-          while @savedTitles.pop() != data.title
-            continue
-        else
-          ## Received new title: update input text, forget past saves,
-          ## and cancel any pending save.
-          @editTitle.set data.title
-          @savedTitles = []
-          Meteor.clearTimeout @timer
-    else
-      @editing.set null
-
-    threadAuthors[author] -= 1 for author in @authors if @authors?
-    threadMentions[author] -= 1 for author in @mentions if @mentions?
-    @authors = (unescapeUser author for author of data.authors)
-    for author in @authors
-      threadAuthors[author] ?= 0
-      threadAuthors[author] += 1
-    Session.set 'threadAuthors', threadAuthors
-    @mentions = atMentions data
-    for author in @mentions
-      threadMentions[author] ?= 0
-      threadMentions[author] += 1
-    Session.set 'threadMentions', threadMentions
-
-    #console.log 'automathjax'
-    automathjax()
-
   ## Fold naturally folded (minimized and deleted) messages by default on
   ## initial load.  But only if not previously manually overridden.
   oldDefault = defaultFolded.get @data._id
@@ -1296,18 +1244,6 @@ Template.submessage.events
     editorMode Template.instance().editor, format
     dropdownToggle e
 
-  'input input.title': (e, t) ->
-    e.stopPropagation()
-    message = t.data._id
-    Meteor.clearTimeout t.timer
-    newTitle = e.target.value
-    t.editTitle.set newTitle
-    t.timer = Meteor.setTimeout ->
-      t.savedTitles.push newTitle
-      Meteor.call 'messageUpdate', message,
-        title: newTitle
-    , idle
-
   'click .replaceButton': (e, t) ->
     e.preventDefault()
     e.stopPropagation()
@@ -1928,19 +1864,6 @@ WrappedSubmessage = React.memo ({message, read}) ->
   , [message._id]
   history = historyAll = null if read
   historified = history ? message
-  [editTitle, setEditTitle] = useState()
-  [editBody, setEditBody] = useState()
-  [editStopping, setEditStopping] = useState()
-  safeToStopEditing = ->
-    message.title == editTitle and message.body == editBody
-  useEffect ->
-    if editStopping and safeToStopEditing()
-      Meteor.call 'messageEditStop', message._id, (error, result) ->
-        if error?
-          console.error error
-        else
-          setEditStopping false
-    undefined
   preview = useTracker ->
     if history?
       on: true
@@ -1986,6 +1909,68 @@ WrappedSubmessage = React.memo ({message, read}) ->
   , [message._id]
   ref = useRefTooltip()
 
+  [editTitle, setEditTitle] = useState ''
+  [editBody, setEditBody] = useState ''
+  [editStopping, setEditStopping] = useState()
+  safeToStopEditing = ->
+    message.title == editTitle and message.body == editBody
+  useEffect ->
+    if editStopping and safeToStopEditing()
+      Meteor.call 'messageEditStop', message._id, (error, result) ->
+        if error?
+          console.error error
+        else
+          setEditStopping false
+    undefined
+
+  timer = useRef null
+  lastTitle = useRef null
+  savedTitles = useRef []
+  useLayoutEffect ->
+    if editing
+      ## Initialize title and body when we start editing.
+      unless lastTitle.current?
+        setEditTitle lastTitle.current = message.title
+        setEditBody message.body
+      ## Update input's value when title changes on server
+      else if message.title != lastTitle.current
+        lastTitle.current = message.title
+        ## Ignore an update that matches a title we sent to the server,
+        ## to avoid weird reversion while live typing with network delays.
+        ## (In steady state, we expect our saves to match later updates,
+        ## so this should acquiesce with an empty savedTitles.)
+        if message.title in savedTitles.current
+          while savedTitles.current.pop() != message.title
+            continue
+        else
+          ## Received new title: update input text, forget past saves,
+          ## and cancel any pending save.
+          setEditTitle message.title
+          savedTitles.current = []
+          Meteor.clearTimeout timer.current
+    else
+      lastTitle.current = null
+      savedTitles.current = []
+    undefined
+  , [editing, editTitle, message.title]
+
+  authors = useRef()
+  mentions = useRef()
+  useLayoutEffect ->
+    threadAuthors[author] -= 1 for author in authors.current if authors.current?
+    threadMentions[author] -= 1 for author in mentions.current if mentions.current?
+    authors.current = (unescapeUser author for author of message.authors)
+    for author in authors.current
+      threadAuthors[author] ?= 0
+      threadAuthors[author] += 1
+    Session.set 'threadAuthors', threadAuthors
+    mentions.current = atMentions message
+    for author in mentions.current
+      threadMentions[author] ?= 0
+      threadMentions[author] += 1
+    Session.set 'threadMentions', threadMentions
+  , [(key for key of message.authors).join('@'), message.title, message.body]
+
   onFold = (e) ->
     e.preventDefault()
     e.stopPropagation()
@@ -2016,12 +2001,22 @@ WrappedSubmessage = React.memo ({message, read}) ->
         setEditStopping true
     else
       Meteor.call 'messageEditStart', message._id
+  onChangeTitle = (e) ->
+    newTitle = e.target.value
+    setEditTitle newTitle
+    Meteor.clearTimeout timer.current
+    messageID = message._id
+    timer.current = Meteor.setTimeout ->
+      savedTitles.current.push newTitle
+      Meteor.call 'messageUpdate', messageID,
+        title: newTitle
+    , idle
 
   return null unless visible or here
   <div className="panel message #{messagePanelClass message, editing}" data-message={message._id} id={message._id} ref={ref}>
     <div className="panel-heading clearfix">
       {if editing and not history?
-        <input className="push-down form-control title" type="text" placeholder="Title" value={editTitle} tabIndex={tabindex0+18}/>
+        <input className="push-down form-control title" type="text" placeholder="Title" value={editTitle} onChange={onChangeTitle} tabIndex={tabindex0+18}/>
       else
         <span className="message-title">
           <span className="message-left-buttons push-down btn-group btn-group-xs">
