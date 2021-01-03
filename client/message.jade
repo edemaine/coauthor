@@ -50,28 +50,6 @@ template(name="submessage")
   div
     +React component=Submessage message=message
 
-template(name="messageNeighbors")
-  if root
-    if parent
-      with parent
-        a.btn.btn-info(href="{{pathFor 'message' group=group message=_id}}#")
-          span.fas.fa-chevron-up(aria-hidden="true", data-toggle="tooltip", data-original-title=title)
-  else
-    if prev
-      with prev
-        a.btn.btn-info(href="{{pathFor 'message' group=group message=_id}}")
-          span.fas.fa-backward(aria-hidden="true", data-toggle="tooltip", data-original-title=title)
-    else
-      a.btn.btn-info.disabled
-        span.fas.fa-backward(aria-hidden="true")
-    if next
-      with next
-        a.btn.btn-info(href="{{pathFor 'message' group=group message=_id}}")
-          span.fas.fa-forward(aria-hidden="true", data-toggle="tooltip", data-original-title=title)
-    else
-      a.btn.btn-info.disabled
-        span.fas.fa-forward(aria-hidden="true")
-
 template(name="belowEditor")
   .belowEditor.clearfix
     .pull-right.btn-group

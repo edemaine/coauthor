@@ -1104,20 +1104,52 @@ MessageLabels = React.memo ({message}) ->
   </span>
 MessageLabels.displayName = 'MessageLabels'
 
-Template.messageNeighbors.helpers
-  parent: ->
-    if @_id
-      tooltipUpdate()
-      findMessageParent @_id
-      #parent = findMessageParent @_id
-      #parent.child = @_id
-      #parent
-  prev: ->
-    tooltipUpdate()
-    messageNeighbors(@)?.prev
-  next: ->
-    tooltipUpdate()
-    messageNeighbors(@)?.next
+MessageNeighborsOrParent = React.memo ({message}) ->
+  if message.root?
+    <MessageParent message={message}/>
+  else
+    <MessageNeighbors message={message}/>
+MessageNeighborsOrParent.displayName = 'MessageNeighborsOrParent'
+
+MessageNeighbors = React.memo ({message}) ->
+  neighbors = useTracker ->
+    messageNeighbors message
+  , [message]
+  prevRef = useRefTooltip()
+  nextRef = useRefTooltip()
+  <>
+    {if prev = neighbors.prev
+      <a className="btn btn-info" href={pathFor 'message', {group: prev.group, message: prev._id}} ref={prevRef}>
+        <span className="fas fa-backward" aria-hidden="true" data-toggle="tooltip" title={prev.title}/>
+      </a>
+    else
+      <a className="btn btn-info disabled">
+        <span className="fas fa-backward" aria-hidden="true"/>
+      </a>
+    }
+    {if next = neighbors.next
+      <a className="btn btn-info" href={pathFor 'message', {group: next.group, message: next._id}} ref={nextRef}>
+        <span className="fas fa-forward" aria-hidden="true" data-toggle="tooltip" title={next.title}/>
+      </a>
+    else
+      <a className="btn btn-info disabled">
+        <span className="fas fa-forward" aria-hidden="true"/>
+      </a>
+    }
+  </>
+MessageNeighbors.displayName = 'MessageNeighbors'
+
+MessageParent = React.memo ({message}) ->
+  return unless message._id?
+  parent = useTracker ->
+    findMessageParent message._id
+  , [message._id]
+  ref = useRefTooltip()
+  return null unless parent?
+  <a className="btn btn-info" href="#{pathFor 'message', {group: parent.group, message: parent._id}}#" ref={ref}>
+    <span className="fas fa-chevron-up" aria-hidden="true" data-toggle="tooltip" title={parent.title}/>
+  </a>
+MessageParent.displayName = 'MessageParent'
 
 Template.belowEditor.helpers
   preview: -> messagePreviewGet()?.on
@@ -2026,8 +2058,9 @@ Submessage = React.memo ({message}) ->
                   <span className="fas fa-sign-in-alt" aria-hidden="true"/>
                 </a>
               </>
+            else
+              <MessageNeighborsOrParent message={message}/>
             }
-            {###else +messageNeighbors###}
           </span>
           <span className="space"/>
           {if historified.file
