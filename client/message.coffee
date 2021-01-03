@@ -1018,15 +1018,6 @@ Template.submessage.helpers
   image: ->
     history = messageHistory.get(@_id) ? @
     'image' == fileType history.file
-  formatFile: ->
-    history = messageHistory.get(@_id) ? @
-    format = formatFile history
-    if messageRaw.get @_id
-      "<PRE CLASS='raw'>#{_.escape format}</PRE>"
-    else
-      format
-  formatFileDescription: ->
-    formatFileDescription @  ## always editing so not in history
 
   canEdit: -> canEdit @_id
   canAction: ->
@@ -1723,10 +1714,16 @@ TableOfContents = React.memo ({message, parent, index}) ->
       }
       <a href="##{message._id}" data-id={message._id} className="onMessageDrop #{if isRoot then 'title' else ''} #{messageClass.call message}">
         {if editing
-          <span className="fas fa-edit"/>
+          <>
+            <span className="fas fa-edit"/>
+            {' '}
+          </>
         }
         {if message.file
-          <span className="fas fa-paperclip"/>
+          <>
+            <span className="fas fa-paperclip"/>
+            {' '}
+          </>
         }
         <span dangerouslySetInnerHTML={__html: formattedTitle}/>
         {' '}
@@ -1998,7 +1995,7 @@ Submessage = React.memo ({message}) ->
     history? or
     messagePreview.get(message._id) ? messagePreviewDefault()
   , [history?, message._id]
-  formattedTitle = useMemo ->
+  formattedTitle = useTracker ->
     for bold in [true, false]
       ## Only render unbold title if we have children (for back pointer)
       continue unless bold or message.children.length > 0
@@ -2013,6 +2010,15 @@ Submessage = React.memo ({message}) ->
     else
       formatBody historified.format, historified.body
   , [historified.body, historified.format, raw]
+  formattedFile = useTracker ->
+    formatted = formatFile historified
+    description: formatFileDescription historified
+    file:
+      if raw
+        "<PRE CLASS='raw'>#{_.escape formatted}</PRE>"
+      else
+        formatted
+  , [historified.file, historified._id]
   ref = useRefTooltip()
 
   onFold = (e) ->
@@ -2075,7 +2081,10 @@ Submessage = React.memo ({message}) ->
           </span>
           <span className="space"/>
           {if historified.file
-            <span className="fas fa-paperclip"/>
+            <>
+              <span className="fas fa-paperclip"/>
+              {' '}
+            </>
           }
           <span className="title panel-title tex2jax"
           dangerouslySetInnerHTML={__html: formattedTitle[0]}/>
@@ -2270,7 +2279,7 @@ Submessage = React.memo ({message}) ->
                 <div className="fileDescription">
                   <div className="fileDescriptionText">
                     <span className="fas fa-paperclip"
-                      dangerouslySetInnerHTML={__html: formatFileDescription}/>
+                      dangerouslySetInnerHTML={__html: formattedFile.description}/>
                   </div>
                   <div className="file-right-buttons btn-group hidden-print">
                     {###if image
@@ -2289,7 +2298,7 @@ Submessage = React.memo ({message}) ->
                       +messagePDF
                   ###}
                   <p className="message-file"
-                   dangerouslySetInnerHTML={__html: formatFile}/>
+                   dangerouslySetInnerHTML={__html: formattedFile.file}/>
                 }
               </div>
             </div>
