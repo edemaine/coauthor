@@ -214,26 +214,6 @@ Template.message.helpers
       linkToAuthor @group, user.username, title, icon
     ).join ', '
 
-$(window).resize affixResize = _.debounce ->
-  $('.affix').height $(window).height()
-  $('.affix-top').height $(window).height() - $('#top').outerHeight true
-, 100
-Template.message.onRendered ->
-  $('body').scrollspy
-    target: 'nav.contents'
-  $('nav.contents').affix
-    offset: top: $('#top').outerHeight true
-  affixResize()
-  $('nav.contents').on 'affixed.bs.affix', affixResize
-  $('nav.contents').on 'affixed-top.bs.affix', affixResize
-  #tooltipInit()
-
-  ## Give focus to first Title input, if there is one.
-  ## This can actually be disruptive, so leave focus to `scrollToMessage`.
-  #setTimeout ->
-  #  $('input.title').first().focus()
-  #, 100
-
 Message = ({messageID}) ->
   <ErrorBoundary>
     <WrappedMessage messageID={messageID}/>
@@ -1556,6 +1536,11 @@ ReplyButtons = React.memo ({message, prefix}) ->
   </div>
 ReplyButtons.displayName = 'ReplyButtons'
 
+$(window).resize affixResize = _.debounce ->
+  $('.affix').height $(window).height()
+  $('.affix-top').height $(window).height() - $('#top').outerHeight true
+, 100
+
 TableOfContentsID = React.memo ({messageID, parent, index}) ->
   message = useTracker ->
     Messages.findOne messageID
@@ -1618,7 +1603,21 @@ TableOfContents = React.memo ({message, parent, index}) ->
 
   return null unless visible or isRoot
   if isRoot
-    <nav className="contents">
+    ref = useRef()
+    useEffect ->
+      return unless ref.current?
+      $('body').scrollspy
+        target: 'nav.contents'
+      nav = $(ref.current)
+      nav.affix
+        offset: top: $('#top').outerHeight true
+      affixResize()
+      nav.on 'affixed.bs.affix', affixResize
+      nav.on 'affixed-top.bs.affix', affixResize
+      undefined
+    , [ref.current]
+
+    <nav className="contents" ref={ref}>
       <ul className="nav contents">
         <li className="btn-group-xs #{foldedClass.call message}">
           {inner}
