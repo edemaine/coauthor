@@ -161,7 +161,7 @@ messageOrphans = (message) ->
     _id: $nin: descendants
   .fetch()
 
-authorCount = (field) ->
+authorCount = (field, group) ->
   authors =
     for username, count of Session.get field
       continue unless count
@@ -171,20 +171,42 @@ authorCount = (field) ->
   authors = _.sortBy authors, (author) -> -author.count
   authors =
     for author in authors
-      "#{linkToAuthor @group, author.user} (#{author.count})"
+      "#{linkToAuthor group, author.user} (#{author.count})"
   authors.join ', '
 
 Template.message.helpers
-  Message: -> Message
+  MessageID: -> MessageID
   messageID: -> @_id
-  subscribers: ->
-    tooltipUpdate()
-    subscribers = messageSubscribers @_id,
+
+MessageID = React.memo ({messageID}) ->
+  message = useTracker ->
+    Messages.findOne messageID
+  , [messageID]
+  return null unless message?
+  <ErrorBoundary>
+    <Message message={message}/>
+  </ErrorBoundary>
+MessageID.displayName = 'MessageID'
+
+Message = React.memo ({message}) ->
+  useEffect ->
+    setTitle titleOrUntitled message
+    undefined
+  , [message.title]
+  orphans = useTracker ->
+    messageOrphans message._id
+  , [message._id]
+  {authors, mentions} = useTracker ->
+    authors: authorCount 'threadAuthors', message.group
+    mentions: authorCount 'threadMentions', message.group
+  , []
+  subscribers = useTracker ->
+    subscribers = messageSubscribers message._id,
       fields: username: true
     subscribed = {}
     for user in subscribers
       subscribed[user.username] = true
-    users = sortedMessageReaders @_id,
+    users = sortedMessageReaders message._id,
       fields:
         username: true
         emails: true
@@ -206,38 +228,17 @@ Template.message.helpers
           title += "Unverified email address #{user.emails[0].address}"
         else if not (user.profile.notifications?.on ? defaultNotificationsOn)
           title += "Notifications turned off"
-        else if not autosubscribe @group, user
+        else if not autosubscribe message.group, user
           title += "Autosubscribe turned off, and not explicitly subscribed to thread"
         else
           title += "Explicitly unsubscribed from thread"
       title = icon = undefined if emailless()
-      linkToAuthor @group, user.username, title, icon
+      linkToAuthor message.group, user.username, title, icon
     ).join ', '
+  , [message._id, message.group]
+  ref = useRefTooltip()
 
-Message = ({messageID}) ->
-  <ErrorBoundary>
-    <WrappedMessage messageID={messageID}/>
-  </ErrorBoundary>
-Message.displayName = 'Message'
-
-WrappedMessage = React.memo ({messageID}) ->
-  message = useTracker ->
-    Messages.findOne messageID
-  , [messageID]
-  useEffect ->
-    setTitle titleOrUntitled message
-    undefined
-  , [message.title]
-  orphans = useTracker ->
-    messageOrphans messageID
-  , [messageID]
-  {authors, mentions} = useTracker ->
-    authors: authorCount 'threadAuthors'
-    mentions: authorCount 'threadMentions'
-  , []
-  subscribers = '' # TODO
-
-  <div className="row">
+  <div className="row" ref={ref}>
     <div className="col-md-9" role="main">
       <MaybeRootHeader message={message}/>
       <Submessage message={message}/>
@@ -290,10 +291,10 @@ WrappedMessage = React.memo ({messageID}) ->
       ###}
     </div>
     <div className="col-md-3 hidden-print hidden-xs hidden-sm" role="complementary">
-      <TableOfContentsID messageID={messageID}/>
+      <TableOfContentsID messageID={message._id}/>
     </div>
   </div>
-WrappedMessage.displayName = 'WrappedMessage'
+Message.displayName = 'Message'
 
 editingMessage = (message, user = Meteor.user()) ->
   user? and user.username in (message.editing ? [])
@@ -313,8 +314,6 @@ messageClass = ->
     'published'
 
 Template.registerHelper 'messageClass', messageClass
-
-submessageCount = 0
 
 messageRaw = new ReactiveDict
 export messageFolded = new ReactiveDict
@@ -353,6 +352,7 @@ messagePreviewSet = (change, template = Template.instance()) ->
   preview = messagePreview.get(id) ? messagePreviewDefault()
   messagePreview.set id, change preview
 
+## Authors and @mentions tracked throughout Submessage views
 threadAuthors = {}
 threadMentions = {}
 
@@ -653,11 +653,6 @@ Template.submessage.onDestroyed ->
     if id of images
       images[id].count -= 1
       checkImage id
-
-  threadAuthors[author] -= 1 for author in @authors if @authors?
-  Session.set 'threadAuthors', threadAuthors
-  threadMentions[author] -= 1 for author in @mentions if @mentions?
-  Session.set 'threadMentions', threadMentions
 
 historify = (x, post) -> () ->
   history = messageHistory.get @_id
@@ -1953,22 +1948,24 @@ WrappedSubmessage = React.memo ({message, read}) ->
     undefined
   , [editing, editTitle, message.title]
 
-  authors = useRef()
-  mentions = useRef()
+  usernames = useTracker ->
+    allUsernames()
+  , []
   useLayoutEffect ->
-    threadAuthors[author] -= 1 for author in authors.current if authors.current?
-    threadMentions[author] -= 1 for author in mentions.current if mentions.current?
-    authors.current = (unescapeUser author for author of message.authors)
-    for author in authors.current
+    authors = (unescapeUser author for author of message.authors)
+    for author in authors
       threadAuthors[author] ?= 0
       threadAuthors[author] += 1
     Session.set 'threadAuthors', threadAuthors
-    mentions.current = atMentions message
-    for author in mentions.current
+    mentions = atMentions message, usernames
+    for author in mentions
       threadMentions[author] ?= 0
       threadMentions[author] += 1
     Session.set 'threadMentions', threadMentions
-  , [(key for key of message.authors).join('@'), message.title, message.body]
+    ->
+      threadAuthors[author] -= 1 for author in authors
+      threadMentions[author] -= 1 for author in mentions
+  , [(key for key of message.authors).join('@'), message.title, message.body, usernames]
 
   onFold = (e) ->
     e.preventDefault()

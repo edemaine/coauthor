@@ -303,10 +303,11 @@ if Meteor.isServer
   re = atRe author
   re.test(message.title) or re.test(message.body)
 
-@atMentions = (message) ->
+@atMentions = (message, usernames) ->
   return [] unless message?
   mentions = []
-  re = atRe()
+  re = atRe usernames
+
   while (match = re.exec message.title)?
     mentions.push match[1]
   while (match = re.exec message.body)?
