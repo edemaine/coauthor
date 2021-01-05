@@ -668,15 +668,6 @@ historify = (x, post) -> () ->
 tabindex = (i) -> 
   1 + 20 * Template.instance().count + parseInt(i ? 0)
 
-absentTags = ->
-  data = Template.currentData()
-  Tags.find
-    group: data.group
-    key: $nin: _.keys data.tags ? {}
-    deleted: false
-  ,
-    sort: ['key']
-
 routeHere = (id) ->
   id? and Router.current().route?.getName() == 'message' and
   Router.current().params?.message == id
@@ -694,7 +685,6 @@ ReadMessage = ({message}) ->
 Template.submessage.helpers
   Submessage: -> Submessage
   message: -> @
-  canReply: -> canPost @group, @_id
   editingRV: -> Template.instance().editing.get()
   editingNR: -> Tracker.nonreactive -> Template.instance().editing.get()
   editTitle: -> Template.instance().editTitle.get()
@@ -959,10 +949,6 @@ Template.submessage.helpers
   image: ->
     history = messageHistory.get(@_id) ? @
     'image' == fileType history.file
-
-  absentTags: absentTags
-  absentTagsCount: ->
-    absentTags().count()
 
 Template.messageTags.helpers
   tags: historify 'tags', sortTags
@@ -1889,6 +1875,15 @@ WrappedSubmessage = React.memo ({message, read}) ->
       else
         formatted
   , [historified.file, historified._id]
+  absentTags = useTracker ->
+    Tags.find
+      group: message.group
+      key: $nin: _.keys message.tags ? {}
+      deleted: false
+    ,
+      sort: ['key']
+    .fetch()
+  , [message.group, _.keys(message.tags ? {}).join '\n']
   can = useTracker ->
     delete: canDelete message._id
     undelete: canUndelete message._id
@@ -2054,19 +2049,20 @@ WrappedSubmessage = React.memo ({message, read}) ->
         <span className="message-subtitle">
           <span className="upper-strut"/>
           <span className="tags">
-          {###
-            each tags
-              span.label.label-default.tag.tagWithRemove
-                | #{key}
-                span.tagRemove.fas.fa-times-circle(aria-label="Remove",data-tag=key)
-              |  
-          ###}
+            {for tag in sortTags message.tags
+              <>
+                <span className="label label-default tag tagWithRemove">
+                  {tag.key + ' '}
+                  <span className="tagRemove fas fa-times-circle" aria-label="Remove" data-tag={tag.key}/>
+                </span>
+                {' '}
+              </>
+            }
           </span>
           <span className="btn-group">
             <button className="btn btn-default label label-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <span className="fas fa-plus">
-              | Tag
-              </span>
+              <span className="fas fa-plus"/>
+              Tag
             </button>
             <ul className="dropdown-menu tagMenu" role="menu">
               <li className="disabled">
@@ -2081,13 +2077,16 @@ WrappedSubmessage = React.memo ({message, read}) ->
                   </form>
                 </a>
               </li>
-              {###
-              if absentTagsCount
-                li.divider(role="separator")
-              each absentTags
-                li
-                  a.tagAdd(href="#",data-tag=key) #{key}
-              ###}
+              {if absentTags.length
+                <>
+                  <li className="divider" role="separator"/>
+                  {for tag in absentTags
+                    <li key={tag.key}>
+                      <a className="tagAdd" href="#" data-tag={tag.key}>{tag.key}</a>
+                    </li>
+                  }
+                </>
+              }
             </ul>
           </span>
           <MessageLabels message={message}/>
