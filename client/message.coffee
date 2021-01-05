@@ -1,5 +1,6 @@
 import React, {useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react'
 import {useTracker} from 'meteor/react-meteor-data'
+import Blaze from 'meteor/gadicc:blaze-react-component'
 
 import {ErrorBoundary} from './ErrorBoundary'
 import {useRefTooltip} from './lib/tooltip'
@@ -704,220 +705,6 @@ Template.submessage.helpers
       ''
   #myid: -> Tracker.nonreactive -> Template.instance().myid
   #editing: -> editing @
-  config: ->
-    height = Tracker.nonreactive -> messagePreviewGet()?.height
-    ti = Tracker.nonreactive -> Template.instance()
-    (editor) =>
-      #console.log 'config', editor.getValue(), '.'
-      ti.editor = editor
-      switch sharejsEditor
-        when 'cm'
-          editor.setSize null, height
-          editor.getInputField().setAttribute 'tabindex', 1 + 20 * ti.count + 19
-          ## styleActiveLine is currently buggy on Android.
-          if 0 > navigator.userAgent.toLowerCase().indexOf 'android'
-            editor.setOption 'styleActiveLine', true
-          editor.setOption 'matchBrackets', true
-          editor.setOption 'lineWrapping', true
-          editor.setOption 'lineNumbers', true
-          editor.setOption 'showCursorWhenSelecting', true
-          editor.setOption 'matchBrackets', true
-          editor.setOption 'foldGutter', true
-          editor.setOption 'gutters', [
-            'CodeMirror-linenumbers'
-            'CodeMirror-foldgutter'
-          ]
-          theme = resolveTheme themeEditor()
-          editor.setOption 'theme',
-            switch theme
-              when 'dark'
-                'blackboard'
-              when 'light'
-                'eclipse'
-              else
-                theme
-          pasteHTML = false
-          editor.setOption 'extraKeys',
-            Enter: 'xnewlineAndIndentContinueMarkdownList'
-            End: 'goLineRight'
-            Home: 'goLineLeft'
-            "Shift-Ctrl-H": (cm) ->
-              pasteHTML = not pasteHTML
-              if pasteHTML
-                console.log 'HTML pasting mode turned on.'
-              else
-                console.log 'HTML pasting mode turned off.'
-          cmDrop = editor.display.dragFunctions.drop
-          editor.setOption 'dragDrop', false
-          ## Embed files as images if dragged to beginning of line or after
-          ## a space or table separator (| for Markdown, & for LaTeX).
-          useImage = (pos) ->
-            pos.ch == 0 or
-            /^[\s|&]$/.test editor.getRange
-              line: pos.line
-              ch: pos.ch - 1
-            , pos
-          embedFile = (type, id, pos) ->
-            if useImage pos
-              switch type
-                when 'image', 'video', 'pdf'
-                  switch ti.data.format
-                    when 'markdown'
-                      return "![](coauthor:#{id})"
-                    when 'latex'
-                      return "\\includegraphics{coauthor:#{id}}"
-                    when 'html'
-                      return """<img src="coauthor:#{id}">"""
-                #when 'video'
-                #  """<video controls><source src="coauthor:#{id}"></video>"""
-            "coauthor:#{id}"
-          editor.display.dragFunctions.drop = (e) ->
-            text = e.dataTransfer?.getData 'text'
-            id = e.dataTransfer?.getData 'application/coauthor-id'
-            username = e.dataTransfer?.getData 'application/coauthor-username'
-            type = e.dataTransfer?.getData 'application/coauthor-type'
-            if username
-              replacement = "@#{username}"
-            else if id
-              pos = require 'codemirror/src/measurement/position_measurement.js'
-              .posFromMouse editor, e, true
-              replacement = embedFile type, id, pos
-            else if match = parseCoauthorMessageUrl text, true
-              replacement = "coauthor:#{match.message}#{match.hash}"
-            else if match = parseCoauthorAuthorUrl text
-              replacement = "@#{match.author}"
-            else
-              replacement = text
-            if replacement?
-              e.preventDefault()
-              e = _.omit e, 'dataTransfer', 'preventDefault'
-              e.defaultPrevented = false
-              e.preventDefault = ->
-              e.dataTransfer =
-                getData: -> replacement
-            cmDrop e
-          editor.setOption 'dragDrop', true
-
-          paste = null
-          editor.on 'paste', (cm, e) ->
-            paste = null
-            if pasteHTML and 'text/html' in e.clipboardData.types
-              paste = e.clipboardData.getData 'text/html'
-              .replace /<!--.*?-->/g, ''
-              .replace /<\/?(html|head|body|meta)\b[^<>]*>/ig, ''
-              .replace /<b\s+style="font-weight:\s*normal[^<>]*>([^]*?)<\/b>/ig, '$1'
-              .replace /<span\s+style="([^"]*)"[^<>]*>([^]*?)<\/span>/ig, (match, style, body) ->
-                body = "<i>#{body}</i>" if style.match /font-style:\s*italic/
-                body = "<b>#{body}</b>" if style.match /font-weight:\s*[6789]00/
-                body
-              .replace /(\s+)(<\/i>(<\/b>)?|<\/b>)/, '$2$1'
-              .replace /<(p|li) dir="ltr"/ig, '<$1'
-              .replace /<(\w+[^<>]*) class=("[^"]*"|'[^']*')/ig, '<$1'
-              .replace /<(p|li|ul|pre) style=("[^"]*"|'[^']*')/ig, '<$1'
-              .replace /<\/(p|li)>/ig, ''
-              .replace /(<li[^<>]*>)<p>/ig, '$1'
-              .replace /<(li|ul|\/ul|br|p)\b/ig, '\n$&'
-              .replace /&quot;/ig, '"'
-              if (match = /^\s*<pre[^<>]*>([^]*)<\/pre>\s*$/.exec paste) and
-                 0 > match[1].indexOf '<pre>'
-                ## Treat a single <pre> block (such as pasted from Raw view)
-                ## like a text paste, after parsing basic &chars;
-                paste = match[1]
-                .replace /&lt;/g, '<'
-                .replace /&gt;/g, '>'
-                .replace /&amp;/g, '&'
-                .split /\r\n?|\n/
-              else
-                paste = paste.split /\r\n?|\n/
-                ## Remove blank lines
-                paste = (line for line in paste when line.length)
-            else if 'text/plain' in e.clipboardData.types
-              text = e.clipboardData.getData 'text/plain'
-              if match = parseCoauthorMessageUrl text, true
-                paste = ["coauthor:#{match.message}#{match.hash}"]
-                if not match.hash
-                  msg = findMessage match.message
-                  if msg?.file? and type = fileType msg.file
-                    paste = [embedFile type, match.message, editor.getCursor()]
-              else if match = parseCoauthorAuthorUrl text
-                paste = ["@#{match.author}"]
-          editor.on 'beforeChange', (cm, change) ->
-            if change.origin == 'paste' and paste?
-              change.text = paste
-              paste = null
-
-          lastAtWord = (cm) ->
-            cursor = cm.getCursor()
-            return null unless cursor.ch
-            text = cm.getRange
-              line: cursor.line
-              ch: 0
-            , cursor
-            (/@[^\s@]*$/.exec text)?[0]
-          users = null
-          editor.on 'keyup', (cm, e) ->
-            if (e.key.length == 1 or e.key == 'Backspace') and ## regular typing
-               (word = lastAtWord cm)?  ## completable @mention
-              word = word[1..]
-              cm.showHint
-                completeSingle: false
-                hint: (cm) -> new Promise (callback) ->
-                  users ?= _.sortBy (
-                    (Meteor.users.find {}, fields:
-                      username: 1
-                      "profile.fullname": 1
-                    ).map (user) ->
-                      display = user.username
-                      if user.profile.fullname
-                        display += " (#{user.profile.fullname})"
-                      lower = display.toLowerCase()
-                      text: user.username + ' '
-                      displayText: display
-                      sort: lower
-                      search: lower.replace /\s/g, ''
-                  ), 'sort'
-                  matches = (user for user in users \
-                    when user.search.includes word.toLowerCase())
-                  cursor = cm.getCursor()
-                  callback
-                    list: matches
-                    from:
-                      line: cursor.line
-                      ch: cursor.ch - word.length
-                    to: cursor
-            else
-              cm.execCommand 'closeHint'
-
-        when 'ace'
-          editor.textInput.getElement().setAttribute 'tabindex', 1 + 20 * ti.count + 19
-          #editor.meteorData = @  ## currently not needed, also dunno if works
-          editor.$blockScrolling = Infinity
-          #editor.on 'change', onChange
-          editor.setTheme 'ace/theme/' +
-            switch themeEditor()
-              when 'dark'
-                'vibrant_ink'
-              when 'light'
-                'chrome'
-              else
-                themeEditor()
-          editor.setShowPrintMargin false
-          editor.setBehavioursEnabled true
-          editor.setShowFoldWidgets true
-          editor.getSession().setUseWrapMode true
-          #editor.setOption 'spellcheck', true
-          #editor.container.addEventListener 'drop', (e) =>
-          #  e.preventDefault()
-          #  if id = e.dataTransfer.getData('application/coauthor')
-          #    #switch @format
-          #    #  when 'latex'
-          #    #    e.dataTransfer.setData('text/plain', "\\href{#{id}}{}")
-          #    e.dataTransfer.setData('text/plain', "<IMG SRC='coauthor:#{id}'>")
-      editor.on 'change',
-        _.debounce => ti.editBody.set editor.getDoc().getValue()
-      , 100
-      editorMode editor, ti.data.format
-      editorKeyboard editor, messageKeyboard.get(ti.data._id) ? userKeyboard()
 
   title: historify 'title'
   formatTitle: historifiedFormatTitle = (bold = false) ->
@@ -1048,6 +835,237 @@ MessageParent = React.memo ({message}) ->
     <span className="fas fa-chevron-up" aria-hidden="true" data-toggle="tooltip" title={parent.title}/>
   </a>
 MessageParent.displayName = 'MessageParent'
+
+MessageEditor = React.memo ({message, setEditBody, tabindex}) ->
+  messageID = message._id
+  [editor, setEditor] = useState()
+  useEffect ->
+    return unless editor?
+    switch sharejsEditor
+      when 'cm'
+        editor.getInputField().setAttribute 'tabindex', tabindex
+        ## styleActiveLine is currently buggy on Android.
+        if 0 > navigator.userAgent.toLowerCase().indexOf 'android'
+          editor.setOption 'styleActiveLine', true
+        editor.setOption 'matchBrackets', true
+        editor.setOption 'lineWrapping', true
+        editor.setOption 'lineNumbers', true
+        editor.setOption 'showCursorWhenSelecting', true
+        editor.setOption 'matchBrackets', true
+        editor.setOption 'foldGutter', true
+        editor.setOption 'gutters', [
+          'CodeMirror-linenumbers'
+          'CodeMirror-foldgutter'
+        ]
+        theme = resolveTheme themeEditor()
+        editor.setOption 'theme',
+          switch theme
+            when 'dark'
+              'blackboard'
+            when 'light'
+              'eclipse'
+            else
+              theme
+        pasteHTML = false
+        editor.setOption 'extraKeys',
+          Enter: 'xnewlineAndIndentContinueMarkdownList'
+          End: 'goLineRight'
+          Home: 'goLineLeft'
+          "Shift-Ctrl-H": (cm) ->
+            pasteHTML = not pasteHTML
+            if pasteHTML
+              console.log 'HTML pasting mode turned on.'
+            else
+              console.log 'HTML pasting mode turned off.'
+        cmDrop = editor.display.dragFunctions.drop
+        editor.setOption 'dragDrop', false
+        ## Embed files as images if dragged to beginning of line or after
+        ## a space or table separator (| for Markdown, & for LaTeX).
+        useImage = (pos) ->
+          pos.ch == 0 or
+          /^[\s|&]$/.test editor.getRange
+            line: pos.line
+            ch: pos.ch - 1
+          , pos
+        embedFile = (type, id, pos) ->
+          if useImage pos
+            switch type
+              when 'image', 'video', 'pdf'
+                switch findMessage(messageID)?.format
+                  when 'markdown'
+                    return "![](coauthor:#{id})"
+                  when 'latex'
+                    return "\\includegraphics{coauthor:#{id}}"
+                  else #when 'html'
+                    return """<img src="coauthor:#{id}">"""
+              #when 'video'
+              #  """<video controls><source src="coauthor:#{id}"></video>"""
+          "coauthor:#{id}"
+        editor.display.dragFunctions.drop = (e) ->
+          text = e.dataTransfer?.getData 'text'
+          id = e.dataTransfer?.getData 'application/coauthor-id'
+          username = e.dataTransfer?.getData 'application/coauthor-username'
+          type = e.dataTransfer?.getData 'application/coauthor-type'
+          if username
+            replacement = "@#{username}"
+          else if id
+            pos = require 'codemirror/src/measurement/position_measurement.js'
+            .posFromMouse editor, e, true
+            replacement = embedFile type, id, pos
+          else if match = parseCoauthorMessageUrl text, true
+            replacement = "coauthor:#{match.message}#{match.hash}"
+          else if match = parseCoauthorAuthorUrl text
+            replacement = "@#{match.author}"
+          else
+            replacement = text
+          if replacement?
+            e.preventDefault()
+            e = _.omit e, 'dataTransfer', 'preventDefault'
+            e.defaultPrevented = false
+            e.preventDefault = ->
+            e.dataTransfer =
+              getData: -> replacement
+          cmDrop e
+        editor.setOption 'dragDrop', true
+
+        paste = null
+        editor.on 'paste', (cm, e) ->
+          paste = null
+          if pasteHTML and 'text/html' in e.clipboardData.types
+            paste = e.clipboardData.getData 'text/html'
+            .replace /<!--.*?-->/g, ''
+            .replace /<\/?(html|head|body|meta)\b[^<>]*>/ig, ''
+            .replace /<b\s+style="font-weight:\s*normal[^<>]*>([^]*?)<\/b>/ig, '$1'
+            .replace /<span\s+style="([^"]*)"[^<>]*>([^]*?)<\/span>/ig, (match, style, body) ->
+              body = "<i>#{body}</i>" if style.match /font-style:\s*italic/
+              body = "<b>#{body}</b>" if style.match /font-weight:\s*[6789]00/
+              body
+            .replace /(\s+)(<\/i>(<\/b>)?|<\/b>)/, '$2$1'
+            .replace /<(p|li) dir="ltr"/ig, '<$1'
+            .replace /<(\w+[^<>]*) class=("[^"]*"|'[^']*')/ig, '<$1'
+            .replace /<(p|li|ul|pre) style=("[^"]*"|'[^']*')/ig, '<$1'
+            .replace /<\/(p|li)>/ig, ''
+            .replace /(<li[^<>]*>)<p>/ig, '$1'
+            .replace /<(li|ul|\/ul|br|p)\b/ig, '\n$&'
+            .replace /&quot;/ig, '"'
+            if (match = /^\s*<pre[^<>]*>([^]*)<\/pre>\s*$/.exec paste) and
+                0 > match[1].indexOf '<pre>'
+              ## Treat a single <pre> block (such as pasted from Raw view)
+              ## like a text paste, after parsing basic &chars;
+              paste = match[1]
+              .replace /&lt;/g, '<'
+              .replace /&gt;/g, '>'
+              .replace /&amp;/g, '&'
+              .split /\r\n?|\n/
+            else
+              paste = paste.split /\r\n?|\n/
+              ## Remove blank lines
+              paste = (line for line in paste when line.length)
+          else if 'text/plain' in e.clipboardData.types
+            text = e.clipboardData.getData 'text/plain'
+            if match = parseCoauthorMessageUrl text, true
+              paste = ["coauthor:#{match.message}#{match.hash}"]
+              if not match.hash
+                msg = findMessage match.message
+                if msg?.file? and type = fileType msg.file
+                  paste = [embedFile type, match.message, editor.getCursor()]
+            else if match = parseCoauthorAuthorUrl text
+              paste = ["@#{match.author}"]
+        editor.on 'beforeChange', (cm, change) ->
+          if change.origin == 'paste' and paste?
+            change.text = paste
+            paste = null
+
+        lastAtWord = (cm) ->
+          cursor = cm.getCursor()
+          return null unless cursor.ch
+          text = cm.getRange
+            line: cursor.line
+            ch: 0
+          , cursor
+          (/@[^\s@]*$/.exec text)?[0]
+        users = null
+        editor.on 'keyup', (cm, e) ->
+          if (e.key.length == 1 or e.key == 'Backspace') and ## regular typing
+              (word = lastAtWord cm)?  ## completable @mention
+            word = word[1..]
+            cm.showHint
+              completeSingle: false
+              hint: (cm) -> new Promise (callback) ->
+                users ?= _.sortBy (
+                  (Meteor.users.find {}, fields:
+                    username: 1
+                    "profile.fullname": 1
+                  ).map (user) ->
+                    display = user.username
+                    if user.profile.fullname
+                      display += " (#{user.profile.fullname})"
+                    lower = display.toLowerCase()
+                    text: user.username + ' '
+                    displayText: display
+                    sort: lower
+                    search: lower.replace /\s/g, ''
+                ), 'sort'
+                matches = (user for user in users \
+                  when user.search.includes word.toLowerCase())
+                cursor = cm.getCursor()
+                callback
+                  list: matches
+                  from:
+                    line: cursor.line
+                    ch: cursor.ch - word.length
+                  to: cursor
+          else
+            cm.execCommand 'closeHint'
+
+      when 'ace'
+        editor.textInput.getElement().setAttribute 'tabindex', tabindex
+        editor.$blockScrolling = Infinity
+        #editor.on 'change', onChange
+        editor.setTheme 'ace/theme/' +
+          switch themeEditor()
+            when 'dark'
+              'vibrant_ink'
+            when 'light'
+              'chrome'
+            else
+              themeEditor()
+        editor.setShowPrintMargin false
+        editor.setBehavioursEnabled true
+        editor.setShowFoldWidgets true
+        editor.getSession().setUseWrapMode true
+        #editor.setOption 'spellcheck', true
+        #editor.container.addEventListener 'drop', (e) =>
+        #  e.preventDefault()
+        #  if id = e.dataTransfer.getData('application/coauthor')
+        #    #switch @format
+        #    #  when 'latex'
+        #    #    e.dataTransfer.setData('text/plain', "\\href{#{id}}{}")
+        #    e.dataTransfer.setData('text/plain', "<IMG SRC='coauthor:#{id}'>")
+    editor.on 'change',
+      _.debounce => setEditBody editor.getDoc().getValue()
+      , 100
+  , [editor]
+  useTracker ->
+    return unless editor?
+    preview = messagePreview.get(messageID) ? messagePreviewDefault()
+    editor.setSize null, preview.height
+  , [messageID, editor]
+  useEffect ->
+    return unless editor?
+    editorMode editor, message.format
+    undefined
+  , [editor, message.format]
+  useTracker ->
+    return unless editor?
+    editorKeyboard editor, messageKeyboard.get(messageID) ? userKeyboard()
+  , [editor, messageID]
+  <MessageEditor_ messageID={messageID} setEditor={setEditor} tabindex={tabindex}/>
+
+MessageEditor_ = React.memo ({messageID, setEditor, tabindex}) ->
+  <Blaze template="sharejs" docid={messageID}
+   onRender={-> (editor) -> setEditor editor}/>
+MessageEditor.displayName = 'MessageEditor'
 
 Template.belowEditor.helpers
   preview: -> messagePreviewGet()?.on
@@ -1194,7 +1212,7 @@ Template.submessage.events
     e.preventDefault()
     e.stopPropagation()
     messageKeyboard.set @_id, kb = e.target.getAttribute 'data-keyboard'
-    editorKeyboard t.editor, kb
+    #editorKeyboard t.editor, kb
     dropdownToggle e
 
   'click .editorFormat': (e, t) ->
@@ -1202,7 +1220,7 @@ Template.submessage.events
     e.stopPropagation()
     Meteor.call 'messageUpdate', t.data._id,
       format: format = e.target.getAttribute 'data-format'
-    editorMode Template.instance().editor, format
+    #editorMode Template.instance().editor, format
     dropdownToggle e
 
   'click .replaceButton': (e, t) ->
@@ -1251,7 +1269,7 @@ Template.superdelete.events
     e.stopPropagation()
     Modal.hide()
 
-Slider = null
+Slider = null  # will become default import of 'bootstrap-slider' NPM package
 MessageHistory = React.memo ({message}) ->
   ready = useTracker ->
     Meteor.subscribe 'messages.diff', message._id
@@ -2166,16 +2184,15 @@ WrappedSubmessage = React.memo ({message, read}) ->
         }
         <div className="editorAndBody clearfix #{if previewSideBySide then 'sideBySide' else ''}">
           <div className="editorContainer">
-            {###unless history
-              with nothing
-                if editing
-                  +sharejsCM docid=editingNR onRender=config
-                  //- +sharejsAce docid=editingNR onRender=config
-              if editing
-                unless previewSideBySide
+            {if editing and not history
+              <>
+                <MessageEditor message={message} setEditBody={setEditBody} tabindex={tabindex0+19}/>
+                {###unless previewSideBySide
                   +belowEditor editData
                   .resizer
-            ###}
+                ###}
+              </>
+            }
           </div>
           {if preview.on
             <div className="bodyContainer">

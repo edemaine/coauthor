@@ -15,6 +15,11 @@ template(name="readMessage")
   div
     +React component=ReadMessage message=message
 
+//- 'sharejsCM' is a helper, not an actual template,
+    so we need an intermediate template to call it properly.
+template(name="sharejs")
+  +sharejsCM docid=docid onRender=onRender
+
 template(name="submessageHeader")
   +rootHeader
   +submessage
