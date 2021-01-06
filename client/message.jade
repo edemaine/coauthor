@@ -1,12 +1,3 @@
-template(name="messageMaybe")
-  if group
-    if matchingGroup
-      +message
-    else
-      +mismatchedGroupMessage
-  else
-    +messageBad
-
 template(name="message")
   div
     +React component=MessageID messageID=messageID

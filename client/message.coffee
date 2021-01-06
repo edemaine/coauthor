@@ -136,15 +136,6 @@ Template.registerHelper 'formatBody', ->
 Template.registerHelper 'formatFile', ->
   formatFile @
 
-Template.messageMaybe.helpers
-  matchingGroup: ->
-    @group == routeGroup()
-
-Template.messageMaybe.onRendered ->
-  ## Redirect wild-group message link to group-specific link
-  if routeGroup() == wildGroup
-    Router.go 'message', {group: @group, message: @_id}
-
 Template.messageBad.helpers
   message: -> Router.current().params.message
 
@@ -183,9 +174,18 @@ MessageID = React.memo ({messageID}) ->
   message = useTracker ->
     Messages.findOne messageID
   , [messageID]
-  return null unless message?
   <ErrorBoundary>
-    <Message message={message}/>
+    {if message?.group
+      if message.group == routeGroup()
+        <Message message={message}/>
+      else if routeGroup() == wildGroup
+        Router.go 'message', {group: message.group, message: message._id}
+        null
+      else
+        <Blaze template="mismatchedGroupMesage" _id={message._id} group={message.group}/>
+    else
+      <Blaze template="messageBad"/>
+    }
   </ErrorBoundary>
 MessageID.displayName = 'MessageID'
 
