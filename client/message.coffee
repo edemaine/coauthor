@@ -1127,6 +1127,58 @@ Template.registerHelper 'formatAuthors', formatAuthors = ->
   if a.length > 0
     ', edited by ' + a.join ", "
 
+KeyboardSelector = React.memo ({messageID, tabindex}) ->
+  keyboard = useTracker ->
+    messageKeyboard.get(messageID) ? userKeyboard()
+  , [messageID]
+
+  onClick = (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+    messageKeyboard.set messageID, e.target.getAttribute 'data-keyboard'
+    dropdownToggle e
+
+  <div className="btn-group">
+    <button className="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" tabIndex={tabindex}>
+      {"#{capitalize keyboard} "}
+      <span className="caret"/>
+    </button>
+    <ul className="dropdown-menu" role="menu">
+      {for k in ['normal', 'vim', 'emacs']
+        <li key={k} className="editorKeyboard #{if keyboard == k then 'active' else ''}" onClick={onClick}>
+          <a href="#" data-keyboard={k}>{capitalize k}</a>
+        </li>
+      }
+    </ul>
+  </div>
+KeyboardSelector.displayName = 'KeyboardSelector'
+
+FormatSelector = React.memo ({messageID, format, tabindex}) ->
+  format ?= defaultFormat
+
+  onClick = (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+    Meteor.call 'messageUpdate', messageID,
+      format: e.target.getAttribute 'data-format'
+    dropdownToggle e
+
+  <div className="btn-group">
+    <button className="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" tabIndex={tabindex}>
+      {"#{capitalize format} "}
+      <span className="caret"/>
+    </button>
+    <ul className="dropdown-menu" role="menu">
+      {for f in availableFormats
+        <li key={f} className="editorFormat #{if format == f then 'active' else ''}" onClick={onClick}>
+          <a href="#" data-format={f}>{capitalize f}</a>
+        </li>
+      }
+    </ul>
+  </div>
+FormatSelector.displayName = 'FormatSelector'
+
+# Still needed for Settings
 Template.keyboardSelector.helpers
   keyboard: ->
     if @_id?
@@ -1207,21 +1259,6 @@ Template.submessage.events
     e.stopPropagation()
     messagePreviewSet (preview) -> _.extend {}, preview,
       sideBySide: not preview.sideBySide
-
-  'click .editorKeyboard': (e, t) ->
-    e.preventDefault()
-    e.stopPropagation()
-    messageKeyboard.set @_id, kb = e.target.getAttribute 'data-keyboard'
-    #editorKeyboard t.editor, kb
-    dropdownToggle e
-
-  'click .editorFormat': (e, t) ->
-    e.preventDefault()
-    e.stopPropagation()
-    Meteor.call 'messageUpdate', t.data._id,
-      format: format = e.target.getAttribute 'data-format'
-    #editorMode Template.instance().editor, format
-    dropdownToggle e
 
   'click .replaceButton': (e, t) ->
     e.preventDefault()
@@ -2147,9 +2184,9 @@ WrappedSubmessage = React.memo ({message, read}) ->
               {###
               unless message.root
                 +threadPrivacy
-              +keyboardSelector _id=_id tabIndex=tabindex0+6
-              +formatSelector format=format tabIndex=tabindex0+7
               ###}
+              <KeyboardSelector messageID={message._id} tabindex={tabindex0+6}/>
+              <FormatSelector messageID={message._id} format={message.format} tabindex={tabindex0+7}/>
             </>
           }
           {unless history or read
@@ -2347,7 +2384,7 @@ MessageActions = React.memo ({message, can, editing, tabindex0}) ->
   return null unless can.delete or can.undelete or can.publish or can.unpublish or can.superdelete or can.private
   <div className="btn-group">
     <button className="btn btn-info actionButton dropdown-toggle" tabIndex={tabindex0+4} type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-      Action
+      {"Action "}
       <span className="caret"/>
     </button>
     <ul className="dropdown-menu dropdown-menu-right actionMenu" role="menu">
