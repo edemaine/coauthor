@@ -259,7 +259,6 @@ Template.downloadGroup.events
     Modal.hide()
 
 Template.messageList.onRendered ->
-  mathjax()
   tooltipInit()
 
 Template.messageList.helpers
@@ -288,9 +287,6 @@ Template.messageList.helpers
     "fa-sort-#{type}-#{order}"
   topMessages: ->
     groupSortedBy @group, sortBy()
-
-Template.messageShort.onRendered ->
-  mathjax()
 
 Template.messageShort.helpers
   messageLink: ->
