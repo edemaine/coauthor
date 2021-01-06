@@ -737,6 +737,9 @@ export messageFilterExtraFields = (msg) ->
 ## The following should be called directly only on the server;
 ## clients should use the corresponding method.
 _messageUpdate = (id, message, authors = null, old = null) ->
+  ## Turn off optimistic UI to avoid flicker and false sense of updates :-(
+  return unless Meteor.isServer
+
   ## Compare with 'old' if provided (in cases when it's already been
   ## fetched by the server); otherwise, load id from Messages.
   old = Messages.findOne id unless old?
@@ -782,33 +785,36 @@ _messageUpdate = (id, message, authors = null, old = null) ->
       break
   return unless difference
 
-  now = new Date
-  if message.published == true
-    message.published = now
-  message.updated = now
-  message.updators = authors
-  diff = _.clone message
-  for author in authors
-    message["authors.#{escapeUser author}"] = now
+  ## Don't simulate changes involving date, which will be invalidated by server
+  if Meteor.isServer
+    now = new Date
+    if message.published == true
+      message.published = now
+    message.updated = now
+    message.updators = authors
+    diff = _.clone message
+    for author in authors
+      message["authors.#{escapeUser author}"] = now
   Messages.update id,
     $set: message
-  diff.id = id
-  diff.finished = authors if finished
-  diffid = MessagesDiff.insert diff
-  diff._id = diffid
-  #_submessagesChanged old.root ? id
-  ## In this special case, we can efficiently simulate the behavior of
-  ## _submessagesChanged via a direct update to the root:
-  if Meteor.isServer and (not old.root? or _consideredSubmessage message, old)
-    rootUpdate = $max: submessageLastUpdate: message.updated
-    if old.root? and not _consideredSubmessage old
-      rootUpdate.$inc = submessageCount: 1  ## considered a new submessage
-    Messages.update (old.root ? id), rootUpdate
-  else if _consideredSubmessage old
-    ## If this message is no longer considered a submessage, we need to
-    ## recompute from scratch in order to find the new last update.
-    _submessagesChanged old.root ? id
-  notifyMessageUpdate message, old if Meteor.isServer  ## client in simulation
+  if Meteor.isServer
+    diff.id = id
+    diff.finished = authors if finished
+    diffid = MessagesDiff.insert diff
+    diff._id = diffid
+    #_submessagesChanged old.root ? id
+    if not old.root? or _consideredSubmessage message, old
+      ## In this special case, we can efficiently simulate the behavior of
+      ## _submessagesChanged via a direct update to the root:
+      rootUpdate = $max: submessageLastUpdate: message.updated
+      if old.root? and not _consideredSubmessage old
+        rootUpdate.$inc = submessageCount: 1  ## considered a new submessage
+      Messages.update (old.root ? id), rootUpdate
+    else if _consideredSubmessage old
+      ## If this message is no longer considered a submessage, we need to
+      ## recompute from scratch in order to find the new last update.
+      _submessagesChanged old.root ? id
+    notifyMessageUpdate message, old
   diffid
 
 _messageAddChild = (child, parent, position = null) ->
