@@ -3,6 +3,7 @@ import {useTracker} from 'meteor/react-meteor-data'
 import Blaze from 'meteor/gadicc:blaze-react-component'
 
 import {ErrorBoundary} from './ErrorBoundary'
+import {Credits} from './layout.coffee'
 import {useRefTooltip} from './lib/tooltip'
 import {resolveTheme} from './theme'
 
@@ -287,9 +288,7 @@ Message = React.memo ({message}) ->
             {orphans}
           </div>
       }
-      {###
-      +credits
-      ###}
+      <Credits/>
     </div>
     <div className="col-md-3 hidden-print hidden-xs hidden-sm" role="complementary">
       <TableOfContentsID messageID={message._id}/>

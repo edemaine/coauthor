@@ -1,3 +1,5 @@
+import React from 'react'
+
 Template.registerHelper 'uploading', ->
   value for own key, value of Session.get 'uploading'
 
@@ -73,7 +75,21 @@ Template.layout.helpers
   creditsWide: ->
     Router.current().route?.getName() != 'message'
 
-Template.registerHelper 'favicon', ->
+export Credits = React.memo ->
+  <p className="credits clearfix">
+    <img src={favicon()}/>
+    {' '}
+    <b>Coauthor</b> written by <a href="http://erikdemaine.org">Erik Demaine</a>, with help from many others.
+    <span className="space"/>
+    <span className="btn-group btn-group-sm pull-right">
+      <a className="btn btn-default" href="https://github.com/edemaine/coauthor/#coauthor">Documentation</a>
+      <a className="btn btn-default" href="https://github.com/edemaine/coauthor/issues/">Suggestions/Issues</a>
+      <a className="btn btn-default" href="https://github.com/edemaine/coauthor/">Download Source</a>
+    </span>
+  </p>
+Credits.displayName = 'Credits'
+
+Template.registerHelper 'favicon', favicon = ->
   Meteor.absoluteUrl 'favicon32.png'
 
 Template.registerHelper 'couldSuper', ->
