@@ -76,15 +76,16 @@ linkToTag = (tag, group) ->
     group: group
     search: "tag:#{search}"
 
-Template.registerHelper 'folded', ->
-  (messageFolded.get @_id) and
-  (not routeHere @_id) and                  # never fold if top-level message
-  (not Template.instance()?.editing?.get()) # never fold if editing
+SubmessageHeader = React.memo ({message}) ->
+  <>
+    <MaybeRootHeader message={message}/>
+    <Submessage message={message}/>
+  </>
+SubmessageHeader.displayName = 'SubmessageHeader'
 
-Template.rootHeader.helpers
-  root: ->
-    if @root
-      Messages.findOne @root
+Template.submessageHeader.helpers
+  SubmessageHeader: -> SubmessageHeader
+  message: -> @
 
 MaybeRootHeader = ({message}) ->
   return null unless message?.root?
