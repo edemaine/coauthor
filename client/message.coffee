@@ -376,7 +376,6 @@ Template.submessage.onCreated ->
     ## initImage calls updateFileQuery which will do this:
     #images[data._id].file = data.file
     #initImageInternal data.file if data.file?
-    id2template[data._id] = @
     ## If message is naturally folded, don't count images it references.
     images[data._id].naturallyFolded = naturallyFolded data
     images[data._id].children = data.children?.length
@@ -445,7 +444,7 @@ Template.submessage.onCreated ->
 #Session.setDefault 'images', {}
 images = {}
 imagesInternal = {}
-id2template = {}
+id2dom = {}
 scrollToLater = null
 fileQuery = null
 
@@ -507,7 +506,7 @@ checkImage = (id) ->
     messageFolded.set id, newDefault
   ## No longer care about this image if it's not referenced and doesn't have
   ## a rendered template.
-  if images[id].count == 0 and id not of id2template
+  if images[id].count == 0 and id not of id2dom
     delete images[id]
     updateFileQuery()
 
@@ -541,11 +540,6 @@ Template.submessage.onRendered ->
   #  Math.floor(Math.random() * 25 + 255 - 25).toString(16) +
   #  Math.floor(Math.random() * 25 + 255 - 25).toString(16) +
   #  Math.floor(Math.random() * 25 + 255 - 25).toString(16)
-
-  ## Scroll to this message if it's been requested.
-  if scrollToLater == @data._id
-    scrollToLater = null
-    scrollToMessage @data._id
 
   ## Image rotation. Also triggered in formatBody.
   @autorun =>
@@ -611,15 +605,15 @@ scrollDelay = 750
 @scrollToMessage = (id) ->
   if id[0] == '#'
     id = id[1..]
-  if id of id2template
-    template = id2template[id]
+  if id of id2dom
+    dom = id2dom[id]
     $('html, body').animate
-      scrollTop: template.firstNode.offsetTop
+      scrollTop: dom.offsetTop
     , 200, 'swing', ->
       ## Focus on title edit box when scrolling to message being edited.
-      ## We'd like to use `template.$('input.title')`
+      ## We'd like to use `$(dom).find('input.title')`
       ## but want to exclude children.
-      heading = template.firstNode?.firstChild
+      heading = dom.firstChild
       $(heading).find('input.title').focus() if heading?
   else
     scrollToLater = id
@@ -630,7 +624,6 @@ scrollDelay = 750
   messageFolded.set id, false
 
 Template.submessage.onDestroyed ->
-  delete id2template[@data._id]
   checkImage @data._id
   for id of @images ? {}
     if id of images
@@ -2008,6 +2001,19 @@ WrappedSubmessage = React.memo ({message, read}) ->
     elt.addEventListener 'dragstart', listener for elt in elts
     -> elt.removeEventListener 'dragstart', listener for elt in elts
   , [folded, history?, messageFileRef.current, message]
+
+  ## Maintain id2dom mapping
+  useEffect ->
+    id2dom[message._id] = ref.current
+    -> delete id2dom[message._id]
+  , [message._id, ref.current]
+  ## Scroll to this message if it's been requested.
+  useEffect ->
+    if scrollToLater == message._id
+      scrollToLater = null
+      scrollToMessage message._id
+    undefined
+  , [message._id]
 
   onFold = (e) ->
     e.preventDefault()
