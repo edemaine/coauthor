@@ -516,31 +516,19 @@ checkImageInternal = (id) ->
   #console.log "#{id} corresponds to #{image}"
   checkImage image if image?
 
-messageDrag = (target, bodyToo = true, old) ->
-  return unless target
-  onDragStart = (e) =>
-    #url = "coauthor:#{@data._id}"
-    url = urlFor 'message',
-      group: @data.group
-      message: @data._id
-    e.dataTransfer.effectAllowed = 'linkMove'
-    e.dataTransfer.setData 'text/plain', url
-    e.dataTransfer.setData 'application/coauthor-id', @data._id
-    e.dataTransfer.setData 'application/coauthor-type', type
-  type = 'message'
-  if @data.file
-    type = fileType @data.file
-    #console.log @data.file, type
-    #if "class='odd-file'" not in formatted and
-    #   "class='bad-file'" not in formatted
-    #  url = formatted
-    if bodyToo
-      $(@find '.message-file')?.find('img, video, a, canvas')?.each (i, elt) =>
-        elt.removeEventListener 'dragstart', old if old?
-        elt.addEventListener 'dragstart', onDragStart
-  target.removeEventListener 'dragstart', old if old?
-  target.addEventListener 'dragstart', onDragStart
-  onDragStart
+messageOnDragStart = (message) -> (e) ->
+  #url = "coauthor:#{message._id}"
+  url = urlFor 'message',
+    group: message.group
+    message: message._id
+  e.dataTransfer.effectAllowed = 'linkMove'
+  e.dataTransfer.setData 'text/plain', url
+  e.dataTransfer.setData 'application/coauthor-id', message._id
+  e.dataTransfer.setData 'application/coauthor-type',
+    if message.file
+      type = fileType message.file
+    else
+      'message'
 
 ## A message is "naturally" folded if it is flagged as minimized or deleted.
 ## It still will be default-folded if it's an image referenced in another
@@ -553,11 +541,6 @@ Template.submessage.onRendered ->
   #  Math.floor(Math.random() * 25 + 255 - 25).toString(16) +
   #  Math.floor(Math.random() * 25 + 255 - 25).toString(16) +
   #  Math.floor(Math.random() * 25 + 255 - 25).toString(16)
-
-  ## Drag/drop support.
-  focusButton = $(@find '.message-left-buttons').find('.focusButton')[0]
-  @autorun =>
-    listener = messageDrag.call @, focusButton, true, listener
 
   ## Scroll to this message if it's been requested.
   if scrollToLater == @data._id
@@ -1612,7 +1595,7 @@ TableOfContents = React.memo ({message, parent, index}) ->
       {unless isRoot
         <div className="beforeMessageDrop" data-parent={parent} data-index={index}/>
       }
-      <a href="##{message._id}" data-id={message._id} className="onMessageDrop #{if isRoot then 'title' else ''} #{messageClass.call message}">
+      <a href="##{message._id}" data-id={message._id} className="onMessageDrop #{if isRoot then 'title' else ''} #{messageClass.call message}" onDragStart={messageOnDragStart message}>
         {if editing
           <>
             <span className="fas fa-edit"/>
@@ -1671,12 +1654,6 @@ TableOfContents = React.memo ({message, parent, index}) ->
       {renderedChildren}
     </li>
 TableOfContents.displayName = 'TableOfContents'
-
-###
-Template.tableOfContentsMessage.onRendered ->
-  @autorun =>
-    listener = messageDrag.call @, @find('a'), false, listener
-###
 
 addDragOver = (e) ->
   e.preventDefault()
@@ -2023,6 +2000,15 @@ WrappedSubmessage = React.memo ({message, read}) ->
       threadMentions[author] -= 1 for author in mentions
   , [(key for key of message.authors).join('@'), message.title, message.body, usernames]
 
+  messageFileRef = useRef()
+  useEffect ->
+    return if folded or history? or not messageFileRef.current?
+    listener = messageOnDragStart message
+    elts = messageFileRef.current.querySelectorAll 'img, video, a, canvas'
+    elt.addEventListener 'dragstart', listener for elt in elts
+    -> elt.removeEventListener 'dragstart', listener for elt in elts
+  , [folded, history?, messageFileRef.current, message]
+
   onFold = (e) ->
     e.preventDefault()
     e.stopPropagation()
@@ -2084,7 +2070,7 @@ WrappedSubmessage = React.memo ({message, read}) ->
                       <span className="fas fa-minus" aria-hidden="true"/>
                     </button>
                 }
-                <a className="btn btn-info focusButton" aria-label="Focus" href={pathFor 'message', {group: message.group, message: message._id}} draggable="true" data-toggle="tooltip" data-container="body" title="Zoom in/focus on just the subthread of this message and its descendants">
+                <a className="btn btn-info focusButton" aria-label="Focus" href={pathFor 'message', {group: message.group, message: message._id}} draggable="true" data-toggle="tooltip" data-container="body" title="Zoom in/focus on just the subthread of this message and its descendants" onDragStart={messageOnDragStart message}>
                   <span className="fas fa-sign-in-alt" aria-hidden="true"/>
                 </a>
               </>
@@ -2259,7 +2245,7 @@ WrappedSubmessage = React.memo ({message, read}) ->
                       +messagePDF
                   ###}
                   <p className="message-file"
-                   dangerouslySetInnerHTML={__html: formattedFile.file}/>
+                   dangerouslySetInnerHTML={__html: formattedFile.file} ref={messageFileRef}/>
                 }
               </div>
             </div>
