@@ -1392,75 +1392,6 @@ MessageHistory = React.memo ({message}) ->
     <input type="text" ref={input}/>
   </div>
 
-uploader = (template, button, input, callback) ->
-  Template[template].events {
-    "click .#{button}": (e, t) ->
-      e.preventDefault()
-      e.stopPropagation()
-      t.find(".#{input}").click()
-    "change .#{input}": (e, t) ->
-      callback e.target.files, e, t
-      e.target.value = ''
-    "dragenter .#{button}": (e) ->
-      e.preventDefault()
-      e.stopPropagation()
-    "dragover .#{button}": (e) ->
-      e.preventDefault()
-      e.stopPropagation()
-    "drop .#{button}": (e, t) ->
-      e.preventDefault()
-      e.stopPropagation()
-      callback e.originalEvent.dataTransfer.files, e, t
-  }
-
-attachFiles = (files, e, t) ->
-  message = t.data._id
-  group = t.data.group
-  callbacks = {}
-  called = 0
-  ## Start all file uploads simultaneously.
-  for file, i in files
-    do (i) ->
-      file.callback = (file2, done) ->
-        ## Set up callback for when this file is completed.
-        callbacks[i] = ->
-          Meteor.call 'messageNew', group, message, null,
-            file: file2.uniqueIdentifier
-            finished: true
-          , done
-        ## But call all the callbacks in order by file, so that replies
-        ## appear in the correct order.
-        while callbacks[called]?
-          callbacks[called]()
-          called += 1
-    file.group = group
-    Files.resumable.addFile file, e
-
-###
-uploader 'messageAttach', 'attachButton', 'attachInput', attachFiles
-###
-
-replaceFiles = (files, e, t) ->
-  message = t.data._id
-  group = t.data.group
-  if files.length != 1
-    console.error "Attempt to replace #{message} with #{files.length} files -- expected 1"
-  else
-    file = files[0]
-    file.callback = (file2, done) ->
-      diff =
-        file: file2.uniqueIdentifier
-        finished: true
-      ## Reset rotation angle on replace
-      data = findMessage message
-      if data.rotate
-        diff.rotate = 0
-      Meteor.call 'messageUpdate', message, diff, done
-    file.group = group
-    Files.resumable.addFile file, e
-
-uploader 'messageReplace', 'replaceButton', 'replaceInput', replaceFiles
-
 privacyOptions = [
   code: 'public'
   list: ['public']
@@ -1538,10 +1469,33 @@ Template.emojiButtons.events
     symbol = e.currentTarget.getAttribute 'data-symbol'
     Meteor.call 'emojiToggle', message, symbol
 
+uploaderProps = (callback, inputRef) ->
+  buttonProps:
+    onClick: (e) ->
+      e.preventDefault()
+      e.stopPropagation()
+      inputRef.current.click()
+    onDragEnter: (e) ->
+      e.preventDefault()
+      e.stopPropagation()
+    onDragOver: (e) ->
+      e.preventDefault()
+      e.stopPropagation()
+    onDrop: (e) ->
+      e.preventDefault()
+      e.stopPropagation()
+      callback e.dataTransfer.files, e
+  inputProps:
+    onChange: (e) ->
+      callback e.target.files, e
+      e.target.value = ''
+
 canPublicReply = (message) -> 'public' in (message.threadPrivacy ? ['public'])
 canPrivateReply = (message) -> 'private' in (message.threadPrivacy ? ['public'])
 
 ReplyButtons = React.memo ({message, prefix}) ->
+  attachInput = useRef()
+
   onReply = (e) ->
     e.preventDefault()
     e.stopPropagation()
@@ -1561,8 +1515,28 @@ ReplyButtons = React.memo ({message, prefix}) ->
         #Router.go 'message', {group: group, message: result}
       else
         console.error "messageNew did not return message ID -- not authorized?"
+  attachFiles = (files, e) ->
+    callbacks = {}
+    called = 0
+    ## Start all file uploads simultaneously.
+    for file, i in files
+      do (i) ->
+        file.callback = (file2, done) ->
+          ## Set up callback for when this file is completed.
+          callbacks[i] = ->
+            Meteor.call 'messageNew', message.group, message._id, null,
+              file: file2.uniqueIdentifier
+              finished: true
+            , done
+          ## But call all the callbacks in order by file, so that replies
+          ## appear in the correct order.
+          while callbacks[called]?
+            callbacks[called]()
+            called += 1
+      file.group = message.group
+      Files.resumable.addFile file, e
+  {buttonProps, inputProps} = uploaderProps attachFiles, attachInput
 
-  return null unless canReply message
   <div className="btn-group pull-right message-reply-buttons">
     {if canPublicReply message
       <button className="btn btn-default replyButton" data-privacy="public" onClick={onReply}>{prefix}{if canPrivateReply message then 'Public '}Reply</button>
@@ -1570,10 +1544,37 @@ ReplyButtons = React.memo ({message, prefix}) ->
     {if canPrivateReply message
       <button className="btn btn-default replyButton" data-privacy="private" onClick={onReply}>{prefix}Private Reply</button>
     }
-    <input className="attachInput" type="file" multiple/>
-    <button className="btn btn-default attachButton">Attach</button>
+    <input className="attachInput" type="file" multiple ref={attachInput} {...inputProps}/>
+    <button className="btn btn-default attachButton" {...buttonProps}>Attach</button>
   </div>
 ReplyButtons.displayName = 'ReplyButtons'
+
+MessageReplace = React.memo ({_id, group, tabindex}) ->
+  replaceInput = useRef()
+
+  replaceFiles = (files, e, t) ->
+    if files.length != 1
+      console.error "Attempt to replace #{_id} with #{files.length} files -- expected 1"
+    else
+      file = files[0]
+      file.callback = (file2, done) ->
+        diff =
+          file: file2.uniqueIdentifier
+          finished: true
+        ## Reset rotation angle on replace
+        data = findMessage _id
+        if data.rotate
+          diff.rotate = 0
+        Meteor.call 'messageUpdate', _id, diff, done
+      file.group = group
+      Files.resumable.addFile file, e
+  {buttonProps, inputProps} = uploaderProps replaceFiles, replaceInput
+
+  <>
+    <input className="replaceInput" type="file" ref={replaceInput} {...inputProps}/>
+    <button className="btn btn-info replaceButton" tabIndex={tabindex} {...buttonProps}>Replace File</button>
+  </>
+MessageReplace.displayName = 'MessageReplace'
 
 $(window).resize affixResize = _.debounce ->
   $('.affix').height $(window).height()
@@ -1695,9 +1696,9 @@ dropOn = (e, t) ->
   e.preventDefault()
   e.stopPropagation()
   $(e.target).removeClass 'dragover'
-  dragId = e.originalEvent.dataTransfer?.getData('application/coauthor-id')
+  dragId = e.dataTransfer?.getData('application/coauthor-id')
   unless dragId
-    url = e.originalEvent.dataTransfer?.getData 'text/plain'
+    url = e.dataTransfer?.getData 'text/plain'
     if url?
       url = parseCoauthorMessageUrl url
       if url?.hash
@@ -1917,7 +1918,7 @@ WrappedSubmessage = React.memo ({message, read}) ->
         "<CODE CLASS='raw'>#{_.escape historified.title}</CODE>"
       else
         formatTitleOrFilename historified, false, false, bold  ## don't say (untitled)
-  , [historified.title, historified.format, raw, message.children.length > 0]
+  , [historified.title, historified.file, historified.format, raw, message.children.length > 0]
   formattedBody = useTracker ->
     if raw
       "<PRE CLASS='raw'>#{_.escape historified.body}</PRE>"
@@ -1953,6 +1954,7 @@ WrappedSubmessage = React.memo ({message, read}) ->
     private: canPrivate message._id
     parent: canMaybeParent message._id
     edit: canEdit message._id
+    reply: canReply message._id
     super: canSuper message.group
   , [message._id]
   ref = useRefTooltip()
@@ -2203,11 +2205,9 @@ WrappedSubmessage = React.memo ({message, read}) ->
               else
                 if can.edit and not folded
                   <>
-                    {###
                     {if message.file
-                      +messageReplace _id=_id group=group tabIndex=tabindex0+7
+                      <MessageReplace _id={message._id} group={message.group} tabindex={tabindex0+7}/>
                     }
-                    ###}
                     <button className="btn btn-info editButton" tabIndex={tabindex0+8} onClick={onEdit}>Edit</button>
                   </>
               }
@@ -2283,7 +2283,9 @@ WrappedSubmessage = React.memo ({message, read}) ->
                     Stop Editing
                   </button>
                 }
-                <ReplyButtons message={message} prefix="Another "/>
+                {if can.reply
+                  <ReplyButtons message={message} prefix="Another "/>
+                }
               </div>
             else unless read
               <>
