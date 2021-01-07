@@ -330,28 +330,10 @@ defaultHeight = 300
   sideBySide: profile?.sideBySide ? false
   height: profile?.height ? defaultHeight
 ## The following helpers should only be called when editing.
-## They can be called in two settings:
-##   * Within the submessage template, and possibly within a `with nothing`
-##     data environment.  In this case, we use the `editing` ReactiveVar
-##     to get the message ID, because we should be editing.
-##   * From the betweenEditorAndBody subtemplate.  Then we can use `_id` data.
-messagePreviewGet = (template = Template.instance()) ->
-  if template?.editing?
-    id = template.editing.get()
-  else
-    id = Template.currentData()?._id ? template?.data?._id
-  return unless id?
-  messagePreview.get(id) ? messagePreviewDefault()
-messagePreviewSet = (change, template = Template.instance()) ->
-  unless id?
-    id = template?.editing?.get()
-    unless id?
-      id = Template.currentData()?._id
-      unless id?
-        id = template?.data?._id
-        return unless id?
-  preview = messagePreview.get(id) ? messagePreviewDefault()
-  messagePreview.set id, change preview
+messagePreviewGet = (messageID) ->
+  messagePreview.get(messageID) ? messagePreviewDefault()
+messagePreviewSet = (messageID, change) ->
+  messagePreview.set messageID, change messagePreviewGet messageID
 
 ## Authors and @mentions tracked throughout Submessage views
 threadAuthors = {}
@@ -553,18 +535,6 @@ Template.submessage.onRendered ->
   window.addEventListener 'resize',
     @onResize = _.debounce (=> messageImageTransform.call @), 100
 
-  ## Update side-by-side height settings when leaving editing mode
-  ## and/or changing side-by-side preview setting.
-  @autorun =>
-    preview = messagePreviewGet()
-    return unless preview?
-    @editor?.setSize null, preview.height
-    @$('.bodyContainer').first().height \
-      if @editing.get() and preview.sideBySide
-        preview.height
-      else
-        'auto'
-
 Template.submessage.onDestroyed ->
   window.removeEventListener 'resize', @onResize if @onResize?
 
@@ -664,32 +634,7 @@ Template.submessage.helpers
   message: -> @
   editingRV: -> Template.instance().editing.get()
   editingNR: -> Tracker.nonreactive -> Template.instance().editing.get()
-  editTitle: -> Template.instance().editTitle.get()
-  editData: ->
-    #_.extend @,
-    _id: @_id
-    title: @title
-    body: @body
-    group: @group
-    editing: @editing  ## to list other editors
-    editTitle: Template.instance().editTitle.get()
-    editBody: Template.instance().editBody.get()
-  hideIfEditing: ->
-    if Template.instance().editing.get()
-      'hidden'
-    else
-      ''
-  #myid: -> Tracker.nonreactive -> Template.instance().myid
-  #editing: -> editing @
 
-  title: historify 'title'
-  formatTitle: historifiedFormatTitle = (bold = false) ->
-    history = messageHistory.get(@_id) ? @
-    if messageRaw.get @_id
-      "<CODE CLASS='raw'>#{_.escape history.title}</CODE>"
-    else
-      formatTitleOrFilename history, false, false, bold  ## don't say (untitled)
-  formatTitleBold: -> historifiedFormatTitle.call @, true
   formatBody: ->
     #console.log 'rendering', @_id
     history = messageHistory.get(@_id) ? @
@@ -713,9 +658,6 @@ Template.submessage.helpers
     history = messageHistory.get(@_id) ? @
     'image' == fileType history.file
 
-Template.messageTags.helpers
-  tags: historify 'tags', sortTags
-
 MessageTags = React.memo ({message}) ->
   <span className="messageTags">
     {for tag in sortTags message.tags
@@ -730,12 +672,6 @@ MessageTags = React.memo ({message}) ->
     }
   </span>
 MessageTags.displayName = 'MessageTags'
-
-Template.messageLabels.helpers
-  deleted: historify 'deleted'
-  published: historify 'published'
-  minimized: historify 'minimized'
-  private: historify 'private'
 
 MessageLabels = React.memo ({message}) ->
   <span className="messageLabels">
@@ -1024,7 +960,7 @@ MessageEditor = React.memo ({message, setEditBody, tabindex}) ->
   , [editor]
   useTracker ->
     return unless editor?
-    preview = messagePreview.get(messageID) ? messagePreviewDefault()
+    preview = messagePreviewGet messageID
     editor.setSize null, preview.height
   , [messageID, editor]
   useEffect ->
@@ -1043,21 +979,87 @@ MessageEditor_ = React.memo ({messageID, setEditor, tabindex}) ->
    onRender={-> (editor) -> setEditor editor}/>
 MessageEditor.displayName = 'MessageEditor'
 
-Template.belowEditor.helpers
-  preview: -> messagePreviewGet()?.on
-  sideBySide: -> messagePreviewGet()?.sideBySide
-  changedHeight: ->
-    height = messagePreviewGet()?.height
-    height? and height != (Meteor.user()?.profile?.preview?.height ? defaultHeight)
-  saved: ->
-    @title == @editTitle and @body == @editBody
-  otherEditors: ->
-    tooltipUpdate()
-    others = _.without @editing, Meteor.user()?.username
+BelowEditor = React.memo ({message, preview, safeToStopEditing, editStopping}) ->
+  otherEditors = useTracker ->
+    others = _.without message.editing, Meteor.user()?.username
     if others.length > 0
-      " Editing with #{(linkToAuthor @group, other for other in others).join ', '}."
-    else
-      ''
+      <span className="otherEditors" dangerouslySetInnerHTML={__html: " Editing with #{(linkToAuthor message.group, other for other in others).join ', '}."}/>
+  , [message.editing, message.group]
+  changedHeight = useTracker ->
+    height = messagePreviewGet(message._id).height
+    height? and height != (Meteor.user()?.profile?.preview?.height ? defaultHeight)
+  , [message._id]
+  ref = useRefTooltip()
+
+  onTogglePreview = (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+    messagePreviewSet message._id, (current) -> Object.assign {}, current,
+      on: not current.on
+  onSideBySidePreview = (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+    messagePreviewSet message._id, (current) -> Object.assign {}, current,
+      sideBySide: not current.sideBySide
+  onResizer = (start) ->
+    $(start.target).addClass 'active'
+    oldHeight = messagePreviewGet(message._id).height
+    $(document).mousemove mover = (move) ->
+      messagePreviewSet message._id, (preview) -> _.extend {}, preview,
+        height: Math.max 100, oldHeight + move.clientY - start.clientY
+    cancel = (e) ->
+      $(start.target).removeClass 'active'
+      $(document).off 'mousemove', mover
+      $(document).off 'mouseup', cancel
+      $(document).off 'mouseleave', cancel
+    $(document).mouseup cancel
+    $(document).mouseleave cancel
+  onSetHeight = (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+    Meteor.users.update Meteor.userId(),
+      $set: "profile.preview.height": messagePreviewGet(message._id)?.height
+
+  <>
+    <div className="belowEditor clearfix" ref={ref}>
+      <div className="pull-right btn-group">
+        {if changedHeight
+          <button className="btn btn-warning setHeight" onClick={onSetHeight}>Set Default Height</button>
+        }
+        {if preview.on
+          <>
+            {if preview.sideBySide
+              <button className="btn btn-default sideBySidePreview" onClick={onSideBySidePreview}>Top-Bottom</button>
+            else
+              <button className="btn btn-default sideBySidePreview" onClick={onSideBySidePreview}>Side-by-Side</button>
+            }
+            <button className="btn btn-default togglePreview" onClick={onTogglePreview}>No Preview</button>
+          </>
+        else
+          <button className="btn btn-default togglePreview" onClick={onTogglePreview}>Preview</button>
+        }
+      </div>
+      {if safeToStopEditing
+        <div className="alert alert-success save-alert">
+          All changes saved.
+          {otherEditors}
+        </div>
+      else
+        if editStopping
+          <div className="alert alert-danger save-alert">
+            Unsaved changes. Stopping editing once saved...
+            {otherEditors}
+          </div>
+        else
+          <div className="alert alert-danger save-alert">
+            Unsaved changes. Saving...
+            {otherEditors}
+          </div>
+      }
+    </div>
+    <div className="resizer" onMouseDown={onResizer}/>
+  </>
+BelowEditor.displayName = 'BelowEditor'
 
 panelClass =
   deleted: 'panel-danger'
@@ -1223,43 +1225,6 @@ Template.submessage.events
           tags: tags
     dropdownToggle e
     false  ## prevent form from submitting
-
-  'click .togglePreview': (e, t) ->
-    e.preventDefault()
-    e.stopPropagation()
-    messagePreviewSet (preview) -> _.extend {}, preview,
-      on: not preview.on
-
-  'click .sideBySidePreview': (e, t) ->
-    e.preventDefault()
-    e.stopPropagation()
-    messagePreviewSet (preview) -> _.extend {}, preview,
-      sideBySide: not preview.sideBySide
-
-  'click .replaceButton': (e, t) ->
-    e.preventDefault()
-    e.stopPropagation()
-
-  'click .setHeight': (e, t) ->
-    e.preventDefault()
-    e.stopPropagation()
-    Meteor.users.update Meteor.userId(),
-      $set: "profile.preview.height": messagePreviewGet()?.height
-
-  'mousedown .resizer': (start, t) ->
-    $(start.target).addClass 'active'
-    oldHeight = t.$('.CodeMirror').height()
-    $(document).mousemove mover = (move) ->
-      messagePreviewSet ((preview) -> _.extend {}, preview,
-        height: Math.max 100, oldHeight + move.clientY - start.clientY
-      ), t
-    cancel = (e) ->
-      $(start.target).removeClass 'active'
-      $(document).off 'mousemove', mover
-      $(document).off 'mouseup', cancel
-      $(document).off 'mouseleave', cancel
-    $(document).mouseup cancel
-    $(document).mouseleave cancel
 
 Template.superdelete.events
   'click .shallowSuperdeleteButton': (e, t) ->
@@ -1879,7 +1844,7 @@ WrappedSubmessage = React.memo ({message, read}) ->
       on: true
       sideBySide: false
     else
-      messagePreview.get(message._id) ? messagePreviewDefault()
+      messagePreviewGet message._id
   , [history?, message._id]
   formattedTitle = useTracker ->
     for bold in [true, false]
@@ -1933,10 +1898,10 @@ WrappedSubmessage = React.memo ({message, read}) ->
   [editTitle, setEditTitle] = useState ''
   [editBody, setEditBody] = useState ''
   [editStopping, setEditStopping] = useState()
-  safeToStopEditing = ->
+  safeToStopEditing =
     message.title == editTitle and message.body == editBody
   useEffect ->
-    if editStopping and safeToStopEditing()
+    if editStopping and safeToStopEditing
       Meteor.call 'messageEditStop', message._id, (error, result) ->
         if error?
           console.error error
@@ -2040,7 +2005,7 @@ WrappedSubmessage = React.memo ({message, read}) ->
     e.preventDefault()
     e.stopPropagation()
     if editing
-      if safeToStopEditing()
+      if safeToStopEditing
         Meteor.call 'messageEditStop', message._id
       else
         setEditStopping true
@@ -2220,15 +2185,14 @@ WrappedSubmessage = React.memo ({message, read}) ->
             {if editing and not history
               <>
                 <MessageEditor message={message} setEditBody={setEditBody} tabindex={tabindex0+19}/>
-                {###unless previewSideBySide
-                  +belowEditor editData
-                  .resizer
-                ###}
+                {unless previewSideBySide
+                  <BelowEditor message={message} preview={preview} safeToStopEditing={safeToStopEditing} editStopping={editStopping}/>
+                }
               </>
             }
           </div>
           {if preview.on
-            <div className="bodyContainer">
+            <div className="bodyContainer" style={{height: if previewSideBySide then preview.height else 'auto'}}>
               {if historified.file and editing
                 <div className="fileDescription">
                   <div className="fileDescriptionText">
@@ -2258,10 +2222,9 @@ WrappedSubmessage = React.memo ({message, read}) ->
             </div>
           }
         </div>
-        {###if editing and previewSideBySide
-          +belowEditor editData
-          .resizer
-        ###}
+        {if editing and previewSideBySide
+          <BelowEditor message={message} preview={preview} safeToStopEditing={safeToStopEditing} editStopping={editStopping}/>
+        }
         <div className="message-footer">
           <MessageAuthor message={historified}/>
           <div className="message-response-buttons clearfix hidden-print">
