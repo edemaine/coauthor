@@ -1478,27 +1478,31 @@ privacyOptionsByCode = {}
 for option in privacyOptions
   privacyOptionsByCode[option.code] = option
 
-Template.threadPrivacy.helpers
-  privacyOptions: privacyOptions
-  active: ->
-    if _.isEqual(_.sortBy(privacyOptionsByCode[@code].list),
-                 _.sortBy(Template.parentData(2)?.threadPrivacy ? ['public']))
-      'active'
-    else
-      ''
-
-Template.threadPrivacy.events
-  #'click .threadPrivacyToggle': (e, t) ->
-  #  e.preventDefault()
-  #  e.stopPropagation()  ## prevent propagation to top-level dropdown
-  #  console.log e.target
-  #  $(e.target).dropdown 'toggle'
-  'click .threadPrivacy': (e, t) ->
+ThreadPrivacy = React.memo ({message, tabindex}) ->
+  onPrivacy = (e) ->
     e.preventDefault()
     e.stopPropagation()
-    Meteor.call 'threadPrivacy', Template.parentData()._id,
+    Meteor.call 'threadPrivacy', message._id,
       privacyOptionsByCode[e.target.getAttribute 'data-code'].list
     dropdownToggle e
+
+  <div className="btn-group">
+    <button className="btn btn-warning dropdown-toggle threadPrivacyToggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" tabIndex={tabindex}>
+      {"Thread Privacy "}
+      <span className="caret"/>
+    </button>
+    <ul className="dropdown-menu" role="menu">
+      {for privacy in privacyOptions
+        active = _.isEqual _.sortBy(privacy.list),
+                           _.sortBy(message.threadPrivacy ? ['public'])
+        <li key={privacy.code} className="threadPrivacy #{if active then 'active' else ''}">
+          <a href="#" data-code={privacy.code} onClick={onPrivacy}>
+            {privacy.display}
+          </a>
+        </li>
+      }
+    </ul>
+  </div>
 
 Template.emojiButtons.helpers
   canReply: -> canPost @group, @_id
@@ -1949,6 +1953,7 @@ WrappedSubmessage = React.memo ({message, read}) ->
     private: canPrivate message._id
     parent: canMaybeParent message._id
     edit: canEdit message._id
+    super: canSuper message.group
   , [message._id]
   ref = useRefTooltip()
 
@@ -2180,10 +2185,9 @@ WrappedSubmessage = React.memo ({message, read}) ->
           }
           {if editing
             <>
-              {###
-              unless message.root
-                +threadPrivacy
-              ###}
+              {if can.super and not message.root?
+                <ThreadPrivacy message={message} tabindex={tabindex0+5}/>
+              }
               <KeyboardSelector messageID={message._id} tabindex={tabindex0+6}/>
               <FormatSelector messageID={message._id} format={message.format} tabindex={tabindex0+7}/>
             </>

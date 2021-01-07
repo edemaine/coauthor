@@ -90,17 +90,6 @@ template(name="messageLabels")
     if minimized
       span.label.label-success Minimized
 
-template(name="threadPrivacy")
-  if canSuper
-    .btn-group
-      button.btn.btn-warning.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false", tabindex=tabindex).threadPrivacyToggle
-        | Thread Privacy
-        span.caret
-      ul.dropdown-menu(role="menu")
-        each privacyOptions
-          li.threadPrivacy(class=active)
-            a(href="#",data-code=code)= display
-
 template(name="emojiButtons")
   .btn-group.pull-left.emojiButtons
     if canReply
