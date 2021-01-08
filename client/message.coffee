@@ -2196,14 +2196,15 @@ WrappedSubmessage = React.memo ({message, read}) ->
               {if historified.file and editing
                 <div className="fileDescription">
                   <div className="fileDescriptionText">
-                    <span className="fas fa-paperclip"
-                      dangerouslySetInnerHTML={__html: formattedFile.description}/>
+                    <span className="fas fa-paperclip"/>
+                    {' '}
+                    <span dangerouslySetInnerHTML={__html: formattedFile.description}/>
                   </div>
                   <div className="file-right-buttons btn-group hidden-print">
                     {###if image
                       +messageImage
-                    +messageReplace _id=_id group=group tabIndex=tabindex0+9
                     ###}
+                    <MessageReplace _id={message._id} group={message.group} tabindex={tabindex0+9}/>
                   </div>
                 </div>
               }
