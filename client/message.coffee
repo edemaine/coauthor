@@ -1280,7 +1280,7 @@ MessageHistory = React.memo ({message}) ->
     slider.current.on 'change', (e) =>
       messageHistory.set message._id, diffs[e.newValue]
     messageHistory.set message._id, diffs[index]
-  , [message._id, message.creator, message.created, input.current]
+  , [message._id, message.creator, message.created]
 
   <div className="historySlider">
     <input type="text" ref={input}/>
@@ -1486,7 +1486,7 @@ TableOfContentsID = React.memo ({messageID, parent, index}) ->
 TableOfContentsID.displayName = 'TableOfContentsID'
 
 TableOfContents = React.memo ({message, parent, index}) ->
-  isRoot = not parent?
+  isRoot = not parent?  # should not differ between calls (for hook properties)
   ## Use canSee to properly fake non-superuser mode.
   visible = useTracker ->
     canSee message
@@ -1549,7 +1549,7 @@ TableOfContents = React.memo ({message, parent, index}) ->
       nav.on 'affixed.bs.affix', affixResize
       nav.on 'affixed-top.bs.affix', affixResize
       undefined
-    , [ref.current]
+    , []
 
     <nav className="contents" ref={ref}>
       <ul className="nav contents">
@@ -1930,7 +1930,7 @@ WrappedSubmessage = React.memo ({message, read}) ->
   useEffect ->
     id2dom[message._id] = ref.current
     -> delete id2dom[message._id]
-  , [message._id, ref.current]
+  , [message._id]
   ## Scroll to this message if it's been requested.
   useEffect ->
     if scrollToLater == message._id
