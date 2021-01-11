@@ -57,11 +57,12 @@ export MessageImage = React.memo ({message}) ->
   </div>
 
 useImageTransform = (imgRef, rotate) ->
-  update = -> imageTransform imgRef.current, rotate
+  update = -> imageTransform imgRef.current, rotate if imgRef.current?
   [windowWidth, setWindowWidth] = useState window.innerWidth
   useEventListener 'resize', (e) ->
     setWindowWidth window.innerWidth
-  useEffect ->
+  useEffect maybeUpdate = ->
+    return unless imgRef.current?
     if imgRef.current.width
       update()
       undefined
@@ -69,9 +70,9 @@ useImageTransform = (imgRef, rotate) ->
       imgRef.current.addEventListener 'load', listener = (e) -> update()
       -> imgRef.current?.removeEventListener listener
   , [windowWidth, rotate]
-  update
+  maybeUpdate
 
-imageTransform = (image, rotate) ->
+export imageTransform = (image, rotate) ->
   return unless image.width
   if rotate
     ## `rotate` is in clockwise degrees

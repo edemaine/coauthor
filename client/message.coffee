@@ -1,8 +1,9 @@
 import React, {useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react'
 import {useTracker} from 'meteor/react-meteor-data'
 import Blaze from 'meteor/gadicc:blaze-react-component'
+import useEventListener from '@use-it/event-listener'
 
-import {MessageImage} from './MessageImage'
+import {MessageImage, imageTransform} from './MessageImage'
 import {ErrorBoundary} from './ErrorBoundary'
 import {Credits} from './layout.coffee'
 import {useRefTooltip} from './lib/tooltip'
@@ -518,59 +519,15 @@ messageOnDragStart = (message) -> (e) ->
 ## message that is not naturally folded.
 export naturallyFolded = (data) -> data.minimized or data.deleted
 
-Template.submessage.onRendered ->
-  ## Random message background color (to show nesting).
-  #@firstNode.style.backgroundColor = '#' +
-  #  Math.floor(Math.random() * 25 + 255 - 25).toString(16) +
-  #  Math.floor(Math.random() * 25 + 255 - 25).toString(16) +
-  #  Math.floor(Math.random() * 25 + 255 - 25).toString(16)
-
-  ## Image rotation. Also triggered in formatBody.
-  @autorun =>
-    data = Template.currentData()  ## update whenever message does
-    messageFolded.get data._id     ## update when message is unfolded
-    messageRaw.get data._id        ## update when raw mode turned off
-    messageRotate data             ## update when file orientation gets loaded
-    #console.log 'rotating', data._id, data.body, messageRotate data
-    Meteor.defer => messageImageTransform.call @
-  window.addEventListener 'resize',
-    @onResize = _.debounce (=> messageImageTransform.call @), 100
-
-Template.submessage.onDestroyed ->
-  window.removeEventListener 'resize', @onResize if @onResize?
-
 ## Cache EXIF orientations, as files should be static
 image2orientation = {}
-@messageRotate = (data) ->
-  if data.file not of image2orientation
-    file = findFile data.file
+@messageRotate = (message) ->
+  if message.file not of image2orientation
+    file = findFile message.file
     if file
-      image2orientation[data.file] = file.metadata?.exif?.Orientation
-  exifRotate = Orientation2rotate[image2orientation[data.file]]
-  (data.rotate ? 0) + (exifRotate ? 0)
-
-## Callable from `submessage` and `readMessage` templates
-@messageImageTransform = ->
-  return unless @data?
-
-  ## Transform any images embedded within message body
-  for img in @findAll """
-    .message-body img[src^="#{fileUrlPrefix}"],
-    .message-body img[src^="#{fileAbsoluteUrlPrefix}"]
-  """
-    message = findMessage url2file img.src
-    continue unless message
-    imageTransform img, messageRotate message
-
-  ## Transform image file, respecting history
-  data = messageHistory.get(@data._id) ? @data
-  if data.file and 'image' == fileType data.file
-    image = @find '.message-file img'
-    if image?
-      imageTransform image, messageRotate data
-    else
-      ## This case occurs e.g. when switching to Raw mode.
-      @find('.message-file')?.style.height = null
+      image2orientation[message.file] = file.metadata?.exif?.Orientation
+  exifRotate = Orientation2rotate[image2orientation[message.file]]
+  (message.rotate ? 0) + (exifRotate ? 0)
 
 scrollDelay = 750
 
@@ -640,9 +597,6 @@ Template.submessage.helpers
     #console.log 'rendering', @_id
     history = messageHistory.get(@_id) ? @
     body = history.body
-    ## Apply image settings (e.g. rotation) on embedded images and image files.
-    t = Template.instance()
-    Meteor.defer -> messageImageTransform.call t
     return body unless body
     ## Don't show raw view if editing (editor is a raw view)
     if messageRaw.get(@_id) and not Template.instance().editing?.get()
@@ -1985,6 +1939,31 @@ WrappedSubmessage = React.memo ({message, read}) ->
     undefined
   , [message._id]
 
+  ## Transform images
+  messageBodyRef = useRef()
+  ## Retransform when window width changes
+  [windowWidth, setWindowWidth] = useState window.innerWidth
+  useEventListener 'resize', (e) ->
+    setWindowWidth window.innerWidth
+  useEffect ->
+    ## Transform any images embedded within message body
+    trackers =
+      for img in messageBodyRef.current.querySelectorAll """
+        img[src^="#{fileUrlPrefix}"],
+        img[src^="#{fileAbsoluteUrlPrefix}"]
+      """
+        Tracker.autorun ->
+          imgMessage = findMessage url2file img.src
+          return unless imgMessage
+          imageTransform img, messageRotate imgMessage
+    ## Transform image file, respecting history
+    if messageFileType == 'image' and
+       img = messageFileRef.current.querySelector 'img'
+      trackers.push Tracker.autorun ->
+        imageTransform img, messageRotate historified
+    -> tracker.stop() for tracker in trackers
+  # too many dependencies to list
+
   onFold = (e) ->
     e.preventDefault()
     e.stopPropagation()
@@ -2206,22 +2185,24 @@ WrappedSubmessage = React.memo ({message, read}) ->
                   </div>
                   <div className="file-right-buttons btn-group hidden-print">
                     {if messageFileType == 'image'
-                      <MessageImage message={message}/>
+                      <MessageImageEdit message={message}/>
                     }
                     <MessageReplace _id={message._id} group={message.group} tabindex={tabindex0+9}/>
                   </div>
                 </div>
               }
               <div className="panel-body">
-                <div className="message-body"
+                <div className="message-body" ref={messageBodyRef}
                  dangerouslySetInnerHTML={__html: formattedBody}/>
                 {if historified.file
-                  {###if pdf
-                    with pdf
-                      +messagePDF
-                  ###}
-                  <p className="message-file"
-                   dangerouslySetInnerHTML={__html: formattedFile.file} ref={messageFileRef}/>
+                  <>
+                    {###if pdf
+                      with pdf
+                        +messagePDF
+                    ###}
+                    <p className="message-file" ref={messageFileRef}
+                    dangerouslySetInnerHTML={__html: formattedFile.file}/>
+                  </>
                 }
               </div>
             </div>
