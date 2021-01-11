@@ -2,6 +2,7 @@ import React, {useEffect, useLayoutEffect, useMemo, useRef, useState} from 'reac
 import {useTracker} from 'meteor/react-meteor-data'
 import Blaze from 'meteor/gadicc:blaze-react-component'
 
+import {MessageImage} from './MessageImage'
 import {ErrorBoundary} from './ErrorBoundary'
 import {Credits} from './layout.coffee'
 import {useRefTooltip} from './lib/tooltip'
@@ -654,9 +655,6 @@ Template.submessage.helpers
     ## Don't run PDF render if in raw mode
     return if messageRaw.get(@_id) or "pdf" != fileType history.file
     history.file
-  image: ->
-    history = messageHistory.get(@_id) ? @
-    'image' == fileType history.file
 
 MessageTags = React.memo ({message}) ->
   <span className="messageTags">
@@ -1839,6 +1837,10 @@ WrappedSubmessage = React.memo ({message, read}) ->
   , [message._id]
   history = historyAll = null if read
   historified = history ? message
+  messageFileType = useTracker ->
+    if historified.file
+      fileType historified.file
+  , [historified.file]
   preview = useTracker ->
     if history?
       on: true
@@ -1966,7 +1968,7 @@ WrappedSubmessage = React.memo ({message, read}) ->
     elts = messageFileRef.current.querySelectorAll 'img, video, a, canvas'
     elt.addEventListener 'dragstart', listener for elt in elts
     -> elt.removeEventListener 'dragstart', listener for elt in elts
-  , [folded, history?, messageFileRef.current, message]
+  , [folded, history?, message]
 
   ## Maintain id2dom mapping
   useEffect ->
@@ -2201,9 +2203,9 @@ WrappedSubmessage = React.memo ({message, read}) ->
                     <span dangerouslySetInnerHTML={__html: formattedFile.description}/>
                   </div>
                   <div className="file-right-buttons btn-group hidden-print">
-                    {###if image
-                      +messageImage
-                    ###}
+                    {if messageFileType == 'image'
+                      <MessageImage message={message}/>
+                    }
                     <MessageReplace _id={message._id} group={message.group} tabindex={tabindex0+9}/>
                   </div>
                 </div>

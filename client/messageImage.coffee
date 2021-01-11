@@ -1,36 +1,78 @@
-Template.messageImage.onRendered ->
-  @autorun @update = =>
-    rotate = messageRotate Template.currentData()
-    imageTransform @find('.rotateCCW90 img'), rotate - 90
-    imageTransform @find('.rotate180 img'), rotate + 180
-    imageTransform @find('.rotateCW90 img'), rotate + 90
-    ## Couldn't get this full-height hack to work:
-    #for a in @findAll 'img'
-    #  li = a.parentNode
-    #  console.log li.clientHeight
-    #  a.style.height = "#{li.clientHeight}px" if li.clientHeight
+import React, {useEffect, useRef, useState} from 'react'
+import useEventListener from '@use-it/event-listener'
 
-Template.messageImage.events
-  'shown.bs.dropdown .messageImage': (e, t) ->
-    t.update()
-  'click .rotateCCW90': (e, t) ->
-    Meteor.call 'messageUpdate', t.data._id,
-      rotate: angle180 (t.data.rotate ? 0) - 90
-  'click .rotate180': (e, t) ->
-    Meteor.call 'messageUpdate', t.data._id,
-      rotate: angle180 (t.data.rotate ? 0) + 180
-  'click .rotateCW90': (e, t) ->
-    Meteor.call 'messageUpdate', t.data._id,
-      rotate: angle180 (t.data.rotate ? 0) + 90
+rotations = [
+  angle: -90
+  text: '90°'
+  icon: 'fa-undo'
+,
+  angle: 180
+  text: '180°'
+  icon: 'fa-sync'
+,
+  angle: 90
+  text: '90°'
+  icon: 'fa-redo'
+]
+export MessageImage = React.memo ({message}) ->
+  dropdownRef = useRef()
+  refs =
+    '-90': useRef()
+    180: useRef()
+    90: useRef()
+  updates =
+    for angle, ref of refs
+      useImageTransform ref, (message.rotate ? 0) + parseInt angle
+  ## Update rotated images when dropdown opens, because only then does parent
+  ## have size so `scale` will be nonzero.
+  useEffect ->
+    $(dropdownRef.current).on 'shown.bs.dropdown', listener = (e) ->
+      update() for update in updates
+    -> $(dropdownRef.current).off 'shown.bs.dropdown', undefined, listener
+  , [updates]
 
-Template.messageImage.helpers
-  urlToFile: -> urlToFile @
+  onRotate = (e) ->
+    angle = parseInt e.currentTarget.dataset.rotate
+    Meteor.call 'messageUpdate', message._id,
+      rotate: angle180 (message.rotate ? 0) + angle
 
-@imageTransform = (image, rotate) ->
-  unless image.width  ## wait for load
-    image.onload = -> imageTransform image, rotate if image.style? # still shown
-    return
-  image.onload = null  # cancel any impending and possibly old transform
+  <div className="btn-group messageImage" ref={dropdownRef}>
+    <button className="btn btn-info dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+      {'Rotate '}
+      <span className="caret"/>
+    </button>
+    <ul className="dropdown-menu dropdown-menu-right imageMenu" role="menu">
+      {for {angle, text, icon} in rotations
+        <li key={angle}>
+          <a href="#" data-rotate={angle} onClick={onRotate}>
+            <div>
+              <img src={urlToFile message} ref={refs[angle]}/>
+            </div>
+            <span className="fas #{icon}"/>
+            {' ' + text}
+          </a>
+        </li>
+      }
+    </ul>
+  </div>
+
+useImageTransform = (imgRef, rotate) ->
+  update = -> imageTransform imgRef.current, rotate
+  [windowWidth, setWindowWidth] = useState window.innerWidth
+  useEventListener 'resize', (e) ->
+    setWindowWidth window.innerWidth
+  useEffect ->
+    if imgRef.current.width
+      update()
+      undefined
+    else
+      imgRef.current.addEventListener 'load', listener = (e) -> update()
+      -> imgRef.current?.removeEventListener listener
+  , [windowWidth, rotate]
+  update
+
+imageTransform = (image, rotate) ->
+  return unless image.width
   if rotate
     ## `rotate` is in clockwise degrees
     radians = -rotate * Math.PI / 180
