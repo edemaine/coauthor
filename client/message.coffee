@@ -1858,6 +1858,7 @@ WrappedSubmessage = React.memo ({message, read}) ->
         formatTitleOrFilename historified, false, false, bold  ## don't say (untitled)
   , [historified.title, historified.file, historified.format, raw, message.children.length > 0]
   formattedBody = useTracker ->
+    return historified.body unless historified.body
     if raw
       "<PRE CLASS='raw'>#{_.escape historified.body}</PRE>"
     else
@@ -1867,11 +1868,11 @@ WrappedSubmessage = React.memo ({message, read}) ->
     formatted = formatFile historified
     description: formatFileDescription historified
     file:
-      if raw
+      if raw and formatted
         "<PRE CLASS='raw'>#{_.escape formatted}</PRE>"
       else
         formatted
-  , [historified.file, historified._id]
+  , [historified.file, historified._id, raw]
   absentTags = useTracker ->
     Tags.find
       group: message.group
@@ -1961,6 +1962,7 @@ WrappedSubmessage = React.memo ({message, read}) ->
       threadMentions[author] -= 1 for author in mentions
   , [(key for key of message.authors).join('@'), message.title, message.body, usernames]
 
+  ## Support dragging rendered attachment like dragging message itself
   messageFileRef = useRef()
   useEffect ->
     return if folded or history? or not messageFileRef.current?
