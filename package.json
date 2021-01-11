@@ -45,6 +45,7 @@
     "pdfjs-dist": "^2.5.207",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
+    "react-intersection-observer": "^8.31.0",
     "roman-numeral": "^0.2.6",
     "sanitize-html": "^1.27.5"
   },

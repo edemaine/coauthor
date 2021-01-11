@@ -4,6 +4,7 @@ import Blaze from 'meteor/gadicc:blaze-react-component'
 import useEventListener from '@use-it/event-listener'
 
 import {MessageImage, imageTransform} from './MessageImage'
+import {MessagePDF} from './MessagePDF'
 import {ErrorBoundary} from './ErrorBoundary'
 import {Credits} from './layout.coffee'
 import {useRefTooltip} from './lib/tooltip'
@@ -590,25 +591,6 @@ ReadMessage = ({message}) ->
 Template.submessage.helpers
   Submessage: -> Submessage
   message: -> @
-  editingRV: -> Template.instance().editing.get()
-  editingNR: -> Tracker.nonreactive -> Template.instance().editing.get()
-
-  formatBody: ->
-    #console.log 'rendering', @_id
-    history = messageHistory.get(@_id) ? @
-    body = history.body
-    return body unless body
-    ## Don't show raw view if editing (editor is a raw view)
-    if messageRaw.get(@_id) and not Template.instance().editing?.get()
-      "<PRE CLASS='raw'>#{_.escape body}</PRE>"
-    else
-      formatBody history.format, body
-  file: historify 'file'
-  pdf: ->
-    history = messageHistory.get(@_id) ? @
-    ## Don't run PDF render if in raw mode
-    return if messageRaw.get(@_id) or "pdf" != fileType history.file
-    history.file
 
 MessageTags = React.memo ({message}) ->
   <span className="messageTags">
@@ -1943,8 +1925,7 @@ WrappedSubmessage = React.memo ({message, read}) ->
   messageBodyRef = useRef()
   ## Retransform when window width changes
   [windowWidth, setWindowWidth] = useState window.innerWidth
-  useEventListener 'resize', (e) ->
-    setWindowWidth window.innerWidth
+  useEventListener 'resize', (e) -> setWindowWidth window.innerWidth
   useEffect ->
     ## Transform any images embedded within message body
     trackers =
@@ -2194,15 +2175,12 @@ WrappedSubmessage = React.memo ({message, read}) ->
               <div className="panel-body">
                 <div className="message-body" ref={messageBodyRef}
                  dangerouslySetInnerHTML={__html: formattedBody}/>
+                {if messageFileType == 'pdf'
+                  <MessagePDF file={message.file}/>
+                }
                 {if historified.file
-                  <>
-                    {###if pdf
-                      with pdf
-                        +messagePDF
-                    ###}
-                    <p className="message-file" ref={messageFileRef}
-                    dangerouslySetInnerHTML={__html: formattedFile.file}/>
-                  </>
+                  <p className="message-file" ref={messageFileRef}
+                  dangerouslySetInnerHTML={__html: formattedFile.file}/>
                 }
               </div>
             </div>

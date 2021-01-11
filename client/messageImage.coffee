@@ -59,8 +59,7 @@ export MessageImage = React.memo ({message}) ->
 useImageTransform = (imgRef, rotate) ->
   update = -> imageTransform imgRef.current, rotate if imgRef.current?
   [windowWidth, setWindowWidth] = useState window.innerWidth
-  useEventListener 'resize', (e) ->
-    setWindowWidth window.innerWidth
+  useEventListener 'resize', (e) -> setWindowWidth window.innerWidth
   useEffect maybeUpdate = ->
     return unless imgRef.current?
     if imgRef.current.width
