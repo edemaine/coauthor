@@ -342,92 +342,6 @@ messagePreviewSet = (messageID, change) ->
 threadAuthors = {}
 threadMentions = {}
 
-Template.submessage.onCreated ->
-  ## Fold naturally folded (minimized and deleted) messages by default on
-  ## initial load.  But only if not previously manually overridden.
-  oldDefault = defaultFolded.get @data._id
-  oldFolded = messageFolded.get @data._id
-  defaultFolded.set @data._id, naturallyFolded @data
-
-  ## Fold referenced attached files by default on initial load.
-  #@$.children('.panel').children('.panel-body').find('a[href|="/file/"]')
-  #console.log @$ 'a[href|="/file/"]'
-  #images = Session.get 'images'
-  @images = {}
-  @imagesInternal = {}
-  @autorun =>
-    data = Template.currentData()
-    return unless data._id
-    initImage data._id
-    ## initImage calls updateFileQuery which will do this:
-    #images[data._id].file = data.file
-    #initImageInternal data.file if data.file?
-    ## If message is naturally folded, don't count images it references.
-    images[data._id].naturallyFolded = naturallyFolded data
-    images[data._id].children = data.children?.length
-    if images[data._id].naturallyFolded
-      for id of @images
-        images[id].count -= 1
-        checkImage id
-      @images = {}
-      for id of @imagesInternal
-        imagesInternal[id].count -= 1
-        checkImageInternal id
-      @imagesInternal = {}
-    else
-      newImages = {}
-      newImagesInternal = {}
-      $($.parseHTML("<div>#{formatBody data.format, data.body}</div>"))
-      .find """
-        img[src^="#{fileUrlPrefix}"],
-        img[src^="#{fileAbsoluteUrlPrefix}"],
-        img[src^="#{internalFileUrlPrefix}"],
-        img[src^="#{internalFileAbsoluteUrlPrefix}"],
-        video source[src^="#{fileUrlPrefix}"],
-        video source[src^="#{fileAbsoluteUrlPrefix}"],
-        video source[src^="#{internalFileUrlPrefix}"],
-        video source[src^="#{internalFileAbsoluteUrlPrefix}"]
-      """
-      .each ->
-        src = @getAttribute('src')
-        if 0 <= src.indexOf 'gridfs'
-          newImagesInternal[url2internalFile src] = true
-        else
-          newImages[url2file src] = true
-      for id of @images
-        unless id of newImages
-          images[id].count -= 1
-          checkImage id
-      for id of newImages
-        unless id of @images
-          #console.log 'source', id
-          initImage id
-          images[id].count += 1
-          checkImage id
-      @images = newImages
-      for id of @imagesInternal
-        unless id of newImagesInternal
-          imagesInternal[id].count -= 1
-          checkImageInternal id
-      for id of newImagesInternal
-        unless id of @imagesInternal
-          #console.log 'source', id
-          initImageInternal id
-          imagesInternal[id].count += 1
-          checkImageInternal id
-      @imagesInternal = newImagesInternal
-
-  ## Switch messageFolded to defaultFolded if:
-  ## * default has changed
-  ## * default has initialized but messageFolded not already set
-  ##   (e.g. because we just clicked the message)
-  if oldFolded? and (not oldDefault? or oldDefault == defaultFolded.get @data._id)
-    unless oldFolded == messageFolded.get @data._id
-      messageFolded.set @data._id, oldFolded
-  else
-    messageFolded.set @data._id, defaultFolded.get @data._id
-
-#Session.setDefault 'images', {}
 images = {}
 imagesInternal = {}
 id2dom = {}
@@ -518,7 +432,7 @@ messageOnDragStart = (message) -> (e) ->
 ## A message is "naturally" folded if it is flagged as minimized or deleted.
 ## It still will be default-folded if it's an image referenced in another
 ## message that is not naturally folded.
-export naturallyFolded = (data) -> data.minimized or data.deleted
+export naturallyFolded = (message) -> message.minimized or message.deleted
 
 ## Cache EXIF orientations, as files should be static
 image2orientation = {}
@@ -552,13 +466,6 @@ scrollDelay = 750
       messageFolded.set ancestor._id, false
   ## Also unfold message itself, because you probably want to see it.
   messageFolded.set id, false
-
-Template.submessage.onDestroyed ->
-  checkImage @data._id
-  for id of @images ? {}
-    if id of images
-      images[id].count -= 1
-      checkImage id
 
 historify = (x, post) -> () ->
   history = messageHistory.get @_id
@@ -1911,7 +1818,9 @@ WrappedSubmessage = React.memo ({message, read}) ->
   ## Maintain id2dom mapping
   useEffect ->
     id2dom[message._id] = ref.current
-    -> delete id2dom[message._id]
+    ->
+      delete id2dom[message._id]
+      checkImage message._id
   , [message._id]
   ## Scroll to this message if it's been requested.
   useEffect ->
@@ -1921,12 +1830,79 @@ WrappedSubmessage = React.memo ({message, read}) ->
     undefined
   , [message._id]
 
-  ## Transform images
+  ## Fold naturally folded (minimized and deleted) messages by default on
+  ## initial load.  But only if not previously manually overridden.
+  useEffect ->
+    oldDefault = defaultFolded.get message._id
+    oldFolded = messageFolded.get message._id
+    defaultFolded.set message._id, naturallyFolded message
+    ## Initially switch messageFolded to defaultFolded if:
+    ## * default has changed
+    ## * default has initialized but messageFolded not already set
+    ##   (e.g. because we just clicked the message)
+    setTimeout ->
+      if oldFolded? and (not oldDefault? or oldDefault == defaultFolded.get message._id)
+        unless oldFolded == messageFolded.get message._id
+          messageFolded.set message._id, oldFolded
+      else
+        messageFolded.set message._id, defaultFolded.get message._id
+    , 0
+  , [message._id]
+
+  ## Fold referenced attached files by default on initial load.
   messageBodyRef = useRef()
+  useEffect ->
+    initImage message._id
+    ## initImage calls updateFileQuery which will do this:
+    #images[message._id].file = message.file
+    #initImageInternal message.file if message.file?
+    ## If message is naturally folded, don't count images it references.
+    images[message._id].naturallyFolded = naturallyFolded message
+    images[message._id].children = message.children?.length
+    return if images[message._id].naturallyFolded
+    messageImages = {}
+    messageImagesInternal = {}
+    return unless messageBodyRef.current?
+    for elt in messageBodyRef.current.querySelectorAll """
+      img[src^="#{fileUrlPrefix}"],
+      img[src^="#{fileAbsoluteUrlPrefix}"],
+      img[src^="#{internalFileUrlPrefix}"],
+      img[src^="#{internalFileAbsoluteUrlPrefix}"],
+      video source[src^="#{fileUrlPrefix}"],
+      video source[src^="#{fileAbsoluteUrlPrefix}"],
+      video source[src^="#{internalFileUrlPrefix}"],
+      video source[src^="#{internalFileAbsoluteUrlPrefix}"]
+    """
+      src = elt.getAttribute 'src'
+      if 0 <= src.indexOf 'gridfs'
+        messageImagesInternal[url2internalFile src] = true
+      else
+        messageImages[url2file src] = true
+    for id of messageImages
+      #console.log 'source', id
+      initImage id
+      images[id].count += 1
+      checkImage id
+    for id of messageImagesInternal
+      #console.log 'source', id
+      initImageInternal id
+      imagesInternal[id].count += 1
+      checkImageInternal id
+    ->
+      for id of messageImages
+        images[id].count -= 1
+        checkImage id
+      for id of messageImagesInternal
+        imagesInternal[id].count -= 1
+        checkImageInternal id
+  # too many dependencies to list
+
+  ## Transform images
   ## Retransform when window width changes
   [windowWidth, setWindowWidth] = useState window.innerWidth
   useEventListener 'resize', (e) -> setWindowWidth window.innerWidth
   useEffect ->
+    return unless messageBodyRef.current?
     ## Transform any images embedded within message body
     trackers =
       for img in messageBodyRef.current.querySelectorAll """
