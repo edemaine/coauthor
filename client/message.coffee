@@ -935,58 +935,6 @@ Template.keyboardSelector.helpers
     else
       ''
 
-Template.submessage.events
-  'click .tagRemove': (e, t) ->
-    e.preventDefault()
-    e.stopPropagation()
-    message = t.data._id
-    tags = t.data.tags
-    tag = e.currentTarget.getAttribute 'data-tag'
-    if tag of tags
-      delete tags[escapeTag tag]
-      Meteor.call 'messageUpdate', message,
-        tags: tags
-      , (error) ->
-        if error
-          console.error error
-        else
-          Meteor.call 'tagDelete', t.data.group, tag, true
-    else
-      console.warn "Attempt to delete nonexistant tag '#{tag}' from message #{message}"
-
-  'click .tagAdd': (e, t) ->
-    e.preventDefault()
-    e.stopPropagation()
-    message = t.data._id
-    tags = t.data.tags
-    tag = e.target.getAttribute 'data-tag'
-    if tag of tags
-      console.warn "Attempt to add duplicate tag '#{tag}' to message #{message}"
-    else
-      tags[escapeTag tag] = true
-      Meteor.call 'messageUpdate', message,
-        tags: tags
-    dropdownToggle e
-
-  'click .tagAddNew': (e, t) ->
-    e.preventDefault()
-    e.stopPropagation()
-    message = t.data._id
-    tags = t.data.tags ? {}
-    textTag = $(e.target).parents('form').first().find('.tagAddText')[0]
-    tag = textTag.value.trim()
-    textTag.value = ''  ## reset custom tag
-    if tag
-      if tag of tags
-        console.warn "Attempt to add duplicate tag '#{tag}' to message #{message}"
-      else
-        Meteor.call 'tagNew', t.data.group, tag, 'boolean'
-        tags[escapeTag tag] = true
-        Meteor.call 'messageUpdate', message,
-          tags: tags
-    dropdownToggle e
-    false  ## prevent form from submitting
-
 Template.superdelete.events
   'click .shallowSuperdeleteButton': (e, t) ->
     e.preventDefault()
@@ -1884,6 +1832,45 @@ WrappedSubmessage = React.memo ({message, read}) ->
       Meteor.call 'messageUpdate', messageID,
         title: newTitle
     , idle
+  onTagRemove = (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+    tag = e.currentTarget.getAttribute 'data-tag'
+    if tag of message.tags
+      Meteor.call 'messageUpdate', message._id,
+        tags: _.omit message.tags, escapeTag tag
+      , (error) ->
+        if error
+          console.error error
+        else
+          Meteor.call 'tagDelete', message.group, tag, true
+    else
+      console.warn "Attempt to delete nonexistant tag '#{tag}' from message #{message._id}"
+  onTagAdd = (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+    tag = e.target.getAttribute 'data-tag'
+    if tag of message.tags
+      console.warn "Attempt to add duplicate tag '#{tag}' to message #{message._id}"
+    else
+      Meteor.call 'messageUpdate', message._id,
+        tags: Object.assign {}, message.tags ? {}, {"#{escapeTag tag}": true}
+    dropdownToggle e
+  onTagNew = (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+    textTag = $(e.target).parents('form').first().find('.tagAddText')[0]
+    tag = textTag.value.trim()
+    textTag.value = ''  ## reset custom tag
+    if tag
+      if tag of message.tags
+        console.warn "Attempt to add duplicate tag '#{tag}' to message #{message._id}"
+      else
+        Meteor.call 'tagNew', message.group, tag, 'boolean'
+        Meteor.call 'messageUpdate', message._id,
+          tags: Object.assign {}, message.tags ? {}, {"#{escapeTag tag}": true}
+    dropdownToggle e
+    false  ## prevent form from submitting
 
   return null unless visible or here
   <div className="panel message #{messagePanelClass message, editing}" data-message={message._id} id={message._id} ref={ref}>
@@ -1932,13 +1919,13 @@ WrappedSubmessage = React.memo ({message, read}) ->
           <span className="upper-strut"/>
           <span className="tags">
             {for tag in sortTags message.tags
-              <>
+              <React.Fragment key={tag.key}>
                 <span className="label label-default tag tagWithRemove">
                   {tag.key + ' '}
-                  <span className="tagRemove fas fa-times-circle" aria-label="Remove" data-tag={tag.key}/>
+                  <span className="tagRemove fas fa-times-circle" aria-label="Remove" data-tag={tag.key} onClick={onTagRemove}/>
                 </span>
                 {' '}
-              </>
+              </React.Fragment>
             }
           </span>
           <span className="btn-group">
@@ -1952,7 +1939,7 @@ WrappedSubmessage = React.memo ({message, read}) ->
                   <form className="input-group input-group-sm">
                     <input className="tagAddText form-control" type="text" placeholder="New Tag..."/>
                     <div className="input-group-btn">
-                      <button className="btn btn-default tagAddNew" type="submit">
+                      <button className="btn btn-default tagAddNew" type="submit" onClick={onTagNew}>
                         <span className="fas fa-plus"/>
                       </button>
                     </div>
@@ -1964,7 +1951,7 @@ WrappedSubmessage = React.memo ({message, read}) ->
                   <li className="divider" role="separator"/>
                   {for tag in absentTags
                     <li key={tag.key}>
-                      <a className="tagAdd" href="#" data-tag={tag.key}>{tag.key}</a>
+                      <a className="tagAdd" href="#" data-tag={tag.key} onClick={onTagAdd}>{tag.key}</a>
                     </li>
                   }
                 </>
