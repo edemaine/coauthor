@@ -148,7 +148,7 @@ useChildren = (message, indexed) ->
     for childID, index in message.children
       child = Messages.findOne childID
       ## Use canSee to properly fake non-superuser mode.
-      continue unless canSee child #or routeHere child._id
+      continue unless child? and canSee child #or routeHere child._id
       if indexed
         [child, index]
       else
@@ -1658,70 +1658,7 @@ WrappedSubmessage = React.memo ({message, read}) ->
     super: canSuper message.group
   , [message._id]
   ref = useRefTooltip()
-
-  [editTitle, setEditTitle] = useState ''
-  [editBody, setEditBody] = useState ''
-  [editStopping, setEditStopping] = useState()
-  safeToStopEditing =
-    message.title == editTitle and message.body == editBody
-  useEffect ->
-    if editStopping and safeToStopEditing
-      Meteor.call 'messageEditStop', message._id, (error, result) ->
-        if error?
-          console.error error
-        else
-          setEditStopping false
-    undefined
-
-  timer = useRef null
-  lastTitle = useRef null
-  savedTitles = useRef []
-  useLayoutEffect ->
-    if editing
-      ## Initialize title and body when we start editing.
-      unless lastTitle.current?
-        setEditTitle lastTitle.current = message.title
-        setEditBody message.body
-      ## Update input's value when title changes on server
-      else if message.title != lastTitle.current
-        lastTitle.current = message.title
-        ## Ignore an update that matches a title we sent to the server,
-        ## to avoid weird reversion while live typing with network delays.
-        ## (In steady state, we expect our saves to match later updates,
-        ## so this should acquiesce with an empty savedTitles.)
-        if message.title in savedTitles.current
-          while savedTitles.current.pop() != message.title
-            continue
-        else
-          ## Received new title: update input text, forget past saves,
-          ## and cancel any pending save.
-          setEditTitle message.title
-          savedTitles.current = []
-          Meteor.clearTimeout timer.current
-    else
-      lastTitle.current = null
-      savedTitles.current = []
-    undefined
-  , [editing, editTitle, message.title]
-
-  usernames = useTracker ->
-    allUsernames()
-  , []
-  useLayoutEffect ->
-    authors = (unescapeUser author for author of message.authors)
-    for author in authors
-      threadAuthors[author] ?= 0
-      threadAuthors[author] += 1
-    Session.set 'threadAuthors', threadAuthors
-    mentions = atMentions message, usernames
-    for author in mentions
-      threadMentions[author] ?= 0
-      threadMentions[author] += 1
-    Session.set 'threadMentions', threadMentions
-    ->
-      threadAuthors[author] -= 1 for author in authors
-      threadMentions[author] -= 1 for author in mentions
-  , [(key for key of message.authors).join('@'), message.title, message.body, usernames]
+  messageBodyRef = useRef()
 
   ## Support dragging rendered attachment like dragging message itself
   messageFileRef = useRef()
@@ -1733,84 +1670,151 @@ WrappedSubmessage = React.memo ({message, read}) ->
     -> elt.removeEventListener 'dragstart', listener for elt in elts
   , [folded, history?, message]
 
-  ## One-time effects
-  useEffect ->
-    ## Scroll to this message if it's been requested.
-    if scrollToLater == message._id
-      scrollToLater = null
-      scrollToMessage message._id
-    ## Maintain id2dom mapping
-    id2dom[message._id] = ref.current
-    checkImage message._id
-    ->
-      delete id2dom[message._id]
-      checkImage message._id
-  , [message._id]
+  unless read  # should not change
+    ## Editing toggle
+    [editTitle, setEditTitle] = useState ''
+    [editBody, setEditBody] = useState ''
+    [editStopping, setEditStopping] = useState()
+    safeToStopEditing =
+      message.title == editTitle and message.body == editBody
+    useEffect ->
+      if editStopping and safeToStopEditing
+        Meteor.call 'messageEditStop', message._id, (error, result) ->
+          if error?
+            console.error error
+          else
+            setEditStopping false
+      undefined
 
-  ## Image reference counting:
-  ## List images referenced by this message.
-  ## If message is naturally folded, don't count images it references.
-  [imageRefs, setImageRefs] = useState()
-  [imageInternalRefs, setImageInternalRefs] = useState()
-  natural = naturallyFolded message
-  messageBodyRef = useRef()
-  useEffect ->
-    if natural or not messageBodyRef.current?
-      setImageRefs undefined
-      setImageInternalRefs undefined
-    else
-      messageImages = {}
-      messageImagesInternal = {}
-      for elt in messageBodyRef.current.querySelectorAll """
-        img[src^="#{fileUrlPrefix}"],
-        img[src^="#{fileAbsoluteUrlPrefix}"],
-        img[src^="#{internalFileUrlPrefix}"],
-        img[src^="#{internalFileAbsoluteUrlPrefix}"],
-        video source[src^="#{fileUrlPrefix}"],
-        video source[src^="#{fileAbsoluteUrlPrefix}"],
-        video source[src^="#{internalFileUrlPrefix}"],
-        video source[src^="#{internalFileAbsoluteUrlPrefix}"]
-      """
-        src = elt.getAttribute 'src'
-        if 0 <= src.indexOf 'gridfs'
-          messageImagesInternal[url2internalFile src] = true
-        else
-          messageImages[url2file src] = true
-      setImageRefs (_.sortBy _.keys messageImages).join ','
-      setImageInternalRefs (_.sortBy _.keys messageImagesInternal).join ','
-  # too many dependencies to list
-  ## Update image reference counts.
-  useEffect ->
-    return unless imageRefs?
-    #console.log message._id, 'incrementing', imageRefs
-    for id in imageRefs.split ','
-      imageRefCount.set id, (imageRefCount.get(id) ? 0) + 1
-      checkImage id
-    for id in imageInternalRefs.split ','
-      imageInternalRefCount.set id, (imageInternalRefCount.get(id) ? 0) + 1
-    ->
-      #console.log message._id, 'decrementing', imageRefs
+    ## Title editing
+    timer = useRef null
+    lastTitle = useRef null
+    savedTitles = useRef []
+    useLayoutEffect ->
+      if editing
+        ## Initialize title and body when we start editing.
+        unless lastTitle.current?
+          setEditTitle lastTitle.current = message.title
+          setEditBody message.body
+        ## Update input's value when title changes on server
+        else if message.title != lastTitle.current
+          lastTitle.current = message.title
+          ## Ignore an update that matches a title we sent to the server,
+          ## to avoid weird reversion while live typing with network delays.
+          ## (In steady state, we expect our saves to match later updates,
+          ## so this should acquiesce with an empty savedTitles.)
+          if message.title in savedTitles.current
+            while savedTitles.current.pop() != message.title
+              continue
+          else
+            ## Received new title: update input text, forget past saves,
+            ## and cancel any pending save.
+            setEditTitle message.title
+            savedTitles.current = []
+            Meteor.clearTimeout timer.current
+      else
+        lastTitle.current = null
+        savedTitles.current = []
+      undefined
+    , [editing, editTitle, message.title]
+
+    ## Maintain threadAuthors and threadMentions
+    usernames = useTracker ->
+      allUsernames()
+    , []
+    useLayoutEffect ->
+      authors = (unescapeUser author for author of message.authors)
+      for author in authors
+        threadAuthors[author] ?= 0
+        threadAuthors[author] += 1
+      Session.set 'threadAuthors', threadAuthors
+      mentions = atMentions message, usernames
+      for author in mentions
+        threadMentions[author] ?= 0
+        threadMentions[author] += 1
+      Session.set 'threadMentions', threadMentions
+      ->
+        threadAuthors[author] -= 1 for author in authors
+        threadMentions[author] -= 1 for author in mentions
+    , [(key for key of message.authors).join('@'), message.title, message.body, usernames]
+
+    ## One-time effects
+    useEffect ->
+      ## Scroll to this message if it's been requested.
+      if scrollToLater == message._id
+        scrollToLater = null
+        scrollToMessage message._id
+      ## Maintain id2dom mapping
+      id2dom[message._id] = ref.current
+      checkImage message._id
+      ->
+        delete id2dom[message._id]
+        checkImage message._id
+    , [message._id]
+
+    ## Image reference counting:
+    ## List images referenced by this message.
+    ## If message is naturally folded, don't count images it references.
+    [imageRefs, setImageRefs] = useState()
+    [imageInternalRefs, setImageInternalRefs] = useState()
+    natural = naturallyFolded message
+    useEffect ->
+      if natural or not messageBodyRef.current?
+        setImageRefs undefined
+        setImageInternalRefs undefined
+      else
+        messageImages = {}
+        messageImagesInternal = {}
+        for elt in messageBodyRef.current.querySelectorAll """
+          img[src^="#{fileUrlPrefix}"],
+          img[src^="#{fileAbsoluteUrlPrefix}"],
+          img[src^="#{internalFileUrlPrefix}"],
+          img[src^="#{internalFileAbsoluteUrlPrefix}"],
+          video source[src^="#{fileUrlPrefix}"],
+          video source[src^="#{fileAbsoluteUrlPrefix}"],
+          video source[src^="#{internalFileUrlPrefix}"],
+          video source[src^="#{internalFileAbsoluteUrlPrefix}"]
+        """
+          src = elt.getAttribute 'src'
+          if 0 <= src.indexOf 'gridfs'
+            messageImagesInternal[url2internalFile src] = true
+          else
+            messageImages[url2file src] = true
+        setImageRefs (_.sortBy _.keys messageImages).join ','
+        setImageInternalRefs (_.sortBy _.keys messageImagesInternal).join ','
+    # too many dependencies to list
+    ## Update image reference counts.
+    useEffect ->
+      return unless imageRefs?
+      #console.log message._id, 'incrementing', imageRefs
       for id in imageRefs.split ','
-        imageRefCount.set id, (imageRefCount.get(id) ? 0) - 1
+        imageRefCount.set id, (imageRefCount.get(id) ? 0) + 1
         checkImage id
       for id in imageInternalRefs.split ','
-        imageInternalRefCount.set id, (imageInternalRefCount.get(id) ? 0) - 1
-  , [imageRefs, imageInternalRefs]
-  ## Update default folded status of this message.
-  useTracker ->
-    ## Image gets unnaturally folded if it's referenced at least once
-    ## and doesn't have any children (don't want to hide children, and this
-    ## can also lead to infinite loop if children has the image reference)
-    ## and doesn't refer to any other images (which can also lead to bad loops).
-    newDefault = natural or
-      (not message.children?.length and
-       not imageRefs and not imageInternalRefs and
-       (!!imageRefCount.get(message._id) or
-        !!imageInternalRefCount.get(message.file)))
-    if newDefault != defaultFolded.get message._id
-      defaultFolded.set message._id, newDefault
-      messageFolded.set message._id, newDefault
-  , [message._id, message.file, natural, not message.children?.length, not imageRefs and not imageInternalRefs]
+        imageInternalRefCount.set id, (imageInternalRefCount.get(id) ? 0) + 1
+      ->
+        #console.log message._id, 'decrementing', imageRefs
+        for id in imageRefs.split ','
+          imageRefCount.set id, (imageRefCount.get(id) ? 0) - 1
+          checkImage id
+        for id in imageInternalRefs.split ','
+          imageInternalRefCount.set id, (imageInternalRefCount.get(id) ? 0) - 1
+    , [imageRefs, imageInternalRefs]
+    ## Update default folded status of this message.
+    useTracker ->
+      ## Image gets unnaturally folded if it's referenced at least once
+      ## and doesn't have any children (don't want to hide children, and this
+      ## can also lead to infinite loop if children has the image reference)
+      ## and doesn't refer to any other images (which can also lead to bad loops).
+      newDefault = natural or
+        (not message.children?.length and
+        not imageRefs and not imageInternalRefs and
+        (!!imageRefCount.get(message._id) or
+          !!imageInternalRefCount.get(message.file)))
+      if newDefault != defaultFolded.get message._id
+        defaultFolded.set message._id, newDefault
+        messageFolded.set message._id, newDefault
+    , [message._id, message.file, natural, not message.children?.length, not imageRefs and not imageInternalRefs]
 
   ## Transform images
   ## Retransform when window width changes
