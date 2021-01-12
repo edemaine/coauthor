@@ -1,4 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react'
+import {useTracker} from 'meteor/react-meteor-data'
 import useEventListener from '@use-it/event-listener'
 
 rotations = [
@@ -20,9 +21,12 @@ export MessageImage = React.memo ({message}) ->
     '-90': useRef()
     180: useRef()
     90: useRef()
+  rotate = useTracker ->
+    messageRotate message
+  , [message]
   updates =
     for angle, ref of refs
-      useImageTransform ref, (message.rotate ? 0) + parseInt angle
+      useImageTransform ref, rotate + parseInt angle
   ## Update rotated images when dropdown opens, because only then does parent
   ## have size so `scale` will be nonzero.
   useEffect ->
@@ -57,22 +61,17 @@ export MessageImage = React.memo ({message}) ->
   </div>
 
 useImageTransform = (imgRef, rotate) ->
-  update = -> imageTransform imgRef.current, rotate if imgRef.current?
   [windowWidth, setWindowWidth] = useState window.innerWidth
   useEventListener 'resize', (e) -> setWindowWidth window.innerWidth
-  useEffect maybeUpdate = ->
-    return unless imgRef.current?
-    if imgRef.current.width
-      update()
-      undefined
-    else
-      imgRef.current.addEventListener 'load', listener = (e) -> update()
-      -> imgRef.current?.removeEventListener listener
+  useEffect update = ->
+    imageTransform imgRef.current, rotate if imgRef.current?
+    undefined
   , [windowWidth, rotate]
-  maybeUpdate
+  update
 
 export imageTransform = (image, rotate) ->
-  return unless image.width
+  unless image.width
+    return image.addEventListener 'load', (e) -> imageTransform image, rotate
   if rotate
     ## `rotate` is in clockwise degrees
     radians = -rotate * Math.PI / 180

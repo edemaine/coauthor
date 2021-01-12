@@ -2166,7 +2166,7 @@ WrappedSubmessage = React.memo ({message, read}) ->
                   </div>
                   <div className="file-right-buttons btn-group hidden-print">
                     {if messageFileType == 'image'
-                      <MessageImageEdit message={message}/>
+                      <MessageImage message={message}/>
                     }
                     <MessageReplace _id={message._id} group={message.group} tabindex={tabindex0+9}/>
                   </div>
