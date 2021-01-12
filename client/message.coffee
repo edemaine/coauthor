@@ -90,7 +90,7 @@ Template.submessageHeader.helpers
   SubmessageHeader: -> SubmessageHeader
   message: -> @
 
-MaybeRootHeader = ({message}) ->
+MaybeRootHeader = React.memo ({message}) ->
   return null unless message?.root?
   <ErrorBoundary>
     <RootHeader message={message}/>
@@ -142,6 +142,18 @@ messageOrphans = (message) ->
     root: message
     _id: $nin: descendants
   .fetch()
+
+useChildren = (message, indexed) ->
+  useTracker ->
+    for childID, index in message.children
+      child = Messages.findOne childID
+      ## Use canSee to properly fake non-superuser mode.
+      continue unless canSee child #or routeHere child._id
+      if indexed
+        [child, index]
+      else
+        child
+  , [message.children.join ',']  # depend on children IDs, not the array
 
 authorCount = (field, group) ->
   authors =
@@ -1282,17 +1294,17 @@ TableOfContentsID = React.memo ({messageID, parent, index}) ->
     Messages.findOne messageID
   , [messageID]
   return null unless message?
-  <ErrorBoundary>
-    <TableOfContents message={message} parent={parent} index={index}/>
-  </ErrorBoundary>
+  <TableOfContents message={message} parent={parent} index={index}/>
 TableOfContentsID.displayName = 'TableOfContentsID'
 
 TableOfContents = React.memo ({message, parent, index}) ->
+  <ErrorBoundary>
+    <WrappedTableOfContents message={message} parent={parent} index={index}/>
+  </ErrorBoundary>
+TableOfContents.displayName = 'TableOfContents'
+
+WrappedTableOfContents = React.memo ({message, parent, index}) ->
   isRoot = not parent?  # should not differ between calls (for hook properties)
-  ## Use canSee to properly fake non-superuser mode.
-  visible = useTracker ->
-    canSee message
-  , [message]
   formattedTitle = useTracker ->
     formatTitleOrFilename message, false, false, isRoot  ## don't say (untitled)
   , [message, isRoot]
@@ -1308,6 +1320,7 @@ TableOfContents = React.memo ({message, parent, index}) ->
   creator = useTracker ->
     displayUser message.creator
   , [message.creator]
+  children = useChildren message, true
   inner =
     <>
       {unless isRoot
@@ -1332,17 +1345,14 @@ TableOfContents = React.memo ({message, parent, index}) ->
       </a>
     </>
   renderedChildren = useMemo ->
-    rendereds =
-      for childID, index in message.children
-        <TableOfContentsID key={childID} messageID={childID} parent={message._id} index={index}/>
-    rendereds = (rendered for rendered in rendereds when rendered?)
-    if rendereds.length
-      <ul className="nav subcontents">
-        {rendereds}
-      </ul>
-  , [message.children.join ',']  # depend on children IDs, not the array
+    return unless children.length
+    <ul className="nav subcontents">
+      {for [child, index] in children
+        <TableOfContents key={child._id} message={child} parent={message._id} index={index}/>
+      }
+    </ul>
+  , [children]
 
-  return null unless visible or isRoot
   if isRoot
     ref = useRef()
     useEffect ->
@@ -1371,7 +1381,7 @@ TableOfContents = React.memo ({message, parent, index}) ->
       {inner}
       {renderedChildren}
     </li>
-TableOfContents.displayName = 'TableOfContents'
+WrappedTableOfContents.displayName = 'WrappedTableOfContents'
 
 addDragOver = (e) ->
   e.preventDefault()
@@ -1558,7 +1568,7 @@ SubmessageID = React.memo ({messageID, read}) ->
   <Submessage message={message} read={read}/>
 SubmessageID.displayName = 'SubmessageID'
 
-Submessage = ({message, read}) ->
+Submessage = React.memo ({message, read}) ->
   <ErrorBoundary>
     <WrappedSubmessage message={message} read={read}/>
   </ErrorBoundary>
@@ -1566,10 +1576,6 @@ Submessage.displayName = 'Submessage'
 
 submessageCount = 0
 WrappedSubmessage = React.memo ({message, read}) ->
-  ## Use canSee to properly fake non-superuser mode.
-  visible = useTracker ->
-    canSee message
-  , [message]
   here = useTracker ->
     routeHere message._id
   , [message._id]
@@ -1643,6 +1649,7 @@ WrappedSubmessage = React.memo ({message, read}) ->
       sort: ['key']
     .fetch()
   , [message.group, _.keys(message.tags ? {}).join '\n']
+  children = message.readChildren ? useChildren message
   can = useTracker ->
     delete: canDelete message._id
     undelete: canUndelete message._id
@@ -1916,7 +1923,6 @@ WrappedSubmessage = React.memo ({message, read}) ->
     dropdownToggle e
     false  ## prevent form from submitting
 
-  return null unless visible or here
   <div className="panel message #{messagePanelClass message, editing}" data-message={message._id} id={message._id} ref={ref}>
     <div className="panel-heading clearfix">
       {if editing and not history?
@@ -2145,37 +2151,30 @@ WrappedSubmessage = React.memo ({message, read}) ->
             }
           </div>
         </div>
-        {if message.children.length
-          renderedChildren =
-            if message.readChildren?
-              for child in message.readChildren
+        {if children.length
+          <>
+            <div className="children clearfix">
+              {for child in children
                 <Submessage key={child._id} message={child} read={read}/>
-            else
-              for childID in message.children
-                <SubmessageID key={childID} messageID={childID} read={read}/>
-          renderedChildren = (rendered for rendered in renderedChildren when rendered?)
-          if renderedChildren.length
-            <>
-              <div className="children clearfix">
-                {renderedChildren}
-              </div>
-              <div className="panel-body panel-secondbody hidden-print clearfix">
-                <ReplyButtons message={message}/>
-                <span className="message-title">
-                  <a className="btn btn-default btn-xs linkToTop" aria-label="Top" href="##{message._id}">
-                    <span className="fas fa-caret-up"/>
-                  </a>
-                  <span className="space"/>
-                  {if historified.file
-                    <span className="fas fa-paperclip"/>
-                  }
-                  <span className="panel-title"
-                  dangerouslySetInnerHTML={__html: formattedTitle[1]}/>
-                  <MessageTags message={message}/>
-                  <MessageLabels message={message}/>
-                </span>
-              </div>
-            </>
+              }
+            </div>
+            <div className="panel-body panel-secondbody hidden-print clearfix">
+              <ReplyButtons message={message}/>
+              <span className="message-title">
+                <a className="btn btn-default btn-xs linkToTop" aria-label="Top" href="##{message._id}">
+                  <span className="fas fa-caret-up"/>
+                </a>
+                <span className="space"/>
+                {if historified.file
+                  <span className="fas fa-paperclip"/>
+                }
+                <span className="panel-title"
+                dangerouslySetInnerHTML={__html: formattedTitle[1]}/>
+                <MessageTags message={message}/>
+                <MessageLabels message={message}/>
+              </span>
+            </div>
+          </>
         }
       </>
     }
