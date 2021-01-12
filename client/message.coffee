@@ -342,8 +342,8 @@ messagePreviewSet = (messageID, change) ->
 threadAuthors = {}
 threadMentions = {}
 
-images = {}
-imagesInternal = {}
+imageRefCount = new ReactiveDict
+imageInternalRefCount = new ReactiveDict
 id2dom = {}
 scrollToLater = null
 fileQuery = null
@@ -374,49 +374,6 @@ updateFileQuery = _.debounce ->
           initImageInternal images[id].file, id
           checkImageInternal images[id].file
 , 250
-
-initImage = (id) ->
-  if id not of images
-    images[id] =
-      count: 0
-      file: null
-    updateFileQuery()
-
-initImageInternal = (id, image = null) ->
-  #console.log "initImageInternal #{id}, #{image}"
-  if id not of imagesInternal
-    imagesInternal[id] =
-      count: 0
-      image: image
-  else if image?
-    imagesInternal[id].image = image
-
-checkImage = (id) ->
-  return unless id of images
-  ## Image gets unnaturally folded if it's referenced at least once
-  ## and doesn't have any children (don't want to hide children, and this
-  ## can also lead to infinite loop if children has the image reference)
-  ## and doesn't refer to any other images (which can also lead to bad loops).
-  newDefault = images[id].naturallyFolded or
-    (not images[id].children and
-     not images[id].images and
-     (images[id].count > 0 or
-      (imagesInternal[images[id].file]? and
-       imagesInternal[images[id].file].count > 0)))
-  console.log id, defaultFolded.get(id), newDefault
-  if newDefault != defaultFolded.get id
-    defaultFolded.set id, newDefault
-    messageFolded.set id, newDefault
-  ## No longer care about this image if it's not referenced and doesn't have
-  ## a rendered template.
-  if images[id].count == 0 and id not of id2dom
-    delete images[id]
-    updateFileQuery()
-
-checkImageInternal = (id) ->
-  image = imagesInternal[id].image
-  #console.log "#{id} corresponds to #{image}"
-  checkImage image if image?
 
 messageOnDragStart = (message) -> (e) ->
   #url = "coauthor:#{message._id}"
@@ -1825,15 +1782,10 @@ WrappedSubmessage = React.memo ({message, read}) ->
     if scrollToLater == message._id
       scrollToLater = null
       scrollToMessage message._id
-    ## Maintain id2dom mapping, and seed images map
+    ## Maintain id2dom mapping
     id2dom[message._id] = ref.current
-    initImage message._id
-    ## initImage calls updateFileQuery which will do this:
-    #images[message._id].file = message.file
-    #initImageInternal message.file if message.file?
     ->
       delete id2dom[message._id]
-      checkImage message._id
   , [message._id]
 
   ## Fold naturally folded (minimized and deleted) messages by default on
@@ -1857,52 +1809,66 @@ WrappedSubmessage = React.memo ({message, read}) ->
   , [message._id]
   ###
 
-  ## Fold referenced attached files by default on initial load.
+  ## Count images referenced by this message, and
+  ## update default folded status of this message.
   messageBodyRef = useRef()
+  ## Depend on references to this message (if it's a file).
+  useTracker ->
+    [
+      imageRefCount.equals 0, message._id
+      imageInternalRefCount.equals 0, message.file if message.file?
+    ]
+  , [message._id, message.file]
   useEffect ->
-    initImage message._id
-    images[message._id].naturallyFolded = naturallyFolded message
-    images[message._id].children = message.children?.length
-    images[message._id].images = 0
+    refCount = 0
     ## If message is naturally folded, don't count images it references.
-    if images[message._id].naturallyFolded or not messageBodyRef.current?
-      return checkImage message._id
-    messageImages = {}
-    messageImagesInternal = {}
-    for elt in messageBodyRef.current.querySelectorAll """
-      img[src^="#{fileUrlPrefix}"],
-      img[src^="#{fileAbsoluteUrlPrefix}"],
-      img[src^="#{internalFileUrlPrefix}"],
-      img[src^="#{internalFileAbsoluteUrlPrefix}"],
-      video source[src^="#{fileUrlPrefix}"],
-      video source[src^="#{fileAbsoluteUrlPrefix}"],
-      video source[src^="#{internalFileUrlPrefix}"],
-      video source[src^="#{internalFileAbsoluteUrlPrefix}"]
-    """
-      images[message._id].links += 1
-      src = elt.getAttribute 'src'
-      if 0 <= src.indexOf 'gridfs'
-        messageImagesInternal[url2internalFile src] = true
-      else
-        messageImages[url2file src] = true
-    for id of messageImages
-      #console.log 'source', id
-      initImage id
-      images[id].count += 1
-      checkImage id
-    for id of messageImagesInternal
-      #console.log 'source', id
-      initImageInternal id
-      imagesInternal[id].count += 1
-      checkImageInternal id
-    checkImage message._id
-    ->
+    natural = naturallyFolded message
+    if not natural and messageBodyRef.current?
+      messageImages = {}
+      messageImagesInternal = {}
+      for elt in messageBodyRef.current.querySelectorAll """
+        img[src^="#{fileUrlPrefix}"],
+        img[src^="#{fileAbsoluteUrlPrefix}"],
+        img[src^="#{internalFileUrlPrefix}"],
+        img[src^="#{internalFileAbsoluteUrlPrefix}"],
+        video source[src^="#{fileUrlPrefix}"],
+        video source[src^="#{fileAbsoluteUrlPrefix}"],
+        video source[src^="#{internalFileUrlPrefix}"],
+        video source[src^="#{internalFileAbsoluteUrlPrefix}"]
+      """
+        refCount += 1
+        src = elt.getAttribute 'src'
+        if 0 <= src.indexOf 'gridfs'
+          messageImagesInternal[url2internalFile src] = true
+        else
+          messageImages[url2file src] = true
       for id of messageImages
-        images[id].count -= 1
-        checkImage id
+        imageRefCount.set id, (imageRefCount.get(id) ? 0) + 1
       for id of messageImagesInternal
-        imagesInternal[id].count -= 1
-        checkImageInternal id
+        imageInternalRefCount.set id, (imageInternalRefCount.get(id) ? 0) + 1
+      uncount = ->
+        for id of messageImages
+          imageRefCount.set id, (imageRefCount.get(id) ? 0) - 1
+        for id of messageImagesInternal
+          imageInternalRefCount.set id, (imageInternalRefCount.get(id) ? 0) - 1
+    ## Image gets unnaturally folded if it's referenced at least once
+    ## and doesn't have any children (don't want to hide children, and this
+    ## can also lead to infinite loop if children has the image reference)
+    ## and doesn't refer to any other images (which can also lead to bad loops).
+    newDefault = natural or
+      (not message.children?.length and
+       not refCount and
+       (imageRefCount.get(message._id) or
+        imageInternalRefCount.get(message.file)))
+    console.log message._id, defaultFolded.get(message._id), newDefault, natural, 
+      not message.children?.length,
+      not refCount,
+      imageRefCount.get(message._id),
+      imageInternalRefCount.get(message.file)
+    if newDefault != defaultFolded.get message._id
+      defaultFolded.set message._id, newDefault
+      messageFolded.set message._id, newDefault
+    uncount
   # too many dependencies to list
 
   ## Transform images
