@@ -2167,7 +2167,6 @@ MessageActions = React.memo ({message, can, editing, tabindex0}) ->
   onDelete = (e) ->
     e.preventDefault()
     e.stopPropagation()
-    messageFolded.set message, not message.deleted or message.minimized or images[message._id]?.count > 0
     ## Stop editing if we are deleting.
     if not message.deleted and editing
       Meteor.call 'messageEditStop', message._id
@@ -2189,7 +2188,6 @@ MessageActions = React.memo ({message, can, editing, tabindex0}) ->
   onMinimize = (e) ->
     e.preventDefault()
     e.stopPropagation()
-    messageFolded.set message, message.deleted or not message.minimized or images[message._id]?.count > 0
     Meteor.call 'messageUpdate', message._id,
       minimized: not message.minimized
       finished: true
