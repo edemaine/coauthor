@@ -1166,6 +1166,7 @@ Meteor.methods
       check position, Match.Maybe Number
     else
       check position, Match.Maybe String
+    return if @isSimulation  # don't show change until server updated
     _messageParent child, parent, position
 
   messageEditStart: (id) ->

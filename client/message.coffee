@@ -1324,9 +1324,16 @@ WrappedTableOfContents = React.memo ({message, parent, index}) ->
   inner =
     <>
       {unless isRoot
-        <div className="beforeMessageDrop" data-parent={parent} data-index={index}/>
+        <div className="beforeMessageDrop"
+         data-parent={parent} data-index={index}
+         onDragEnter={addDragOver} onDragLeave={removeDragOver}
+         onDragOver={dragOver} onDrop={dropOn}/>
       }
-      <a href="##{message._id}" data-id={message._id} className="onMessageDrop #{if isRoot then 'title' else ''} #{messageClass.call message}" onDragStart={messageOnDragStart message}>
+      <a href="##{message._id}" data-id={message._id}
+       className="onMessageDrop #{if isRoot then 'title' else ''} #{messageClass.call message}"
+       onDragStart={messageOnDragStart message}
+       onDragEnter={addDragOver} onDragLeave={removeDragOver}
+       onDragOver={dragOver} onDrop={dropOn}>
         {if editing
           <>
             <span className="fas fa-edit"/>
@@ -1386,22 +1393,21 @@ WrappedTableOfContents.displayName = 'WrappedTableOfContents'
 addDragOver = (e) ->
   e.preventDefault()
   e.stopPropagation()
-  $(e.target).addClass 'dragover'
-
+  e.currentTarget.classList.add 'dragover'
 removeDragOver = (e) ->
+  return unless e.target == e.currentTarget
   e.preventDefault()
   e.stopPropagation()
-  $(e.target).removeClass 'dragover'
-
+  e.currentTarget.classList.remove 'dragover'
 dragOver = (e) ->
+  return unless e.target == e.currentTarget
   e.preventDefault()
   e.stopPropagation()
-
-dropOn = (e, t) ->
+dropOn = (e) ->
   e.preventDefault()
   e.stopPropagation()
-  $(e.target).removeClass 'dragover'
-  dragId = e.dataTransfer?.getData('application/coauthor-id')
+  e.currentTarget.classList.remove 'dragover'
+  dragId = e.dataTransfer?.getData 'application/coauthor-id'
   unless dragId
     url = e.dataTransfer?.getData 'text/plain'
     if url?
@@ -1410,26 +1416,13 @@ dropOn = (e, t) ->
         dragId = url.hash[1..]
       else
         dragId = url?.message
-  if index = e.target.getAttribute 'data-index'
+  if index = e.currentTarget.getAttribute 'data-index'
     index = parseInt index
-    dropId = e.target.getAttribute 'data-parent'
+    dropId = e.currentTarget.getAttribute 'data-parent'
   else
-    dropId = e.target.getAttribute 'data-id'
+    dropId = e.currentTarget.getAttribute 'data-id'
   if dragId and dropId
     messageParent dragId, dropId, index
-
-###
-for template in [Template.tableOfContentsRoot, Template.tableOfContentsMessage]
-  template.events
-    "dragenter .onMessageDrop": addDragOver
-    "dragleave .onMessageDrop": removeDragOver
-    "dragover .onMessageDrop": dragOver
-    "dragenter .beforeMessageDrop": addDragOver
-    "dragleave .beforeMessageDrop": removeDragOver
-    "dragover .beforeMessageDrop": dragOver
-    "drop .onMessageDrop": dropOn
-    "drop .beforeMessageDrop": dropOn
-###
 
 messageParent = (child, parent, index = null) ->
   return if child == parent  ## ignore trivial self-loop
