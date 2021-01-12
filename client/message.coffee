@@ -239,57 +239,59 @@ Message = React.memo ({message}) ->
       linkToAuthor message.group, user.username, title, icon
     ).join ', '
   , [message._id, message.group]
-  ref = useRefTooltip()
+  eomRef = useRefTooltip()
 
-  <div className="row" ref={ref}>
+  <div className="row">
     <div className="col-md-9" role="main">
       <MaybeRootHeader message={message}/>
       <Submessage message={message}/>
-      <div className="authors alert alert-info">
-        {if authors
-          <>
-            <p>
-              <b>Authors of visible messages in this thread:</b>
-            </p>
-            <p dangerouslySetInnerHTML={__html: authors}/>
-          </>
-        }
-        {if authors and mentions
-          <hr/>
-        }
-        {if mentions
-          <>
-            <p>
-              <b>Users @mentioned in visible messages in this thread:</b>
-            </p>
-            <p dangerouslySetInnerHTML={__html: mentions}/>
-          </>
-        }
-      </div>
-      <div className="subscribers alert alert-success">
-        <p>
-          {if emailless()
-            <b>Users who can read this message:</b>
-          else
-            <b>Users who can read this message, and whether they are subscribed to notifications:</b>
+      <div className="eom" ref={eomRef}>
+        <div className="authors alert alert-info">
+          {if authors
+            <>
+              <p>
+                <b>Authors of visible messages in this thread:</b>
+              </p>
+              <p dangerouslySetInnerHTML={__html: authors}/>
+            </>
           }
-        </p>
-        <p dangerouslySetInnerHTML={__html: subscribers}/>
+          {if authors and mentions
+            <hr/>
+          }
+          {if mentions
+            <>
+              <p>
+                <b>Users @mentioned in visible messages in this thread:</b>
+              </p>
+              <p dangerouslySetInnerHTML={__html: mentions}/>
+            </>
+          }
+        </div>
+        <div className="subscribers alert alert-success">
+          <p>
+            {if emailless()
+              <b>Users who can read this message:</b>
+            else
+              <b>Users who can read this message, and whether they are subscribed to notifications:</b>
+            }
+          </p>
+          <p dangerouslySetInnerHTML={__html: subscribers}/>
+        </div>
+        {if orphans.length
+          orphans =
+            for orphan in orphans
+              <Submessage key={orphan._id} message={orphan}/>
+          orphans = (orphan for orphan in orphans when orphan?)
+          if orphans.length
+            <div className="orphans alert alert-warning">
+              <b data-toggle="tooltip" title="Orphan subthreads are caused by someone deleting a message that has (undeleted) children, which become orphans.  You can move these orphans to a valid parent, or delete them, or ask the author or a superuser to undelete the original parent.">
+                {pluralize orphans.length, 'orphaned subthread'}
+              </b>
+              {orphans}
+            </div>
+        }
+        <Credits/>
       </div>
-      {if orphans.length
-        orphans =
-          for orphan in orphans
-            <Submessage key={orphan._id} message={orphan}/>
-        orphans = (orphan for orphan in orphans when orphan?)
-        if orphans.length
-          <div className="orphans alert alert-warning">
-            <b data-toggle="tooltip" title="Orphan subthreads are caused by someone deleting a message that has (undeleted) children, which become orphans.  You can move these orphans to a valid parent, or delete them, or ask the author or a superuser to undelete the original parent.">
-              {pluralize orphans.length, 'orphaned subthread'}
-            </b>
-            {orphans}
-          </div>
-      }
-      <Credits/>
     </div>
     <div className="col-md-3 hidden-print hidden-xs hidden-sm" role="complementary">
       <TableOfContentsID messageID={message._id}/>
@@ -1657,7 +1659,8 @@ WrappedSubmessage = React.memo ({message, read}) ->
     reply: canReply message
     super: canSuper message.group
   , [message._id]
-  ref = useRefTooltip()
+  ref = useRef()
+  headingRef = useRefTooltip()
   messageBodyRef = useRef()
 
   ## Support dragging rendered attachment like dragging message itself
@@ -1921,7 +1924,7 @@ WrappedSubmessage = React.memo ({message, read}) ->
     false  ## prevent form from submitting
 
   <div className="panel message #{messagePanelClass message, editing}" data-message={message._id} id={message._id} ref={ref}>
-    <div className="panel-heading clearfix">
+    <div className="panel-heading clearfix" ref={headingRef}>
       {if editing and not history?
         <input className="push-down form-control title" type="text" placeholder="Title" value={editTitle} onChange={onChangeTitle} tabIndex={tabindex0+18}/>
       else
