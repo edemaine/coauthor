@@ -347,33 +347,35 @@ imageInternalRefCount = new ReactiveDict
 id2dom = {}
 scrollToLater = null
 fileQuery = null
+fileQueries = {}
 
+checkImage = (id) ->
+  if id2dom[id]? or imageRefCount.get id
+    return if id of fileQueries
+    fileQueries[id] = true
+  else
+    return unless id of fileQueries
+    delete fileQueries[id]
+  updateFileQuery()
 updateFileQuery = _.debounce ->
   fileQuery?.stop()
   fileQuery = Messages.find
-    _id: $in: _.keys images
+    _id: $in: _.keys fileQueries
   ,
     fields: file: true
   .observeChanges
     added: (id, fields) ->
       #console.log "#{id} added:", fields
-      return unless images[id]?
-      images[id].file = fields.file
-      if images[id].file?
-        initImageInternal images[id].file, id
-        checkImageInternal images[id].file
+      return unless fileQueries[id]?
+      fileQueries[id] = fields.file
     changed: (id, fields) ->
       #console.log "#{id} changed:", fields
-      return unless images[id]?
-      if fields.file? and images[id].file != fields.file
+      return unless fileQueries[id]?
+      if fields.file? and fileQueries[id].file != fields.file
         if fileType(fields.file) in ['image', 'video']
           forceImgReload urlToFile id
-        imagesInternal[images[id].file].image = null if images[id].file?
-        images[id].file = fields.file
-        if images[id].file?
-          initImageInternal images[id].file, id
-          checkImageInternal images[id].file
-, 250
+        fileQueries[id].file = fields.file
+, 100
 
 messageOnDragStart = (message) -> (e) ->
   #url = "coauthor:#{message._id}"
@@ -1784,8 +1786,10 @@ WrappedSubmessage = React.memo ({message, read}) ->
       scrollToMessage message._id
     ## Maintain id2dom mapping
     id2dom[message._id] = ref.current
+    checkImage message._id
     ->
       delete id2dom[message._id]
+      checkImage message._id
   , [message._id]
 
   ## Image reference counting:
@@ -1826,12 +1830,14 @@ WrappedSubmessage = React.memo ({message, read}) ->
     #console.log message._id, 'incrementing', imageRefs
     for id in imageRefs.split ','
       imageRefCount.set id, (imageRefCount.get(id) ? 0) + 1
+      checkImage id
     for id in imageInternalRefs.split ','
       imageInternalRefCount.set id, (imageInternalRefCount.get(id) ? 0) + 1
     ->
       #console.log message._id, 'decrementing', imageRefs
       for id in imageRefs.split ','
         imageRefCount.set id, (imageRefCount.get(id) ? 0) - 1
+        checkImage id
       for id in imageInternalRefs.split ','
         imageInternalRefCount.set id, (imageInternalRefCount.get(id) ? 0) - 1
   , [imageRefs, imageInternalRefs]
