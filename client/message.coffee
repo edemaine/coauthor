@@ -395,12 +395,15 @@ checkImage = (id) ->
   return unless id of images
   ## Image gets unnaturally folded if it's referenced at least once
   ## and doesn't have any children (don't want to hide children, and this
-  ## can also lead to infinite loop if children has the image reference).
+  ## can also lead to infinite loop if children has the image reference)
+  ## and doesn't refer to any other images (which can also lead to bad loops).
   newDefault = images[id].naturallyFolded or
     (not images[id].children and
+     not images[id].images and
      (images[id].count > 0 or
       (imagesInternal[images[id].file]? and
        imagesInternal[images[id].file].count > 0)))
+  console.log id, defaultFolded.get(id), newDefault
   if newDefault != defaultFolded.get id
     defaultFolded.set id, newDefault
     messageFolded.set id, newDefault
@@ -1816,23 +1819,26 @@ WrappedSubmessage = React.memo ({message, read}) ->
     -> elt.removeEventListener 'dragstart', listener for elt in elts
   , [folded, history?, message]
 
-  ## Maintain id2dom mapping
+  ## One-time effects
   useEffect ->
+    ## Scroll to this message if it's been requested.
+    if scrollToLater == message._id
+      scrollToLater = null
+      scrollToMessage message._id
+    ## Maintain id2dom mapping, and seed images map
     id2dom[message._id] = ref.current
+    initImage message._id
+    ## initImage calls updateFileQuery which will do this:
+    #images[message._id].file = message.file
+    #initImageInternal message.file if message.file?
     ->
       delete id2dom[message._id]
       checkImage message._id
   , [message._id]
-  ## Scroll to this message if it's been requested.
-  useEffect ->
-    if scrollToLater == message._id
-      scrollToLater = null
-      scrollToMessage message._id
-    undefined
-  , [message._id]
 
   ## Fold naturally folded (minimized and deleted) messages by default on
   ## initial load.  But only if not previously manually overridden.
+  ###
   useEffect ->
     oldDefault = defaultFolded.get message._id
     oldFolded = messageFolded.get message._id
@@ -1849,21 +1855,20 @@ WrappedSubmessage = React.memo ({message, read}) ->
         messageFolded.set message._id, defaultFolded.get message._id
     , 0
   , [message._id]
+  ###
 
   ## Fold referenced attached files by default on initial load.
   messageBodyRef = useRef()
   useEffect ->
     initImage message._id
-    ## initImage calls updateFileQuery which will do this:
-    #images[message._id].file = message.file
-    #initImageInternal message.file if message.file?
-    ## If message is naturally folded, don't count images it references.
     images[message._id].naturallyFolded = naturallyFolded message
     images[message._id].children = message.children?.length
-    return if images[message._id].naturallyFolded
+    images[message._id].images = 0
+    ## If message is naturally folded, don't count images it references.
+    if images[message._id].naturallyFolded or not messageBodyRef.current?
+      return checkImage message._id
     messageImages = {}
     messageImagesInternal = {}
-    return unless messageBodyRef.current?
     for elt in messageBodyRef.current.querySelectorAll """
       img[src^="#{fileUrlPrefix}"],
       img[src^="#{fileAbsoluteUrlPrefix}"],
@@ -1874,6 +1879,7 @@ WrappedSubmessage = React.memo ({message, read}) ->
       video source[src^="#{internalFileUrlPrefix}"],
       video source[src^="#{internalFileAbsoluteUrlPrefix}"]
     """
+      images[message._id].links += 1
       src = elt.getAttribute 'src'
       if 0 <= src.indexOf 'gridfs'
         messageImagesInternal[url2internalFile src] = true
@@ -1889,6 +1895,7 @@ WrappedSubmessage = React.memo ({message, read}) ->
       initImageInternal id
       imagesInternal[id].count += 1
       checkImageInternal id
+    checkImage message._id
     ->
       for id of messageImages
         images[id].count -= 1
