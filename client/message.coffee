@@ -1788,42 +1788,18 @@ WrappedSubmessage = React.memo ({message, read}) ->
       delete id2dom[message._id]
   , [message._id]
 
-  ## Fold naturally folded (minimized and deleted) messages by default on
-  ## initial load.  But only if not previously manually overridden.
-  ###
-  useEffect ->
-    oldDefault = defaultFolded.get message._id
-    oldFolded = messageFolded.get message._id
-    defaultFolded.set message._id, naturallyFolded message
-    ## Initially switch messageFolded to defaultFolded if:
-    ## * default has changed
-    ## * default has initialized but messageFolded not already set
-    ##   (e.g. because we just clicked the message)
-    setTimeout ->
-      if oldFolded? and (not oldDefault? or oldDefault == defaultFolded.get message._id)
-        unless oldFolded == messageFolded.get message._id
-          messageFolded.set message._id, oldFolded
-      else
-        messageFolded.set message._id, defaultFolded.get message._id
-    , 0
-  , [message._id]
-  ###
-
-  ## Count images referenced by this message, and
-  ## update default folded status of this message.
+  ## Image reference counting:
+  ## List images referenced by this message.
+  ## If message is naturally folded, don't count images it references.
+  [imageRefs, setImageRefs] = useState()
+  [imageInternalRefs, setImageInternalRefs] = useState()
+  natural = naturallyFolded message
   messageBodyRef = useRef()
-  ## Depend on references to this message (if it's a file).
-  useTracker ->
-    [
-      imageRefCount.equals 0, message._id
-      imageInternalRefCount.equals 0, message.file if message.file?
-    ]
-  , [message._id, message.file]
   useEffect ->
-    refCount = 0
-    ## If message is naturally folded, don't count images it references.
-    natural = naturallyFolded message
-    if not natural and messageBodyRef.current?
+    if natural or not messageBodyRef.current?
+      setImageRefs undefined
+      setImageInternalRefs undefined
+    else
       messageImages = {}
       messageImagesInternal = {}
       for elt in messageBodyRef.current.querySelectorAll """
@@ -1836,40 +1812,44 @@ WrappedSubmessage = React.memo ({message, read}) ->
         video source[src^="#{internalFileUrlPrefix}"],
         video source[src^="#{internalFileAbsoluteUrlPrefix}"]
       """
-        refCount += 1
         src = elt.getAttribute 'src'
         if 0 <= src.indexOf 'gridfs'
           messageImagesInternal[url2internalFile src] = true
         else
           messageImages[url2file src] = true
-      for id of messageImages
-        imageRefCount.set id, (imageRefCount.get(id) ? 0) + 1
-      for id of messageImagesInternal
-        imageInternalRefCount.set id, (imageInternalRefCount.get(id) ? 0) + 1
-      uncount = ->
-        for id of messageImages
-          imageRefCount.set id, (imageRefCount.get(id) ? 0) - 1
-        for id of messageImagesInternal
-          imageInternalRefCount.set id, (imageInternalRefCount.get(id) ? 0) - 1
+      setImageRefs (_.sortBy _.keys messageImages).join ','
+      setImageInternalRefs (_.sortBy _.keys messageImagesInternal).join ','
+  # too many dependencies to list
+  ## Update image reference counts.
+  useEffect ->
+    return unless imageRefs?
+    #console.log message._id, 'incrementing', imageRefs
+    for id in imageRefs.split ','
+      imageRefCount.set id, (imageRefCount.get(id) ? 0) + 1
+    for id in imageInternalRefs.split ','
+      imageInternalRefCount.set id, (imageInternalRefCount.get(id) ? 0) + 1
+    ->
+      #console.log message._id, 'decrementing', imageRefs
+      for id in imageRefs.split ','
+        imageRefCount.set id, (imageRefCount.get(id) ? 0) - 1
+      for id in imageInternalRefs.split ','
+        imageInternalRefCount.set id, (imageInternalRefCount.get(id) ? 0) - 1
+  , [imageRefs, imageInternalRefs]
+  ## Update default folded status of this message.
+  useTracker ->
     ## Image gets unnaturally folded if it's referenced at least once
     ## and doesn't have any children (don't want to hide children, and this
     ## can also lead to infinite loop if children has the image reference)
     ## and doesn't refer to any other images (which can also lead to bad loops).
     newDefault = natural or
       (not message.children?.length and
-       not refCount and
-       (imageRefCount.get(message._id) or
-        imageInternalRefCount.get(message.file)))
-    console.log message._id, defaultFolded.get(message._id), newDefault, natural, 
-      not message.children?.length,
-      not refCount,
-      imageRefCount.get(message._id),
-      imageInternalRefCount.get(message.file)
+       not imageRefs and not imageInternalRefs and
+       (!!imageRefCount.get(message._id) or
+        !!imageInternalRefCount.get(message.file)))
     if newDefault != defaultFolded.get message._id
       defaultFolded.set message._id, newDefault
       messageFolded.set message._id, newDefault
-    uncount
-  # too many dependencies to list
+  , [message._id, message.file, natural, not message.children?.length, not imageRefs and not imageInternalRefs]
 
   ## Transform images
   ## Retransform when window width changes
