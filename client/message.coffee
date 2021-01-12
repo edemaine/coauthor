@@ -1086,39 +1086,83 @@ ThreadPrivacy = React.memo ({message, tabindex}) ->
     </ul>
   </div>
 
-Template.emojiButtons.helpers
-  canReply: -> canPost @group, @_id
-  emoji: -> Emoji.find group: $in: [wildGroup, @group]
-  emojiMessages: ->
-    tooltipUpdate()
-    emojiReplies @
-  who: -> (displayUser user for user in @who).join ', '
+EmojiButtons = React.memo ({message, can}) ->
+  ref = useRefTooltip()
+  emojis = useTracker ->
+    Emoji.find group: $in: [wildGroup, message.group]
+    .fetch()
+  , [message.group]
+  ## More efficient version of lib/emoji.coffee's `emojiReplies`:
+  replies = useTracker ->
+    return [] unless message.emoji?
+    for emoji in emojis  # match sort order of Emoji list
+      usernames = message.emoji[emoji.symbol]
+      continue unless usernames?.length
+      Object.assign {}, emoji,
+        who: (displayUser user for user in usernames).join ', '
+        count: usernames.length
+  , [message.emoji, emojis]
 
-Template.emojiButtons.events
-  'click .emojiAdd': (e, t) ->
+  onEmojiAdd = (e) ->
     e.preventDefault()
     e.stopPropagation()
-    message = t.data._id
     symbol = e.currentTarget.getAttribute 'data-symbol'
     #exists = EmojiMessages.findOne
-    #  message: message
+    #  message: message._id
     #  creator: Meteor.user().username
     #  symbol: symbol
     #  deleted: false
-    exists = Meteor.user().username in (t.data.emoji?[symbol] ? [])
+    exists = Meteor.user().username in (message.emoji?[symbol] ? [])
     if exists
       console.warn "Attempt to add duplicate emoji '#{symbol}' to message #{message}"
     else
-      Meteor.call 'emojiToggle', message, symbol
+      Meteor.call 'emojiToggle', message._id, symbol
     dropdownToggle e
-
-  'click .emojiToggle:not(.disabled)': (e, t) ->
+  onEmojiToggle = (e) ->
     e.preventDefault()
     e.stopPropagation()
-    tooltipHide t
-    message = t.data._id
     symbol = e.currentTarget.getAttribute 'data-symbol'
-    Meteor.call 'emojiToggle', message, symbol
+    Meteor.call 'emojiToggle', message._id, symbol
+
+  <div className="btn-group pull-left emojiButtons" ref={ref}>
+    {if can.reply
+      <>
+        {if emojis.length
+          <div className="btn-group">
+            <button className="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Add emoji response">
+              <span className="fas fa-plus emoji-plus" aria-hidden="true"/>
+              {' '}
+              <span className="far fa-smile emoji-face" aria-hidden="true"/>
+            </button>
+            <ul className="dropdown-menu emojiMenu" role="menu">
+              {for emoji in emojis
+                <li key={emoji.symbol}>
+                  <a className="emojiAdd" href="#" data-symbol={emoji.symbol} data-toggle="tooltip" data-placement="bottom" title={emoji.description} data-container="body" onClick={onEmojiAdd}>
+                    <span className="fas fa-#{emoji.symbol} #{emoji.class}"/>
+                  </a>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+        {for reply in replies
+          <button key={reply.symbol} className="btn btn-default emojiToggle" data-symbol={reply.symbol} data-toggle="tooltip" data-placement="bottom" title={reply.who} data-container="body" onClick={onEmojiToggle}>
+            <span className="fas fa-#{reply.symbol} #{reply.class}"/>
+            {' '}
+            <span>{reply.count}</span>
+          </button>
+        }
+      </>
+    else
+      for reply in replies
+        <button key={reply.symbol} className="btn btn-default emojiToggle disabled" data-symbol={reply.symbol} data-toggle="tooltip" data-placement="bottom" title={reply.who} data-container="body">
+          <span className="fas fa-#{reply.symbol} #{reply.class}"/>
+          {' '}
+          <span>{reply.count}</span>
+        </button>
+    }
+  </div>
+EmojiButtons.displayName = 'EmojiButtons'
 
 uploaderProps = (callback, inputRef) ->
   buttonProps:
@@ -1610,7 +1654,7 @@ WrappedSubmessage = React.memo ({message, read}) ->
     private: canPrivate message._id
     parent: canMaybeParent message._id
     edit: canEdit message._id
-    reply: canReply message._id
+    reply: canReply message
     super: canSuper message.group
   , [message._id]
   ref = useRefTooltip()
@@ -2095,9 +2139,7 @@ WrappedSubmessage = React.memo ({message, read}) ->
               </div>
             else unless read
               <>
-                {###
-                +emojiButtons
-                ###}
+                <EmojiButtons message={message} can={can}/>
                 <ReplyButtons message={message}/>
               </>
             }

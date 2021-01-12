@@ -50,29 +50,6 @@ template(name="messageLabels")
     if minimized
       span.label.label-success Minimized
 
-template(name="emojiButtons")
-  .btn-group.pull-left.emojiButtons
-    if canReply
-      if emoji.count
-        //-button.btn.btn-default.emojiOpenMenu.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="true")
-        button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false", title="Add emoji response")
-          span.fas.fa-plus.emoji-plus(aria-hidden="true")
-          span.far.fa-smile.emoji-face(aria-hidden="true")
-        ul.dropdown-menu(role="menu").emojiMenu
-          each emoji
-            li
-              a.emojiAdd(href="#",data-symbol=symbol, data-toggle="tooltip", data-placement="bottom", data-original-title=description, data-container="body")
-                span.fas(class="fa-#{symbol} #{class}")
-      each emojiMessages
-        button.btn.btn-default.emojiToggle(data-symbol=symbol, data-toggle="tooltip", data-placement="bottom", data-original-title=who, data-container="body")
-          span.fas(class="fa-#{symbol} #{class}")
-          span #{count}
-    else
-      each emojiMessages
-        button.btn.btn-default.emojiToggle.disabled(data-symbol=symbol, data-toggle="tooltip", data-placement="bottom", data-original-title=who, data-container="body")
-          span.fas(class="fa-#{symbol} #{class}")
-          span #{count}
-
 //- The following two templates have been ported to React
     but are still needed for Settings view
 template(name="keyboardSelector")
