@@ -1320,11 +1320,12 @@ ReplyButtons = React.memo ({message, prefix}) ->
       Files.resumable.addFile file, e
   {buttonProps, inputProps} = uploaderProps attachFiles, attachInput
 
+  privateReply = canPrivateReply message
   <div className="btn-group pull-right message-reply-buttons">
     {if canPublicReply message
-      <button className="btn btn-default replyButton" data-privacy="public" onClick={onReply}>{prefix}{if canPrivateReply message then 'Public '}Reply</button>
+      <button className="btn btn-default replyButton" data-privacy={if privateReply then "public"} onClick={onReply}>{prefix}{if privateReply then 'Public '}Reply</button>
     }
-    {if canPrivateReply message
+    {if privateReply
       <button className="btn btn-default replyButton" data-privacy="private" onClick={onReply}>{prefix}Private Reply</button>
     }
     <input className="attachInput" type="file" multiple ref={attachInput} {...inputProps}/>
