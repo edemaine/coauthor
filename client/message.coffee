@@ -123,23 +123,8 @@ RootHeader = React.memo ({message}) ->
   </div>
 RootHeader.displayName = 'RootHeader'
 
-Template.registerHelper 'formatTitle', ->
-  formatTitleOrFilename @, false
-
-Template.registerHelper 'formatTitleOrUntitled', ->
-  formatTitleOrFilename @, true
-
-Template.registerHelper 'formatTitleBold', ->
-  formatTitleOrFilename @, false, false, true
-
 Template.registerHelper 'formatTitleOrUntitledBold', ->
   formatTitleOrFilename @, true, false, true
-
-Template.registerHelper 'formatBody', ->
-  formatBody @format, @body
-
-Template.registerHelper 'formatFile', ->
-  formatFile @
 
 Template.messageBad.helpers
   message: -> Router.current().params.message
@@ -870,14 +855,6 @@ panelClass =
   private: 'panel-info'
   minimized: 'panel-success'
   published: 'panel-primary'
-Template.registerHelper 'messagePanelClass', ->
-  #console.log 'rendering', @_id, @
-  classes = []
-  classes.push mclass = messageClass.call @
-  classes.push panelClass[mclass]
-  if Template.instance().editing?.get()
-    classes.push 'editing'
-  classes.join ' '
 messagePanelClass = (message, editing) ->
   classes = []
   classes.push mclass = messageClass.call message
@@ -886,27 +863,8 @@ messagePanelClass = (message, editing) ->
     classes.push 'editing'
   classes.join ' '
 
-Template.registerHelper 'foldedClass', @foldedClass = ->
-  if (not routeHere @_id) and messageFolded.get @_id
-    'folded'
-  else
-    ''
-
-Template.registerHelper 'formatCreator', ->
-  tooltipUpdate()
-  linkToAuthor @group, @creator
-
 Template.registerHelper 'creator', ->
   displayUser @creator
-
-Template.registerHelper 'formatAuthors', formatAuthors = ->
-  tooltipUpdate()
-  a = for own author, date of @authors
-        author = unescapeUser author
-        continue if author == @creator and date.getTime() == @created?.getTime()
-        "#{linkToAuthor @group, author} #{formatDate date, 'on '}"
-  if a.length > 0
-    ', edited by ' + a.join ", "
 
 KeyboardSelector = React.memo ({messageID, tabindex}) ->
   keyboard = useTracker ->
@@ -1350,6 +1308,11 @@ TableOfContents = React.memo ({message, parent, index}) ->
     Meteor.user()
   , []
   editing = editingMessage message, user
+  folded = useTracker ->
+    (messageFolded.get message._id) and
+    not (routeHere message._id) and           # never fold if top-level message
+    not editing                               # never fold if editing
+  , [message._id, editing]
   creator = useTracker ->
     displayUser message.creator
   , [message.creator]
@@ -1405,14 +1368,14 @@ TableOfContents = React.memo ({message, parent, index}) ->
 
     <nav className="contents" ref={ref}>
       <ul className="nav contents">
-        <li className="btn-group-xs #{foldedClass.call message}">
+        <li className="btn-group-xs #{if folded then 'folded' else ''}">
           {inner}
         </li>
       </ul>
       {renderedChildren}
     </nav>
   else
-    <li className="btn-group-xs #{foldedClass.call message}">
+    <li className="btn-group-xs #{if folded then 'folded' else ''}">
       {inner}
       {renderedChildren}
     </li>
