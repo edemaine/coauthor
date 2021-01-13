@@ -1,4 +1,6 @@
-import {useEffect, useRef} from 'react'
+import React, {useEffect, useRef} from 'react'
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger'
+import Tooltip from 'react-bootstrap/Tooltip'
 
 ## Helper to call from `onRendered` methods to initialize tooltips.
 @tooltipInit = (template = Template.instance()) ->
@@ -40,3 +42,10 @@ export useRefTooltip = (ref = useRef()) ->
       tips.tooltip 'fixTitle'
     -> tips.tooltip 'hide'
   ref
+
+export TextTooltip = React.memo ({title, placement, children}) ->
+  <OverlayTrigger placement={placement} flip
+   overlay={(props) -> <Tooltip {...props}>{title}</Tooltip>}>
+    {children}
+  </OverlayTrigger>
+TextTooltip.displayName = 'TextTooltip'

@@ -1,4 +1,6 @@
 import React, {useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react'
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger'
+import Tooltip from 'react-bootstrap/Tooltip'
 import {useTracker} from 'meteor/react-meteor-data'
 import Blaze from 'meteor/gadicc:blaze-react-component'
 import useEventListener from '@use-it/event-listener'
@@ -7,7 +9,7 @@ import {MessageImage, imageTransform} from './MessageImage'
 import {MessagePDF} from './MessagePDF'
 import {ErrorBoundary} from './ErrorBoundary'
 import {Credits} from './layout.coffee'
-import {useRefTooltip} from './lib/tooltip'
+import {useRefTooltip, TextTooltip} from './lib/tooltip'
 import {resolveTheme} from './theme'
 
 sharejsEditor = 'cm'  ## 'ace' or 'cm'; also change template used in message.jade
@@ -278,17 +280,18 @@ Message = React.memo ({message}) ->
           <p dangerouslySetInnerHTML={__html: subscribers}/>
         </div>
         {if orphans.length
-          orphans =
-            for orphan in orphans
-              <Submessage key={orphan._id} message={orphan}/>
-          orphans = (orphan for orphan in orphans when orphan?)
-          if orphans.length
-            <div className="orphans alert alert-warning">
-              <b data-toggle="tooltip" title="Orphan subthreads are caused by someone deleting a message that has (undeleted) children, which become orphans.  You can move these orphans to a valid parent, or delete them, or ask the author or a superuser to undelete the original parent.">
-                {pluralize orphans.length, 'orphaned subthread'}
-              </b>
-              {orphans}
-            </div>
+          <div className="orphans alert alert-warning">
+            <p>
+              <TextTooltip placement="right" title="Orphan subthreads are caused by someone deleting a message that has (undeleted) children, which become orphans.  You can move these orphans to a valid parent, or delete them, or ask the author or a superuser to undelete the original parent.">
+                <b>{pluralize orphans.length, 'orphaned subthread'}:</b>
+              </TextTooltip>
+            </p>
+            <p>
+              {for orphan in orphans
+                <Submessage key={orphan._id} message={orphan}/>
+              }
+            </p>
+          </div>
         }
         <Credits/>
       </div>
@@ -515,22 +518,24 @@ MessageNeighbors = React.memo ({message}) ->
   neighbors = useTracker ->
     messageNeighbors message
   , [message]
-  prevRef = useRefTooltip()
-  nextRef = useRefTooltip()
   <>
     {if prev = neighbors.prev
-      <a className="btn btn-info" href={pathFor 'message', {group: prev.group, message: prev._id}} ref={prevRef}>
-        <span className="fas fa-backward" aria-hidden="true" data-toggle="tooltip" title={prev.title}/>
-      </a>
+      <TextTooltip title={prev.title}>
+        <a className="btn btn-info" href={pathFor 'message', {group: prev.group, message: prev._id}}>
+          <span className="fas fa-backward" aria-label="Previous"/>
+        </a>
+      </TextTooltip>
     else
       <a className="btn btn-info disabled">
         <span className="fas fa-backward" aria-hidden="true"/>
       </a>
     }
     {if next = neighbors.next
-      <a className="btn btn-info" href={pathFor 'message', {group: next.group, message: next._id}} ref={nextRef}>
-        <span className="fas fa-forward" aria-hidden="true" data-toggle="tooltip" title={next.title}/>
-      </a>
+      <TextTooltip title={next.title}>
+        <a className="btn btn-info" href={pathFor 'message', {group: next.group, message: next._id}}>
+          <span className="fas fa-forward" aria-label="Next"/>
+        </a>
+      </TextTooltip>
     else
       <a className="btn btn-info disabled">
         <span className="fas fa-forward" aria-hidden="true"/>
@@ -543,11 +548,12 @@ MessageParent = React.memo ({message}) ->
   parent = useTracker ->
     findMessageParent message._id
   , [message._id]
-  ref = useRefTooltip()
   return null unless parent?
-  <a className="btn btn-info" href="#{pathFor 'message', {group: parent.group, message: parent._id}}#" ref={ref}>
-    <span className="fas fa-chevron-up" aria-hidden="true" data-toggle="tooltip" title={parent.title}/>
-  </a>
+  <TextTooltip title={parent.title}>
+    <a className="btn btn-info" href="#{pathFor 'message', {group: parent.group, message: parent._id}}#">
+      <span className="fas fa-chevron-up" aria-label="Parent"/>
+    </a>
+  </TextTooltip>
 MessageParent.displayName = 'MessageParent'
 
 MessageEditor = React.memo ({message, setEditBody, tabindex}) ->
@@ -1101,7 +1107,6 @@ ThreadPrivacy = React.memo ({message, tabindex}) ->
   </div>
 
 EmojiButtons = React.memo ({message, can}) ->
-  ref = useRefTooltip()
   emojis = useTracker ->
     Emoji.find group: $in: [wildGroup, message.group]
     .fetch()
@@ -1138,42 +1143,50 @@ EmojiButtons = React.memo ({message, can}) ->
     symbol = e.currentTarget.getAttribute 'data-symbol'
     Meteor.call 'emojiToggle', message._id, symbol
 
-  <div className="btn-group pull-left emojiButtons" ref={ref}>
+  <div className="btn-group pull-left emojiButtons">
     {if can.reply
       <>
         {if emojis.length
           <div className="btn-group">
-            <button className="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Add emoji response">
-              <span className="fas fa-plus emoji-plus" aria-hidden="true"/>
-              {' '}
-              <span className="far fa-smile emoji-face" aria-hidden="true"/>
-            </button>
+            <TextTooltip title="Add emoji response">
+              <button className="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <span className="fas fa-plus emoji-plus" aria-hidden="true"/>
+                {' '}
+                <span className="far fa-smile emoji-face" aria-hidden="true"/>
+              </button>
+            </TextTooltip>
             <ul className="dropdown-menu emojiMenu" role="menu">
               {for emoji in emojis
                 <li key={emoji.symbol}>
-                  <a className="emojiAdd" href="#" data-symbol={emoji.symbol} data-toggle="tooltip" data-placement="bottom" title={emoji.description} data-container="body" onClick={onEmojiAdd}>
-                    <span className="fas fa-#{emoji.symbol} #{emoji.class}"/>
-                  </a>
+                  <TextTooltip placement="bottom" title={emoji.description}>
+                    <a className="emojiAdd" href="#" data-symbol={emoji.symbol} onClick={onEmojiAdd}>
+                      <span className="fas fa-#{emoji.symbol} #{emoji.class}"/>
+                    </a>
+                  </TextTooltip>
                 </li>
               }
             </ul>
           </div>
         }
         {for reply in replies
-          <button key={reply.symbol} className="btn btn-default emojiToggle" data-symbol={reply.symbol} data-toggle="tooltip" data-placement="bottom" title={reply.who} data-container="body" onClick={onEmojiToggle}>
-            <span className="fas fa-#{reply.symbol} #{reply.class}"/>
-            {' '}
-            <span>{reply.count}</span>
-          </button>
+          <TextTooltip placement="bottom" title={reply.who}>
+            <button key={reply.symbol} className="btn btn-default emojiToggle" data-symbol={reply.symbol} onClick={onEmojiToggle}>
+              <span className="fas fa-#{reply.symbol} #{reply.class}"/>
+              {' '}
+              <span>{reply.count}</span>
+            </button>
+          </TextTooltip>
         }
       </>
     else
       for reply in replies
-        <button key={reply.symbol} className="btn btn-default emojiToggle disabled" data-symbol={reply.symbol} data-toggle="tooltip" data-placement="bottom" title={reply.who} data-container="body">
-          <span className="fas fa-#{reply.symbol} #{reply.class}"/>
-          {' '}
-          <span>{reply.count}</span>
-        </button>
+        <TextTooltip placement="bottom" title={reply.who}>
+          <button key={reply.symbol} className="btn btn-default emojiToggle disabled" data-symbol={reply.symbol}>
+            <span className="fas fa-#{reply.symbol} #{reply.class}"/>
+            {' '}
+            <span>{reply.count}</span>
+          </button>
+        </TextTooltip>
     }
   </div>
 EmojiButtons.displayName = 'EmojiButtons'
@@ -1663,7 +1676,6 @@ WrappedSubmessage = React.memo ({message, read}) ->
     super: canSuper message.group
   , [message._id]
   ref = useRef()
-  headingRef = useRefTooltip()
   messageBodyRef = useRef()
 
   ## Support dragging rendered attachment like dragging message itself
@@ -1927,7 +1939,7 @@ WrappedSubmessage = React.memo ({message, read}) ->
     false  ## prevent form from submitting
 
   <div className="panel message #{messagePanelClass message, editing}" data-message={message._id} id={message._id} ref={ref}>
-    <div className="panel-heading clearfix" ref={headingRef}>
+    <div className="panel-heading clearfix">
       {if editing and not history?
         <input className="push-down form-control title" type="text" placeholder="Title" value={editTitle} onChange={onChangeTitle} tabIndex={tabindex0+18}/>
       else
@@ -1937,17 +1949,23 @@ WrappedSubmessage = React.memo ({message, read}) ->
               <>
                 {unless read
                   if folded
-                    <button className="btn btn-info foldButton hidden-print" aria-label="Unfold" data-toggle="tooltip" data-container="body" title="Open/unfold this message so that you can see its contents. Does not affect other users." onClick={onFold}>
-                      <span className="fas fa-plus" aria-hidden="true"/>
-                    </button>
+                    <TextTooltip title="Open/unfold this message so that you can see its contents. Does not affect other users.">
+                      <button className="btn btn-info foldButton hidden-print" aria-label="Unfold" onClick={onFold}>
+                        <span className="fas fa-plus" aria-hidden="true"/>
+                      </button>
+                    </TextTooltip>
                   else
-                    <button className="btn btn-info foldButton hidden-print" aria-label="Fold" data-toggle="tooltip" data-container="body" title="Close/fold this message, e.g. to skip over its contents. Does not affect other users." onClick={onFold}>
-                      <span className="fas fa-minus" aria-hidden="true"/>
-                    </button>
+                    <TextTooltip title="Close/fold this message, e.g. to skip over its contents. Does not affect other users.">
+                      <button className="btn btn-info foldButton hidden-print" aria-label="Fold" onClick={onFold}>
+                        <span className="fas fa-minus" aria-hidden="true"/>
+                      </button>
+                    </TextTooltip>
                 }
-                <a className="btn btn-info focusButton" aria-label="Focus" href={pathFor 'message', {group: message.group, message: message._id}} draggable="true" data-toggle="tooltip" data-container="body" title="Zoom in/focus on just the subthread of this message and its descendants" onDragStart={messageOnDragStart message}>
-                  <span className="fas fa-sign-in-alt" aria-hidden="true"/>
-                </a>
+                <TextTooltip title="Zoom in/focus on just the subthread of this message and its descendants">
+                  <a className="btn btn-info focusButton" aria-label="Focus" href={pathFor 'message', {group: message.group, message: message._id}} draggable="true" onDragStart={messageOnDragStart message}>
+                    <span className="fas fa-sign-in-alt" aria-hidden="true"/>
+                  </a>
+                </TextTooltip>
               </>
             else
               <MessageNeighborsOrParent message={message}/>
@@ -1956,7 +1974,9 @@ WrappedSubmessage = React.memo ({message, read}) ->
           <span className="space"/>
           {if not history? and editors
             <>
-              <span className="fas fa-edit" data-toggle="tooltip" title={"Being edited by #{editors}"}/>
+              <TextTooltip title={"Being edited by #{editors}"}>
+                <span className="fas fa-edit"/>
+              </TextTooltip>
               {' '}
             </>
           }
@@ -2024,9 +2044,9 @@ WrappedSubmessage = React.memo ({message, read}) ->
       {### Buttons and badge on the right of the message ###}
       <div className="pull-right hidden-print message-right-buttons">
         {unless message.root
-          <span className="badge" data-toggle="tooltip" title="Number of submessages within thread">
-            {message.submessageCount}
-          </span>
+          <TextTooltip title="Number of submessages within thread">
+            <span className="badge">{message.submessageCount}</span>
+          </TextTooltip>
           <span className="space"/>
         }
         <div className="btn-group">
@@ -2251,14 +2271,18 @@ MessageActions = React.memo ({message, can, editing, tabindex0}) ->
         if can.unminimize
           <li>
             <a className="minimizeButton" href="#">
-              <button className="btn btn-success btn-block" data-toggle="tooltip" data-container="body" data-placement="left" data-html="true" title="Open/unfold this message <b>for all users</b>. Use this if a discussion becomes relevant again. If you just want to open/unfold the message to see it yourself temporarily, use the [+] button on the left." onClick={onMinimize}>Unminimize</button>
+              <OverlayTrigger placement="left" flip overlay={(props) -> <Tooltip {...props}>Open/unfold this message <b>for all users</b>. Use this if a discussion becomes relevant again. If you just want to open/unfold the message to see it yourself temporarily, use the [+] button on the left.</Tooltip>}>
+                <button className="btn btn-success btn-block" onClick={onMinimize}>Unminimize</button>
+              </OverlayTrigger>
             </a>
           </li>
       else
         if can.minimize
           <li>
             <a className="minimizeButton" href="#">
-              <button className="btn btn-danger btn-block" data-toggle="tooltip" data-container="body" data-placement="left" data-html="true" title="Close/fold this message <b>for all users</b>. Use this to clean up a thread when the discussion of this message (and all its replies) is resolved/no longer important. If you just want to close/fold the message yourself temporarily, use the [−] button on the left." onClick={onMinimize}>Minimize</button>
+              <OverlayTrigger placement="left" flip overlay={(props) -> <Tooltip {...props}>Close/fold this message <b>for all users</b>. Use this to clean up a thread when the discussion of this message (and all its replies) is resolved/no longer important. If you just want to close/fold the message yourself temporarily, use the [−] button on the left.</Tooltip>}>
+                <button className="btn btn-danger btn-block" onClick={onMinimize}>Minimize</button>
+              </OverlayTrigger>
             </a>
           </li>
       }

@@ -45,6 +45,7 @@ ejson@1.1.1
 email@2.0.0
 es5-shim@4.8.0
 fetch@0.1.1
+fourseven:scss@4.12.0
 gadicc:blaze-react-component@1.4.3-pre.0
 gcampax:accounts-dropbox@1.0.0
 gcampax:dropbox-oauth@1.0.0

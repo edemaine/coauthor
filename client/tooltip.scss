@@ -1,0 +1,136 @@
+// Partial extract of Bootstrap 4 tooltips (_variables.scss and _tooltips.scss)
+// to work as a patch to Bootstrap 3.
+
+// Lines prefixed with //3 have been omitted because they are well-covered by
+// existing definitions in Bootstrap 3.
+
+$tooltip-opacity:                   .9 !default;
+$tooltip-arrow-width:               .8rem !default;
+$tooltip-arrow-height:              .4rem !default;
+
+// Match Coauthor theme
+$tooltip-arrow-color: var(--tooltip-bg);
+:root {
+  --tooltip-bg: #000;
+}
+.dark {
+  --tooltip-bg: #222;
+}
+
+// Base class
+.tooltip {
+  //3 position: absolute;
+  //3 z-index: $zindex-tooltip;
+  //3 display: block;
+  //3 margin: $tooltip-margin;
+  // Our parent element can be arbitrary since tooltips are by default inserted as a sibling of their target element.
+  // So reset our font and text properties to avoid inheriting weird values.
+  //3 @include reset-text();
+  //3 @include font-size($tooltip-font-size);
+  // Allow breaking very long words so they don't overflow the tooltip's bounds
+  //3 word-wrap: break-word;
+  //3 opacity: 0;
+
+  &.show { opacity: $tooltip-opacity; }
+
+  .arrow {
+    position: absolute;
+    display: block;
+    width: $tooltip-arrow-width;
+    height: $tooltip-arrow-height;
+
+    &::before {
+      position: absolute;
+      content: "";
+      border-color: transparent;
+      border-style: solid;
+    }
+  }
+}
+
+.bs-tooltip-top {
+  padding: $tooltip-arrow-height 0;
+
+  .arrow {
+    bottom: 0;
+
+    &::before {
+      top: 0;
+      border-width: $tooltip-arrow-height ($tooltip-arrow-width / 2) 0;
+      border-top-color: $tooltip-arrow-color;
+    }
+  }
+}
+
+.bs-tooltip-right {
+  padding: 0 $tooltip-arrow-height;
+
+  .arrow {
+    left: 0;
+    width: $tooltip-arrow-height;
+    height: $tooltip-arrow-width;
+
+    &::before {
+      right: 0;
+      border-width: ($tooltip-arrow-width / 2) $tooltip-arrow-height ($tooltip-arrow-width / 2) 0;
+      border-right-color: $tooltip-arrow-color;
+    }
+  }
+}
+
+.bs-tooltip-bottom {
+  padding: $tooltip-arrow-height 0;
+
+  .arrow {
+    top: 0;
+
+    &::before {
+      bottom: 0;
+      border-width: 0 ($tooltip-arrow-width / 2) $tooltip-arrow-height;
+      border-bottom-color: $tooltip-arrow-color;
+    }
+  }
+}
+
+.bs-tooltip-left {
+  padding: 0 $tooltip-arrow-height;
+
+  .arrow {
+    right: 0;
+    width: $tooltip-arrow-height;
+    height: $tooltip-arrow-width;
+
+    &::before {
+      left: 0;
+      border-width: ($tooltip-arrow-width / 2) 0 ($tooltip-arrow-width / 2) $tooltip-arrow-height;
+      border-left-color: $tooltip-arrow-color;
+    }
+  }
+}
+
+/* not used in Coauthor
+.bs-tooltip-auto {
+  &[x-placement^="top"] {
+    @extend .bs-tooltip-top;
+  }
+  &[x-placement^="right"] {
+    @extend .bs-tooltip-right;
+  }
+  &[x-placement^="bottom"] {
+    @extend .bs-tooltip-bottom;
+  }
+  &[x-placement^="left"] {
+    @extend .bs-tooltip-left;
+  }
+}
+*/
+
+// Wrapper for the tooltip content
+.tooltip-inner {
+  //3 max-width: $tooltip-max-width;
+  //3 padding: $tooltip-padding-y $tooltip-padding-x;
+  //3 color: $tooltip-color;
+  //3 text-align: center;
+  //3 background-color: $tooltip-bg;
+  //3 @include border-radius($tooltip-border-radius);
+}
