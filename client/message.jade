@@ -1,91 +1,19 @@
-template(name="messageMaybe")
-  if group
-    if matchingGroup
-      +message
-    else
-      +mismatchedGroupMessage
-  else
-    +messageBad
-
 template(name="message")
-  .row
-    .col-md-9(role="main")
-      +rootHeader
-      +submessage
-      .authors.alert.alert-info
-        if authors
-          p
-            b Authors of visible messages in this thread:
-          p !{authors}
-        if mentions
-          if authors
-            hr
-          p
-            b Users @mentioned in visible messages in this thread:
-          p !{mentions}
-      .subscribers.alert.alert-success
-        p
-          if emailless
-            b Users who can read this message:
-          else
-            b Users who can read this message, and whether they are subscribed to notifications:
-        p !{subscribers}
-      if orphanCount
-        .orphans.alert.alert-warning
-          b
-            span(data-toggle="tooltip", title="Orphan subthreads are caused by someone deleting a message that has (undeleted) children, which become orphans.  You can move these orphans to a valid parent, or delete them, or ask the author or a superuser to undelete the original parent.") #{orphanCount}:
-          each orphans
-            +submessage
-      +credits
-    .col-md-3(role="complementary").hidden-print.hidden-xs.hidden-sm
-      +tableOfContentsRoot
+  div
+    +React component=MessageID messageID=messageID
+
+template(name="readMessage")
+  div
+    +React component=ReadMessage message=message
+
+//- 'sharejsCM' is a helper, not an actual template,
+    so we need an intermediate template to call it properly.
+template(name="sharejs")
+  +sharejsCM docid=docid onRender=onRender
 
 template(name="submessageHeader")
-  +rootHeader
-  +submessage
-
-template(name="rootHeader")
-  if root
-    with root
-      .panel.root(data-message=_id).panel-default
-        .panel-heading.compact.title
-          .message-left-buttons.push-down.btn-group.btn-group-xs
-            a.btn.btn-info.focusButton(aria-label="Focus", href="{{pathFor 'message' group=group message=_id}}")
-              span.fas.fa-sign-in-alt(aria-hidden="true")
-          span.space
-          span.title.panel-title.tex2jax !{formatTitleBold}&#8203;
-          +messageTags
-          +messageLabels
-
-template(name="tableOfContentsRoot")
-  nav.contents
-    ul.nav.contents
-      li
-        a(href="#{{_id}}", data-id=_id, class=messageClass).title.tex2jax.onMessageDrop
-          if editing
-            span.fas.fa-edit
-          if file
-            span.fas.fa-paperclip
-          | !{formatTitleBold} [#{creator}]
-    +tableOfContents
-
-template(name="tableOfContents")
-  if children.length
-    ul.nav.subcontents
-      each children
-        with childLookup @index
-          +tableOfContentsMessage
-
-template(name="tableOfContentsMessage")
-  li.btn-group-xs(class=foldedClass)
-    div.beforeMessageDrop(data-parent=parent, data-index=index)
-    a(href="#{{_id}}", data-id=_id, class=messageClass).tex2jax.onMessageDrop
-      if editing
-        span.fas.fa-edit
-      if file
-        span.fas.fa-paperclip
-      | !{formatTitle} [#{creator}]
-    +tableOfContents
+  div
+    +React component=SubmessageHeader message=message
 
 template(name="messageBad")
   if ready
@@ -106,274 +34,10 @@ template(name="mismatchedGroupMessage")
         a(href="{{pathFor 'message' group=group message=_id}}") {{urlFor 'message' group=group message=_id}}
 
 template(name="submessage")
-  .panel.message(class=messagePanelClass, data-message=_id, id=_id)
-    .panel-heading.clearfix
-      unless history
-        if editingRV
-          input.push-down.form-control.title(type="text", placeholder="Title", value=editTitle, tabindex="{{tabindex 18}}")
-      //-unless editingRV
-      span.message-title(class=hideIfEditing)
-        span.message-left-buttons.push-down.btn-group.btn-group-xs
-          unless here
-            if folded
-              button.btn.btn-info.foldButton.hidden-print(aria-label="Unfold", data-toggle="tooltip", data-container="body", data-title="Open/unfold this message so that you can see its contents. Does not affect other users.")
-                span.fas.fa-plus(aria-hidden="true")
-            else
-              button.btn.btn-info.foldButton.hidden-print(aria-label="Fold", data-toggle="tooltip", data-container="body", data-title="Close/fold this message, e.g. to skip over its contents. Does not affect other users.")
-                span.fas.fa-minus(aria-hidden="true")
-            a.btn.btn-info.focusButton(aria-label="Focus", href="{{pathFor 'message' group=group message=_id}}", draggable="true", data-toggle="tooltip", data-container="body", data-title="Zoom in/focus on just the subthread of this message and its descendants")
-              span.fas.fa-sign-in-alt(aria-hidden="true")
-          if here
-            +messageNeighbors
-        span.space
-        if file
-          span.fas.fa-paperclip
-        span.title.panel-title.tex2jax !{formatTitleBold}&#8203;
-        +messageTags
-        +messageLabels
-      //- http://stackoverflow.com/questions/22390272/how-to-create-a-label-with-close-icon-in-bootstrap
-      if editingRV
-        span.message-subtitle
-          span.upper-strut
-          span.tags
-            each tags
-              span.label.label-default.tag.tagWithRemove
-                | #{key}
-                span.tagRemove.fas.fa-times-circle(aria-label="Remove",data-tag=key)
-              |  
-          span.btn-group
-            button.btn.btn-default.label.label-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
-              span.fas.fa-plus
-              | Tag
-            ul.dropdown-menu(role="menu").tagMenu
-              li.disabled
-                a
-                  form.input-group.input-group-sm
-                    input.tagAddText.form-control(type="text", placeholder="New Tag...")
-                    .input-group-btn
-                      button.btn.btn-default.tagAddNew(type="submit")
-                        span.fas.fa-plus
-              if absentTagsCount
-                li.divider(role="separator")
-              each absentTags
-                li
-                  a.tagAdd(href="#",data-tag=key) #{key}
-          +messageLabels
-          span.lower-strut
-      // Buttons and badge on the right of the message
-      .pull-right.hidden-print.message-right-buttons
-        unless root
-          span.badge(data-toggle="tooltip", title="Number of submessages within thread")= submessageCount
-          span.space
-        .btn-group
-          unless folded
-            unless editingRV
-              if raw
-                button.btn.btn-default.rawButton(tabindex="{{tabindex 1}}") Formatted
-              else
-                button.btn.btn-default.rawButton(tabindex="{{tabindex 1}}") Raw
-              unless history
-                button.btn.btn-default.historyButton(tabindex="{{tabindex 2}}") History
-          if history
-            if historyAll
-              button.btn.btn-default.historyAllButton(tabindex="{{tabindex 2}}") Show Finished
-            else
-              button.btn.btn-default.historyAllButton(tabindex="{{tabindex 2}}") Show All
-            button.btn.btn-default.historyButton(tabindex="{{tabindex 3}}") Exit History
-          if editingRV
-            unless root
-              +threadPrivacy
-            +keyboardSelector _id=_id tabindex=tabindex6
-            +formatSelector format=format tabindex=tabindex7
-          unless history
-            if canAction
-              .btn-group
-                button.btn.btn-info.actionButton.dropdown-toggle(tabindex="{{tabindex 4}}", type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
-                  | Action
-                  span.caret
-                ul.dropdown-menu.dropdown-menu-right.actionMenu(role="menu")
-                  if minimized
-                    if canUnminimize
-                      li
-                        a.minimizeButton(href="#")
-                          button.btn.btn-success.btn-block(data-toggle="tooltip", data-container="body", data-placement="left", data-html="true", data-title="Open/unfold this message <b>for all users</b>. Use this if a discussion becomes relevant again. If you just want to open/unfold the message to see it yourself temporarily, use the [+] button on the left.") Unminimize
-                  else
-                    if canMinimize
-                      li
-                        a.minimizeButton(href="#")
-                          button.btn.btn-danger.btn-block(data-toggle="tooltip", data-container="body", data-placement="left", data-html="true", data-title="Close/fold this message <b>for all users</b>. Use this to clean up a thread when the discussion of this message (and all its replies) is resolved/no longer important. If you just want to close/fold the message yourself temporarily, use the [−] button on the left.") Minimize
-                  if deleted
-                    if canUndelete
-                      li
-                        a.deleteButton(href="#")
-                          button.btn.btn-success.btn-block Undelete
-                    if canSuperdelete
-                      li
-                        a.superdeleteButton(href="#")
-                          button.btn.btn-danger.btn-block Superdelete
-                  unless published
-                    if canPublish
-                      li
-                        a.publishButton(href="#")
-                          button.btn.btn-success.btn-block Publish
-                  unless deleted
-                    if canDelete
-                      li
-                        a.deleteButton(href="#")
-                          button.btn.btn-danger.btn-block Delete
-                  if published
-                    if canUnpublish
-                      li
-                        a.publishButton(href="#")
-                          button.btn.btn-danger.btn-block Unpublish
-                  if canPrivate
-                    if private
-                      li
-                        a.privateButton(href="#")
-                          button.btn.btn-success.btn-block Make Public
-                    else
-                      li
-                        a.privateButton(href="#")
-                          button.btn.btn-danger.btn-block Make Private
-                  if canParent
-                    li
-                      a.parentButton(href="#")
-                        button.btn.btn-warning.btn-block Move
-            if editingRV
-              if editStopping
-                button.btn.btn-info.editButton.disabled(tabindex="{{tabindex 8}}", title="Waiting for save to complete before stopping editing...") Stop Editing
-              else
-                button.btn.btn-info.editButton(tabindex="{{tabindex 8}}") Stop Editing
-            else
-              unless folded
-                if canEdit
-                  if file
-                    +messageReplace _id=_id group=group tabindex=tabindex7
-                  button.btn.btn-info.editButton(tabindex="{{tabindex 8}}") Edit
-    unless folded
-      if history
-        +messageHistory
-      .editorAndBody.clearfix(class=sideBySideClass)
-        .editorContainer
-          unless history
-            with nothing
-              if editingRV
-                +sharejsCM docid=editingNR onRender=config
-                //- +sharejsAce docid=editingNR onRender=config
-            if editingRV
-              unless previewSideBySide
-                +belowEditor editData
-                .resizer
-        if preview
-          .bodyContainer
-            if file
-              if editingRV
-                .fileDescription
-                  .fileDescriptionText
-                    span.fas.fa-paperclip
-                    | !{formatFileDescription}
-                  .file-right-buttons.btn-group.hidden-print
-                    if image
-                      +messageImage
-                    +messageReplace _id=_id group=group tabindex=tabindex9
-            .panel-body
-              .message-body(class=tex2jax) !{formatBody}
-              if file
-                if pdf
-                  with pdf
-                    +messagePDF
-                p.message-file !{formatFile}
-      if editingRV
-        if previewSideBySide
-          +belowEditor editData
-          .resizer
-      .message-footer
-        +messageAuthor
-        .message-response-buttons.clearfix.hidden-print
-          if editingRV
-            .btn-group.pull-right
-              if editStopping
-                button.btn.btn-info.editButton.disabled(title="Waiting for save to complete before stopping editing...") Stop Editing
-              else
-                button.btn.btn-info.editButton Stop Editing
-              if canReply
-                +messageAttach
-            //- +replyButtons -- but want to omit reply buttons which confuse
-          else
-            +emojiButtons
-            +replyButtons
-      if childrenCount
-        .children.clearfix
-          if readChildren
-            each readChildren
-              +submessage
-          else
-            each children
-              with childLookup @index
-                +submessage
-        if canReply
-          .panel-body.panel-secondbody.hidden-print.clearfix
-            +replyButtons
-            span.message-title
-              a.btn.btn-default.btn-xs.linkToTop(aria-label="Top", href="#{{_id}}")
-                span.fas.fa-caret-up
-              span.space
-              if file
-                span.fas.fa-paperclip
-              span.panel-title.tex2jax !{formatTitle}&#8203;
-              +messageTags
-              +messageLabels
+  div
+    +React component=Submessage message=message
 
-template(name="messageNeighbors")
-  if root
-    if parent
-      with parent
-        a.btn.btn-info(href="{{pathFor 'message' group=group message=_id}}#")
-          span.fas.fa-chevron-up(aria-hidden="true", data-toggle="tooltip", data-original-title=title)
-  else
-    if prev
-      with prev
-        a.btn.btn-info(href="{{pathFor 'message' group=group message=_id}}")
-          span.fas.fa-backward(aria-hidden="true", data-toggle="tooltip", data-original-title=title)
-    else
-      a.btn.btn-info.disabled
-        span.fas.fa-backward(aria-hidden="true")
-    if next
-      with next
-        a.btn.btn-info(href="{{pathFor 'message' group=group message=_id}}")
-          span.fas.fa-forward(aria-hidden="true", data-toggle="tooltip", data-original-title=title)
-    else
-      a.btn.btn-info.disabled
-        span.fas.fa-forward(aria-hidden="true")
-
-template(name="belowEditor")
-  .belowEditor.clearfix
-    .pull-right.btn-group
-      if changedHeight
-        button.btn.btn-xs.btn-warning.setHeight Set Default Height
-      if preview
-        if sideBySide
-          button.btn.btn-default.sideBySidePreview Top-Bottom
-        else
-          button.btn.btn-default.sideBySidePreview Side-by-Side
-        button.btn.btn-default.togglePreview No Preview
-      else
-        button.btn.btn-default.togglePreview Preview
-    if saved
-      .alert.alert-success.save-alert All changes saved.!{otherEditors}
-    else
-      if editStopping
-        .alert.alert-danger.save-alert Unsaved changes. Stopping editing once saved...!{otherEditors}
-      else
-        .alert.alert-danger.save-alert Unsaved changes. Saving...!{otherEditors}
-
-template(name="messageTags")
-  span.messageTags
-    each tags
-      a(href=linkToTag).tagLink
-        span.tag.label.label-default= key
-      |  
-
+//- Used by group's messageShort template
 template(name="messageLabels")
   span.messageLabels
     if deleted
@@ -386,65 +50,8 @@ template(name="messageLabels")
     if minimized
       span.label.label-success Minimized
 
-template(name="messageAuthor")
-  .author.text-right
-    if published
-      | (posted by
-    else
-      | (created by
-    | !{formatCreator}
-    if published
-      | {{formatDate published prefix='on '}}!{formatAuthors})
-    else
-      | {{formatDate created prefix='on '}}!{formatAuthors})
-
-template(name="threadPrivacy")
-  if canSuper
-    .btn-group
-      button.btn.btn-warning.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false", tabindex=tabindex).threadPrivacyToggle
-        | Thread Privacy
-        span.caret
-      ul.dropdown-menu(role="menu")
-        each privacyOptions
-          li.threadPrivacy(class=active)
-            a(href="#",data-code=code)= display
-
-template(name="emojiButtons")
-  .btn-group.pull-left.emojiButtons
-    if canReply
-      if emoji.count
-        //-button.btn.btn-default.emojiOpenMenu.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="true")
-        button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false", title="Add emoji response")
-          span.fas.fa-plus.emoji-plus(aria-hidden="true")
-          span.far.fa-smile.emoji-face(aria-hidden="true")
-        ul.dropdown-menu(role="menu").emojiMenu
-          each emoji
-            li
-              a.emojiAdd(href="#",data-symbol=symbol, data-toggle="tooltip", data-placement="bottom", data-original-title=description, data-container="body")
-                span.fas(class="fa-#{symbol} #{class}")
-      each emojiMessages
-        button.btn.btn-default.emojiToggle(data-symbol=symbol, data-toggle="tooltip", data-placement="bottom", data-original-title=who, data-container="body")
-          span.fas(class="fa-#{symbol} #{class}")
-          span #{count}
-    else
-      each emojiMessages
-        button.btn.btn-default.emojiToggle.disabled(data-symbol=symbol, data-toggle="tooltip", data-placement="bottom", data-original-title=who, data-container="body")
-          span.fas(class="fa-#{symbol} #{class}")
-          span #{count}
-
-template(name="replyButtons")
-  if canReply
-    .btn-group.pull-right.message-reply-buttons
-      if canPrivateReply
-        if canPublicReply
-          button.btn.btn-default.replyButton(data-privacy="public") Public Reply
-          button.btn.btn-default.replyButton(data-privacy="private") Private Reply
-        else
-          button.btn.btn-default.replyButton(data-privacy="private") Private Reply
-      else
-        button.btn.btn-default.replyButton Reply
-      +messageAttach
-
+//- The following two templates have been ported to React
+    but are still needed for Settings view
 template(name="keyboardSelector")
   .btn-group
     button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false", tabindex=tabindex)
@@ -485,19 +92,6 @@ template(name="superdelete")
           button.btn.btn-danger.deepSuperdeleteButton Recursively superdelete node and descendants
           button.btn.btn-success.cancelButton.fullwidth Cancel
 
-template(name="messageHistory")
-  //-.tex2jax !{body}
-  .historySlider
-    input(type="text", style="display: none")
-
-template(name="messageAttach")
-  input.attachInput(type="file", style="display:none", multiple)
-  button.btn.btn-default.attachButton Attach
-
-template(name="messageReplace")
-  input.replaceInput(type="file", style="display:none")
-  button.btn.btn-info.replaceButton(tabindex=tabindex) Replace File
-
 template(name="messageParentDialog")
   .modal
     .modal-dialog.modal-lg.messageParentDialog
@@ -507,7 +101,7 @@ template(name="messageParentDialog")
           h2 Move Message
         .modal-body.flexColumn
           .row.header-row
-            .col-xs-6 New parent for bottom message:
+            .col-xs-6 Change parent for bottom message:
             .col-xs-6
               input.form-control.parent.typeahead(type="text", placeholder="Message title/ID", value='')
           .row.flexShrink.flexRow

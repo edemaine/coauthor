@@ -30,7 +30,7 @@ Router.route '/:group/m/:message',
   #  @render 'badGroup'
   #,
   name: 'message'
-  template: 'messageMaybe'
+  template: 'message'
   subscriptions: ->
     subs = [
       Subscribe.subscribe 'messages.submessages', @params.message
@@ -46,7 +46,7 @@ Router.route '/:group/m/:message',
       ]...
     subs
   data: ->
-    Messages.findOne @params.message
+    _id: @params.message
   #dataNotFoundTemplate: 'NotFound'
   action: ->
     if @params.group == wildGroup

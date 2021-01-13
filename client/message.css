@@ -43,7 +43,6 @@ input.title { width: calc(100% + 5px); margin: 0px -5px 0px 0px; }
 .message-subtitle { margin-top: 5px; }
 .upper-strut { display: inline-block; height: 20px; vertical-align: 0px; }
 .lower-strut { display: inline-block; vertical-align: -10px; }
-.messageTags > a:first-child, .messageLabels > span:first-child { margin-left: 0.5em; }
 .btn.label { float: none; height: 20px; } /* +Tag manual height adjustment */
 /* input.title ~ .message-right-buttons { margin: 0px; } */
 .message-response-buttons { margin: 8px 0px 10px 0px; }

@@ -665,7 +665,7 @@ postprocessLinks = (text) ->
       match.replace /\/+/g, (slash) ->
         "#{slash}&#8203;"  ## Add zero-width space after every slash group
 
-allUsernames = ->
+@allUsernames = ->
   users = Meteor.users.find {}, fields: username: 1
   .map (user) -> user.username
 
