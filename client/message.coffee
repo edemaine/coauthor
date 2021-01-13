@@ -1583,6 +1583,9 @@ WrappedSubmessage = React.memo ({message, read}) ->
   , []
   editing = editingMessage message, user
   editing = false if read
+  editors = useTracker ->
+    (displayUser editor for editor in message.editing ? []).join ', '
+  , [message.editing?.join ',']
   raw = useTracker ->
     not editing and messageRaw.get message._id
   , [message._id, editing]
@@ -1951,9 +1954,9 @@ WrappedSubmessage = React.memo ({message, read}) ->
             }
           </span>
           <span className="space"/>
-          {if not history? and message.editing?.length
+          {if not history? and editors
             <>
-              <span className="fas fa-edit"/>
+              <span className="fas fa-edit" data-toggle="tooltip" title={"Being edited by #{editors}"}/>
               {' '}
             </>
           }
