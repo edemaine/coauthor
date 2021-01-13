@@ -1336,7 +1336,7 @@ WrappedTableOfContents = React.memo ({message, parent, index}) ->
        onDragStart={messageOnDragStart message}
        onDragEnter={addDragOver} onDragLeave={removeDragOver}
        onDragOver={dragOver} onDrop={dropOn}>
-        {if editing
+        {if message.editing?.length
           <>
             <span className="fas fa-edit"/>
             {' '}
@@ -1951,6 +1951,12 @@ WrappedSubmessage = React.memo ({message, read}) ->
             }
           </span>
           <span className="space"/>
+          {if not history? and message.editing?.length
+            <>
+              <span className="fas fa-edit"/>
+              {' '}
+            </>
+          }
           {if historified.file
             <>
               <span className="fas fa-paperclip"/>
