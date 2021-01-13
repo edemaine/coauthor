@@ -1,4 +1,7 @@
-@formatDate = (date, prefix = '', absolute) ->
+import React from 'react'
+import {useTracker} from 'meteor/react-meteor-data'
+
+@formatDateOnly = (date, prefix = '', absolute) ->
   return '???' unless date?
   return "?#{date}?" unless date instanceof Date  ## have seen this briefly, not sure when
   now = new Date
@@ -6,26 +9,35 @@
     weekday: 'short'
     month: 'short'
     day: 'numeric'
-  #mdate = moment date
-  #time = mdate.format 'LT'
-  time = date.getHours() + ':'
-  if date.getMinutes() < 10
-    time += '0'
-  time += date.getMinutes()
   if date.getFullYear() == now.getFullYear() and not absolute
     if date.getMonth() == now.getMonth() and date.getDate() == now.getDate()
       Session.get 'today'  # depend on the current date; see below
-      "today at #{time}"
+      "today"
     else
       now.setDate now.getDate()-1
       if date.getMonth() == now.getMonth() and date.getDate() == now.getDate()
         Session.get 'today'  # depend on the current date; see below
-        "yesterday at #{time}"
+        "yesterday"
       else
-        "#{prefix}#{date.toLocaleDateString 'en-US', options} at #{time}"
+        "#{prefix}#{date.toLocaleDateString 'en-US', options}"
   else
     options.year = 'numeric'
-    "#{prefix}#{date.toLocaleDateString 'en-US', options} at #{time}"
+    "#{prefix}#{date.toLocaleDateString 'en-US', options}"
+
+@formatDate = (date, prefix, absolute) ->
+  dateOnly = formatDateOnly date, prefix, absolute
+  return dateOnly if dateOnly.startsWith '?'
+  time = date.getHours() + ':'
+  if date.getMinutes() < 10
+    time += '0'
+  time += date.getMinutes()
+  "#{dateOnly} at #{time}"
+
+export FormatDate = React.memo ({date, prefix}) ->
+  useTracker ->
+    formatDate date, prefix
+  , []
+FormatDate.displayName = 'FormatDate'
 
 Template.registerHelper 'formatDate', (date, kw) ->
   formatDate date, kw?.hash?.prefix

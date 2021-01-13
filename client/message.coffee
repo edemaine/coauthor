@@ -5,10 +5,12 @@ import {useTracker} from 'meteor/react-meteor-data'
 import Blaze from 'meteor/gadicc:blaze-react-component'
 import useEventListener from '@use-it/event-listener'
 
+import {ErrorBoundary} from './ErrorBoundary'
 import {MessageImage, imageTransform} from './MessageImage'
 import {MessagePDF} from './MessagePDF'
-import {ErrorBoundary} from './ErrorBoundary'
+import {UserLink} from './UserLink'
 import {Credits} from './layout.coffee'
+import {FormatDate} from './lib/date'
 import {useRefTooltip, TextTooltip} from './lib/tooltip'
 import {resolveTheme} from './theme'
 
@@ -2343,33 +2345,30 @@ MessageActions = React.memo ({message, can, editing, tabindex0}) ->
   </div>
 
 MessageAuthor = React.memo ({message}) ->
-  formatted = useTracker ->
-    a =
-      for own author, date of message.authors
-        author = unescapeUser author
-        continue if author == message.creator and date.getTime() == message.created?.getTime()
-        "#{linkToAuthor message.group, author} #{formatDate date, 'on '}"
-    creator: linkToAuthor message.group, message.creator
-    date:
-      if message.published
-        formatDate message.published, 'on '
-      else
-        formatDate message.created, 'on '
-    authors:
-      if a.length
-        ", edited by #{a.join ', '}"
-  , [message]
-
+  count = 0
+  edits =
+    for author, date of message.authors
+      author = unescapeUser author
+      continue if author == message.creator and date.getTime() == message.created?.getTime()
+      <React.Fragment key={author}>
+        {', ' if count++}
+        <UserLink group={message.group} username={author}/>
+        {' '}
+        <FormatDate date={date} prefix={'on '}/>
+      </React.Fragment>
   <div className="author text-right">
     {if message.published
       '(posted by '
     else
       '(created by '
     }
-    <span dangerouslySetInnerHTML={__html: formatted.creator}/>
+    <UserLink group={message.group} username={message.creator}/>
     {' '}
-    {formatted.date}
-    <span dangerouslySetInnerHTML={__html: formatted.authors}/>
+    <FormatDate date={message.published or message.created} prefix={'on '}/>
+    {if edits.length
+      ', edited by '
+    }
+    {edits}
     {')'}
   </div>
 MessageAuthor.displayName = 'MessageAuthor'

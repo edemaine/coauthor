@@ -1,3 +1,5 @@
+import React from 'react'
+
 @findUser = (userId) ->
   if userId?
     Meteor.users.findOne(userId) ? {}

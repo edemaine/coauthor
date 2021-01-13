@@ -175,6 +175,7 @@ if Meteor.isServer
             emails: true  ## necessary to know whether email address verified
             roles: true  ## necessary to know who can see messages
             rolesPartial: true  ## necessary to know who can see messages
+            createdAt: true  ## to show join date
       else
         @ready()
 
