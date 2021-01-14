@@ -11,7 +11,7 @@ import {MessagePDF} from './MessagePDF'
 import {UserLink} from './UserLink'
 import {Credits} from './layout.coffee'
 import {FormatDate} from './lib/date'
-import {useRefTooltip, TextTooltip} from './lib/tooltip'
+import {TextTooltip} from './lib/tooltip'
 import {resolveTheme} from './theme'
 
 sharejsEditor = 'cm'  ## 'ace' or 'cm'; also change template used in message.jade
@@ -792,13 +792,22 @@ BelowEditor = React.memo ({message, preview, safeToStopEditing, editStopping}) -
   otherEditors = useTracker ->
     others = _.without message.editing, Meteor.user()?.username
     if others.length > 0
-      <span className="otherEditors" dangerouslySetInnerHTML={__html: " Editing with #{(linkToAuthor message.group, other for other in others).join ', '}."}/>
-  , [message.editing, message.group]
+      count = 0
+      <span className="otherEditors">
+        {' Editing with '}
+        {for other in others
+          <React.Fragment key={other}>
+            {', ' if count++}
+            <UserLink group={message.group} username={other}/>
+          </React.Fragment>
+        }
+        {'.'}
+      </span>
+  , [message.editing?.join(','), message.group]
   changedHeight = useTracker ->
     height = messagePreviewGet(message._id).height
     height? and height != (Meteor.user()?.profile?.preview?.height ? defaultHeight)
   , [message._id]
-  ref = useRefTooltip()
 
   onTogglePreview = (e) ->
     e.preventDefault()
@@ -830,7 +839,7 @@ BelowEditor = React.memo ({message, preview, safeToStopEditing, editStopping}) -
       $set: "profile.preview.height": messagePreviewGet(message._id)?.height
 
   <>
-    <div className="belowEditor clearfix" ref={ref}>
+    <div className="belowEditor clearfix">
       <div className="pull-right btn-group">
         {if changedHeight
           <button className="btn btn-warning setHeight" onClick={onSetHeight}>Set Default Height</button>
