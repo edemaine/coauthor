@@ -167,10 +167,13 @@ authorCount = (field, group) ->
       count: count
   authors = _.sortBy authors, (author) -> userSortKey author.user
   authors = _.sortBy authors, (author) -> -author.count
-  authors =
-    for author in authors
-      "#{linkToAuthor group, author.user} (#{author.count})"
-  authors.join ', '
+  count = 0
+  for author in authors
+    <React.Fragment key={author.user.username}>
+      {', ' if count++}
+      <UserLink group={group} user={author.user}/>
+      {" (#{author.count})"}
+    </React.Fragment>
 
 Template.message.helpers
   MessageID: -> MessageID
@@ -213,90 +216,86 @@ Message = React.memo ({message}) ->
     subscribed = {}
     for user in subscribers
       subscribed[user.username] = true
-    users = sortedMessageReaders message._id,
-      fields:
-        username: true
-        emails: true
-        roles: true
-        rolesPartial: true
-        'profile.notifications': true
+    users = sortedMessageReaders message._id
     unless users.length
       return '(none)'
+    count = 0
     (for user in users
-      title = "User '#{user.username}': " # like linkToAuthor
       if user.username of subscribed
-        title += 'Subscribed to email notifications'
-        icon = '<span class="fas fa-check"></span> ' #text-success
+        subtitle = 'Subscribed to email notifications'
+        icon = <span className="fas fa-check"/> #text-success
       else
-        icon = '<span class="fas fa-times"></span> ' #text-danger
+        icon = <span className="fas fa-times"/> #text-danger
         unless user.emails?[0]?
-          title += "No email address"
+          subtitle = "No email address"
         else if not user.emails[0].verified
-          title += "Unverified email address #{user.emails[0].address}"
+          subtitle = "Unverified email address" #{user.emails[0].address}"
         else if not (user.profile.notifications?.on ? defaultNotificationsOn)
-          title += "Notifications turned off"
+          subtitle = "Notifications turned off"
         else if not autosubscribe message.group, user
-          title += "Autosubscribe turned off, and not explicitly subscribed to thread"
+          subtitle = "Autosubscribe turned off, and not explicitly subscribed to thread"
         else
-          title += "Explicitly unsubscribed from thread"
-      title = icon = undefined if emailless()
-      linkToAuthor message.group, user.username, title, icon
-    ).join ', '
+          subtitle = "Explicitly unsubscribed from thread"
+      subtitle = icon = undefined if emailless()
+      if icon?
+        icon = <>{icon}{' '}</>
+      <React.Fragment key={user.username}>
+        {', ' if count++}
+        <UserLink group={message.group} user={user} subtitle={subtitle} prefix={icon}/>
+      </React.Fragment>
+    )
   , [message._id, message.group]
-  eomRef = useRefTooltip()
 
   <div className="row">
     <div className="col-md-9" role="main">
       <MaybeRootHeader message={message}/>
       <Submessage message={message}/>
-      <div className="eom" ref={eomRef}>
-        <div className="authors alert alert-info">
-          {if authors
-            <>
-              <p>
-                <b>Authors of visible messages in this thread:</b>
-              </p>
-              <p dangerouslySetInnerHTML={__html: authors}/>
-            </>
+      <div className="authors alert alert-info">
+        {if authors.length
+          <>
+            <p>
+              <b>Authors of visible messages in this thread:</b>
+            </p>
+            <p>{authors}</p>
+          </>
+        }
+        {if authors.length and mentions.length
+          <hr/>
+        }
+        {if mentions.length
+          <>
+            <p>
+              <b>Users @mentioned in visible messages in this thread:</b>
+            </p>
+            <p>{mentions}</p>
+          </>
+        }
+      </div>
+      <div className="subscribers alert alert-success">
+        <p>
+          {if emailless()
+            <b>Users who can read this message:</b>
+          else
+            <b>Users who can read this message, and whether they are subscribed to notifications:</b>
           }
-          {if authors and mentions
-            <hr/>
-          }
-          {if mentions
-            <>
-              <p>
-                <b>Users @mentioned in visible messages in this thread:</b>
-              </p>
-              <p dangerouslySetInnerHTML={__html: mentions}/>
-            </>
-          }
-        </div>
-        <div className="subscribers alert alert-success">
+        </p>
+        <p>{subscribers}</p>
+      </div>
+      {if orphans.length
+        <div className="orphans alert alert-warning">
           <p>
-            {if emailless()
-              <b>Users who can read this message:</b>
-            else
-              <b>Users who can read this message, and whether they are subscribed to notifications:</b>
+            <TextTooltip placement="right" title="Orphan subthreads are caused by someone deleting a message that has (undeleted) children, which become orphans.  You can move these orphans to a valid parent, or delete them, or ask the author or a superuser to undelete the original parent.">
+              <b>{pluralize orphans.length, 'orphaned subthread'}:</b>
+            </TextTooltip>
+          </p>
+          <p>
+            {for orphan in orphans
+              <Submessage key={orphan._id} message={orphan}/>
             }
           </p>
-          <p dangerouslySetInnerHTML={__html: subscribers}/>
         </div>
-        {if orphans.length
-          <div className="orphans alert alert-warning">
-            <p>
-              <TextTooltip placement="right" title="Orphan subthreads are caused by someone deleting a message that has (undeleted) children, which become orphans.  You can move these orphans to a valid parent, or delete them, or ask the author or a superuser to undelete the original parent.">
-                <b>{pluralize orphans.length, 'orphaned subthread'}:</b>
-              </TextTooltip>
-            </p>
-            <p>
-              {for orphan in orphans
-                <Submessage key={orphan._id} message={orphan}/>
-              }
-            </p>
-          </div>
-        }
-        <Credits/>
-      </div>
+      }
+      <Credits/>
     </div>
     <div className="col-md-3 hidden-print hidden-xs hidden-sm" role="complementary">
       <TableOfContentsID messageID={message._id}/>

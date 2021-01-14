@@ -4,8 +4,9 @@ import Tooltip from 'react-bootstrap/Tooltip'
 import {useTracker} from 'meteor/react-meteor-data'
 
 ## Written as a React replacement for lib/users.coffee's `linkToAuthor`
-export UserLink = React.memo ({username, group, title, prefix, placement}) ->
-  user = useTracker ->
+export UserLink = React.memo ({user, username, group, title, subtitle, prefix, placement}) ->
+  username ?= user.username
+  user ?= useTracker ->
     findUsername username
   , [username]
   group ?= Router.current()?.params?.group ? wildGroup
@@ -43,6 +44,12 @@ export UserLink = React.memo ({username, group, title, prefix, placement}) ->
           <b>Unknown username:</b> {username}
           <br/>
           This can happen when the user was removed from the group.
+        </>
+      }
+      {if subtitle?
+        <>
+          <hr/>
+          {subtitle}
         </>
       }
     </Tooltip>
