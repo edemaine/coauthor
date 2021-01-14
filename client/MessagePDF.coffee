@@ -4,7 +4,7 @@ import useEventListener from '@use-it/event-listener'
 import {useInView} from 'react-intersection-observer'
 
 import {ErrorBoundary} from './ErrorBoundary'
-import {useRefTooltip} from './lib/tooltip'
+import {TextTooltip} from './lib/tooltip'
 
 #pdf2svg = false  # controls pdf.js rendering mode
 pdfjs = null  # will become import of 'pdfjs-dist'
@@ -24,7 +24,7 @@ nullCanvas = ->
   canvas
 
 WrappedMessagePDF = React.memo ({file}) ->
-  ref = useRefTooltip()
+  ref = useRef()
   [viewRef, inView] = useInView
     rootMargin: '100%'  # within one screenful is "in view"
   canvasRef = useRef()
@@ -158,20 +158,28 @@ WrappedMessagePDF = React.memo ({file}) ->
       <>
         <div className="btn-group btn-group-xs pdfButtons">
           {if fit == 'page'
-            <button className="btn btn-default fitWidth" data-toggle="tooltip" title="Fit to width" data-container="body" onClick={onFit 'width'}>
-              <span className="fas fa-expand-arrows-alt" aria-hidden="true"/>
-            </button>
+            <TextTooltip title="Fit to width">
+              <button className="btn btn-default fitWidth" aria-label="Fit width" onClick={onFit 'width'}>
+                <span className="fas fa-expand-arrows-alt" aria-hidden="true"/>
+              </button>
+            </TextTooltip>
           else
-            <button className="btn btn-default fitPage" data-toggle="tooltip" title="Fit full page to screen" data-container="body" onClick={onFit 'page'}>
-              <span className="fas fa-compress-arrows-alt" aria-hidden="true"/>
-            </button>
+            <TextTooltip title="Fit full page to screen">
+              <button className="btn btn-default fitPage" aria-label="Fit page" onClick={onFit 'page'}>
+                <span className="fas fa-compress-arrows-alt" aria-hidden="true"/>
+              </button>
+            </TextTooltip>
           }
-          <button className="btn btn-default prevPage #{if pageNum <= 1 then 'disabled'}" data-toggle="tooltip" title="Previous page" data-container="body" onClick={onChangePage -1}>
-            <span className="fas fa-backward" aria-hidden="true"/>
-          </button>
-          <button className="btn btn-default nextPage #{if pageNum >= numPages then 'disabled'}" data-toggle="tooltip" title="Next page" data-container="body" onClick={onChangePage +1}>
-            <span className="fas fa-forward" aria-hidden="true"/>
-          </button>
+          <TextTooltip title="Previous page">
+            <button className="btn btn-default prevPage #{if pageNum <= 1 then 'disabled'}" aria-label="Previous page" onClick={onChangePage -1}>
+              <span className="fas fa-backward" aria-hidden="true"/>
+            </button>
+          </TextTooltip>
+          <TextTooltip title="Next page">
+            <button className="btn btn-default nextPage #{if pageNum >= numPages then 'disabled'}" aria-label="Next page" onClick={onChangePage +1}>
+              <span className="fas fa-forward" aria-hidden="true"/>
+            </button>
+          </TextTooltip>
         </div>
         <span className="pdfStatus">
           <span className="space">
@@ -207,16 +215,17 @@ WrappedMessagePDF = React.memo ({file}) ->
             onClick = do (annotation) -> (e) ->
               e.preventDefault()
               setPageNum annotation.explicitPage
-          <a key={annotation.id} style={
-            left: "#{annotation.rect[0]}px"
-            top: "#{annotation.rect[1]}px"
-            width: "#{annotation.rect[2] - annotation.rect[0]}px"
-            height: "#{annotation.rect[3] - annotation.rect[1]}px"
-          } href={annotation.url or '#'}
-          target={if annotation.url then '_blank'}
-          rel={if annotation.url then 'noopener noreferrer'}
-          title={title} data-toggle="tooltip" data-container="body"
-          onClick={onClick}/>
+          <TextTooltip key={annotation.id} title={title}>
+            <a style={
+              left: "#{annotation.rect[0]}px"
+              top: "#{annotation.rect[1]}px"
+              width: "#{annotation.rect[2] - annotation.rect[0]}px"
+              height: "#{annotation.rect[3] - annotation.rect[1]}px"
+            } href={annotation.url or '#'}
+            target={if annotation.url then '_blank'}
+            rel={if annotation.url then 'noopener noreferrer'}
+            onClick={onClick}/>
+          </TextTooltip>
         }
       </div>
     </div>
