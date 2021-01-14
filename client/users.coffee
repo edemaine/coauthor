@@ -1,112 +1,292 @@
-Template.users.onCreated ->
-  @autorun ->
-    setTitle 'Users'
+import React, {useEffect} from 'react'
+import {useTracker} from 'meteor/react-meteor-data'
+
+import {ErrorBoundary} from './ErrorBoundary'
+import {TextTooltip} from './lib/tooltip'
 
 Template.users.helpers
-  users: ->
+  Users: -> Users
+
+export Users = React.memo ({group, messageID}) ->
+  useEffect ->
+    setTitle 'Users'
+  , []
+  admin = useTracker ->
+    group: messageRoleCheck group, messageID, 'admin'
+    wild: messageRoleCheck wildGroup, messageID, 'admin'
+  , [group, messageID]
+  message = useTracker ->
+    Messages.findOne messageID
+  , [messageID]
+  users = useTracker ->
     Meteor.users.find {},
       sort: [['createdAt', 'asc']]
-  fullname: -> @profile?.fullname
-  email: ->
-    email = @emails?[0]
-    unless email
-      'no email'
-    else if email.verified
-      email.address
-    else
-      "#{email.address} unverified"
-  showAnonymous: ->
-    true
-  showInvitations: ->
-    @group != wildGroup and false ## xxx disabled for now
-  invitations: ->
-    Groups.findOne
-      name: @group
-    ?.invitations ? []
+    .fetch()
+  , []
 
-  messageData: ->
-    findMessage @message
-  partialMember: ->
-    return if routeMessage()
-    return if _.isEmpty @rolesPartial?[escapeGroup routeGroup()]
-    Messages.find
-      _id: $in:
-        (message for message, roles of @rolesPartial[escapeGroup routeGroup()])
+  <ErrorBoundary>
+    <h3>
+      {if messageID?
+        <>
+          Permissions for thread &ldquo;
+          <a href={pathFor 'message', {group: group, message: messageID}}>
+            {titleOrUntitled message ? title: '(loading)'}
+          </a>
+          &rdquo; in group &ldquo;
+          <a href={pathFor 'group', group: group}>{group}</a>
+          &rdquo;
+        </>
+      else if group == wildGroup
+        "Global permissions for all groups"
+      else
+        <>
+          Permissions for group &ldquo;
+          <a href={pathFor 'group', group: group}>{group}</a>
+          &rdquo;
+        </>
+      }
+      <div className="links btn-group pull-right">
+        {if messageID? and admin.group
+          <a href={pathFor 'users', group: group} className="btn btn-warning">
+            Edit Group Permissions
+          </a>
+        }
+        {if group != wildGroup and admin.wild
+          <a href={pathFor 'users', group: wildGroupRoute} className="btn btn-danger">
+            Edit Global Permissions
+          </a>
+        }
+      </div>
+    </h3>
+    <table className="table table-striped table-hover users clearfix">
+      <thead>
+        <tr>
+          <th>Username</th>
+          <TextTooltip title="Permission to see the group at all, and read all messages within">
+            <th>Read</th>
+          </TextTooltip>
+          <TextTooltip title="Permission to post new messages and replies to the group, and to edit those authored messages">
+            <th>Post</th>
+          </TextTooltip>
+          <TextTooltip title="Permission to edit all messages, not just previously authored messages">
+            <th>Edit</th>
+          </TextTooltip>
+          <TextTooltip title="Permission to perform dangerous operations: history-destroying superdelete and XML import">
+            <th>Super</th>
+          </TextTooltip>
+          <TextTooltip title="Permission to administer other users in the group, i.e., to change their permissions">
+            <th>Admin</th>
+          </TextTooltip>
+        </tr>
+      </thead>
+      <tbody>
+        {for user in users
+          <ErrorBoundary key={user.username}>
+            <User group={group} messageID={messageID} user={user} admin={admin}/>
+          </ErrorBoundary>
+        }
+        <ErrorBoundary>
+          <Anonymous group={group} messageID={messageID} admin={admin}/>
+        </ErrorBoundary>
+        {if false # group != wildGroup and not messageID?
+          <ErrorBoundary>
+            <UserInvitations group={group}/>
+          </ErrorBoundary>
+        }
+      </tbody>
+    </table>
+  </ErrorBoundary>
+Users.displayName = 'Users'
 
-  roles: ->
-    group = routeGroup()
-    escaped = escapeGroup group
-    message = routeMessage()
-    admin = messageRoleCheck group, message, 'admin'
-    for role in allRoles
+onRole = (group, messageID) -> (e) ->
+  td = e.currentTarget.parentNode
+  console.assert td.nodeName == 'TD'
+  tr = td.parentNode
+  console.assert tr.nodeName == 'TR'
+  username = tr.getAttribute 'data-username'
+  role = td.getAttribute 'data-role'
+  old = e.currentTarget.innerText
+  if 0 <= old.indexOf 'YES'
+    Meteor.call 'setRole', group, messageID, username, role, false
+  else if 0 <= old.indexOf 'NO'
+    Meteor.call 'setRole', group, messageID, username, role, true
+  else
+    console.error "Unrecognized state: #{old}"
+
+User = React.memo ({group, messageID, user, admin}) ->
+  escapedGroup = escapeGroup group
+  unless messageID?  # should not change
+    partialMember = useTracker ->
+      return if _.isEmpty user.rolesPartial?[escapedGroup]
+      for id of user.rolesPartial[escapedGroup]
+        Messages.findOne(id) ?
+          _id: id
+          title: '(loading)'
+    , [user]
+  authorLink = pathFor 'author',
+    group: group
+    author: user.username
+
+  <>
+    <tr data-username={user.username}>
+      <th>
+        <div className="name">
+          {if fullname = user.profile?.fullname
+            "#{fullname} ("
+          }
+          <a href={authorLink}>{user.username}</a>
+          {', '}
+          {if email = user.emails?[0]
+            <>
+              {email.address}
+              {unless email.verified
+                " unverified"
+              }
+            </>
+          else
+            "no email"
+          }
+          {if fullname
+            ")"
+          }
+        </div>
+        <div className="createdAt">
+          joined {formatDate user.createdAt}
+        </div>
+      </th>
+      {for role in allRoles
+        levels = []
+        if messageID?
+          have = role in (user.rolesPartial?[escapedGroup]?[messageID] ? [])
+        else
+          have = role in (user.roles?[escapedGroup] ? [])
+        if have
+          btnclass = 'btn-success'
+          levels.push 'YES'
+        else
+          btnclass = 'btn-danger'
+          levels.push 'NO'
+        if messageID? and role in (user.roles?[escapedGroup] ? [])
+          levels.push 'YES'
+        if group != wildGroup and role in (user.roles?[wildGroup] ? [])
+          levels.push 'YES*'
+        if levels.length > 1
+          levels[0] = <del>{levels[0]}</del>
+          if levels.length > 2
+            levels[1] = <del className="text-success space">{levels[1]}</del>
+          levels[levels.length-1] = <b className="text-success space">{levels[levels.length-1]}</b>
+        for i in [0...levels.length-1]
+          levels[i] = <del>{levels[i]}</del>
+        <td key={role} data-role={role}>
+          {if admin.group
+            <button className="roleButton btn #{btnclass}"
+             onClick={onRole group, messageID}>
+              {levels[0]}
+            </button>
+          else
+            levels[0]
+          }
+          {levels[1]}
+          {levels[2]}
+        </td>
+      }
+    </tr>
+    {if partialMember?.length
+      ## Extra row to get parity right
+      <>
+        <tr className="partialMemberSep"/>
+        <tr className="partialMember">
+          <td colSpan="6">
+            <span className="fa fa-id-card" aria-hidden="true"/>
+            {" Partial access to messages:"}
+            {for message in partialMember
+              <React.Fragment key={message._id}>
+                {" • "}
+                <a href={pathFor 'users.message', {group: group, message: message._id}}>
+                  {titleOrUntitled message}
+                </a>
+              </React.Fragment>
+            }
+          </td>
+        </tr>
+      </>
+    }
+  </>
+User.displayName = 'User'
+
+Anonymous = React.memo ({group, messageID, admin}) ->
+  roles = useTracker ->
+    groupAnonymousRoles group
+  , [group]
+  if group == wildGroup or messageID? or not admin.wild
+    disabled = 'disabled'
+    if group == wildGroup
+      title = 'Cannot give anonymous access to all groups globally'
+    else if messageID?
+      title = 'Cannot give anonymous access to individual threads'
+    else if not admin.wild
+      title = 'Need global administrator privileges to change anonymous access'
+
+  <tr data-username="*">
+    <th>
+      <i>&lt;anonymous&gt;</i>
+    </th>
+    {for role in allRoles
       levels = []
-      if message
-        have = role in (@rolesPartial?[escaped]?[message] ? [])
-      else
-        have = role in (@roles?[escaped] ? [])
-      if have
-        btnclass = 'btn-success' if admin
-        levels.push 'YES'
-      else
-        btnclass = 'btn-danger' if admin
-        levels.push 'NO'
-      if message and role in (@roles?[escaped] ? [])
-        levels.push 'YES'
-      if group != wildGroup and role in (@roles?[wildGroup] ? [])
-        levels.push 'YES*'
-      {role, btnclass, level0: levels[0], level1: levels[1], level2: levels[2]}
-
-  anonRoles: ->
-    group = routeGroup()
-    message = routeMessage()
-    admin = messageRoleCheck group, message, 'admin'
-    wildAdmin = messageRoleCheck wildGroup, message, 'admin'
-    roles = groupAnonymousRoles group
-    for role in allRoles
       if role in roles
-        btnclass = 'btn-success' if admin
-        level0 = 'YES'
+        btnclass = 'btn-success'
+        level = 'YES'
       else
-        btnclass = 'btn-danger' if admin
-        level0 = 'NO'
-      if group == wildGroup or message or not wildAdmin
-        btnclass += ' disabled' if btnclass
-        disabled = 'disabled'
-        if group == wildGroup
-          title = 'Cannot give anonymous access to all groups globally'
-        else if message
-          title = 'Cannot give anonymous access to individual threads'
-        else if not wildAdmin
-          title = 'Need global administrator priviledges to change anonymous access'
-      {role, btnclass, disabled, title, level0}
+        btnclass = 'btn-danger'
+        level = 'NO'
+      button =
+        if admin.group
+          <button className="roleButton btn #{btnclass} #{disabled ? ''}"
+           disabled={disabled} onClick={onRole group, messageID}>
+            {level}
+          </button>
+        else
+          level
+      if admin.group and title?
+        <TextTooltip key={role} title={title}>
+          <td data-role={role}>
+            {button}
+          </td>
+        </TextTooltip>
+      else
+        <td key={role} data-role={role}>
+          {button}
+        </td>
+    }
+  </tr>
+Anonymous.displayName = 'Anonymous'
 
-  groupLink: -> @message and groupRoleCheck @group, 'admin'
-  wild: -> @group == wildGroup
-  wildLink: ->
-    if @group != wildGroup and groupRoleCheck wildGroup, 'admin'
-      pathFor 'users', group: wildGroupRoute
-    else
-      null
-
-Template.users.events
-  'click .roleButton': (e, t) ->
-    td = e.target
-    while td.nodeName.toLowerCase() != 'td'
-      td = td.parentNode
-    tr = td
-    while tr.nodeName.toLowerCase() != 'tr'
-      tr = tr.parentNode
-    username = tr.getAttribute 'data-username'
-    role = td.getAttribute 'data-role'
-    old = e.target.innerHTML
-    if 0 <= old.indexOf 'YES'
-      Meteor.call 'setRole', t.data.group, t.data.message, username, role, false
-    else if 0 <= old.indexOf 'NO'
-      Meteor.call 'setRole', t.data.group, t.data.message, username, role, true
-
-  'click .invitationButton': (e, t) ->
-    console.log t.find('#invitationInput').value
-    ## xxx Meteor.call ...
-
-Template.users.onRendered ->
-  tooltipInit()
+###
+UserInvitations = React.memo ({group}) ->
+  invitations = useTracker ->
+    Groups.findOne
+      name: group
+    ?.invitations ? []
+  , [group]
+  <>
+    <tr>
+      <td colSpan="6">
+        <input type="text" size="40" rows="3" id="invitationInput"/>
+        <button className="invitationButton btn btn-warning">
+          Invite Users via Email
+        </button>
+      </td>
+    </tr>
+    {for invitation in invitations
+      <tr key={invitation.email} data-email={invitation.email}>
+        <th>{invitation.email}</th>
+        <td data-role="read">...</td>
+        <td data-role="post">...</td>
+        <td data-role="edit">...</td>
+        <td data-role="super">...</td>
+        <td data-role="admin">...</td>
+      </tr>
+    }
+  </>
+UserInvitations.displayName = 'UserInvitations'
+###
