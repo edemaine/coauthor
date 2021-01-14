@@ -1128,8 +1128,11 @@ EmojiButtons = React.memo ({message, can}) ->
     for emoji in emojis  # match sort order of Emoji list
       usernames = message.emoji[emoji.symbol]
       continue unless usernames?.length
+      who = (findUsername(username) ? username: username for username in usernames)
+      who = _.sortBy who, userSortKey
+      who = (displayUser user for user in who).join ', '
       Object.assign {}, emoji,
-        who: (displayUser user for user in usernames).join ', '
+        who: who
         me: Meteor.user()?.username in usernames
         count: usernames.length
   , [message.emoji, emojis]
