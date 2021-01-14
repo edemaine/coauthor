@@ -1,6 +1,7 @@
 import React, {useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react'
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger'
 import Tooltip from 'react-bootstrap/Tooltip'
+import Dropdown from 'react-bootstrap/Dropdown'
 import {useTracker} from 'meteor/react-meteor-data'
 import Blaze from 'meteor/gadicc:blaze-react-component'
 import useEventListener from '@use-it/event-listener'
@@ -1134,7 +1135,6 @@ EmojiButtons = React.memo ({message, can}) ->
 
   onEmojiAdd = (e) ->
     e.preventDefault()
-    e.stopPropagation()
     symbol = e.currentTarget.getAttribute 'data-symbol'
     #exists = EmojiMessages.findOne
     #  message: message._id
@@ -1146,7 +1146,6 @@ EmojiButtons = React.memo ({message, can}) ->
       console.warn "Attempt to add duplicate emoji '#{symbol}' to message #{message}"
     else
       Meteor.call 'emojiToggle', message._id, symbol
-    dropdownToggle e
   onEmojiToggle = (e) ->
     e.preventDefault()
     e.stopPropagation()
@@ -1157,26 +1156,26 @@ EmojiButtons = React.memo ({message, can}) ->
     {if can.reply
       <>
         {if emojis.length
-          <div className="btn-group">
+          <Dropdown className="btn-group">
             <TextTooltip title="Add emoji response">
-              <button className="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <Dropdown.Toggle variant="default">
                 <span className="fas fa-plus emoji-plus" aria-hidden="true"/>
                 {' '}
                 <span className="far fa-smile emoji-face" aria-hidden="true"/>
-              </button>
+              </Dropdown.Toggle>
             </TextTooltip>
-            <ul className="dropdown-menu emojiMenu" role="menu">
+            <Dropdown.Menu className="emojiMenu">
               {for emoji in emojis
                 <li key={emoji.symbol}>
                   <TextTooltip placement="bottom" title={emoji.description}>
-                    <a className="emojiAdd" href="#" data-symbol={emoji.symbol} onClick={onEmojiAdd}>
+                    <Dropdown.Item className="emojiAdd" href="#" data-symbol={emoji.symbol} onClick={onEmojiAdd}>
                       <span className="fas fa-#{emoji.symbol} #{emoji.class}"/>
-                    </a>
+                    </Dropdown.Item>
                   </TextTooltip>
                 </li>
               }
-            </ul>
-          </div>
+            </Dropdown.Menu>
+          </Dropdown>
         }
         {for reply in replies
           <TextTooltip key={reply.symbol} placement="bottom" title={reply.who}>
@@ -2223,134 +2222,123 @@ WrappedSubmessage.displayName = 'WrappedSubmessage'
 MessageActions = React.memo ({message, can, editing, tabindex0}) ->
   onPublish = (e) ->
     e.preventDefault()
-    e.stopPropagation()
     ## Stop editing if we are publishing.
     #if not message.published and editing
     #  Meteor.call 'messageEditStop', message._id
     Meteor.call 'messageUpdate', message._id,
       published: not message.published
       finished: true
-    dropdownToggle e
   onDelete = (e) ->
     e.preventDefault()
-    e.stopPropagation()
     ## Stop editing if we are deleting.
     if not message.deleted and editing
       Meteor.call 'messageEditStop', message._id
     Meteor.call 'messageUpdate', message._id,
       deleted: not message.deleted
       finished: true
-    dropdownToggle e
   onSuperdelete = (e) ->
     e.preventDefault()
-    e.stopPropagation()
     Modal.show 'superdelete', message
   onPrivate = (e) ->
     e.preventDefault()
-    e.stopPropagation()
     Meteor.call 'messageUpdate', message._id,
       private: not message.private
       finished: true
-    dropdownToggle e
   onMinimize = (e) ->
     e.preventDefault()
-    e.stopPropagation()
     Meteor.call 'messageUpdate', message._id,
       minimized: not message.minimized
       finished: true
-    dropdownToggle e
   onParent = (e) ->
     e.preventDefault()
-    e.stopPropagation()
     oldParent = findMessageParent message
     oldIndex = oldParent?.children.indexOf message._id
     Modal.show 'messageParentDialog',
       child: message
       oldParent: oldParent
       oldIndex: oldIndex
-    dropdownToggle e
 
   return null unless can.delete or can.undelete or can.publish or can.unpublish or can.superdelete or can.private
-  <div className="btn-group">
-    <button className="btn btn-info actionButton dropdown-toggle" tabIndex={tabindex0+4} type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+  <Dropdown className="btn-group">
+    <Dropdown.Toggle variant="info" tabIndex={tabindex0+4}>
       {"Action "}
       <span className="caret"/>
-    </button>
-    <ul className="dropdown-menu dropdown-menu-right actionMenu" role="menu">
+    </Dropdown.Toggle>
+    <Dropdown.Menu align="right" className="actionMenu">
       {if message.minimized
         if can.unminimize
           <li>
-            <a className="minimizeButton" href="#">
+            <Dropdown.Item className="minimizeButton" href="#">
               <OverlayTrigger placement="left" flip overlay={(props) -> <Tooltip {...props}>Open/unfold this message <b>for all users</b>. Use this if a discussion becomes relevant again. If you just want to open/unfold the message to see it yourself temporarily, use the [+] button on the left.</Tooltip>}>
                 <button className="btn btn-success btn-block" onClick={onMinimize}>Unminimize</button>
               </OverlayTrigger>
-            </a>
+            </Dropdown.Item>
           </li>
       else
         if can.minimize
           <li>
-            <a className="minimizeButton" href="#">
+            <Dropdown.Item className="minimizeButton" href="#">
               <OverlayTrigger placement="left" flip overlay={(props) -> <Tooltip {...props}>Close/fold this message <b>for all users</b>. Use this to clean up a thread when the discussion of this message (and all its replies) is resolved/no longer important. If you just want to close/fold the message yourself temporarily, use the [−] button on the left.</Tooltip>}>
                 <button className="btn btn-danger btn-block" onClick={onMinimize}>Minimize</button>
               </OverlayTrigger>
-            </a>
+            </Dropdown.Item>
           </li>
       }
       {if message.deleted and can.undelete
         <li>
-          <a className="deleteButton" href="#">
+          <Dropdown.Item className="deleteButton" href="#">
             <button className="btn btn-success btn-block" onClick={onDelete}>Undelete</button>
-          </a>
+          </Dropdown.Item>
         </li>
       }
       {if message.deleted and can.superdelete
         <li>
-          <a className="superdeleteButton" href="#">
+          <Dropdown.Item className="superdeleteButton" href="#">
             <button className="btn btn-danger btn-block" onClick={onSuperdelete}>Superdelete</button>
-          </a>
+          </Dropdown.Item>
         </li>
       }
       {if not message.published and can.publish
         <li>
-          <a className="publishButton" href="#">
+          <Dropdown.Item className="publishButton" href="#">
             <button className="btn btn-success btn-block" onClick={onPublish}>Publish</button>
-          </a>
+          </Dropdown.Item>
         </li>
       }
       {if not message.deleted and can.delete
         <li>
-          <a className="deleteButton" href="#">
+          <Dropdown.Item className="deleteButton" href="#">
             <button className="btn btn-danger btn-block" onClick={onDelete}>Delete</button>
-          </a>
+          </Dropdown.Item>
         </li>
       }
       {if message.published and can.unpublish
         <li>
-          <a className="publishButton" href="#">
+          <Dropdown.Item className="publishButton" href="#">
             <button className="btn btn-danger btn-block" onClick={onPublish}>Unpublish</button>
-          </a>
+          </Dropdown.Item>
         </li>
       }
       {if can.private
         <li>
-          <a className="privateButton" href="#">
+          <Dropdown.Item className="privateButton" href="#">
             {if message.private
               <button className="btn btn-success btn-block" onClick={onPrivate}>Make Public</button>
             else
               <button className="btn btn-danger btn-block" onClick={onPrivate}>Make Private</button>
             }
-          </a>
+          </Dropdown.Item>
         </li>
       }
       {if can.parent
         <li>
-          <a className="parentButton" href="#">
+          <Dropdown.Item className="parentButton" href="#">
             <button className="btn btn-warning btn-block" onClick={onParent}>Move</button>
-          </a>
+          </Dropdown.Item>
         </li>
       }
-    </ul>
-  </div>
+    </Dropdown.Menu>
+  </Dropdown>
 
 MessageAuthor = React.memo ({message}) ->
   count = 0
