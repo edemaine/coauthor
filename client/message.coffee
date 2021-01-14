@@ -1130,6 +1130,7 @@ EmojiButtons = React.memo ({message, can}) ->
       continue unless usernames?.length
       Object.assign {}, emoji,
         who: (displayUser user for user in usernames).join ', '
+        me: Meteor.user()?.username in usernames
         count: usernames.length
   , [message.emoji, emojis]
 
@@ -1179,7 +1180,7 @@ EmojiButtons = React.memo ({message, can}) ->
         }
         {for reply in replies
           <TextTooltip key={reply.symbol} placement="bottom" title={reply.who}>
-            <button className="btn btn-default emojiToggle" data-symbol={reply.symbol} onClick={onEmojiToggle}>
+            <button className="btn #{if reply.me then 'btn-primary' else 'btn-default'} emojiToggle" data-symbol={reply.symbol} onClick={onEmojiToggle}>
               <span className="fas fa-#{reply.symbol} #{reply.class}"/>
               {' '}
               <span>{reply.count}</span>
@@ -1190,7 +1191,7 @@ EmojiButtons = React.memo ({message, can}) ->
     else
       for reply in replies
         <TextTooltip key={reply.symbol} placement="bottom" title={reply.who}>
-          <button className="btn btn-default emojiToggle disabled" data-symbol={reply.symbol}>
+          <button className="btn #{if reply.me then 'btn-primary' else 'btn-default'} emojiToggle disabled" data-symbol={reply.symbol}>
             <span className="fas fa-#{reply.symbol} #{reply.class}"/>
             {' '}
             <span>{reply.count}</span>
