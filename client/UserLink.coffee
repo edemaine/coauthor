@@ -57,7 +57,7 @@ export UserLink = React.memo ({user, username, group, title, subtitle, prefix, p
     <a className="author #{if highlight then 'highlight' else ''}"
      data-username={username} href={link}>
       {prefix}
-      {displayUser user}
+      {displayUser (user ? username: username)}
     </a>
   </OverlayTrigger>
 UserLink.displayName = 'UserLink'

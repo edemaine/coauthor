@@ -1170,8 +1170,8 @@ EmojiButtons = React.memo ({message, can}) ->
           </div>
         }
         {for reply in replies
-          <TextTooltip placement="bottom" title={reply.who}>
-            <button key={reply.symbol} className="btn btn-default emojiToggle" data-symbol={reply.symbol} onClick={onEmojiToggle}>
+          <TextTooltip key={reply.symbol} placement="bottom" title={reply.who}>
+            <button className="btn btn-default emojiToggle" data-symbol={reply.symbol} onClick={onEmojiToggle}>
               <span className="fas fa-#{reply.symbol} #{reply.class}"/>
               {' '}
               <span>{reply.count}</span>
@@ -1181,8 +1181,8 @@ EmojiButtons = React.memo ({message, can}) ->
       </>
     else
       for reply in replies
-        <TextTooltip placement="bottom" title={reply.who}>
-          <button key={reply.symbol} className="btn btn-default emojiToggle disabled" data-symbol={reply.symbol}>
+        <TextTooltip key={reply.symbol} placement="bottom" title={reply.who}>
+          <button className="btn btn-default emojiToggle disabled" data-symbol={reply.symbol}>
             <span className="fas fa-#{reply.symbol} #{reply.class}"/>
             {' '}
             <span>{reply.count}</span>
