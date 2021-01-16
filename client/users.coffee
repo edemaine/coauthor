@@ -10,6 +10,7 @@ Template.users.helpers
 export Users = React.memo ({group, messageID}) ->
   useEffect ->
     setTitle 'Users'
+    undefined
   , []
   admin = useTracker ->
     group: messageRoleCheck group, messageID, 'admin'
