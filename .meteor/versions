@@ -65,7 +65,7 @@ iron:location@1.0.11
 iron:middleware-stack@1.1.0
 iron:router@1.1.2
 iron:url@1.1.0
-jquery@1.11.11
+jquery@3.0.0
 lamhieu:meteorx@2.1.1
 launch-screen@1.2.0
 livedata@1.0.18
