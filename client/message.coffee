@@ -631,8 +631,9 @@ MessageEditor = React.memo ({message, setEditBody, tabindex}) ->
           if username
             replacement = "@#{username}"
           else if id
-            pos = require 'codemirror/src/measurement/position_measurement.js'
-            .posFromMouse editor, e, true
+            pos = editor.coordsChar
+              left: e.x
+              top: e.y
             replacement = embedFile type, id, pos
           else if match = parseCoauthorMessageUrl text, true
             replacement = "coauthor:#{match.message}#{match.hash}"
