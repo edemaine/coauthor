@@ -20,16 +20,11 @@ switch markdownMode
     blocks[..] = []
     require('markdown-it/lib/common/html_re').HTML_OPEN_CLOSE_TAG_RE = /\0\0\0/
 
-    @hljs = require 'highlight.js'
     @markdownIt = require('markdown-it')
       html: true
       linkify: true
       typographer: true
-      highlight: (str, lang) ->
-        if lang and hljs.getLanguage lang
-          try
-            return hljs.highlight(lang, str).value
-        ''  ## default escaping
+      highlight: highlight
     .use require 'markdown-it-replacements'
     .use require('markdown-it-task-checkbox'),
       disabled: true

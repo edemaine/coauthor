@@ -278,3 +278,48 @@ module.exports = (grunt) ->
         name += " (#{countries.join ', '})"
       name
   fs.writeFileSync 'public/timezones.json', JSON.stringify timezones
+
+  ## Compute mapping of highlight.js language aliases to language imports
+  highlight = require 'highlight.js'
+  aliases = {}
+  for language in highlight.listLanguages()
+    for alias in highlight.getLanguage(language).aliases ? []
+      aliases[alias] = language
+  quote = (x) ->
+    if /^[a-zA-Z]+$/.test x
+      x
+    else
+      "'#{x}'"
+  fs.writeFileSync 'client/lib/highlight.coffee', """
+    ## File generated automatically by ../../.Gruntfile.coffee -- DO NOT EDIT
+    ## This client-side version loads highlight.js languages as needed.
+
+    import hljs from 'highlight.js/lib/core'  # minimal library
+
+    languages =
+    #{(
+      for language in highlight.listLanguages()
+        "  #{quote language}: -> import('highlight.js/lib/languages/#{language}')"
+    ).join '\n'}
+
+    aliases =
+    #{(
+      for key, value of aliases
+        "  #{quote key}: '#{value}'"
+    ).join '\n'}
+
+    loaded = new ReactiveDict
+    @highlight = (text, lang) ->
+      return '' unless lang
+      if hljs.getLanguage lang
+        try
+          return hljs.highlight(lang, text).value
+      else
+        lang = aliases[lang] if lang of aliases
+        if lang of languages
+          loaded.get lang  # reload when loaded
+          languages[lang]().then (module) ->
+            hljs.registerLanguage lang, module.default unless hljs.getLanguage lang
+            loaded.set lang, true
+      ''  ## markdown-it's default formatting
+  """

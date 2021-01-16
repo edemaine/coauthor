@@ -6,6 +6,7 @@ node_modules
 client/bootstrap/bootstrap.min.js
 client/bootstrap/bootstrap-slider.min.css
 client/katex.min.css
+client/lib/highlight.coffee
 public/bootstrap/dark.min.css
 public/bootstrap/light.min.css
 public/timezones.json

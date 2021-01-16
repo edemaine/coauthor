@@ -4,7 +4,7 @@
   "description": "Coauthor supercollaboration/discussion forum",
   "main": "index.js",
   "scripts": {
-    "postinstall": "node node_modules/grunt/bin/grunt --gruntfile .Gruntfile.coffee"
+    "postinstall": "grunt --gruntfile .Gruntfile.coffee"
   },
   "repository": {
     "type": "git",
