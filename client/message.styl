@@ -20,3 +20,45 @@
       background: white
 
 //.dropdown-menu.actionMenu > li > a:hover { min-width: 100px; background: white; }
+
+// Emoji dropdown menu
+
+.emojiMenu
+  padding: 5px // normally 5px 0
+  width: max-content
+  min-width: auto
+  max-width: 300px
+  > li
+    display: inline-block
+    > a
+      display: inline-block
+      font-size: large
+      padding: 8px 8px  // normally 3px 20px
+.open > .emojiMenu.dropdown-menu
+  display: table
+
+// Emoji
+
+.emoji-plus
+  font-size: 0.7em
+  margin-top: -2px
+  vertical-align: middle
+.emoji-face
+  margin-top: -2px
+  vertical-align: middle
+.positive
+  color: #3d98e5
+.neutral
+  color: #8465b3
+.negative
+  color: #d9534f
+.dark .positive
+  color: #6bade5
+.dark .neutral
+  color: #ad76fe
+.dark .negative
+  color: #ff7a75
+.my-emoji
+  background: hsl(60, 80%, 70%)
+.dark .my-emoji
+  background: hsl(60, 100%, 20%)
