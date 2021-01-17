@@ -96,6 +96,10 @@ Template.submessageHeader.helpers
   SubmessageHeader: -> SubmessageHeader
   message: -> @
 
+Template.submessageHeaderNoChildren.helpers
+  SubmessageHeader: -> SubmessageHeader
+  messageNoChildren: -> Object.assign {}, @, children: []
+
 MaybeRootHeader = React.memo ({message}) ->
   return null unless message?.root?
   <ErrorBoundary>
@@ -176,7 +180,6 @@ authorCount = (field, group) ->
 
 Template.message.helpers
   MessageID: -> MessageID
-  messageID: -> @_id
 
 MessageID = React.memo ({messageID}) ->
   message = useTracker ->
@@ -449,7 +452,7 @@ routeHere = (id) ->
 
 Template.readMessage.helpers
   ReadMessage: -> ReadMessage
-  message: -> Object.assign {}, @, children: []
+  messageNoChildren: -> Object.assign {}, @, children: []
 
 ReadMessage = ({message}) ->
   <>

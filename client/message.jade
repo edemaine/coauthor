@@ -1,10 +1,10 @@
 template(name="message")
   div
-    +React component=MessageID messageID=messageID
+    +React component=MessageID messageID=_id
 
 template(name="readMessage")
   div
-    +React component=ReadMessage message=message
+    +React component=ReadMessage message=messageNoChildren
 
 //- 'sharejsCM' is a helper, not an actual template,
     so we need an intermediate template to call it properly.
@@ -14,6 +14,10 @@ template(name="sharejs")
 template(name="submessageHeader")
   div
     +React component=SubmessageHeader message=message
+
+template(name="submessageHeaderNoChildren")
+  div
+    +React component=SubmessageHeader message=messageNoChildren
 
 template(name="messageBad")
   if ready

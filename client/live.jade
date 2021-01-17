@@ -11,7 +11,7 @@ template(name='live')
       .panel-body
         if valid
           each messages
-            +submessageHeader
+            +submessageHeaderNoChildren
         else
           .alert.alert-danger(role="alert") Invalid number of last messages.
   else
