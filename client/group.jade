@@ -1,65 +1,6 @@
 template(name="group")
-  if groupData
-    .panel.panel-primary
-      .panel-heading.clearfix
-        span.push-down.btn-group.btn-group-xs
-          .fake-btn &#8203;
-        span.title.panel-title= group
-        +groupButtons
-      +messageList
-      .panel-footer.clearfix
-        p.clearfix
-          +importExportButtons
-          i= topMessageCount
-          .groupTags
-            each groupTags
-              a(href=linkToTag).tagLink
-                span.tag.label.label-default= key
-              |  
-        .members.alert.alert-info
-          p
-            b #{fullMembersCount} members of this group:
-          p !{fullMembers}
-          if partialMembersCount
-            hr
-            p
-              b #{partialMembersCount} with partial access to this group:
-            p !{partialMembers}
-  else
-    +badGroup
-
-template(name="groupButtons")
-  //- button.btn.btn-default.postButton(class=disablePost,name="problem") Pose New Problem
-  //- button.btn.btn-default.postButton(class=disablePost,name="discussion") Start Discussion Thread
-  .pull-right.group-right-buttons
-    if super
-      .btn-group
-        button.btn.btn-warning.sortSetDefault Set Group Default Sort
-        if globalSuper
-          button.btn.btn-danger.groupRenameButton Rename Group
-    button.btn.btn-info.postButton(class=disableClass, data-original-title=disableTitle, data-toggle='tooltip') Pose New Problem / Discussion
-    .btn-group
-      a.btn.btn-default.myPostsButton(class=disableMyPosts,href=linkToMyPosts) My Posts
-      a.btn.btn-default.liveButton(href="{{pathFor 'live' group=group}}", title="Show the last n messages, updating live", data-toggle="tooltip") Live Feed
-      a.btn.btn-default.sinceButton(href="{{pathFor 'since' group=group}}", title="Show all messages since a specified time in the past", data-toggle="tooltip") Catchup Since...
-      a.btn.btn-default.statsButton(href=linkToStats) Statistics
-  //- Replaced by clicking columns to trigger sort
-    span.space
-    .btn-group
-      if super
-        button.btn.btn-warning.sortSetDefault Set Group Default
-      a.btn.btn-default.sortReverse(href=linkToReverse)
-        if sortReverse
-          span.fas.fa-sort-alpha-up(aria-hidden="true")
-        else
-          span.fas.fa-sort-alpha(aria-hidden="true")
-      button.btn.btn-default.dropdown-toggle(type="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false")
-        | #{sortBy}
-        span.caret
-      ul.dropdown-menu(role="menu")
-        each sortKeys
-          li.sortKey(class="{{activeSort}}")
-            a(href=linkToSort)= capitalizedKey
+  div
+    +React component=MaybeGroup group=group
 
 template(name="groupRename")
   .modal
@@ -78,62 +19,6 @@ template(name="groupRename")
                 button.btn.btn-block.btn-danger.groupRenameButton Rename Group
               .col-xs-6
                 button.btn.btn-block.btn-success.cancelButton Cancel
-
-template(name="messageList")
-  //-div.list-group
-  table.table.table-striped
-    thead
-      tr
-        th
-          a(href="{{linkToSort 'title'}}") Title
-          if sortingBy 'title'
-            span.fas(class=sortingGlyph)
-        th
-          a(href="{{linkToSort 'creator'}}", data-toggle="tooltip", title="Username who initially started thread") Creator
-          if sortingBy 'creator'
-            span.fas(class=sortingGlyph)
-        th
-          a(href="{{linkToSort 'published'}}", data-toggle="tooltip", title="Date original thread was published/created") Published
-          if sortingBy 'published'
-            span.fas(class=sortingGlyph)
-        th
-          a(href="{{linkToSort 'updated'}}", data-toggle="tooltip", title="Last update of any submessage in thread") Updated
-          if sortingBy 'updated'
-            span.fas(class=sortingGlyph)
-        th.text-center
-          a(href="{{linkToSort 'posts'}}", data-toggle="tooltip", title="Number of submessages in thread (excluding root message)") Posts
-          if sortingBy 'posts'
-            span.fas(class=sortingGlyph)
-        th.text-center
-          a(href="{{linkToSort 'emoji'}}", data-toggle="tooltip", title="Number of positive emoji reactions to root message of thread")
-            span.fas.fa-thumbs-up.positive
-          if sortingBy 'emoji'
-            span.fas(class=sortingGlyph)
-        //-
-          th
-            a(href="{{linkToSort 'emojiNeg'}}", data-toggle="tooltip")
-              span.fas.fa-thumbs-down.negative
-            if sortingBy 'emojiNeg'
-              span.fas(class=sortingGlyph)
-        th.text-center
-          a(href="{{linkToSort 'subscribe'}}", data-toggle="tooltip", title="Whether you subscribe to notifications about this thread (see Settings for default)") Sub
-          if sortingBy 'subscribe'
-            span.fas(class=sortingGlyph)
-    tbody
-      each topMessages
-        //-if canSee
-        //-a.list-group-item(href=messageLink)
-        +messageShort
-
-template(name="importExportButtons")
-  .btn-group.pull-right
-    if canImport
-      input.importInput(type="file", style="display:none", data-format="osqa", accept=".zip")
-      button.btn.btn-default.importButton(data-format="osqa") Import OSQA
-      input.importInput(type="file", style="display:none", data-format="latex", accept=".zip")
-      button.btn.btn-default.importButton(data-format="latex") Import LaTeX
-      button.btn.btn-danger.superdeleteImportButton Superdelete Imported
-    button.btn.btn-info.downloadButton Download ZIP
 
 template(name="superdeleteImport")
   .modal
@@ -161,43 +46,6 @@ template(name="downloadGroup")
         .modal-footer
           button.btn.btn-danger.downloadConfirm Download ZIP
           button.btn.btn-success.cancelButton.fullwidth Cancel
-
-template(name="messageShort")
-  tr.messageShort(class=messageClass)
-    td.title
-      a(href=messageLink)
-        | !{formatTitleOrUntitledBold}
-        each tags
-          span.label.label-default #{key}
-          |  
-        +messageLabels
-    td.author
-      a(href=messageLink)= creator
-    td
-      a(href=messageLink)
-        if published
-          | {{formatDate published}}
-          //- span.author (posed by #{creator} {{formatDate published}})
-        else
-          | {{formatDate created}}
-          //- span.author (created by #{creator} {{formatDate created}})
-    td
-      a(href=messageLink)= submessageLastUpdate
-    td.text-right
-      a(href=messageLink)
-        span.badge(class=zeroClass)= submessageCount
-    td.text-right
-      if emojiPositive.length
-        a(href=messageLink)
-          with emojiPositive
-            span.badge.badge-positive(data-toggle="tooltip", data-html="true", data-original-title=emojiWho)= emojiCount
-    td.subscribe.text-center
-      //- a(href=messageLink)
-      button.btn.btn-default.btn-xs.subscribe
-        if subscribed
-          span.fas.fa-check
-        else
-          span.fas.fa-times
 
 template(name="badGroup")
   if ready

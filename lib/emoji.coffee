@@ -144,18 +144,14 @@ Meteor.methods
   #  if value.length == 0
   #    delete message.emoji[key]
   emojiFilter.symbol = $in: _.keys message.emoji
-  emoji = Emoji.find emojiFilter
+  emojis = Emoji.find emojiFilter
   .fetch()
-  emojiMap = {}
-  for emoj, i in emoji
-    emoj.index = i
-    emoj.who = message.emoji[emoj.symbol]
-    emoj.count = emoj.who.length
-    emojiMap[emoj.symbol] = emoj if emoj.count > 0
-  symbols = _.keys emojiMap
-  symbols = _.sortBy symbols, (emoj) -> emojiMap[emoj].index
-  for symbol in symbols
-    emojiMap[symbol]
+  for emoji in emojis  # match sort order of Emoji list
+    emoji.who = message.emoji[emoji.symbol]
+    continue unless emoji.who?
+    emoji.count = emoji.who.length
+    continue unless emoji.count
+    emoji
   ### Without `emoji` attribute cache:
   msgs = EmojiMessages.find
     message: message._id ? message

@@ -1,3 +1,16 @@
+import React, {useEffect, useMemo, useRef} from 'react'
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger'
+import Tooltip from 'react-bootstrap/Tooltip'
+import {useTracker} from 'meteor/react-meteor-data'
+import Blaze from 'meteor/gadicc:blaze-react-component'
+
+import {ErrorBoundary} from './ErrorBoundary'
+import {FormatDate} from './lib/date'
+import {MessageLabels, MessageTags, messageClass, uploaderProps} from './message.coffee'
+import {TagList} from './TagList'
+import {TextTooltip} from './lib/tooltip'
+import {UserLink} from './UserLink'
+
 @routeGroupRoute = ->
   Router.current()?.params?.group
 
@@ -29,7 +42,7 @@ Template.registerHelper 'groupData', groupData
 Template.registerHelper 'groupDataOrWild', ->
   routeGroup() == wildGroup or groupData()
 
-@sortBy = ->
+@routeSortBy = ->
   if Router.current().params.sortBy in sortKeys
     key: Router.current().params.sortBy
     reverse: Router.current().route.getName()[-7..] == 'reverse'
@@ -51,131 +64,439 @@ Template.registerHelper 'groups', ->
 
 Template.registerHelper 'admin', -> canAdmin routeGroup(), routeMessage()
 
-Template.registerHelper 'canImport', -> canImport @group ? routeGroup()
-
 Template.registerHelper 'canSuper', -> canSuper @group ? routeGroup()
 
-Template.registerHelper 'canSee', -> canSee @
-
-Template.group.onCreated ->
-  @autorun ->
-    setTitle()
-
-formatMembers = (sortedMembers) ->
-  members =
-    for member in sortedMembers
-      partial = member.rolesPartial?[escapeGroup @group]
-      if partial?
-        msgs = Messages.find _id: $in: (id for id of partial)
-        .fetch()
-        title = "User '#{member.username}' has access to " + (
-          for msg in msgs
-            "“#{titleOrUntitled msg}”"
-        ).join '; '
-      else
-        title = null
-      linkToAuthor @group, member, title
-  if members.length > 0
-    members.join(', ')
-  else
-    '(none)'
-
 Template.group.helpers
-  topMessageCount: ->
-    msgs = groupSortedBy @group, null
-    pluralize(msgs.count?() ? msgs.length ? 0, 'message thread')
-  groupTags: ->
-    groupTags @group
-  fullMembersCount: ->
-    groupFullMembers(@group).count()
-  partialMembersCount: ->
-    groupPartialMembers(@group).count()
-  fullMembers: ->
-    tooltipUpdate()
-    formatMembers.call @, sortedGroupFullMembers @group
-  partialMembers: ->
-    tooltipUpdate()
-    formatMembers.call @, sortedGroupPartialMembers @group
+  MaybeGroup: -> MaybeGroup
 
-Template.groupButtons.helpers
-  sortBy: ->
-    capitalize sortBy().key
-  sortReverse: ->
-    sortBy().reverse
-  activeSort: ->
-    if sortBy().key == @key
-      'active'
-    else
-      ''
-  capitalizedKey: ->
-    capitalize @key
-  sortKeys: ->
-    key: key for key in sortKeys
-  linkToSort: ->
-    linkToSort
-      key: @key
-      reverse: sortBy().reverse
-  linkToReverse: ->
-    linkToSort
-      key: sortBy().key
-      reverse: not sortBy().reverse
+export MaybeGroup = React.memo ({group}) ->
+  useEffect ->
+    setTitle()
+    undefined
+  , []
+  groupData = useTracker ->
+    Groups.findOne
+      name: group
+  , [group]
 
-  disableMyPosts: ->
-    if Meteor.userId()?
-      ''
-    else
-      'disabled'
-  linkToMyPosts: ->
-    return null unless Meteor.userId()?
-    pathFor 'author',
-      group: routeGroup()
-      author: Meteor.user().username
-  linkToStats: ->
-    pathFor 'stats',
-      group: routeGroup()
-      username: Meteor.user()?.username
+  if groupData?
+    <ErrorBoundary>
+      <Group group={group} groupData={groupData}/>
+    </ErrorBoundary>
+  else
+    <Blaze template="badGroup" group={group}/>
+MaybeGroup.displayName = 'MaybeGroup'
 
-  disableClass: ->
-    if canPost @group
-      ''
-    else
-      'disabled'
-  disableTitle: ->
-    if canPost @group
-      ''
-    else if Meteor.userId()?
+Group = React.memo ({group, groupData}) ->
+  sortBy = useTracker ->
+    routeSortBy()
+  , []
+  topMessages = useTracker ->
+    groupSortedBy group, sortBy
+  , [group, sortBy]
+  can = useTracker ->
+    post: canPost group
+    import: canImport group
+    globalSuper: canSuper wildGroup
+  , [group]
+
+  <div className="panel panel-primary">
+    <div className="panel-heading clearfix">
+      <span className="push-down btn-group btn-group-xs">
+        <div className="fake-btn">&#8203;</div>
+      </span>
+      <span className="title panel-title">
+        {group}
+      </span>
+      <ErrorBoundary>
+        <GroupButtons group={group} can={can} sortBy={sortBy}/>
+      </ErrorBoundary>
+    </div>
+    <ErrorBoundary>
+      <MessageList topMessages={topMessages} sortBy={sortBy}/>
+    </ErrorBoundary>
+    <div className="panel-footer clearfix">
+      <ErrorBoundary>
+        <ImportExportButtons group={group} can={can}/>
+      </ErrorBoundary>
+      <i>{pluralize topMessages.length, 'message thread'}</i>
+      <ErrorBoundary>
+        <GroupTags group={group}/>
+      </ErrorBoundary>
+      <p className="clearfix"/>
+      <ErrorBoundary>
+        <GroupMembers group={group}/>
+      </ErrorBoundary>
+    </div>
+  </div>
+Group.displayName = 'Group'
+
+GroupButtons = React.memo ({group, can, sortBy}) ->
+  superuser = useTracker ->
+    Session.get 'super'
+  , []
+  user = useTracker ->
+    Meteor.user()
+  , []
+  postTitle = useMemo ->
+    if can.post
+      'Start a new thread with a new top-level message.'
+    else if user?
       'You do not have permission to post a message in this group.'
     else
-      'You need to be logged in to post a message.'
+      'You need to be logged in to post a message in this group.'
+  , [can.post, user?]
 
-Template.groupButtons.onRendered ->
-  tooltipInit()
-
-Template.groupButtons.events
-  'click .sortSetDefault': (e) ->
+  onSortSetDefault = (e) ->
     e.stopPropagation()
-    console.log "Setting default sort for #{routeGroup()} to #{if sortBy().reverse then '-' else '+'}#{sortBy().key}"
-    Meteor.call 'groupDefaultSort', routeGroup(), sortBy()
-
-  'click .groupRenameButton': (e) ->
+    console.log "Setting default sort for #{group} to #{if sortBy.reverse then '-' else '+'}#{sortBy.key}"
+    Meteor.call 'groupDefaultSort', group, sortBy
+  onRename = (e) ->
     Modal.show 'groupRename'
-
-  'click .postButton': (e) ->
+  onPost = (e) ->
     e.preventDefault()
     e.stopPropagation()
     type = e.target.id
-    #$("#poseButton").addClass 'disabled'
-    if canPost @group
-      group = @group  ## for closure
-      Meteor.call 'messageNew', group, (error, result) ->
-        #$("#poseButton").removeClass 'disabled'
-        if error
-          console.error error
-        else if result
-          Meteor.call 'messageEditStart', result
-          Router.go 'message', {group: group, message: result}
+    #e.target.addClass 'disabled'
+    return unless canPost group
+    Meteor.call 'messageNew', group, (error, result) ->
+      #e.target.removeClass 'disabled'
+      if error
+        console.error error
+      else if result
+        Meteor.call 'messageEditStart', result
+        Router.go 'message',
+          group: group
+          message: result
+      else
+        console.error "messageNew did not return problem -- not authorized?"
+
+  <div className="pull-right group-right-buttons">
+    {if superuser
+      <div className="btn-group">
+        <button className="btn btn-warning sortSetDefault" onClick={onSortSetDefault}>
+          Set Group Default Sort
+        </button>
+        {if can.globalSuper
+          <button className="btn btn-danger groupRenameButton" onClick={onRename}>
+            Rename Group
+          </button>
+        }
+      </div>
+    }
+    <TextTooltip title={postTitle}>
+      <button onClick={onPost}
+       className="btn btn-info postButton #{unless can.post then 'disabled' else ''}">
+        Pose New Problem / Discussion
+      </button>
+    </TextTooltip>
+    <div className="btn-group">
+      <TextTooltip title="Show all messages you have authored or been @mentioned in">
+        <a className="btn btn-default myPostsButton #{unless user? then 'disabled'}"
+         href={if user? then pathFor 'author', {group: group, author: user.username}}>
+          My Posts
+        </a>
+      </TextTooltip>
+      <TextTooltip title="Show the last n messages, updating live">
+        <a className="btn btn-default liveButton"
+         href={pathFor 'live', group: group}>
+          Live Feed
+        </a>
+      </TextTooltip>
+      <TextTooltip title="Show all messages since a specified time in the past">
+        <a className="btn btn-default sinceButton"
+         href={pathFor 'since', group: group}>
+          Catchup Since...
+        </a>
+      </TextTooltip>
+      <TextTooltip title="Plot number of messages over time, by you and for entire group">
+        <a className="btn btn-default statsButton"
+         href={pathFor 'stats', {group: group, username: user?.username}}>
+          Statistics
+        </a>
+      </TextTooltip>
+    </div>
+  </div>
+GroupButtons.displayName = 'GroupButtons'
+
+columnCenter =
+  posts: true
+  emoji: true
+  subscribe: true
+
+## Default reverse setting when switching sort keys:
+columnReverse =
+  published: true
+  updated: true
+  posts: true
+  emoji: true
+  subscribe: true
+
+MessageList = React.memo ({topMessages, sortBy}) ->
+  sortLink = (key) ->
+    if key == sortBy.key
+      linkToSort
+        key: key
+        reverse: not sortBy.reverse
+    else
+      linkToSort
+        key: key
+        reverse: key of columnReverse
+
+  <table className="table table-striped">
+    <thead>
+      <tr>
+        {for column, title of (
+          title: 'Title of first (root) message in thread'
+          creator: 'User who initially started the thread'
+          published: 'When original thread was published/created'
+          updated: 'Last update of any submessage in thread'
+          posts: 'Number of public submessages in thread (excluding root message)'
+          emoji: 'Number of positive emoji reactions to root message of thread'
+          #emojiNeg:
+          subscribe: 'Whether you subscribe to notifications about this thread (see Settings for default)'
+        )
+          <th key={column}
+           className={if column of columnCenter then 'text-center'}>
+            <TextTooltip title={title}>
+              <a href={sortLink column}>
+                {switch column
+                  when 'subscribe'
+                    'Sub'
+                  when 'emoji'
+                    <span className="fas fa-thumbs-up positive"/>
+                  else
+                    capitalize column
+                }
+                {if sortBy.key == column
+                  if sortBy.key in ['title', 'creator']
+                    type = 'alpha'
+                  else
+                    type = 'numeric'
+                  if sortBy.reverse
+                    order = 'up'
+                  else
+                    order = 'down'
+                  <span className="fas fa-sort-#{type}-#{order}"/>
+                }
+              </a>
+            </TextTooltip>
+          </th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      {for message in topMessages
+        #if canSee message
+        #<a className="list-group-item" href={messageLink}>
+        <ErrorBoundary key={message._id}>
+          <MessageShort message={message}/>
+        </ErrorBoundary>
+      }
+    </tbody>
+  </table>
+MessageList.displayName = 'MessageList'
+
+ImportExportButtons = React.memo ({group, can}) ->
+  onImport = (files, e) ->
+    import('/imports/import.coffee').then (i) ->
+      i.importFiles e.target.getAttribute('data-format'), group, files
+  osqaRef = useRef()
+  latexRef = useRef()
+  osqaProps = uploaderProps onImport, osqaRef
+  latexProps = uploaderProps onImport, latexRef
+  onSuperdeleteImported = (e) ->
+    Modal.show 'superdeleteImport', {group}
+  onDownload = (e) ->
+    Modal.show 'downloadGroup', {group}
+
+  <div className="btn-group pull-right">
+    {if can.import
+      <>
+        <input className="importInput" type="file" data-format="osqa"
+         accept=".zip" ref={osqaRef} {...osqaProps.inputProps}/>
+        <button className="btn btn-default importButton" data-format="osqa"
+         {...osqaProps.buttonProps}>
+          Import OSQA
+        </button>
+        <input className="importInput" type="file" data-format="latex"
+         accept=".zip" ref={latexRef} {...latexProps.inputProps}/>
+        <button className="btn btn-default importButton" data-format="latex"
+         {...latexProps.buttonProps}>
+          Import LaTeX
+        </button>
+        <button className="btn btn-danger superdeleteImportButton"
+         onClick={onSuperdeleteImported}>
+          Superdelete Imported
+        </button>
+      </>
+    }
+    <button className="btn btn-info downloadButton" onClick={onDownload}>
+      Download ZIP
+    </button>
+  </div>
+ImportExportButtons.displayName = 'ImportExportButtons'
+
+GroupTags = React.memo ({group}) ->
+  tags = useTracker ->
+    groupTags group
+  , [group]
+  <div className="groupTags">
+    <TagList tags={tags} group={group}/>
+  </div>
+GroupTags.displayName = 'GroupTags'
+
+memberLinks = (group, sortedMembers) ->
+  escapedGroup = escapeGroup group
+  count = 0
+  for member in sortedMembers
+    partial = member.rolesPartial?[escapedGroup]
+    if partial?
+      msgs = Messages.find _id: $in: (id for id of partial)
+      .fetch()
+      subtitle = "Access to: " + (
+        for msg in msgs
+          "“#{titleOrUntitled msg}”"
+      ).join '; '
+    else
+      subtitle = null
+    <React.Fragment key={member.username}>
+      {', ' if count++}
+      <UserLink user={member} group={group} subtitle={subtitle}/>
+    </React.Fragment>
+
+GroupMembers = React.memo ({group}) ->
+  members = useTracker ->
+    full: memberLinks group, sortedGroupFullMembers group
+    partial: memberLinks group, sortedGroupPartialMembers group
+  , [group]
+
+  <div className="members alert alert-info">
+    <p>
+      <b>{members.full.length} members of this group:</b>
+    </p>
+    <p>
+      {if members.full.length
+        members.full
+      else
+        '(none)'
+      }
+    </p>
+    {if members.partial.length
+      <>
+        <hr/>
+        <p>
+          <b>{members.partial.length} with partial access to this group:</b>
+        </p>
+        <p>{members.partial}</p>
+      </>
+    }
+  </div>
+GroupMembers.displayName = 'GroupMembers'
+
+MessageShort = React.memo ({message}) ->
+  messageLink = useMemo ->
+    pathFor 'message',
+      group: message.group
+      message: message._id
+  , [message]
+  formattedTitle = useTracker ->
+    formatTitleOrFilename message, true, false, true
+  , [message]
+  creator = useTracker ->
+    displayUser message.creator
+  , [message.creator]
+  emojiPositive = useTracker ->
+    emojis = emojiReplies message, class: 'positive'
+    count = 0
+    for emoji in emojis
+      count += emoji.who.length
+    {count, emojis}
+  , [message.emoji]
+  subscribed = useTracker ->
+    subscribedToMessage message
+  , [message]
+
+  onSubscribe = (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+    if subscribedToMessage message
+      Meteor.users.update Meteor.userId(),
+        $push: 'profile.notifications.unsubscribed': message._id
+        $pull: 'profile.notifications.subscribed': message._id
+    else
+      Meteor.users.update Meteor.userId(),
+        $push: 'profile.notifications.subscribed': message._id
+        $pull: 'profile.notifications.unsubscribed': message._id
+
+  <tr className="messageShort #{messageClass.call message}">
+    <td className="title">
+      <a href={messageLink}>
+        <span dangerouslySetInnerHTML={__html: formattedTitle}/>
+        <MessageTags message={message} noLink/>
+        <MessageLabels message={message}/>
+      </a>
+    </td>
+    <td className="author">
+      <a href={messageLink}>{creator}</a>
+    </td>
+    <td>
+      <a href={messageLink}>
+        {if message.published
+          <FormatDate date={message.published}/>
         else
-          console.error "messageNew did not return problem -- not authorized?"
+          <FormatDate date={message.created}/>
+        }
+      </a>
+    </td>
+    <td>
+      <a href={messageLink}>
+        <FormatDate date={message.submessageLastUpdate}/>
+      </a>
+    </td>
+    <td className="text-right">
+      <a href={messageLink}>
+        <span className="badge #{if message.submessageCount == 0 then 'badge-zero' else ''}">
+          {message.submessageCount}
+        </span>
+      </a>
+    </td>
+    <td className="text-right">
+      {if emojiPositive.count
+        <OverlayTrigger flip overlay={(props) ->
+          <Tooltip {...props}>
+            {for emoji in emojiPositive.emojis
+              <React.Fragment key={emoji.symbol}>
+                {for user in emoji.who
+                  <React.Fragment key={user}>
+                    <span className="fas fa-#{emoji.symbol} #{emoji.class}"/>
+                    {" #{displayUser user} "}
+                  </React.Fragment>
+                }
+              </React.Fragment>
+            }
+          </Tooltip>
+        }>
+          <a href={messageLink}>
+            <span className="badge badge-positive">
+              {emojiPositive.count}
+            </span>
+          </a>
+        </OverlayTrigger>
+      }
+    </td>
+    <td className="subscribe text-center">
+      <button className="btn btn-default btn-xs subscribe"
+       onClick={onSubscribe}>
+        {if subscribed
+          <span className="fas fa-check"/>
+        else
+          <span className="fas fa-times"/>
+        }
+      </button>
+    </td>
+  </tr>
+MessageShort.displayName = 'MessageShort'
 
 Template.groupRename.events
   'click .groupRenameButton': (e, t) ->
@@ -195,35 +516,6 @@ Template.groupRename.events
     e.preventDefault()
     e.stopPropagation()
     Modal.hide()
-
-Template.importExportButtons.events
-  'click .importButton': (e, t) ->
-    e.preventDefault()
-    e.stopPropagation()
-    t.find(".importInput[data-format='#{e.target.getAttribute('data-format')}']").click()
-  'change .importInput': (e, t) ->
-    args = [e.target.getAttribute('data-format'), t.data.group, e.target.files]
-    import('/imports/import.coffee').then (i) -> i.importFiles ...args
-  'dragenter .importButton': (e) ->
-    e.preventDefault()
-    e.stopPropagation()
-  'dragover .importButton': (e) ->
-    e.preventDefault()
-    e.stopPropagation()
-  'drop .importButton': (e, t) ->
-    e.preventDefault()
-    e.stopPropagation()
-    args = [e.target.getAttribute('data-format'), t.data.group, e.originalEvent.dataTransfer.files]
-    import('/imports/import.coffee').then (i) -> i.importFiles ...args
-
-  'click .superdeleteImportButton': (e, t) ->
-    e.preventDefault()
-    e.stopPropagation()
-    Modal.show 'superdeleteImport', @
-  'click .downloadButton': (e, t) ->
-    e.preventDefault()
-    e.stopPropagation()
-    Modal.show 'downloadGroup', @
 
 Template.superdeleteImport.events
   'click .superdeleteImportConfirm': (e, t) ->
@@ -257,77 +549,3 @@ Template.downloadGroup.events
     e.preventDefault()
     e.stopPropagation()
     Modal.hide()
-
-Template.messageList.onRendered ->
-  tooltipInit()
-
-Template.messageList.helpers
-  linkToSort: (key) ->
-    if key == sortBy().key
-      linkToSort
-        key: key
-        reverse: not sortBy().reverse
-    else
-      linkToSort
-        key: key
-        ## Default reverse setting when switching sort keys:
-        reverse: key in ['published', 'updated', 'posts', 'emoji', 'subscribe']
-  sortingBy: (key) ->
-    sortBy().key == key
-  sortingGlyph: ->
-    sort = sortBy()
-    if sort.key in ['title', 'creator']
-      type = 'alpha'
-    else
-      type = 'numeric'
-    if sort.reverse
-      order = 'up'
-    else
-      order = 'down'
-    "fa-sort-#{type}-#{order}"
-  topMessages: ->
-    groupSortedBy @group, sortBy()
-
-Template.messageShort.helpers
-  messageLink: ->
-    pathFor 'message',
-      group: @group
-      message: @_id
-  zeroClass: ->
-    if 0 == @submessageCount
-      'badge-zero'
-    else
-      ''
-  submessageLastUpdate: ->
-    formatDate @submessageLastUpdate
-  subscribed: ->
-    subscribedToMessage @
-  emojiPositive: ->
-    emojiReplies @, class: 'positive'
-  #emojiNegative: ->
-  #  emojiReplies @, class: 'negative'
-  emojiCount: ->
-    sum = 0
-    for emoji in @
-      sum += emoji.who.length
-    sum
-  emojiWho: ->
-    tooltipUpdate()
-    text = []
-    for emoji in @
-      for user in emoji.who
-        text.push """<span class="fas fa-#{emoji.symbol}"></span> #{displayUser user}"""
-    text.join ', '
-
-Template.messageShort.events
-  'click button.subscribe': (e, t) ->
-    e.preventDefault()
-    e.stopPropagation()
-    if subscribedToMessage @
-      Meteor.users.update Meteor.userId(),
-        $push: 'profile.notifications.unsubscribed': @_id
-        $pull: 'profile.notifications.subscribed': @_id
-    else
-      Meteor.users.update Meteor.userId(),
-        $push: 'profile.notifications.subscribed': @_id
-        $pull: 'profile.notifications.unsubscribed': @_id

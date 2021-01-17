@@ -279,7 +279,7 @@ Meteor.methods
         "You need 'super' permissions to set default sort in group '#{group}'"
     Groups.update
        name: group
-     ,
+    ,
        $set: defaultSort: sortBy
 
   groupWeekStart: (group, weekStart) ->

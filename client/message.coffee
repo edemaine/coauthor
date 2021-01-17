@@ -6,13 +6,14 @@ import {useTracker} from 'meteor/react-meteor-data'
 import Blaze from 'meteor/gadicc:blaze-react-component'
 import useEventListener from '@use-it/event-listener'
 
+import {Credits} from './layout.coffee'
 import {ErrorBoundary} from './ErrorBoundary'
+import {FormatDate} from './lib/date'
 import {MessageImage, imageTransform} from './MessageImage'
 import {MessagePDF} from './MessagePDF'
-import {UserLink} from './UserLink'
-import {Credits} from './layout.coffee'
-import {FormatDate} from './lib/date'
+import {TagList} from './TagList'
 import {TextTooltip} from './lib/tooltip'
+import {UserLink} from './UserLink'
 import {resolveTheme} from './theme'
 
 sharejsEditor = 'cm'  ## 'ace' or 'cm'; also change template used in message.jade
@@ -66,7 +67,7 @@ Template.registerHelper 'tags', ->
 
 Template.registerHelper 'linkToTag', ->
   linkToTag @, Template.parentData().group
-linkToTag = (tag, group) ->
+@linkToTag = (tag, group) ->
   #pathFor 'tag',
   #  group: group
   #  tag: tag.key
@@ -127,9 +128,6 @@ RootHeader = React.memo ({message}) ->
     </div>
   </div>
 RootHeader.displayName = 'RootHeader'
-
-Template.registerHelper 'formatTitleOrUntitledBold', ->
-  formatTitleOrFilename @, true, false, true
 
 Template.messageBad.helpers
   message: -> Router.current().params.message
@@ -309,7 +307,7 @@ editingMessage = (message, user = Meteor.user()) ->
 
 idle = 1000   ## one second
 
-messageClass = ->
+export messageClass = ->
   if @deleted
     'deleted'
   else if not @published
@@ -320,8 +318,6 @@ messageClass = ->
     'minimized'
   else
     'published'
-
-Template.registerHelper 'messageClass', messageClass
 
 messageRaw = new ReactiveDict
 export messageFolded = new ReactiveDict
@@ -465,22 +461,13 @@ Template.submessage.helpers
   Submessage: -> Submessage
   message: -> @
 
-MessageTags = React.memo ({message}) ->
+export MessageTags = React.memo ({message, noLink}) ->
   <span className="messageTags">
-    {for tag in sortTags message.tags
-      <React.Fragment key={tag.key}>
-        {' '}
-        <a href={linkToTag tag, message.group} className="tagLink">
-          <span className="tag label label-default">
-            {tag.key}
-          </span>
-        </a>
-      </React.Fragment>
-    }
+    <TagList tags={sortTags message.tags} group={message.group} noLink={noLink}/>
   </span>
 MessageTags.displayName = 'MessageTags'
 
-MessageLabels = React.memo ({message}) ->
+export MessageLabels = React.memo ({message}) ->
   <span className="messageLabels">
     {if message.deleted
       <>
@@ -1123,7 +1110,7 @@ EmojiButtons = React.memo ({message, can}) ->
     Emoji.find group: $in: [wildGroup, message.group]
     .fetch()
   , [message.group]
-  ## More efficient version of lib/emoji.coffee's `emojiReplies`:
+  ## Variation of lib/emoji.coffee's `emojiReplies`:
   replies = useTracker ->
     return [] unless message.emoji?
     for emoji in emojis  # match sort order of Emoji list
@@ -1205,7 +1192,7 @@ EmojiButtons = React.memo ({message, can}) ->
   </div>
 EmojiButtons.displayName = 'EmojiButtons'
 
-uploaderProps = (callback, inputRef) ->
+export uploaderProps = (callback, inputRef) ->
   buttonProps:
     onClick: (e) ->
       e.preventDefault()
