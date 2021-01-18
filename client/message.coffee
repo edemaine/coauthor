@@ -432,20 +432,6 @@ scrollDelay = 750
   ## Also unfold message itself, because you probably want to see it.
   messageFolded.set id, false
 
-historify = (x, post) -> () ->
-  history = messageHistory.get @_id
-  value =
-    if history?
-      history[x]
-    else
-      @[x]
-  if post?
-    value = post value
-  value
-
-tabindex = (i) -> 
-  1 + 20 * Template.instance().count + parseInt(i ? 0)
-
 routeHere = (id) ->
   id? and Router.current().route?.getName() == 'message' and
   Router.current().params?.message == id
