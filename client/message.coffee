@@ -971,20 +971,14 @@ MessageHistory = React.memo ({message}) ->
     .ready
   , [message._id]
   input = useRef()
-  slider = useRef()
-  useTracker ->
+  {diffs, index} = useTracker ->
     unless Slider?
       Session.set 'SliderLoading', true
       Session.get 'SliderLoading'  # rerun tracker once Slider loaded
       return `import('bootstrap-slider')`.then (imported) ->
         Slider = imported.default
         Session.set 'SliderLoading', false
-    return unless input.current?
-    diffs = []
     previous = messageHistory.get(message._id)?.diffId
-    if slider.current?
-      slider.current.destroy()
-      slider.current = null
     diffs = MessagesDiff.find
       id: message._id
     ,
@@ -1022,11 +1016,13 @@ MessageHistory = React.memo ({message}) ->
           break
     unless 0 <= index < diffs.length
       index = diffs.length - 1
-    previous = diffs[index]?.diffId
+    {diffs, index}
+  , [message._id, message.creator, message.created]
+  useEffect ->
     ## Don't show a zero-length slider
-    return unless diffs.length
+    return unless diffs?.length
     ## Draw slider
-    slider.current = new Slider input.current,
+    slider = new Slider input.current,
       #min: 0                 ## min and max not needed when using ticks
       #max: diffs.length-1
       #value: diffs.length-1  ## doesn't update, unlike setValue method below
@@ -1040,12 +1036,12 @@ MessageHistory = React.memo ({message}) ->
           formatDate(diffs[i].updated) + '\n' + diffs[i].updators.join ', '
         else
           i
-    slider.current.setValue index
-    #slider.current.off 'change'
-    slider.current.on 'change', (e) =>
-      messageHistory.set message._id, diffs[e.newValue]
+    slider.setValue index
     messageHistory.set message._id, diffs[index]
-  , [message._id, message.creator, message.created]
+    slider.on 'change', (e) ->
+      messageHistory.set message._id, diffs[e.newValue]
+    -> slider.destroy()
+  , [diffs, index]
 
   <div className="historySlider">
     <input type="text" ref={input}/>
