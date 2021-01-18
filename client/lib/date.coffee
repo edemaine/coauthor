@@ -36,7 +36,7 @@ import {useTracker} from 'meteor/react-meteor-data'
 export FormatDate = React.memo ({date, prefix}) ->
   useTracker ->
     formatDate date, prefix
-  , []
+  , [date, prefix]
 FormatDate.displayName = 'FormatDate'
 
 Template.registerHelper 'formatDate', (date, kw) ->
