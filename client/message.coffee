@@ -1743,7 +1743,9 @@ WrappedSubmessage = React.memo ({message, read}) ->
       Session.set 'threadMentions', threadMentions
       ->
         threadAuthors[author] -= 1 for author in authors
+        Session.set 'threadAuthors', threadAuthors
         threadMentions[author] -= 1 for author in mentions
+        Session.set 'threadMentions', threadMentions
     , [(key for key of message.authors).join('@'), message.title, message.body, usernames]
 
     ## One-time effects
