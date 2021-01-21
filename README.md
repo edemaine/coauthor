@@ -20,12 +20,14 @@ support, but it has proved useful in other fields too.
 * **Real-time editing** of messages in the style of Google Docs/EtherPad
   (Operational Transforms), if people feel like editing together
   (useful if e.g. working on a proof together).
-  When editing, you see near-instant updates from the other side(s).
-  Keep track of authorship by who is in edit mode at the time.
-  Also you get live previews with ~1-second delay, after the data has
-  round-tripped with the server.  (1 second delay is to reduce the crazy
-  number of "old versions" that will get saved -- server only pushes after
-  document has not changed for 1 second.)
+  * When editing, you see near-instant updates from the other side(s).
+  * Keeps track of coauthorship by who is in edit mode at the time.
+  * Can also manually add coauthors (e.g. when one person scribes the work
+    of many) or remove coauthors (e.g. accidents or minor edits)
+  * Live previews of formatted message with ~1-second delay, after the data has
+    round-tripped with the server.  (The delay is to reduce the crazy
+    number of "old versions" that get saved in the history: the server only
+    pushes after the document has not changed for 1 second.)
 
 * Three **formats** for writing messages (and easy to add additional formats).
   All formats support LaTeX math (via `$...$`, `$$...$$`, `\(...\)`, `\[...\]`,
@@ -224,9 +226,9 @@ support, but it has proved useful in other fields too.
 
 * Messages can start/be marked **Unpublished** (not yet finished) or
   **Deleted** (mistake / no longer useful).
-  In either state, the message is hidden from people who are not authors
-  (an *author* is someone who has edited the message), @-mentioned
-  (via `@username`), or superusers.
+  In either state, the message is hidden from people who are not coauthors
+  (as listed in the "by" line and editable at the bottom of the Edit view)
+  or superusers who click "Become Superuser".
   The default published state is initially true (so everyone sees the new
   message and live updates immediately), but can vary by user (e.g., if they
   are "shy" and only want to post finished thoughts).
@@ -236,15 +238,18 @@ support, but it has proved useful in other fields too.
   problems/puzzles, to prevent accidentally spoiling the fun), or
   **public and private** replies (useful for feedback on lectures, for example,
   which can have varying relevance to the entire group).
+  * Private messages have an **access list** of users who can see the message
+    beyond the coauthors, initially set to include the access list and all
+    coauthors of the parent message being replied to ("Reply All" behavior for
+    back-and-forth private conversation).
+    Unlike coauthors, access users can only see the message
+    when it is published and not deleted.
+    You can add or remove users from the access list, but note that permissions
+    are not synchronized between parent and children, so if you change a
+    parent's permissions you might also want to change the children's.
   * Replies to replies inherit the public/private state of their parent.
   * Superusers can see all the messages and change them between public and
     private.
-
-* Private, unpublished, or deleted messages can **@-mention** another user
-  (via `@username` in the title or body) to allow them to see and jointly
-  edit the message.  Note, however, that permissions are not inherited by
-  children: replies will also need to @-mention other users to give them
-  access.
 
 * **Email notifications** for subscribed threads, clustering together all
   updates since the last email, with a maximum lag of a specified number of
@@ -255,10 +260,21 @@ support, but it has proved useful in other fields too.
   checkbox on the right (checked means "subscribed").
   Users can choose in Settings whether to receive notifications
   about their own edits, and whether to receive separate email messages for
-  each group or bundle them altogether.
+  each group (e.g. for email folder separation) or bundle them altogether.
 
 * **Time travel**: You can drag through history and see past versions.
-  In general, there should be good, automatic history tracking of everything.
+  Versions of messages where the user explicitly clicked "Stop Editing"
+  are marked as "finished" versions, and only those are shown by default.
+  But if you need to see more intermediate versions,
+  you can click "Show All Versions".
+  In general, Coauthor aims to automatically track all history
+  in case it's useful later.
+
+* **Download ZIP**: You can archive an entire group's contents into a ZIP file
+  of raw HTML/CSS and attached files which requires no JavaScript to run.
+  This future-proofs your content against software rot, making it suitable for
+  NSF's Data Archiving Policy.  It is also useful for offline viewing of
+  content, e.g., while traveling.
 
 * **Permissions** can be specified for each user at the group level
   (typical case --- user can access the entire group of messages),
@@ -274,11 +290,16 @@ support, but it has proved useful in other fields too.
        deleted messages
      * admin: administer over other users, in particular setting permissions
 
+  Anonymous access means that everyone, even not-logged-in users, can see the
+  messages and group.  This is generally not recommended as it opens Coauthor
+  to spam, so it requires global admin privileges to enable.
+
 * **Superuser operations** (only for superusers):
   * Import from LaTeX document with figures attached as a ZIP file
   * Import from osqa's XML dump, including old edit history
   * Superdelete (permanently destroying a message including its history)
   * Setting the default sort for a group
+  * Setting message threads as allowing public and/or private messages
 
 ## User Tips ##
 
