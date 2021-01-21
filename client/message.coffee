@@ -889,7 +889,7 @@ BelowEditor = React.memo ({message, preview, safeToStopEditing, editStopping}) -
       </div>
       <div className="alert alert-info below-editor-alert coauthors-alert">
         <span className="upper-strut">&#8203;</span>
-        <TextTooltip title="List everyone who worked on this message or its ideas, who might be considered a coauthor on an eventual paper about it. Better to overlist than underlist, so that no one's contributions are forgotten; you can always review and remove a coauthor (including yourself) later. Coauthors can always access the message and help write, even at the same time. Editing a message automatically adds you as a coauthor.">
+        <TextTooltip title="List everyone who worked on this message or its ideas, who might be considered a coauthor on an eventual paper about it. Coauthors can always access the message (unless removed) and help write, even at the same time. Editing a message automatically adds you as a coauthor.">
           <span className="text-help">Coauthors:</span>
         </TextTooltip>
         {' '}
@@ -916,7 +916,7 @@ BelowEditor = React.memo ({message, preview, safeToStopEditing, editStopping}) -
          placeholder="who're you working with?" onSelect={onAddCoauthor}/>
         {if showAccess
           <div className="access">
-            <TextTooltip title="List anyone you want to read your private message and (by default) all its replies, or remove anyone you don't want to see this message. No need to list coauthors here: they can always access the message, even if it's deleted or unpublished.">
+            <TextTooltip title="List anyone you want to see your private message and (by default) all its replies, or remove anyone you don't want to see this message. No need to list coauthors here: they can always access the message, even if it's deleted or unpublished.">
               <span className="text-help">
                 Additional access
                 {" if undeleted" if message.deleted}
