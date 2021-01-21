@@ -2470,7 +2470,7 @@ MessageActions = React.memo ({message, can, editing, tabindex0}) ->
   </Dropdown>
 
 messageAuthorSubtitle = (message, author) -> ->
-  if updated = message.authors[author]
+  if updated = message.authors[escapeUser author]
     (if message.creator == author
       "Created this message and last edited "
     else
@@ -2481,7 +2481,8 @@ messageAuthorSubtitle = (message, author) -> ->
 
 MessageAuthor = React.memo ({message, also}) ->
   if also
-    also = _.clone message.authors
+    also = {}
+    also[unescapeUser author] for author of message.authors
   count = 0
   <div className="author text-right">
     {'(by '}

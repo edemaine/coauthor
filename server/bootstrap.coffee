@@ -107,7 +107,7 @@ Messages.find
 .forEach (message) ->
   usernames ?= allUsernames()  # load just once
   for diff in messageDiffsExpanded message
-    coauthors = (author for author of diff.authors)
+    coauthors = (unescapeUser author for author of diff.authors)
     coauthors.push ...(atMentions diff, usernames)
     coauthors = _.uniq coauthors
     unless _.isEqual coauthors, lastCoauthors
