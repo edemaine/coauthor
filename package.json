@@ -45,6 +45,7 @@
     "pdfjs-dist": "^2.5.207",
     "react": "^17.0.1",
     "react-bootstrap": "^1.4.3",
+    "react-bootstrap-typeahead": "^5.1.4",
     "react-dom": "^17.0.1",
     "react-intersection-observer": "^8.31.0",
     "roman-numeral": "^0.2.6",

@@ -346,12 +346,8 @@ if Meteor.isServer
   Meteor.publish 'messages.search', (group, search) ->
     check group, String
     check search, String
-    parsed = parseSearch search
+    searchQuery = parseSearch search
     @autorun ->
-      query = accessibleMessagesQuery group, findUser @userId
-      return @ready() unless query? and parsed?
-      query = $and: [
-        query
-        parseSearch search
-      ]
-      Messages.find addRootsToQuery query
+      accessibleQuery = accessibleMessagesQuery group, findUser @userId
+      return @ready() unless accessibleQuery? and searchQuery?
+      Messages.find maybeAddRootsToQuery group, accessibleQuery, searchQuery

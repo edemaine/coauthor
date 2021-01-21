@@ -64,19 +64,19 @@ export Users = React.memo ({group, messageID}) ->
         <tr>
           <th>Username</th>
           <TextTooltip title="Permission to see the group at all, and read all messages within">
-            <th>Read</th>
+            <th className="text-help">Read</th>
           </TextTooltip>
           <TextTooltip title="Permission to post new messages and replies to the group, and to edit those authored messages">
-            <th>Post</th>
+            <th className="text-help">Post</th>
           </TextTooltip>
           <TextTooltip title="Permission to edit all messages, not just previously authored messages">
-            <th>Edit</th>
+            <th className="text-help">Edit</th>
           </TextTooltip>
           <TextTooltip title="Permission to perform dangerous operations: history-destroying superdelete and XML import">
-            <th>Super</th>
+            <th className="text-help">Super</th>
           </TextTooltip>
           <TextTooltip title="Permission to administer other users in the group, i.e., to change their permissions">
-            <th>Admin</th>
+            <th className="text-help">Admin</th>
           </TextTooltip>
         </tr>
       </thead>

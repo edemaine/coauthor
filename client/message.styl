@@ -1,3 +1,10 @@
+.text-help
+  text-decoration: dotted underline gray
+  cursor: help
+
+.danger-close
+  color: #d9534f  // background color of .label-danger
+
 .attachInput[type="file"], .replaceInput[type="file"]
   display: none
 
@@ -62,3 +69,26 @@
   background: hsl(60, 80%, 70%)
 .dark .my-emoji
   background: hsl(60, 100%, 20%)
+
+// BelowEditor
+
+.below-editor-alert
+  padding: 6px 15px
+  margin-bottom: 0px
+  // To allow Coauthors alert's <input> to bleed into 6px top/bottom padding,
+  // simulate it with an upper strut at the beginning.  (The lower strut is
+  // simulated by the <input> itself.)
+  &.coauthors-alert
+    padding-top: 0px
+    padding-bottom: 0px
+    .upper-strut
+      display: inline-block
+      padding-top: 6px
+    //.lower-strut
+    //  display: inline-block
+    //  padding-bottom: 6px
+    input // override .form-control
+      display: inline-block
+      width: auto
+    .rbt
+      display: inline-block

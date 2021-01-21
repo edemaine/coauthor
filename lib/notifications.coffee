@@ -490,6 +490,9 @@ if Meteor.isServer
             delete changed.format
             ## Don't notify about empty body on new file message
             delete changed.body if msg.file and not msg.body
+            ## Ignore coauthors on creation if it's still just the creator
+            delete changed.coauthors if _.isEqual changed.coauthors, [msg.creator]
+            delete changed.access if changed.access?.length == 0
           authors = _.sortBy notification.authors, userSortKey
           authorsText = (displayUser author for author in authors).join ', '
           authorsHTML = (linkToAuthor msg.group, author for author in authors).join ', '
@@ -536,6 +539,31 @@ if Meteor.isServer
                      "Title changed from &ldquo;#{formatTitleOrFilename old, true, true}&rdquo;"
             else
               bullet "Title added"
+          for key in ['coauthors', 'access']
+            continue unless changed[key]
+            authors =
+              for author in msg[key]
+                author: author
+                diff: if old? and author not in old[key] then '+' else ''
+            for author in old?[key] ? []
+              if author not in msg[key]
+                authors.push
+                  author: author
+                  diff: '-'
+            bullet "#{capitalize key}: " + (
+              for coauthor in authors
+                coauthor.diff + displayUser coauthor.author
+            ).join(', '), "#{capitalize key}: " + (
+              for coauthor in authors
+                author = linkToAuthor msg.group, coauthor.author
+                switch coauthor.diff
+                  when '+'
+                    "+<ins>#{author}</ins>"
+                  when '-'
+                    "&minus;<del>#{author}</del>"
+                  else
+                    author
+            ).join(', ')
           if changed.published
             if msg.published
               bullet "PUBLISHED"

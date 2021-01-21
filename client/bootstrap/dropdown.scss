@@ -1,0 +1,65 @@
+// Partial extract of Bootstrap 4 dropdowns (_variables.scss and _dropdown.scss)
+// to work as a patch to Bootstrap 3, with colors variables set by Bootstrap 3.
+
+$dropdown-item-padding-y:           .25rem !default;
+$dropdown-item-padding-x:           1.5rem !default;
+$font-weight-normal:          400 !default;
+$dropdown-link-color: inherit; // trick to work in both light and dark modes
+$link-decoration:                         none !default;
+$dropdown-link-hover-color: darken(lighten(#000, 20%), 5%); // @dropdown-link-hover-color = darken(@gray-dark, 5%)
+$dropdown-link-hover-bg: #f5f5f5; // @dropdown-link-hover-bg
+$dropdown-link-active-color: #fff; // @dropdown-link-active-color = @component-active-color
+$dropdown-link-active-bg: #337ab7; // @dropdown-link-active-bg = @component-active-bg = @brand-primary
+$dropdown-link-disabled-color: lighten(#000, 46.7%); // @dropdown-link-disabled-color = @gray-light
+
+// Links, buttons, and more within the dropdown menu
+//
+// `<button>`-specific styles are denoted with `// For <button>s`
+.dropdown-item {
+  display: block;
+  width: 100%; // For `<button>`s
+  padding: $dropdown-item-padding-y $dropdown-item-padding-x;
+  clear: both;
+  font-weight: $font-weight-normal;
+  color: $dropdown-link-color;
+  text-align: inherit; // For `<button>`s
+  text-decoration: if($link-decoration == none, null, none);
+  white-space: nowrap; // prevent links from randomly breaking onto new lines
+  background-color: transparent; // For `<button>`s
+  border: 0; // For `<button>`s
+
+  // Prevent dropdown overflow if there's no padding
+  // See https://github.com/twbs/bootstrap/pull/27703
+  /*
+  @if $dropdown-padding-y == 0 {
+    &:first-child {
+      @include border-top-radius($dropdown-inner-border-radius);
+    }
+
+    &:last-child {
+      @include border-bottom-radius($dropdown-inner-border-radius);
+    }
+  }
+  */
+
+  &:hover,
+  &:focus {
+    color: $dropdown-link-hover-color;
+    text-decoration: none;
+    background-color: $dropdown-link-hover-bg;
+  }
+
+  &.active,
+  &:active {
+    color: $dropdown-link-active-color;
+    text-decoration: none;
+    background-color: $dropdown-link-active-bg;
+  }
+
+  &.disabled,
+  &:disabled {
+    color: $dropdown-link-disabled-color;
+    pointer-events: none;
+    background-color: transparent;
+  }
+}

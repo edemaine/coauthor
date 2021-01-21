@@ -41,8 +41,8 @@ input.title { width: calc(100% + 5px); margin: 0px -5px 0px 0px; }
 .linkToTop { margin-top: -4px; }
 .message-title .label { vertical-align: 2px; } /* shift up to center */
 .message-subtitle { margin-top: 5px; }
-.upper-strut { display: inline-block; height: 20px; vertical-align: 0px; }
-.lower-strut { display: inline-block; vertical-align: -10px; }
+.message-subtitle .upper-strut { display: inline-block; height: 20px; vertical-align: 0px; }
+.message-subtitle .lower-strut { display: inline-block; vertical-align: -10px; }
 .btn.label { float: none; height: 20px; } /* +Tag manual height adjustment */
 /* input.title ~ .message-right-buttons { margin: 0px; } */
 .message-response-buttons { margin: 8px 0px 10px 0px; }
@@ -132,8 +132,6 @@ img { image-orientation: none; } /* we do manual EXIF rotation */
 .slider.slider-horizontal { width: 100%; }
 
 .panel-secondbody { margin-top: -10px; padding-top: 0px; padding-bottom: 10px; }
-
-.save-alert { padding: 6px 15px; margin-left: 1px; margin-bottom: 0px; }
 
 nav.contents { overflow-y: scroll; padding-bottom: 5px; }
 .contents > li > a { padding: 5px 5px; }

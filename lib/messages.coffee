@@ -98,21 +98,22 @@ naturallyVisibleQuery = ->
   published: $ne: false    ## published is false or Date
   deleted: $ne: true
   private: $ne: true
-explicitlyVisibleQuery = (user) ->
-  ## In any group, user can see messages they authored or are @mentioned in.
+explicitAccessQuery = (user) ->
+  ## In any group, a logged-in user can see messages they coauthored,
+  ## independent of status, and any undeleted published (presumably private)
+  ## message with explicit access.
   ## Guaranteed to be a sole $or query.
   return null unless user?.username
-  re = atRe user
   $or: [
-    "authors.#{escapeUser user.username}": $exists: true
+    coauthors: user.username
   ,
-    title: re
-  ,
-    body: re
+    access: user.username
+    published: $ne: false    ## published is false or Date
+    deleted: $ne: true
   ]
 readableCanSeeQuery = (user) ->
   ## Users with read permission can see the union of above two queries.
-  if query = explicitlyVisibleQuery user
+  if query = explicitAccessQuery user
     # ASSERT: query consists solely of an $or node
     query.$or.unshift naturallyVisibleQuery()
     query
@@ -138,7 +139,7 @@ readableCanSeeQuery = (user) ->
       ## Groups with full membership can be combined into one query.
       if fullGroups.length > 0
         ## Use naturallyVisibleQuery instead of readableCanSeeQuery
-        ## because we $or on explicitlyVisibleQuery once later.
+        ## because we $or on explicitAccessQuery once later.
         fullQuery = naturallyVisibleQuery()
         fullQuery.group = $in: fullGroups
       ## Groups with partial membership need their queries $or'd together.
@@ -146,7 +147,7 @@ readableCanSeeQuery = (user) ->
         partialQuery = $or:
           for group in partialGroups
             ## Simulate `accessibleMessagesQuery group, user, client`
-            ## but without $or'ing in explicitlyVisibleQuery (done once later).
+            ## but without $or'ing in explicitAccessQuery (done once later).
             msgs = groupPartialMessagesWithRole group, 'read', user
             query = naturallyVisibleQuery()
             query.group = group
@@ -156,8 +157,8 @@ readableCanSeeQuery = (user) ->
               root: $in: msgs
             ]
             query
-      ## Combine above queries with explicitlyVisibleQuery.
-      explicitQuery = explicitlyVisibleQuery user
+      ## Combine above queries with explicitAccessQuery.
+      explicitQuery = explicitAccessQuery user
       if explicitQuery? or fullQuery? or partialQuery?
         $or: [
           fullQuery
@@ -170,15 +171,17 @@ readableCanSeeQuery = (user) ->
     ## Super-user can see all messages, even unpublished/deleted messages.
     group: group
   else if groupRoleCheck group, 'read', user
-    ## Regular users can see all messages they authored, or are @mentioned in,
-    ## plus published undeleted messages by others.
+    ## Regular users (with read access) can see all messages they coauthored,
+    ## all (private) published undeleted messages they have explicit access to,
+    ## and all public published undeleted messages in the group.
     query = readableCanSeeQuery user
     # ASSERT: query does not already have group qualifier.
     query.group = group
     query
   else if (msgs = groupPartialMessagesWithRole group, 'read', user).length
-    ## Partial users can see all messages they authored, or are @mentioned in,
-    ## plus published undeleted messages among the root messages they can read.
+    ## Partial users can see all messages they coauthored,
+    ## all published undeleted messages they have explicit access to, plus
+    ## public published undeleted messages among the threads they can read.
     query = naturallyVisibleQuery()
     # ASSERT: query does not already have $or qualifier.
     query.$or = [
@@ -190,10 +193,13 @@ readableCanSeeQuery = (user) ->
     $or: [
       query
     ,
-      explicitlyVisibleQuery user
-    ].filter (x) -> x?  # in case explicitlyVisibleQuery returns null
+      explicitAccessQuery user
+    ].filter (x) -> x?  # in case explicitAccessQuery returns null
   else
-    query = explicitlyVisibleQuery user
+    ## Without read access (a weird permission scenario, e.g. write-only),
+    ## we still let the user gain access to messages they coauthored and
+    ## published undeleted messages with explicit access.
+    query = explicitAccessQuery user
     query.group = group if query?
     query
 
@@ -263,29 +269,54 @@ if Meteor.isServer
 
 if Meteor.isServer
   ## Returns a query for the messages matching the given query (possibly
-  ## with options) along with their roots.  Implicitly we are assuming that,
-  ## if a message is accessible, then so is its root.  This is not technically
-  ## true if the root is deleted/unpublished and not authored by the user,
-  ## in which case we reveal the message to the user (but seems better than
-  ## having a dangling root pointer...).
-  @addRootsToQuery = (query, options = {}) ->
-    #options = _.clone options  ## avoid modifying caller's options
+  ## with options) along with their roots.  The query gets $and'ed together
+  ## with the specified `accessibleQuery` to guarantee that any matched
+  ## messages and roots are accessible to the user.
+  @addRootsToQuery = (accessibleQuery, query, options) ->
+    if options?
+      options = _.clone options  ## avoid modifying caller's options
+    else
+      options = {}
     options.fields = root: 1  ## just get (and depend on) root and _id
-    messages = Messages.find query, options
+    messages = Messages.find $and: [
+      query
+      accessibleQuery  # add this here too in case it vastly shrinks results
+    ], options
     ids = {}
     messages.forEach (msg) ->
       ids[msg._id] = 1
       ids[msg.root] = 1 if msg.root?
     ids = _.keys ids  ## remove duplicates
-    _id: $in: ids
+    $and: [
+      _id: $in: ids
+      accessibleQuery
+    ]
 
+  ## Call `addRootsToQuery` if we're in the global group; otherwise, just $and
+  ## the `query` and `accessibleQuery` together (as the `messages.root`
+  ## subscription should cover all the roots we need).
+  ## Modifies provides options for the new query.
+  @maybeAddRootsToQuery = (group, accessibleQuery, query, options) ->
+    if group == wildGroup
+      newQuery = addRootsToQuery accessibleQuery, query, options
+      delete options?.limit  # don't limit query that has roots added
+      newQuery
+    else
+      $and: [
+        query
+        accessibleQuery
+      ]
+
+## Query for all published undeleted (public and private) messages
+## in a specified group coauthored by the specified author.
+## Also, unless `atMentions = false`, add messages that @mention the author.
 @messagesByQuery = (group, author, atMentions = true) ->
   query =
     group: group
     published: $ne: false
     deleted: $ne: true
     $or: [
-      "authors.#{escapeUser author}": $exists: true
+      coauthors: author
     ]
   if group == wildGroup
     delete query.group
@@ -320,15 +351,11 @@ if Meteor.isServer
     check author, Match.Optional String  ## defaults to self
     @autorun ->
       me = findUser @userId
-      query = accessibleMessagesQuery group, me
-      return @ready() unless query?
-      unless author?
-        return @ready() unless me?
-      query = $and: [
-        query
-        messagesByQuery wildGroup, (author ? me.username)  ## no need to repeat group
-      ]
-      Messages.find addRootsToQuery query
+      accessibleQuery = accessibleMessagesQuery group, me
+      return @ready() unless accessibleQuery?
+      return @ready() unless author? or me?
+      byQuery = messagesByQuery group, (author ? me.username)
+      Messages.find maybeAddRootsToQuery group, accessibleQuery, byQuery
 
 @messagesTaggedQuery = (group, tag) ->
   query =
@@ -345,18 +372,17 @@ if Meteor.isServer
     sort: [['updated', 'desc']]
     #limit: parseInt(@limit)
 
+###
 if Meteor.isServer
   Meteor.publish 'messages.tag', (group, tag) ->
     check group, String
     check tag, String
     @autorun ->
-      query = accessibleMessagesQuery group, findUser @userId
-      return @ready() unless query?
-      query = $and: [
-        query
-        messagesTaggedQuery wildGroup, tag  ## no need to repeat group
-      ]
-      Messages.find addRootsToQuery query
+      accessibleQuery = accessibleMessagesQuery group, findUser @userId
+      return @ready() unless accessibleQuery?
+      tagQuery = messagesTaggedQuery group, tag
+      Messages.find maybeAddRootsToQuery group, accessibleQuery, tagQuery
+###
 
 @undeletedMessagesQuery = (group) ->
   query =
@@ -378,15 +404,13 @@ if Meteor.isServer
     limit = parseInt limit
     check limit, Number
     @autorun ->
-      query = accessibleMessagesQuery group, findUser @userId
-      return @ready() unless query?
+      accessibleQuery = accessibleMessagesQuery group, findUser @userId
+      return @ready() unless accessibleQuery?
       ## Mimicking Template.live.helpers' messages
-      query = $and: [
-        query
-        undeletedMessagesQuery wildGroup  ## no need to repeat group
-      ]
+      liveQuery = undeletedMessagesQuery group
       options = liveMessagesLimit limit
-      Messages.find addRootsToQuery query, options
+      query = maybeAddRootsToQuery group, accessibleQuery, liveQuery, options
+      Messages.find query#, options
 
 @parseSince = (since) ->
   try
@@ -414,13 +438,15 @@ if Meteor.isServer
     check group, String
     check since, String
     @autorun ->
-      query = accessibleMessagesQuery group, findUser @userId
-      return @ready() unless query?
+      accessibleQuery = accessibleMessagesQuery group, findUser @userId
+      return @ready() unless accessibleQuery?
       pSince = parseSince since
       return @ready() unless pSince?
       ## Mimicking since.coffee's messagesSince
-      query.updated = $gte: pSince
-      Messages.find addRootsToQuery query
+      sinceQuery =
+        group: group
+        updated: $gte: pSince
+      Messages.find maybeAddRootsToQuery group, accessibleQuery, sinceQuery
 
 if Meteor.isServer
   Meteor.publish 'messages.diff', (message) ->
@@ -469,12 +495,14 @@ if Meteor.isServer
   if canSuper group, client, user #groupRoleCheck group, 'super', user
     ## Super-user can see all messages, even unpublished/deleted messages.
     true
-  else if amAuthor message, user
-    ## Regular users can see all messages they authored.
+  else if haveExplicitAccess message, user
+    ## Regular users can see all messages they have explicit access to:
+    ## either coauthored or are in the 'access' list (and in the latter case,
+    ## the message is published and not deleted but potentially private).
     true
   else if messageRoleCheck group, message, 'read', user
-    ## Users with read permission can see all
-    ## published undeleted public messages.
+    ## Users with read permission (possibly just for the thread)
+    ## can see all published undeleted public messages.
     ## (See also `naturallyVisibleQuery` above which mimics this test.)
     message.published and not message.deleted and not message.private
   else
@@ -489,14 +517,17 @@ if Meteor.isServer
   canPost message.group, message._id
 
 @canEdit = (message, user = Meteor.user()) ->
-  ## Can edit message if an "author" (e.g. the creator or edited in the past),
-  ## or if we have global edit privileges in this group or thread.
+  ## Can edit message if a coauthor (explicit read/write access),
+  ## or if we have global edit privileges in this group or thread,
+  ## in addition to being able to see the message itself
+  ## (a slight variation to the logic of `canSee` which needs `read` access).
   message = findMessage message
   return false unless message?
   user? and (
-    amAuthor(message, user) or
-    messageRoleCheck message.group, message, 'edit', user
-  )
+    amCoauthor(message, user) or
+    (messageRoleCheck(message.group, message, 'edit', user) and
+     ((message.published and not message.deleted and not message.private) or
+      haveExplicitAccess(message, user))))
 
 @canDelete = canEdit
 @canUndelete = canEdit
@@ -519,14 +550,22 @@ if Meteor.isServer
 @canSuperdelete = (message) ->
   canSuper message2group message
 
-@amAuthor = (message, user = Meteor.user()) ->
+## A user has explicit [read] access to a message if they are a coauthor or
+## they are listed in the 'access' list and the message is published and
+## not deleted (but possibly private).
+@haveExplicitAccess = (message, user = Meteor.user()) ->
   return false unless user?.username
   message = findMessage message
   return false unless message?
-  re = atRe user
-  escapeUser(user.username) of (message.authors ? {}) or
-  (message.title and re.test message.title) or
-  (message.body and re.test message.body)
+  (user.username in message.coauthors) or
+  (message.access? and (user.username in message.access) and
+   message.published and not message.deleted)
+## A user has explicit read/write access to a message if they are a coauthor.
+@amCoauthor = (message, user = Meteor.user()) ->
+  return false unless user?.username
+  message = findMessage message
+  return false unless message?
+  user.username in message.coauthors
 
 @canPrivate = (message) ->
   message = findMessage message
@@ -535,9 +574,9 @@ if Meteor.isServer
     ## Superuser can always change private flag
     true
   else
-    ## Regular user can change private flag for their own messages,
+    ## Regular user can change private flag for their coauthored messages,
     ## and only if thread privacy allows for both public and private.
-    unless amAuthor message
+    unless amCoauthor message
       false
     else
       root = findMessageRoot message
@@ -706,6 +745,22 @@ checkPrivacy = (privacy, root, user = Meteor.user()) ->
             "Cannot make message public in thread '#{root._id}'"
   null
 
+@canCoauthorsMod = (message, coauthorsMod, client = Meteor.isClient, user = Meteor.user()) ->
+  ## Adding coauthors requires no additional permission.
+  ## Removing coauthors can be done in the following situations:
+  ##   * User is a superuser.
+  ##   * User is the coauthor being removed (self-removal).
+  ##   * Coauthor being removed isn't an author
+  ##     (presumably the user is acting as a scribe).
+  if coauthorsMod.$addToSet?
+    true
+  else if coauthorsMod.$pull?
+    unless canSuper message.group, client, user
+      for coauthor in coauthorsMod.$pull
+        if escapeUser(coauthor) of message.authors and coauthor != user.username
+          return false
+    true
+
 export messageContentFields = [
   'title'
   'body'
@@ -717,6 +772,8 @@ export messageContentFields = [
   'private'
   'minimized'
   'rotate'
+  'coauthors'
+  'access'
 ]
 
 export messageExtraFields = [
@@ -734,6 +791,26 @@ export messageFilterExtraFields = (msg) ->
   else
     msg
 
+matchStringSetMod = Match.Optional Match.OneOf
+  $addToSet: [String]  # add strings
+,
+  $pull: [String]      # remove strings
+
+doStringSetMod = (message, old, key, mod) ->
+  if mod.$addToSet?   # add strings
+    message[key] =
+      if old[key]?
+        message[key] = _.clone old[key]
+      else
+        []  # 'access' field in particular doesn't exist initially
+    for string in mod.$addToSet
+      message[key].push string if string not in message[key]
+  else if mod.$pull?  # remove strings
+    message[key] = _.without old[key], ...mod.$pull
+  else
+    throw new Meteor.Error 'doStringSetModifier.invalidMod',
+      "Unknown modifier type '#{_keys mod}'"
+
 ## The following should be called directly only on the server;
 ## clients should use the corresponding method.
 _messageUpdate = (id, message, authors = null, old = null) ->
@@ -750,7 +827,10 @@ _messageUpdate = (id, message, authors = null, old = null) ->
     ## If authors == null, we're guaranteed to be in a method, so we
     ## can use Meteor.user().
     user = Meteor.user()
-    #check Meteor.userId(), String  ## should be done by 'canEdit'
+    unless user?
+      throw new Meteor.Error 'messageUpdate.anonymous',
+        "Need to be logged in to edit messages (so we can track coauthors!)"
+    check Meteor.userId(), String
     authors = [user.username]
     unless canEdit old, user
       throw new Meteor.Error 'messageUpdate.unauthorized',
@@ -772,6 +852,20 @@ _messageUpdate = (id, message, authors = null, old = null) ->
     rotate: Match.Optional Match.Where (r) ->
       typeof r == "number" and -180 < r <= 180
     finished: Match.Optional Boolean
+    coauthors: matchStringSetMod
+    access: matchStringSetMod
+  ## `coauthors` and `access` are given as special instructions for
+  ## transactional behavior and extra permission checking.
+  if (coauthorsMod = message.coauthors)?
+    unless canCoauthorsMod old, coauthorsMod, false, user
+      throw new Meteor.Error 'messageUpdate.authorCoauthor',
+        "Insufficient permissions to remove coauthors who authored message '#{id}' in group '#{old.group}'"
+    doStringSetMod message, old, 'coauthors', coauthorsMod
+    unless message.coauthors.length
+      throw new Meteor.Error 'messageUpdate.zeroCoauthors',
+        "Cannot remove last coauthor of message '#{id}'"
+  if (accessMod = message.access)?
+    doStringSetMod message, old, 'access', accessMod
   ## `finished` is a special indicator to mark the diff as finished,
   ## when making edits from outside editing mode.
   finished = message.finished
@@ -780,18 +874,29 @@ _messageUpdate = (id, message, authors = null, old = null) ->
   ## Don't update if there aren't any actual differences.
   difference = false
   for own key of message
-    if old[key] != message[key]
+    unless _.isEqual old[key], message[key]
       difference = true
       break
   return unless difference
 
+  message.updators = authors
+  ## Updating a message's title, body, or file give you authorship on the
+  ## message.  Updates that modify authorship or access; otherwise, you
+  ## couldn't e.g. remove your own authorship.  Also, maintaining others'
+  ## authorship or access is administrative, so doesn't feel worthy of your
+  ## own authorship.  In that spirit, neither do tags and labels.
+  #unless coauthorsMod? or accessMod?
+  if message.title? or message.body? or message.file?
+    for author in authors
+      if author not in (message.coauthors ? old.coauthors)
+        message.coauthors ?= _.clone old.coauthors
+        message.coauthors.push author
   ## Don't simulate changes involving date, which will be invalidated by server
   if Meteor.isServer
     now = new Date
     if message.published == true
       message.published = now
     message.updated = now
-    message.updators = authors
     diff = _.clone message
     for author in authors
       message["authors.#{escapeUser author}"] = now
@@ -815,6 +920,12 @@ _messageUpdate = (id, message, authors = null, old = null) ->
       ## recompute from scratch in order to find the new last update.
       _submessagesChanged old.root ? id
     notifyMessageUpdate message, old
+    ## Check for removed coauthors/access that should no longer be editors.
+    ## (Let them stay as editors if they made the change and can still edit.)0
+    for other in (coauthorsMod?.$pull ? []).concat (accessMod?.$pull ? [])
+      if other in (old.editing ? []) and
+         (other != user?.username or not canEdit id, findUsername user)
+        _messageEditStop id, other
   diffid
 
 _messageAddChild = (child, parent, position = null) ->
@@ -993,6 +1104,26 @@ _messageParent = (child, parent, position = null, oldParent = true, importing = 
     doc.updated = new Date
   MessagesParent.insert doc
 
+_messageEditStop = (id, username = Meteor.user()?.username) ->
+  ## `username` can only be specified when called internal to the server.
+  ## When updating this method, you might also want to update the "extreme"
+  ## form in `updateStopTimer` above.
+  unless username?
+    throw new Meteor.Error 'messageEditStop.noUser',
+      "Cannot stop editing when not logged in"
+  ## We used to do the following update in client too, to do
+  ## speculatively, but it seems problematic for now.
+  return unless Meteor.isServer
+  Messages.update id,
+    $pull: editing: username
+  unless Messages.findOne(id).editing?.length  ## removed last editor
+    Meteor.clearTimeout stopTimers[id]
+    editor2messageUpdate id, [username]
+    ShareJS.model.delete id
+  ## If this user was involved in the last edit to this message,
+  ## mark it as "finished" version for the user.
+  finishLastDiff id, [username]
+
 if Meteor.isServer
   editorTimers = {}
   stopTimers = {}
@@ -1078,7 +1209,10 @@ Meteor.methods
     unless canPost group, parent, user
       throw new Meteor.Error 'messageNew.unauthorized',
         "Insufficient permissions to post new message in group '#{group}' under parent '#{parent}'"
-    root = findMessageRoot parent
+    if parent and not pmsg = findMessage parent
+      throw new Meteor.Error 'messageNew.noParent',
+        "Attempt to post child message of invalid message '#{parent}'"
+    root = findMessageRoot pmsg
     checkPrivacy message.private, root, user
     unless message.private?
       ## If root says private only, default is to be private.
@@ -1086,11 +1220,18 @@ Meteor.methods
       if root?.threadPrivacy? and 'public' not in root.threadPrivacy
         message.private = true
       else if parent?
-        pmsg = Messages.findOne parent
         message.private = pmsg.private if pmsg.private?
       ## Old default: public if available, private otherwise
       #if root?.threadPrivacy? and 'public' not in root.threadPrivacy
       #  message.private = true
+    ## "Reply All" behavior: Initial access for a private message
+    ## includes all coauthors and access of parent message,
+    ## except for the actual author of this message which isn't needed.
+    if message.private
+      message.access = _.clone pmsg.coauthors
+      for username in pmsg.access ? []
+        message.access.push username unless username in message.access
+      message.access = _.without message.access, user.username
     now = new Date
     message.group = group
     ## Default content.
@@ -1104,13 +1245,14 @@ Meteor.methods
     if message.published == true
       message.published = now
     message.deleted = false unless message.deleted?
+    message.coauthors = [user.username]
     ## Content specific to Messages, not MessagesDiff
     diff = _.clone message
     message.creator = user.username
     message.created = now
     message.authors =
       "#{escapeUser user.username}": now
-    #message.parent: parent         ## use children, not parent
+    #message.parent = parent         ## use children, not parent
     message.children = []
     ## Speed up _messageParent by presetting root
     if parent?
@@ -1160,7 +1302,7 @@ Meteor.methods
     ##
     ## Notably, disabling `oldParent` setting and `importing` options of
     ## `_messageParent` are not allowed from client, only internal to server.
-    check Meteor.userId(), String  ## should be done by 'canEdit'
+    check Meteor.userId(), String
     check parent, Match.OneOf String, null
     if parent?
       check position, Match.Maybe Number
@@ -1170,7 +1312,7 @@ Meteor.methods
     _messageParent child, parent, position
 
   messageEditStart: (id) ->
-    #check Meteor.userId(), String  ## should be done by 'canEdit'
+    check Meteor.userId(), String
     return if @isSimulation
     unless canEdit id
       throw new Meteor.Error 'messageEditStart.unauthorized',
@@ -1189,21 +1331,7 @@ Meteor.methods
       $addToSet: editing: Meteor.user().username
 
   messageEditStop: (id) ->
-    ## When updating this method, you might also want to update the "extreme"
-    ## form in `updateStopTimer` above.
-    check Meteor.userId(), String
-    if Meteor.isServer
-      ## We used to do the following update in client too, to do
-      ## speculatively, but it seems problematic for now.
-      Messages.update id,
-        $pull: editing: Meteor.user().username
-      unless Messages.findOne(id).editing?.length  ## removed last editor
-        Meteor.clearTimeout stopTimers[id]
-        editor2messageUpdate id, [Meteor.user().username]
-        ShareJS.model.delete id
-      ## If this user was involved in the last edit to this mesage,
-      ## mark it as "finished" version for the user.
-      finishLastDiff id, [Meteor.user().username]
+    _messageEditStop id
 
   messageImport: (group, parent, message, diffs) ->
     #check Meteor.userId(), String  ## should be done by 'canImport'
@@ -1224,6 +1352,7 @@ Meteor.methods
       creator: Match.Optional String
       created: Match.Optional Date
       #updated and updators added automatically from last diff
+      coauthors: Match.Optional [String]
     ## Default content.
     message.title = "" unless message.title?
     message.body = "" unless message.body?
@@ -1240,6 +1369,7 @@ Meteor.methods
       #minimized: Match.Optional Boolean
       updated: Match.Optional Date
       updators: Match.Optional [String]
+      coauthors: Match.Optional [String]
       published: Match.Optional Match.OneOf Date, Boolean
     ]
     unless canImport group
@@ -1254,7 +1384,7 @@ Meteor.methods
     message.group = group
     message.children = []
     message.updated = diffs[diffs.length-1].updated
-    message.updators = diffs[diffs.length-1].updaors
+    message.updators = diffs[diffs.length-1].updators
     message.importer = me
     message.imported = now
     ## Automatically set 'authors' to have the latest update for each author.
@@ -1263,6 +1393,9 @@ Meteor.methods
       for author in diff.updators
         message.authors[author] = diff.updated
     diff?.finished = diff.updators  ## last diff gets "finished" flag
+    ## If caller doesn't bother setting coauthors, extrapolate from authors:
+    message.coauthors ?= _.keys message.authors
+    diff[0].coauthors ?= message.coauthors
     #if parent?
     #  pmsg = Messages.findOne parent
     #  message.root = pmsg.root ? parent
@@ -1430,3 +1563,36 @@ Meteor.methods
   neighbors.prev = messages[index-1] if index > 0
   neighbors.next = messages[index+1] if index < messages.length - 1
   neighbors
+
+## Given a message object, fetch all diffs for that message and construct the
+## entire sequence history of message objects over time,
+## coalescing diffs via the implicit $set of each diff.
+## Includes recomputation of `authors` map along the timeline
+## and inheritance of `creator` and `created` from the message object
+## (despite that not being stored explicitly in diffs).
+## Each new message object has `_id` equal to the message's `_id`,
+## and an extra `diffId` key for the diff's `_id` field.
+@messageDiffsExpanded = (message) ->
+  message = findMessage message
+  diffs = MessagesDiff.find
+    id: message._id
+  ,
+    sort: ['updated']
+  .fetch()
+  ## Accumulate diffs
+  for diff, i in diffs
+    diff.diffId = diff._id
+    diff._id = message._id
+    if i == 0  # first diff
+      diff.creator = message.creator
+      diff.created = message.created
+      diff.authors = {}
+    else  # later diff
+      diff.authors = _.extend {}, diffs[i-1].authors  # avoid aliasing
+      ## Inherit all previous keys except 'finished'
+      for own key, value of diffs[i-1] when key != 'finished'
+        unless key of diff
+          diff[key] = value
+    for author in diff.updators ? []
+      diff.authors[escapeUser author] = diff.updated
+  diffs

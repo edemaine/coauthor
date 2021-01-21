@@ -1,7 +1,7 @@
 import React, {useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react'
+import Dropdown from 'react-bootstrap/Dropdown'
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger'
 import Tooltip from 'react-bootstrap/Tooltip'
-import Dropdown from 'react-bootstrap/Dropdown'
 import {useTracker} from 'meteor/react-meteor-data'
 import Blaze from 'meteor/gadicc:blaze-react-component'
 import useEventListener from '@use-it/event-listener'
@@ -13,6 +13,7 @@ import {MessageImage, imageTransform} from './MessageImage'
 import {MessagePDF} from './MessagePDF'
 import {TagList} from './TagList'
 import {TextTooltip} from './lib/tooltip'
+import {UserInput} from './UserInput'
 import {UserLink} from './UserLink'
 import {resolveTheme} from './theme'
 
@@ -256,7 +257,7 @@ Message = React.memo ({message}) ->
         {if authors.length
           <>
             <p>
-              <b>Authors of visible messages in this thread:</b>
+              <b>Coauthors of visible messages in this thread:</b>
             </p>
             <p>{authors}</p>
           </>
@@ -767,26 +768,53 @@ MessageEditor_ = React.memo ({messageID, setEditor, tabindex}) ->
 MessageEditor.displayName = 'MessageEditor'
 
 BelowEditor = React.memo ({message, preview, safeToStopEditing, editStopping}) ->
-  otherEditors = useTracker ->
-    others = _.without message.editing, Meteor.user()?.username
-    if others.length > 0
-      count = 0
-      <span className="otherEditors">
-        {' Editing with '}
-        {for other in others
-          <React.Fragment key={other}>
-            {', ' if count++}
-            <UserLink group={message.group} username={other}/>
-          </React.Fragment>
-        }
-        {'.'}
-      </span>
-  , [message.editing?.join(','), message.group]
+  myUsername = useTracker ->
+    Meteor.user()?.username
+  , []
+  coauthorMap = useTracker ->
+    map = {}
+    for coauthor in message.coauthors
+      map[coauthor] =
+        canRemove: canCoauthorsMod message, $pull: [coauthor]
+    map
+  , [message.coauthors.join ' ']
+  #newEditors = useTracker ->
+  #  editor for editor in message.editing when editor not of coauthorMap
+  #, [message.editing?.join(' '), coauthorMap]
+  showAccess = message.access?.length or message.private
+  mentions = useTracker ->
+    atMentions message if showAccess
+  , [showAccess, message.title, message.body]
+  suggestions = useMemo ->
+    return unless showAccess
+    map = {}
+    map[username] = true for username in mentions
+    delete map[username] for username in message.coauthors
+    delete map[username] for username in message.access ? []
+    _.keys map
+  , [showAccess, mentions, message.coauthors, message.access]
   changedHeight = useTracker ->
     height = messagePreviewGet(message._id).height
     height? and height != (Meteor.user()?.profile?.preview?.height ? defaultHeight)
   , [message._id]
 
+  onAddCoauthor = (coauthor) ->
+    Meteor.call 'messageUpdate', message._id,
+      coauthors: $addToSet: [coauthor.username]
+  onRemoveCoauthor = (e) ->
+    e.preventDefault()
+    Meteor.call 'messageUpdate', message._id,
+      coauthors: $pull: [e.target.dataset.username]
+  onAddAccess = (user) ->
+    Meteor.call 'messageUpdate', message._id,
+      access: $addToSet: [user.username]
+  onAddAccessButton = (e) ->
+    Meteor.call 'messageUpdate', message._id,
+      access: $addToSet: [e.target.dataset.username]
+  onRemoveAccess = (e) ->
+    e.preventDefault()
+    Meteor.call 'messageUpdate', message._id,
+      access: $pull: [e.target.dataset.username]
   onTogglePreview = (e) ->
     e.preventDefault()
     e.stopPropagation()
@@ -835,23 +863,105 @@ BelowEditor = React.memo ({message, preview, safeToStopEditing, editStopping}) -
           <button className="btn btn-default togglePreview" onClick={onTogglePreview}>Preview</button>
         }
       </div>
-      {if safeToStopEditing
-        <div className="alert alert-success save-alert">
-          All changes saved.
-          {otherEditors}
-        </div>
-      else
-        if editStopping
-          <div className="alert alert-danger save-alert">
-            Unsaved changes. Stopping editing once saved...
-            {otherEditors}
-          </div>
+      <div className="alert alert-#{if safeToStopEditing then 'success' else 'danger'} below-editor-alert">
+        {if safeToStopEditing
+          'All changes saved.'
+        else if editStopping
+          'Unsaved changes. Stopping editing once saved...'
         else
-          <div className="alert alert-danger save-alert">
-            Unsaved changes. Saving...
-            {otherEditors}
+          'Unsaved changes. Saving...'
+        }
+        {
+          others = _.without message.editing, myUsername
+          if others.length
+            count = 0
+            <span className="otherEditors">
+              {' Editing with '}
+              {for other in others
+                <React.Fragment key={other}>
+                  {', ' if count++}
+                  <UserLink group={message.group} username={other}/>
+                </React.Fragment>
+              }
+              {'.'}
+            </span>
+        }
+      </div>
+      <div className="alert alert-info below-editor-alert coauthors-alert">
+        <span className="upper-strut">&#8203;</span>
+        <TextTooltip title="List everyone who worked on this message or its ideas, who might be considered a coauthor on an eventual paper about it. Better to overlist than underlist, so that no one's contributions are forgotten; you can always review and remove a coauthor (including yourself) later. Coauthors can always access the message and help write, even at the same time. Editing a message automatically adds you as a coauthor.">
+          <span className="text-help">Coauthors:</span>
+        </TextTooltip>
+        {' '}
+        {
+        count = 0
+        for coauthor in message.coauthors #.concat newEditors
+          <React.Fragment key={coauthor}>
+            {', ' if count++}
+            <UserLink group={message.group} username={coauthor}
+             subtitle={messageAuthorSubtitle message, coauthor}/>
+            {if coauthorMap[coauthor]?.canRemove and message.coauthors.length > 1
+              <>
+                {' '}
+                <a href="#" onClick={onRemoveCoauthor} className="removeCoauthor">
+                  <span className="fas fa-times-circle danger-close"
+                  aria-label="Remove" data-username={coauthor}/>
+                </a>
+              </>
+            }
+          </React.Fragment>
+        }
+        {', ' if count}
+        <UserInput group={message.group} omit={coauthorMap}
+         placeholder="who're you working with?" onSelect={onAddCoauthor}/>
+        {if showAccess
+          <div className="access">
+            <TextTooltip title="List anyone you want to read your private message and (by default) all its replies, or remove anyone you don't want to see this message. No need to list coauthors here: they can always access the message, even if it's deleted or unpublished.">
+              <span className="text-help">
+                Additional access
+                {" if undeleted" if message.deleted}
+                {" and" if message.deleted and not message.published}
+                {" once published" unless message.published}
+                :
+              </span>
+            </TextTooltip>
+            {' '}
+            {
+            count = 0
+            for user in message.access ? []
+              <React.Fragment key={user}>
+                {', ' if count++}
+                <UserLink group={message.group} username={user}/>
+                {if true
+                  <>
+                    {' '}
+                    <a href="#" onClick={onRemoveAccess}
+                     className="removeAccess">
+                      <span className="fas fa-times-circle danger-close"
+                      aria-label="Remove" data-username={user}/>
+                    </a>
+                  </>
+                }
+              </React.Fragment>
+            }
+            {', ' if count}
+            <UserInput group={message.group} omit={coauthorMap}
+             placeholder="add user access" onSelect={onAddAccess}/>
+            {for suggestion in suggestions
+              <React.Fragment key={suggestion}>
+                {', '}
+                <TextTooltip title="This user is @mentioned but doesn't have explicit access. Did you mean to list them? Click if so!">
+                  <button className="btn btn-warning btn-sm"
+                   data-username={suggestion} onClick={onAddAccessButton}>
+                    <span className="fas fa-plus" aria-hidden="true"/>
+                    {' ' + suggestion}
+                  </button>
+                </TextTooltip>
+              </React.Fragment>
+            }
           </div>
-      }
+        }
+      </div>
     </div>
     <div className="resizer" onMouseDown={onResizer}/>
   </>
@@ -979,26 +1089,7 @@ MessageHistory = React.memo ({message}) ->
         Slider = imported.default
         Session.set 'SliderLoading', false
     previous = messageHistory.get(message._id)?.diffId
-    diffs = MessagesDiff.find
-      id: message._id
-    ,
-      sort: ['updated']
-    .fetch()
-    ## Accumulate diffs
-    for diff, i in diffs
-      diff.diffId = diff._id
-      diff._id = message._id
-      if i == 0  # first diff
-        diff.creator = message.creator
-        diff.created = message.created
-        diff.authors = {}
-      else  # later diff
-        diff.authors = _.extend {}, diffs[i-1].authors  # avoid aliasing
-        for own key, value of diffs[i-1] when key != 'finished'
-          unless key of diff
-            diff[key] = value
-      for author in diff.updators ? []
-        diff.authors[escapeUser author] = diff.updated
+    diffs = messageDiffsExpanded message
     ## Restrict to finished diffs if requested, preserving last chosen diff
     index = -1
     unless messageHistoryAll.get message._id
@@ -1198,9 +1289,6 @@ export uploaderProps = (callback, inputRef) ->
       callback e.target.files, e
       e.target.value = ''
 
-canPublicReply = (message) -> 'public' in (message.threadPrivacy ? ['public'])
-canPrivateReply = (message) -> 'private' in (message.threadPrivacy ? ['public'])
-
 ReplyButtons = React.memo ({message, prefix}) ->
   attachInput = useRef()
 
@@ -1245,13 +1333,42 @@ ReplyButtons = React.memo ({message, prefix}) ->
       Files.resumable.addFile file, e
   {buttonProps, inputProps} = uploaderProps attachFiles, attachInput
 
-  privateReply = canPrivateReply message
+  threadPrivacy = message.threadPrivacy ? ['public']
+  publicReply = 'public' in threadPrivacy
+  privateReply = 'private' in threadPrivacy
+
   <div className="btn-group pull-right message-reply-buttons">
-    {if canPublicReply message
-      <button className="btn btn-default replyButton" data-privacy={if privateReply then "public"} onClick={onReply}>{prefix}{if privateReply then 'Public '}Reply</button>
-    }
-    {if privateReply
-      <button className="btn btn-default replyButton" data-privacy="private" onClick={onReply}>{prefix}Private Reply</button>
+    {if publicReply and not privateReply
+      # normal reply, not necessarily public
+      if message.private
+        <TextTooltip placement="bottom" title="A reply to a private message will be private but automatically start accessible to the same users (once they are published and not deleted). You can modify that access when editing the reply. Access does not stay synchronized, so if you later modify the parent's access, consider modifying the child too.">
+          <button className="btn btn-default replyButton" onClick={onReply}>
+            {prefix}
+            Reply All
+          </button>
+        </TextTooltip>
+      else
+        <button className="btn btn-default replyButton" onClick={onReply}>
+          {prefix}
+          Reply
+        </button>
+    else
+      <>
+        {if publicReply
+          <button className="btn btn-default replyButton"
+           data-privacy="public" onClick={onReply}>
+            {prefix}
+            Public Reply
+          </button>
+        }
+        {if privateReply
+          <button className="btn btn-default replyButton"
+           data-privacy="private" onClick={onReply}>
+            {prefix}
+            Private Reply
+          </button>
+        }
+      </>
     }
     <input className="attachInput" type="file" multiple ref={attachInput} {...inputProps}/>
     <button className="btn btn-default attachButton" {...buttonProps}>Attach</button>
@@ -1727,8 +1844,8 @@ WrappedSubmessage = React.memo ({message, read}) ->
       allUsernames()
     , []
     useLayoutEffect ->
-      authors = (unescapeUser author for author of message.authors)
-      for author in authors
+      authors = message.coauthors
+      for author in message.coauthors
         threadAuthors[author] ?= 0
         threadAuthors[author] += 1
       Session.set 'threadAuthors', threadAuthors
@@ -1742,7 +1859,7 @@ WrappedSubmessage = React.memo ({message, read}) ->
         Session.set 'threadAuthors', threadAuthors
         threadMentions[author] -= 1 for author in mentions
         Session.set 'threadMentions', threadMentions
-    , [(key for key of message.authors).join('@'), message.title, message.body, usernames]
+    , [message.coauthors.join(' '), message.title, message.body, usernames]
 
     ## One-time effects
     useEffect ->
@@ -2143,7 +2260,7 @@ WrappedSubmessage = React.memo ({message, read}) ->
           <BelowEditor message={message} preview={preview} safeToStopEditing={safeToStopEditing} editStopping={editStopping}/>
         }
         <div className="message-footer">
-          <MessageAuthor message={historified}/>
+          <MessageAuthor message={historified} also={history?}/>
           <div className="message-response-buttons clearfix hidden-print">
             {if editing
               <div className="btn-group pull-right">
@@ -2199,6 +2316,10 @@ WrappedSubmessage = React.memo ({message, read}) ->
 WrappedSubmessage.displayName = 'WrappedSubmessage'
 
 MessageActions = React.memo ({message, can, editing, tabindex0}) ->
+  myUsername = useTracker ->
+    Meteor.user()?.username
+  , []
+
   onPublish = (e) ->
     e.preventDefault()
     ## Stop editing if we are publishing.
@@ -2236,8 +2357,20 @@ MessageActions = React.memo ({message, can, editing, tabindex0}) ->
       child: message
       oldParent: oldParent
       oldIndex: oldIndex
+  onCoauthor = (e) ->
+    e.preventDefault()
+    ###
+    if myUsername in message.coauthors
+      Meteor.call 'messageUpdate', message._id,
+        coauthors: $pull: [myUsername]
+        finished: true
+    else
+    ###
+    Meteor.call 'messageUpdate', message._id,
+      coauthors: $addToSet: [myUsername]
+      finished: true
 
-  return null unless can.delete or can.undelete or can.publish or can.unpublish or can.superdelete or can.private
+  return null unless can.minimize or can.unminimize or can.delete or can.undelete or can.publish or can.unpublish or can.superdelete or can.private
   <Dropdown className="btn-group">
     <Dropdown.Toggle variant="info" tabIndex={tabindex0+4}>
       {"Action "}
@@ -2316,34 +2449,83 @@ MessageActions = React.memo ({message, can, editing, tabindex0}) ->
           </Dropdown.Item>
         </li>
       }
+      {if can.edit and myUsername not in message.coauthors
+        <li>
+          <Dropdown.Item className="coauthorButton" href="#">
+            <TextTooltip placement="left" title="Add yourself as a coauthor to this message, indicating that you contributed to its content or ideas. Edit the message for more details and control.">
+              <button className="btn btn-info btn-block" onClick={onCoauthor}>Coauthor</button>
+            </TextTooltip>
+          </Dropdown.Item>
+        </li>
+      }
+      {###
+      if can.edit and myUsername in message.coauthors and (message.coauthors.length > 1 or message.coauthors[0] != myUsername)
+        <li>
+          <Dropdown.Item className="coauthorButton" href="#">
+            <button className="btn btn-danger btn-block" onClick={onCoauthor}>Uncoauthor</button>
+          </Dropdown.Item>
+        </li>
+      ###}
     </Dropdown.Menu>
   </Dropdown>
 
-MessageAuthor = React.memo ({message}) ->
+messageAuthorSubtitle = (message, author) -> ->
+  if updated = message.authors[author]
+    (if message.creator == author
+      "Created this message and last edited "
+    else
+      "Last edited this message "
+    ) + formatDate updated, 'on '
+  else
+    "No explicit edit to this message"
+
+MessageAuthor = React.memo ({message, also}) ->
+  if also
+    also = _.clone message.authors
   count = 0
-  edits =
-    for author, date of message.authors
-      author = unescapeUser author
-      continue if author == message.creator and date.getTime() == message.created?.getTime()
+  <div className="author text-right">
+    {'(by '}
+    {for author in message.coauthors
+      delete also[author] if also
       <React.Fragment key={author}>
         {', ' if count++}
-        <UserLink group={message.group} username={author}/>
-        {' '}
-        <FormatDate date={date} prefix={'on '}/>
+        <UserLink group={message.group} username={author}
+         subtitle={messageAuthorSubtitle message, author}/>
       </React.Fragment>
-  <div className="author text-right">
+    }
+    {if also and not _.isEmpty also
+      for author, updated of also
+        <React.Fragment key={author}>
+          {', ' if count++}
+          (<UserLink group={message.group} username={author}
+           subtitle={-> "Edited this message #{formatDate updated, 'on '} but no longer a coauthor"}/>)
+        </React.Fragment>
+    }
+    {if message.access?.length and message.published and not message.deleted
+      count = 0
+      <>
+        {'; access to '}
+        {for user in message.access
+          <React.Fragment key={user}>
+            {', ' if count++}
+            <UserLink group={message.group} username={user}
+             subtitle="On explicit access list"/>
+          </React.Fragment>
+        }
+      </>
+    }
     {if message.published
-      '(posted by '
+      '; posted '
     else
-      '(created by '
+      '; created '
     }
-    <UserLink group={message.group} username={message.creator}/>
-    {' '}
-    <FormatDate date={message.published or message.created} prefix={'on '}/>
-    {if edits.length
-      ', edited by '
+    <FormatDate date={message.published or message.created}/>
+    {unless (message.published or message.created) == message.updated
+      <>
+        {'; last updated '}
+        <FormatDate date={message.updated}/>
+      </>
     }
-    {edits}
     {')'}
   </div>
 MessageAuthor.displayName = 'MessageAuthor'

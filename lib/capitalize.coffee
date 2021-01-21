@@ -7,4 +7,4 @@
   else
     x.charAt(0).toUpperCase() + x.slice(1).toLowerCase()
 
-Template.registerHelper 'capitalize', capitalize
+Template?.registerHelper 'capitalize', capitalize

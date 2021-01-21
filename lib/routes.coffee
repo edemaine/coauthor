@@ -38,12 +38,12 @@ Router.route '/:group/m/:message',
     ]
     ## Wild message links will get redirected to the proper group; wait on that
     unless @params.group == wildGroup
-      subs.push [
+      subs.push ...[
         Subscribe.subscribe 'messages.root', @params.group
         Subscribe.subscribe 'groups.members', @params.group
         Subscribe.subscribe 'tags', @params.group
         Subscribe.subscribe 'files', @params.group
-      ]...
+      ]
     subs
   data: ->
     _id: @params.message
@@ -115,6 +115,7 @@ Router.route '/:group/since/:since?',
   name: 'since'
   subscriptions: -> [
     Subscribe.subscribe 'messages.since', @params.group, (@params.since ? defaultSince)
+    Subscribe.subscribe 'messages.root', @params.group unless @params.group == wildGroup
     Subscribe.subscribe 'groups.members', @params.group
     Subscribe.subscribe 'tags', @params.group
     Subscribe.subscribe 'files', @params.group
@@ -130,6 +131,7 @@ Router.route '/:group/live/:limit?',
   name: 'live'
   subscriptions: -> [
     Subscribe.subscribe 'messages.live', @params.group, (@params.limit ? defaultLiveLimit)
+    Subscribe.subscribe 'messages.root', @params.group unless @params.group == wildGroup
     Subscribe.subscribe 'groups.members', @params.group
     Subscribe.subscribe 'tags', @params.group
     Subscribe.subscribe 'files', @params.group
@@ -143,6 +145,7 @@ Router.route '/:group/author/:author',
   name: 'author'
   subscriptions: -> [
     Subscribe.subscribe 'messages.author', @params.group, @params.author
+    Subscribe.subscribe 'messages.root', @params.group unless @params.group == wildGroup
     Subscribe.subscribe 'groups.members', @params.group
     Subscribe.subscribe 'tags', @params.group
     Subscribe.subscribe 'files', @params.group
@@ -155,6 +158,7 @@ Router.route '/:group/author/:author',
 #Router.route '/:group/tag/:tag',
 #  name: 'tag'
 #  subscriptions: -> [
+#    Subscribe.subscribe 'messages.root', @params.group
 #    Subscribe.subscribe 'messages.tag', @params.group, @params.tag
 #    Subscribe.subscribe 'groups.members', @params.group
 #    Subscribe.subscribe 'files', @params.group
@@ -185,6 +189,7 @@ Router.route '/:group/search/:search([^]*)',
   name: 'search'
   subscriptions: -> [
     Subscribe.subscribe 'messages.search', @params.group, @params.search
+    Subscribe.subscribe 'messages.root', @params.group unless @params.group == wildGroup
     Subscribe.subscribe 'groups.members', @params.group
     Subscribe.subscribe 'tags', @params.group
     Subscribe.subscribe 'files', @params.group
@@ -198,7 +203,7 @@ Router.route '/:group/users',
   name: 'users'
   subscriptions: -> [
     Subscribe.subscribe 'users', @params.group
-    Subscribe.subscribe 'messages.root', @params.group  ## for title link
+    Subscribe.subscribe 'messages.root', @params.group unless @params.group == wildGroup  ## for title links
   ]
   data: ->
     group: @params.group
@@ -209,7 +214,7 @@ Router.route '/:group/users/:message',
   template: 'users'
   subscriptions: -> [
     Subscribe.subscribe 'users', @params.group
-    Subscribe.subscribe 'messages.root', @params.group  ## for partial access links
+    Subscribe.subscribe 'messages.root', @params.group unless @params.group == wildGroup  ## for title links
   ]
   data: ->
     group: @params.group

@@ -47,6 +47,7 @@ export UserLink = React.memo ({user, username, group, title, subtitle, prefix, p
         </>
       }
       {if subtitle?
+        subtitle = subtitle() if subtitle instanceof Function
         <>
           <hr/>
           {subtitle}

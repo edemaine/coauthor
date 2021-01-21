@@ -96,4 +96,25 @@ unless MessagesDiff.findOne finished: $exists: true
 #    .fetch()
 #    console.log olds
 
+## Upgrade to `coauthors` access control, previously achieved via
+## `authors` (which tracks actual edits in history and still grants authorship
+## by default, but now coauthorship can be revoked in case of error) and
+## @mentions (which used to grant authorship, but now for addressing people).
+## See https://github.com/edemaine/coauthor/issues/503
+usernames = null
+Messages.find
+  coauthors: $exists: false
+.forEach (message) ->
+  usernames ?= allUsernames()  # load just once
+  for diff in messageDiffsExpanded message
+    coauthors = (author for author of diff.authors)
+    coauthors.push ...(atMentions diff, usernames)
+    coauthors = _.uniq coauthors
+    unless _.isEqual coauthors, lastCoauthors
+      MessagesDiff.update diff.diffId,
+        $set: coauthors: coauthors
+    lastCoauthors = coauthors
+  Messages.update message._id,
+    $set: coauthors: coauthors
+
 console.log 'Upgraded database as necessary.'
