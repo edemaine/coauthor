@@ -25,7 +25,7 @@ export WrappedUserInput = React.memo ({group, omit, placeholder, onSelect}) ->
   , []
   sorted = useMemo ->
     if omit?
-      omitted = (user for user in users when user.username not of omit)
+      omitted = (user for user in users when not omit user)
     else
       omitted = users
     _.sortBy omitted, userSortKey

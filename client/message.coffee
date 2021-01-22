@@ -782,17 +782,22 @@ BelowEditor = React.memo ({message, preview, safeToStopEditing, editStopping}) -
   #  editor for editor in message.editing when editor not of coauthorMap
   #, [message.editing?.join(' '), coauthorMap]
   showAccess = message.access?.length or message.private
+  accessMap = useMemo ->
+    map = {}
+    map[username] = true for username in message.access ? []
+    map
+  , [message.access?.join ' ']
   mentions = useTracker ->
     atMentions message if showAccess
   , [showAccess, message.title, message.body]
   suggestions = useMemo ->
     return unless showAccess
     map = {}
-    map[username] = true for username in mentions
-    delete map[username] for username in message.coauthors
-    delete map[username] for username in message.access ? []
+    for username in mentions
+      unless username of coauthorMap or username of accessMap
+        map[username] = true
     _.keys map
-  , [showAccess, mentions, message.coauthors, message.access]
+  , [showAccess, mentions, coauthorMap, accessMap]
   changedHeight = useTracker ->
     height = messagePreviewGet(message._id).height
     height? and height != (Meteor.user()?.profile?.preview?.height ? defaultHeight)
@@ -912,7 +917,8 @@ BelowEditor = React.memo ({message, preview, safeToStopEditing, editStopping}) -
           </React.Fragment>
         }
         {', ' if count}
-        <UserInput group={message.group} omit={coauthorMap}
+        <UserInput group={message.group}
+         omit={(user) -> user.username of coauthorMap}
          placeholder="who're you working with?" onSelect={onAddCoauthor}/>
         {if showAccess
           <div className="access">
@@ -945,7 +951,9 @@ BelowEditor = React.memo ({message, preview, safeToStopEditing, editStopping}) -
               </React.Fragment>
             }
             {', ' if count}
-            <UserInput group={message.group} omit={coauthorMap}
+            <UserInput group={message.group}
+             omit={(user) -> user.username of coauthorMap or
+                             user.username of accessMap}
              placeholder="add user access" onSelect={onAddAccess}/>
             {for suggestion in suggestions
               <React.Fragment key={suggestion}>
