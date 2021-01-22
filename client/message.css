@@ -133,7 +133,6 @@ img { image-orientation: none; } /* we do manual EXIF rotation */
 
 .panel-secondbody { margin-top: -10px; padding-top: 0px; padding-bottom: 10px; }
 
-nav.contents { overflow-y: scroll; padding-bottom: 5px; }
 .contents > li > a { padding: 5px 5px; }
 .subcontents > li > a { font-size: small; padding: 5px 10px; }
 /* Purples based on #563d7c from Bootstrap docs */
@@ -150,7 +149,6 @@ nav.contents { overflow-y: scroll; padding-bottom: 5px; }
 .dark .contents li > a.unpublished { color: #f0ad4e; }
 .dark .contents li > a.minimized { color: #5cb85c; }
 .contents li.folded li > a { opacity: 0.7; }
-.affix { top: 0px; }
 
 code.raw, pre { white-space: pre-wrap; }
 /* line-height normal to make box drawing look right */

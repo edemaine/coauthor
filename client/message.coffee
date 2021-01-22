@@ -1,4 +1,4 @@
-import React, {useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react'
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react'
 import Dropdown from 'react-bootstrap/Dropdown'
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger'
 import Tooltip from 'react-bootstrap/Tooltip'
@@ -249,8 +249,20 @@ Message = React.memo ({message}) ->
     )
   , [message._id, message.group]
 
+  ## Set sticky column height to remaining height of screen:
+  ## 100vh when stuck, and less when header is (partly) visible.
+  stickyRef = useRef()
+  stickyHeight = useCallback _.debounce(->
+    rect = stickyRef.current.getBoundingClientRect()
+    stickyRef.current.style.height = "calc(100vh - #{rect.y}px)" if rect.height
+    undefined
+  , 100), []
+  useEffect stickyHeight, []  # initialize
+  useEventListener 'resize', stickyHeight
+  useEventListener 'scroll', stickyHeight
+
   <div className="row">
-    <div className="col-md-9" role="main">
+    <div className="col-sm-9" role="main">
       <MaybeRootHeader message={message}/>
       <Submessage message={message}/>
       <div className="authors alert alert-info">
@@ -300,7 +312,8 @@ Message = React.memo ({message}) ->
       }
       <Credits/>
     </div>
-    <div className="col-md-3 hidden-print hidden-xs hidden-sm" role="complementary">
+    <div className="col-sm-3 hidden-print hidden-xs sticky-top"
+     role="complementary" ref={stickyRef}>
       <TableOfContentsID messageID={message._id}/>
     </div>
   </div>
@@ -1410,11 +1423,6 @@ MessageReplace = React.memo ({_id, group, tabindex}) ->
   </>
 MessageReplace.displayName = 'MessageReplace'
 
-$(window).resize affixResize = _.debounce ->
-  $('.affix').height $(window).height()
-  $('.affix-top').height $(window).height() - $('#top').outerHeight true
-, 100
-
 TableOfContentsID = React.memo ({messageID, parent, index}) ->
   message = useTracker ->
     Messages.findOne messageID
@@ -1492,12 +1500,14 @@ WrappedTableOfContents = React.memo ({message, parent, index}) ->
       return unless ref.current?
       $('body').scrollspy
         target: 'nav.contents'
+				###
       nav = $(ref.current)
       nav.affix
         offset: top: $('#top').outerHeight true
       affixResize()
       nav.on 'affixed.bs.affix', affixResize
       nav.on 'affixed-top.bs.affix', affixResize
+			###
       undefined
     , []
 

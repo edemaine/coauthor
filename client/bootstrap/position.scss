@@ -1,0 +1,11 @@
+// Partial extract from Bootstrap 4 for eventual transition to that
+
+$zindex-sticky:                     1020 !default;
+
+.sticky-top {
+  @supports (position: sticky) {
+    position: sticky;
+    top: 0;
+    z-index: $zindex-sticky;
+  }
+}
