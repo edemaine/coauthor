@@ -21,7 +21,7 @@ import React from 'react'
   link = urlFor 'author',
     group: group
     author: username
-  link = """<a class="author" data-username="#{username}" href="#{link}" title="#{title.replace /"/g, '&#34;'}" data-toggle="tooltip">#{prefix or ''}#{displayUser user}</a>"""
+  link = """<a class="author" data-username="#{username}" href="#{link}" title="#{title.replace /"/g, '&#34;'}">#{prefix or ''}#{displayUser user}</a>"""
   if Meteor.isClient and
      Router.current()?.route?.getName() == 'author' and
      Router.current()?.params?.author == username

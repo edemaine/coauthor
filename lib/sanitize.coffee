@@ -161,7 +161,7 @@ sanitizeHtml.defaults.transformTags =
   htmlSanitized = sanitizeHtml html
   if Meteor.isClient and htmlSanitized != html
     unless sanitized.length
-      console.warn "Sanitized some messages' HTML; see global variable `sanitized` for details."
+      console.log "Sanitized some messages' HTML; see global variable `sanitized` for details."
     sanitized.push
       before: html
       after: htmlSanitized
