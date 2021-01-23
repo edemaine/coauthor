@@ -41,7 +41,7 @@ unescapeRegExp = (regex) ->
       continue
 
     ## Check for negation and/or leading commands followed by colon
-    colon = /^-?(?:(?:regex|title|body|tag|emoji|is):)*/.exec token[0]
+    colon = /^-?(?:(?:regex|title|body|tag|emoji|by|is):)*/.exec token[0]
     colon = colon[0]
     ## Remove quotes (which are just used for avoiding space parsing).
     if token[4]
@@ -147,6 +147,14 @@ unescapeRegExp = (regex) ->
             wants.push $or: emojis
         else
           console.warn "No emoji match query #{regex}" if Meteor.isClient
+      when 'by:'
+        token = token[1..] if token.startsWith '@'
+        regex = regexForWord token
+        continue unless regex?
+        if negate
+          wants.push coauthors: $not: regex
+        else
+          wants.push coauthors: regex
       when 'is:'
         switch token
           when 'root'
@@ -208,6 +216,9 @@ unescapeRegExp = (regex) ->
   query = parseSearch search, group
   if query?
     formatted = formatParsedSearch query, group
+    if /^(by|tagged) /.test formatted
+      formatted = "messages #{formatted}"
+    formatted
   else
     "invalid query '#{search}'"
 
@@ -294,9 +305,12 @@ formatParsedSearch = (query, group) ->
     else
       notted = _.isEqual ['$not'], _.keys value
       value = value.$not if notted
-      user = formatParsedSearch value
-      .replace /^“(.*)” whole-word$/, '$1' # simplify normal usernames
-      "#{if notted then 'no ' else ''}#{emoji} emoji by #{user}"
+      "#{if notted then 'no ' else ''}#{emoji} emoji by #{formatUserSearch value}"
+  else if _.isEqual keys, ['coauthors']
+    value = query[keys[0]]
+    notted = _.isEqual ['$not'], _.keys value
+    value = value.$not if notted
+    "#{if notted then 'not ' else ''}by #{formatUserSearch value}"
   else if _.isEqual keys, ['root']
     root = query.root
     prefix = ''
@@ -366,6 +380,10 @@ formatParsedSearch = (query, group) ->
     "“#{query}”"
   else
     JSON.stringify query
+
+formatUserSearch = (value) ->
+  formatParsedSearch value
+  .replace /^“(.*)” whole-word$/, '$1' # simplify normal usernames
 
 emojiLike = /^(no )?([\-\w]+) emoji(.*)$/
 checkAllEmoji = (parts, group) ->

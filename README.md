@@ -192,6 +192,8 @@ support, but it has proved useful in other fields too.
     to search for regular expressions with spaces in them; normally,
     spaces act as an AND query.
   * Connect words/phrases with `|` to get an OR query instead.
+  * `by:username` searches for messages coauthored by a specified username
+    (which can include `*`s or use regular expressions via `regex:`)
   * `tag:...` does an exact match for a specified tag; it can be negated.
   * `emoji:heart`, `emoji:thumbs-up`, `emoji:thumbs*`, `emoji:*` etc. search
     for messages with (certain) emoji symbol responses;
