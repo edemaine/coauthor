@@ -1109,7 +1109,7 @@ MessageHistory = React.memo ({message}) ->
       import('bootstrap-slider').then (imported) ->
         Slider = imported.default
         Session.set 'SliderLoading', false
-      return
+      return {}
     previous = messageHistory.get(message._id)?.diffId
     diffs = messageDiffsExpanded message
     ## Restrict to finished diffs if requested, preserving last chosen diff
