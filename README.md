@@ -178,25 +178,26 @@ support, but it has proved useful in other fields too.
 
 * **Search** across an entire group, or across all groups,
   for posts by keywords using the search bar at the top.
-  Search for a word as a (whole) `word`, `prefix*`, `*suffix`,
-  `*substring*`, or `prefix*suffix`.
-  Lower-case letters are case insensitive,
-  while upper-case letters are case sensitive.
-  Restrict search to title or body via `title:...` or `body:...`
-  (default is to search both).
-  Negative match with minus sign
-  (e.g., `-word` excludes documents with whole `word`).
-  Search for a regular expression via `regex:...`.
-  Use quotes (`'...'` or `"..."`) to search for phrases or `regex:"..."`
-  to search for regular expressions with spaces in them; normally,
-  spaces act as an AND query.
-  Connect words/phrases with `|` to get an OR query instead.
-  `tag:...` does an exact match for a specified tag; it can be negated.
-  `is:root` matches root messages (tops of threads).
-  `is:file` matches file messages (made via Attach).
-  `is:deleted`, `is:published`, `is:private`, `is:minimized` match various
-  states of messages.
-  `is:empty` matches empty messages (no title, body, or file).
+  * Search for a word as a whole `word` (default behavior), or specify
+    asterisks to search for partial word matches: `prefix*`, `*suffix`,
+    `*substring*`, or `prefix*suffix`.
+  * Lower-case letters are case insensitive,
+    while upper-case letters are case sensitive.
+  * Restrict search to title or body via `title:...` or `body:...`
+    (default is to search both).
+  * Negative match with minus sign
+    (e.g., `-word` excludes documents with whole `word`).
+  * Search for a regular expression via `regex:...`.
+  * Use quotes (`'...'` or `"..."`) to search for phrases or `regex:"..."`
+    to search for regular expressions with spaces in them; normally,
+    spaces act as an AND query.
+  * Connect words/phrases with `|` to get an OR query instead.
+  * `tag:...` does an exact match for a specified tag; it can be negated.
+  * `is:root` matches root messages (tops of threads).
+  * `is:file` matches file messages (made via Attach).
+  * `is:deleted`, `is:published`, `is:private`, `is:minimized`
+    match various states of messages.
+  * `is:empty` matches empty messages (no title, body, or file).
 
 * **User search**:
   find posts by a particular user by clicking on their username.

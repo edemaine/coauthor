@@ -1,32 +1,5 @@
 ###
-SEARCH LANGUAGE:
-
-* If you write a word, the default behavior is to search as a whole word
-  in message's title or body.
-* title:... matches in the title only
-* body:... matches in the body only
-* Use asterisks to search for partial words instead of full words:
-  * `word*` to search for prefix word
-  * `*word` to search for suffix word
-  * `*word*` to search for infix word
-  * `word*word` to search for words starting and ending in particular way, etc.
-* Lower-case letters are case insensitive,
-  while upper-case letters are case sensitive.
-* regex:... matches using a regular expression instead of a word.
-  Case sensitive.
-* Prefix any of the above with a minus (`-`) to negate the match.
-* Connecting queries via spaces does an implicit AND (like Google)
-* Connecting queries via `|` does an OR (like Google)
-* Use quotes ('...' or "...") to prevent this behavior.  For example,
-  search for "this phrase" or title:"this phrase" or regex:"this regex"
-  or title:regex:"this regex" or -title:"this phrase".
-* tag:... does an exact match for a specified tag.  It can be negated with -,
-  but does not behave specially with regex: or *s.
-* is:root matches root messages (tops of threads)
-* is:file matches file messages (resulting from Attach button)
-* is:deleted, is:published, is:private, is:minimized
-  match those statuses of messages
-* is:empty matches nonfile messages with no title or body
+Search language parsing and formatting, as documented in README.md.
 ###
 
 @escapeRegExp = (regex) ->
@@ -68,7 +41,7 @@ unescapeRegExp = (regex) ->
       continue
 
     ## Check for negation and/or leading commands followed by colon
-    colon = /^-?(?:(?:regex|title|body|tag|is):)*/.exec token[0]
+    colon = /^-?(?:(?:regex|title|body|tag|emoji|is):)*/.exec token[0]
     colon = colon[0]
     ## Remove quotes (which are just used for avoiding space parsing).
     if token[4]
