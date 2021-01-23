@@ -41,7 +41,7 @@ unescapeRegExp = (regex) ->
       continue
 
     ## Check for negation and/or leading commands followed by colon
-    colon = /^-?(?:(?:regex|title|body|tag|emoji|by|is):)*/.exec token[0]
+    colon = /^-?(?:(?:regex|title|body|tag|emoji|by|is|isnt|not):)*/.exec token[0]
     colon = colon[0]
     ## Remove quotes (which are just used for avoiding space parsing).
     if token[4]
@@ -155,7 +155,8 @@ unescapeRegExp = (regex) ->
           wants.push coauthors: $not: regex
         else
           wants.push coauthors: regex
-      when 'is:'
+      when 'is:', 'isnt:', 'not:'
+        negate = not negate if colon == 'isnt:' or colon == 'not:'
         switch token
           when 'root'
             if negate
