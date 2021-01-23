@@ -65,10 +65,19 @@
   color: #ad76fe
 .dark .negative
   color: #ff7a75
+
+bootstrap-3-button(bg-color) // based on mixins/buttons.less
+  background-color: bg-color
+  &:focus, &.focus, &:hover
+    background-color: darken(bg-color, 10%) // normally 10%
+  &:active, &.active
+    background-color: darken(bg-color, 10%) // normally 10%
+    &:focus, &.focus, &:hover
+      background-color: darken(bg-color, 17%) // normally 17%
 .my-emoji
-  background: hsl(60, 80%, 70%)
+	bootstrap-3-button hsl(60, 80%, 70%)
 .dark .my-emoji
-  background: hsl(60, 100%, 20%)
+  bootstrap-3-button hsl(60, 100%, 20%)
 
 // History
 
