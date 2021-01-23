@@ -1095,6 +1095,8 @@ Template.superdelete.events
     e.stopPropagation()
     Modal.hide()
 
+import 'bootstrap-slider/dist/css/bootstrap-slider.min.css'
+
 Slider = null  # will become default import of 'bootstrap-slider' NPM package
 MessageHistory = React.memo ({message}) ->
   ready = useTracker ->
@@ -1144,6 +1146,7 @@ MessageHistory = React.memo ({message}) ->
       reversed: diffs.length == 1  ## put one tick at far right
       tooltip: 'always'
       tooltip_position: 'bottom'
+      preventOverflow: true
       formatter: (i) ->
         if i of diffs
           formatDate(diffs[i].updated) + '\n' + diffs[i].updators.join ', '

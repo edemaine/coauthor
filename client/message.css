@@ -127,10 +127,6 @@ img { image-orientation: none; } /* we do manual EXIF rotation */
   .pdf > .annotations > a { display: none; }
 }
 
-.historySlider { margin-left: 25px; margin-right: 25px; margin-top: 5px; }
-  /* 15px to match panel + 10px for tick radius */
-.slider.slider-horizontal { width: 100%; }
-
 .panel-secondbody { margin-top: -10px; padding-top: 0px; padding-bottom: 10px; }
 
 .contents > li > a { padding: 5px 5px; }

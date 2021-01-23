@@ -26,7 +26,7 @@
     "@use-it/event-listener": "^0.1.6",
     "babel-runtime": "^6.26.0",
     "bootstrap": "^3.4.1",
-    "bootstrap-slider": "^10.6.2",
+    "bootstrap-slider": "git+https://github.com/edemaine/bootstrap-slider.git#preventOverflow-dist",
     "chart.js": "^2.9.4",
     "codemirror": "^5.58.3",
     "cookie": "^0.4.1",
