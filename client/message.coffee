@@ -1208,8 +1208,7 @@ ThreadPrivacy = React.memo ({message, tabindex}) ->
 
 EmojiButtons = React.memo ({message, can}) ->
   emojis = useTracker ->
-    Emoji.find group: $in: [wildGroup, message.group]
-    .fetch()
+    allEmoji message.group
   , [message.group]
   ## Variation of lib/emoji.coffee's `emojiReplies`:
   replies = useTracker ->

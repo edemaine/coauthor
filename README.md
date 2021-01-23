@@ -193,6 +193,12 @@ support, but it has proved useful in other fields too.
     spaces act as an AND query.
   * Connect words/phrases with `|` to get an OR query instead.
   * `tag:...` does an exact match for a specified tag; it can be negated.
+  * `emoji:heart`, `emoji:thumbs-up`, `emoji:thumbs*`, `emoji:*` etc. search
+    for messages with (certain) emoji symbol responses;
+    `emoji:@username` searches for messages with emoji response by
+    a specific user, defaulting to yourself
+    (`emoji:@` finds your own emoji responses);
+    or you can combine the two with e.g. `emoji:thumbs*@username`.
   * `is:root` matches root messages (tops of threads).
   * `is:file` matches file messages (made via Attach).
   * `is:deleted`, `is:published`, `is:private`, `is:minimized`

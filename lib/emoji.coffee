@@ -69,6 +69,15 @@ if Meteor.isServer
         @ready()
 ###
 
+@allEmoji = (group) ->
+  Emoji.find
+    group:
+      if group == wildGroup
+        wildGroup
+      else
+        $in: [wildGroup, group]
+  .fetch()
+
 ## Emoji message methods
 Meteor.methods
   emojiToggle: (msgId, symbol) ->

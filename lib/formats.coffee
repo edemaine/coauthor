@@ -754,7 +754,7 @@ postprocessKaTeX = (text, math, initialBold) ->
       out
 
 ## Search highlighting
-formatSearch = (isTitle, text) ->
+formatSearchHighlight = (isTitle, text) ->
   if Meteor.isClient and Router.current()?.route?.getName() == 'search' and
      (search = Router.current()?.params?.search)?
     recurse = (query) ->
@@ -812,7 +812,7 @@ formatEither = (isTitle, format, text, leaveTeX = false, bold = false) ->
   text = postprocessCoauthorLinks text
   text = postprocessLinks text
   text = postprocessAtMentions text
-  text = formatSearch isTitle, text
+  text = formatSearchHighlight isTitle, text
   sanitize text
 
 formatEitherSafe = (isTitle, format, text, leaveTeX = false, bold = false) ->

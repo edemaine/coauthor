@@ -27,7 +27,7 @@ realRegExp = (regex) ->
 unescapeRegExp = (regex) ->
   regex.replace /\\(.)/g, "$1"
 
-@parseSearch = (search) ->
+@parseSearch = (search, group) ->
   ## Quoted strings turn off separation by spaces.
   ## Last quoted strings doesn't have to be terminated.
   tokenRe = /(\s+)|((?:"[^"]*"|'[^']*'|[^'"\s|])+)('[^']*$|"[^"]*$)?|'([^']*)$|"([^"]*)$|([|])/g
@@ -50,43 +50,47 @@ unescapeRegExp = (regex) ->
       token = token[5]  ## unterminated initial "
     else
       token = (token[2].replace /"([^"]|\\")*"|'([^']|\\')*'/g, (match) ->
-        match.substring 1, match.length-1
-      ) + (token[3] ? '').substring 1
+        match[1...match.length-1]
+      ) + (token[3] ? '')[1..]
     ## Remove leading colon part if we found one.
     ## (Can't have had quotes or escapes.)
-    token = token.substring colon.length
-    continue unless token
+    token = token[colon.length..]
     ## Remove escapes.
     token = token.replace /\\([:'"\\])/g, '$1'
     ## Construct regex for token
-    if 0 <= colon.indexOf 'regex:'
-      regex = token
-      colon = colon.replace /regex:/g, ''
-    else if 0 > colon.indexOf 'is:'
-      starStart = token[0] == '*'
-      if starStart
-        token = token.substring 1
-        continue unless token
-      starEnd = token[token.length-1] == '*'
-      if starEnd
-        token = token.substring 0, token.length-1
-        continue unless token
-      regex = escapeRegExp token
-      ## Outside regex mode, lower-case letters are case-insensitive
-      regex = caseInsensitiveRegExp regex
-      regex = regex.replace /\\\*/g, '\\S*'  ## * was already escaped
-      if not starStart and regex.match /^[\[\w]/  ## a or [aA]
-        regex = "\\b#{regex}"
-      if not starEnd and regex.match /[\w\]]$/  ## a or [aA]
-        regex = "#{regex}\\b"
-    regex = new RegExp regex
+    regexMode = 0 <= colon.indexOf 'regex:'
+    colon = colon.replace /regex:/g, '' if regexMode
+    regexForWord = (word) ->
+      return unless word
+      if regexMode
+        regex = word
+      else
+        starStart = word[0] == '*'
+        if starStart
+          word = word[1..]
+          return unless word
+        starEnd = word[word.length-1] == '*'
+        if starEnd
+          word = word[0...word.length-1]
+          return unless word
+        regex = escapeRegExp word
+        ## Outside regex mode, lower-case letters are case-insensitive
+        regex = caseInsensitiveRegExp regex
+        regex = regex.replace /\\\*/g, '\\S*'  ## * was already escaped
+        if not starStart and regex.match /^[\[\w]/  ## a or [aA]
+          regex = "\\b#{regex}"
+        if not starEnd and regex.match /[\w\]]$/  ## a or [aA]
+          regex = "#{regex}\\b"
+      regex = new RegExp regex
     ## Check for negation
     negate = colon[0] == '-'
     if negate
-      colon = colon.substring 1
+      colon = colon[1..]
     ## Colon commands
     switch colon
       when ''
+        regex = regexForWord token
+        continue unless regex?
         if negate
           wants.push title: $not: regex
           wants.push body: $not: regex
@@ -97,17 +101,52 @@ unescapeRegExp = (regex) ->
             body: regex
           ]
       when 'title:'
+        regex = regexForWord token
+        continue unless regex?
         if negate
           wants.push title: $not: regex
         else
           wants.push title: regex
       when 'body:'
+        regex = regexForWord token
+        continue unless regex?
         if negate
           wants.push body: $not: regex
         else
           wants.push body: regex
       when 'tag:'
         wants.push "tags.#{escapeTag token}": $exists: not negate
+      when 'emoji:'
+        if 0 <= atIndex = token.indexOf '@'
+          username = regexForWord token[atIndex+1..]
+          unless username?  # default username is self
+            username = Meteor.user()?.username
+          token = token[...atIndex]
+        else
+          username = undefined
+        regex = regexForWord token
+        emojis =
+          for emoji in allEmoji group
+            if regex?  # filter emoji if anything specified
+              continue unless regex.test emoji.symbol
+            "emoji.#{emoji.symbol}":
+              if username?
+                if negate
+                  $not: username
+                else
+                  username
+              else
+                if negate
+                  $ne: ''  # don't match any string
+                else
+                  $elemMatch: $ne: ''  # match any string
+        if emojis.length
+          if negate
+            wants.push $and: emojis
+          else
+            wants.push $or: emojis
+        else
+          console.warn "No emoji match query #{regex}" if Meteor.isClient
       when 'is:'
         switch token
           when 'root'
@@ -147,7 +186,7 @@ unescapeRegExp = (regex) ->
               ,
                 file: null
           else
-            console.warn "Unknown 'is:' specification '#{token}'"
+            console.warn "Unknown 'is:' specification '#{token}'" if Meteor.isClient
   options =
     for wants in options
       switch wants.length
@@ -165,17 +204,19 @@ unescapeRegExp = (regex) ->
     else
       $or: options
 
-@formatSearch = (search) ->
-  query = parseSearch search
+@formatSearch = (search, group) ->
+  query = parseSearch search, group
   if query?
-    formatted = formatParsedSearch query
+    formatted = formatParsedSearch query, group
   else
     "invalid query '#{search}'"
 
-formatParsedSearch = (query) ->
+formatParsedSearch = (query, group) ->
   keys = _.keys query
   if _.isEqual keys, ['$and']
     parts = (formatParsedSearch part for part in query.$and)
+    if (emojis = checkAllEmoji parts, group) and emojis.prefix == 'no '
+      return "no emoji#{emojis.suffix}"
     if parts.length > 1
       parts =
         for part in parts
@@ -206,6 +247,8 @@ formatParsedSearch = (query) ->
        _.isEqual(['body'], _.keys query.$or[1]) and
        _.isEqual query.$or[0].title, query.$or[1].body
       parts[0].replace /in title$/, 'in title or body'
+    else if (emojis = checkAllEmoji parts, group) and not emojis.prefix
+      "any emoji#{emojis.suffix}"
     else
       if parts.length > 1
         parts =
@@ -229,16 +272,31 @@ formatParsedSearch = (query) ->
       "nonempty body"
     else
       "#{formatParsedSearch query.body} in body"
-  else if keys.length == 1 and keys[0][...5] == 'tags.'
+  else if keys.length == 1 and keys[0].startsWith 'tags.'
     key = keys[0]
+    tag = key[5..]
     value = query[key]
     if _.isEqual _.keys(value), ['$exists']
       if value.$exists
-        "tagged '#{unescapeTag key[5..]}'"
+        "tagged '#{unescapeTag tag}'"
       else
-        "not tagged '#{unescapeTag key[5..]}'"
+        "not tagged '#{unescapeTag tag}'"
     else
-      "tag #{key[5..]}: #{JSON.stringify value}"
+      "tag #{tag}: #{JSON.stringify value}"
+  else if keys.length == 1 and keys[0].startsWith 'emoji.'
+    key = keys[0]
+    emoji = key[6..]
+    value = query[key]
+    if _.isEqual value, $elemMatch: $ne: ''
+      "#{emoji} emoji"
+    else if _.isEqual value, $ne: ''
+      "no #{emoji} emoji"
+    else
+      notted = _.isEqual ['$not'], _.keys value
+      value = value.$not if notted
+      user = formatParsedSearch value
+      .replace /^“(.*)” whole-word$/, '$1' # simplify normal usernames
+      "#{if notted then 'no ' else ''}#{emoji} emoji by #{user}"
   else if _.isEqual keys, ['root']
     root = query.root
     prefix = ''
@@ -304,8 +362,26 @@ formatParsedSearch = (query) ->
       #else
       #  s += ' substring'
       s
+  else if _.isString query
+    "“#{query}”"
   else
     JSON.stringify query
+
+emojiLike = /^(no )?([\-\w]+) emoji(.*)$/
+checkAllEmoji = (parts, group) ->
+  return unless parts?.length
+  match = emojiLike.exec parts[0]
+  return unless match?
+  emoji =
+    for part in parts
+      match2 = emojiLike.exec part
+      break unless match2? and
+        match[1] == match2[1] and match[3] == match2[3]
+      match2[2]
+  if parts.length == emoji.length and
+     _.isEqual emoji, (e.symbol for e in allEmoji group)
+    prefix: match[1]
+    suffix: match[3]
 
 ## Pure regex searching
 #@searchQuery = (search) ->
@@ -319,8 +395,8 @@ if Meteor.isServer
   Meteor.publish 'messages.search', (group, search) ->
     check group, String
     check search, String
-    searchQuery = parseSearch search
     @autorun ->
+      searchQuery = parseSearch search, group
       accessibleQuery = accessibleMessagesQuery group, findUser @userId
       return @ready() unless accessibleQuery? and searchQuery?
       Messages.find maybeAddRootsToQuery group, accessibleQuery, searchQuery
