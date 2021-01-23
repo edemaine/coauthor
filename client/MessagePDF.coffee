@@ -49,7 +49,7 @@ WrappedMessagePDF = React.memo ({file}) ->
     unless pdfjs?
       Session.set 'pdfjsLoading', true
       Session.get 'pdfjsLoading'  # rerun tracker once pdfjs loaded
-      return `import('pdfjs-dist')`.then (imported) ->
+      return import('pdfjs-dist').then (imported) ->
         pdfjs = imported
         pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'  # in /public
         Session.set 'pdfjsLoading', false

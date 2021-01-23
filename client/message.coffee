@@ -1106,9 +1106,10 @@ MessageHistory = React.memo ({message}) ->
     unless Slider?
       Session.set 'SliderLoading', true
       Session.get 'SliderLoading'  # rerun tracker once Slider loaded
-      return `import('bootstrap-slider')`.then (imported) ->
+      import('bootstrap-slider').then (imported) ->
         Slider = imported.default
         Session.set 'SliderLoading', false
+      return
     previous = messageHistory.get(message._id)?.diffId
     diffs = messageDiffsExpanded message
     ## Restrict to finished diffs if requested, preserving last chosen diff

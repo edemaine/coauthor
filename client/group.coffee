@@ -33,9 +33,9 @@ Template.registerHelper 'routeGroupOrWildData', ->
 Template.registerHelper 'wildGroup', ->
   routeGroup() == wildGroup
 
-@groupData = ->
+@groupData = (group) ->
   Groups.findOne
-    name: routeGroup()
+    name: group ? routeGroup()
 
 Template.registerHelper 'groupData', groupData
 
