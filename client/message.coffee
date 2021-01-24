@@ -1012,23 +1012,23 @@ KeyboardSelector = React.memo ({messageID, tabindex}) ->
 
   onClick = (e) ->
     e.preventDefault()
-    e.stopPropagation()
     messageKeyboard.set messageID, e.target.getAttribute 'data-keyboard'
-    dropdownToggle e
 
-  <div className="btn-group">
-    <button className="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" tabIndex={tabindex}>
+  <Dropdown className="btn-group">
+    <Dropdown.Toggle variant="default" tabIndex={tabindex}>
       {"#{capitalize keyboard} "}
       <span className="caret"/>
-    </button>
-    <ul className="dropdown-menu" role="menu">
+    </Dropdown.Toggle>
+    <Dropdown.Menu>
       {for k in ['normal', 'vim', 'emacs']
-        <li key={k} className="editorKeyboard #{if keyboard == k then 'active' else ''}" onClick={onClick}>
-          <a href="#" data-keyboard={k}>{capitalize k}</a>
+        <li key={k} className="editorKeyboard #{if keyboard == k then 'active' else ''}">
+          <Dropdown.Item href="#" data-keyboard={k} onClick={onClick}>
+            {capitalize k}
+          </Dropdown.Item>
         </li>
       }
-    </ul>
-  </div>
+    </Dropdown.Menu>
+  </Dropdown>
 KeyboardSelector.displayName = 'KeyboardSelector'
 
 FormatSelector = React.memo ({messageID, format, tabindex}) ->
@@ -1036,24 +1036,24 @@ FormatSelector = React.memo ({messageID, format, tabindex}) ->
 
   onClick = (e) ->
     e.preventDefault()
-    e.stopPropagation()
     Meteor.call 'messageUpdate', messageID,
       format: e.target.getAttribute 'data-format'
-    dropdownToggle e
 
-  <div className="btn-group">
-    <button className="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" tabIndex={tabindex}>
+  <Dropdown className="btn-group">
+    <Dropdown.Toggle variant="default" tabIndex={tabindex}>
       {"#{capitalize format} "}
       <span className="caret"/>
-    </button>
-    <ul className="dropdown-menu" role="menu">
+    </Dropdown.Toggle>
+    <Dropdown.Menu>
       {for f in availableFormats
-        <li key={f} className="editorFormat #{if format == f then 'active' else ''}" onClick={onClick}>
-          <a href="#" data-format={f}>{capitalize f}</a>
+        <li key={f} className="editorFormat #{if format == f then 'active' else ''}">
+          <Dropdown.Item href="#" data-format={f} onClick={onClick}>
+            {capitalize f}
+          </Dropdown.Item>
         </li>
       }
-    </ul>
-  </div>
+    </Dropdown.Menu>
+  </Dropdown>
 FormatSelector.displayName = 'FormatSelector'
 
 # Still needed for Settings
@@ -1183,28 +1183,26 @@ for option in privacyOptions
 ThreadPrivacy = React.memo ({message, tabindex}) ->
   onPrivacy = (e) ->
     e.preventDefault()
-    e.stopPropagation()
     Meteor.call 'threadPrivacy', message._id,
       privacyOptionsByCode[e.target.getAttribute 'data-code'].list
-    dropdownToggle e
 
-  <div className="btn-group">
-    <button className="btn btn-warning dropdown-toggle threadPrivacyToggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" tabIndex={tabindex}>
+  <Dropdown className="btn-group">
+    <Dropdown.Toggle variant="warning" tabIndex={tabindex}>
       {"Thread Privacy "}
       <span className="caret"/>
-    </button>
-    <ul className="dropdown-menu" role="menu">
+    </Dropdown.Toggle>
+    <Dropdown.Menu>
       {for privacy in privacyOptions
         active = _.isEqual _.sortBy(privacy.list),
                            _.sortBy(message.threadPrivacy ? ['public'])
         <li key={privacy.code} className="threadPrivacy #{if active then 'active' else ''}">
-          <a href="#" data-code={privacy.code} onClick={onPrivacy}>
+          <Dropdown.Item href="#" data-code={privacy.code} onClick={onPrivacy}>
             {privacy.display}
-          </a>
+          </Dropdown.Item>
         </li>
       }
-    </ul>
-  </div>
+    </Dropdown.Menu>
+  </Dropdown>
 
 EmojiButtons = React.memo ({message, can}) ->
   emojis = useTracker ->
@@ -1801,6 +1799,7 @@ WrappedSubmessage = React.memo ({message, read}) ->
   , [message._id]
   ref = useRef()
   messageBodyRef = useRef()
+  addTagRef = useRef()
 
   ## Support dragging rendered attachment like dragging message itself
   messageFileRef = useRef()
@@ -2026,7 +2025,6 @@ WrappedSubmessage = React.memo ({message, read}) ->
     , idle
   onTagRemove = (e) ->
     e.preventDefault()
-    e.stopPropagation()
     tag = e.currentTarget.getAttribute 'data-tag'
     if tag of message.tags
       Meteor.call 'messageUpdate', message._id,
@@ -2040,17 +2038,14 @@ WrappedSubmessage = React.memo ({message, read}) ->
       console.warn "Attempt to delete nonexistant tag '#{tag}' from message #{message._id}"
   onTagAdd = (e) ->
     e.preventDefault()
-    e.stopPropagation()
     tag = e.target.getAttribute 'data-tag'
     if tag of message.tags
       console.warn "Attempt to add duplicate tag '#{tag}' to message #{message._id}"
     else
       Meteor.call 'messageUpdate', message._id,
         tags: Object.assign {}, message.tags ? {}, {"#{escapeTag tag}": true}
-    dropdownToggle e
   onTagNew = (e) ->
     e.preventDefault()
-    e.stopPropagation()
     textTag = $(e.target).parents('form').first().find('.tagAddText')[0]
     tag = textTag.value.trim()
     textTag.value = ''  ## reset custom tag
@@ -2061,7 +2056,7 @@ WrappedSubmessage = React.memo ({message, read}) ->
         Meteor.call 'tagNew', message.group, tag, 'boolean'
         Meteor.call 'messageUpdate', message._id,
           tags: Object.assign {}, message.tags ? {}, {"#{escapeTag tag}": true}
-    dropdownToggle e
+    addTagRef.current.click()
     false  ## prevent form from submitting
 
   <div className="panel message #{messagePanelClass message, editing}" data-message={message._id} id={message._id} ref={ref}>
@@ -2134,34 +2129,37 @@ WrappedSubmessage = React.memo ({message, read}) ->
             }
           </span>
           <span className="btn-group">
-            <button className="btn btn-default label label-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <span className="fas fa-plus"/>
-              Tag
-            </button>
-            <ul className="dropdown-menu tagMenu" role="menu">
-              <li className="disabled">
-                <a>
-                  <form className="input-group input-group-sm">
-                    <input className="tagAddText form-control" type="text" placeholder="New Tag..."/>
-                    <div className="input-group-btn">
-                      <button className="btn btn-default tagAddNew" type="submit" onClick={onTagNew}>
-                        <span className="fas fa-plus"/>
-                      </button>
-                    </div>
-                  </form>
-                </a>
-              </li>
-              {if absentTags.length
-                <>
-                  <li className="divider" role="separator"/>
-                  {for tag in absentTags
-                    <li key={tag.key}>
-                      <a className="tagAdd" href="#" data-tag={tag.key} onClick={onTagAdd}>{tag.key}</a>
-                    </li>
-                  }
-                </>
-              }
-            </ul>
+            <Dropdown>
+              <Dropdown.Toggle variant="default"
+               className="label label-default" ref={addTagRef}>
+                <span className="fas fa-plus"/>
+                {' Tag'}
+              </Dropdown.Toggle>
+              <Dropdown.Menu className="tagMenu">
+                <li className="disabled">
+                  <a>
+                    <form className="input-group input-group-sm">
+                      <input className="tagAddText form-control" type="text" placeholder="New Tag..."/>
+                      <div className="input-group-btn">
+                        <button className="btn btn-default tagAddNew" type="submit" onClick={onTagNew}>
+                          <span className="fas fa-plus"/>
+                        </button>
+                      </div>
+                    </form>
+                  </a>
+                </li>
+                {if absentTags.length
+                  <>
+                    <li className="divider" role="separator"/>
+                    {for tag in absentTags
+                      <li key={tag.key}>
+                        <Dropdown.Item className="tagAdd" href="#" data-tag={tag.key} onClick={onTagAdd}>{tag.key}</Dropdown.Item>
+                      </li>
+                    }
+                  </>
+                }
+              </Dropdown.Menu>
+            </Dropdown>
           </span>
           <MessageLabels message={message}/>
           <span className="lower-strut"/>
