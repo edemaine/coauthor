@@ -2417,54 +2417,68 @@ MessageActions = React.memo ({message, can, editing, tabindex0}) ->
       }
       {if message.deleted and can.undelete
         <li>
-          <Dropdown.Item className="deleteButton" href="#">
-            <button className="btn btn-success btn-block" onClick={onDelete}>Undelete</button>
-          </Dropdown.Item>
+          <TextTooltip placement="left" title="Undelete this message, restoring its visibility to everyone. Use Delete when you've made a practical mistake (e.g. didn't mean to click Reply). But if you had a content misunderstanding or question that since got resolved, consider using Minimize to preserve that discussion for others to look at if desired.">
+            <Dropdown.Item className="deleteButton" href="#">
+              <button className="btn btn-success btn-block" onClick={onDelete}>Undelete</button>
+            </Dropdown.Item>
+          </TextTooltip>
         </li>
       }
       {if message.deleted and can.superdelete
         <li>
-          <Dropdown.Item className="superdeleteButton" href="#">
-            <button className="btn btn-danger btn-block" onClick={onSuperdelete}>Superdelete</button>
-          </Dropdown.Item>
+          <TextTooltip placement="left" title="Permanently deletes this message and all of its history, as if it never happened. Dangerous and non-undoable operation, so has a confirmation dialog.">
+            <Dropdown.Item className="superdeleteButton" href="#">
+              <button className="btn btn-danger btn-block" onClick={onSuperdelete}>Superdelete</button>
+            </Dropdown.Item>
+          </TextTooltip>
         </li>
       }
       {if not message.published and can.publish
         <li>
-          <Dropdown.Item className="publishButton" href="#">
-            <button className="btn btn-success btn-block" onClick={onPublish}>Publish</button>
-          </Dropdown.Item>
+          <TextTooltip placement="left" title="Use Publish when your message is ready to be shared with the group. Even if it's a partly formed idea, it may inspire more!">
+            <Dropdown.Item className="publishButton" href="#">
+              <button className="btn btn-success btn-block" onClick={onPublish}>Publish</button>
+            </Dropdown.Item>
+          </TextTooltip>
         </li>
       }
       {if not message.deleted and can.delete
         <li>
-          <Dropdown.Item className="deleteButton" href="#">
-            <button className="btn btn-danger btn-block" onClick={onDelete}>Delete</button>
-          </Dropdown.Item>
+          <TextTooltip placement="left" title="Delete this message, making it invisible to everyone except coauthors and superusers. Use Delete when you've made a practical mistake (e.g. didn't mean to click Reply). But if you had a content misunderstanding or question that since got resolved, consider using Minimize to preserve that discussion for others to look at if desired.">
+            <Dropdown.Item className="deleteButton" href="#">
+              <button className="btn btn-danger btn-block" onClick={onDelete}>Delete</button>
+            </Dropdown.Item>
+          </TextTooltip>
         </li>
       }
       {if message.published and can.unpublish
         <li>
-          <Dropdown.Item className="publishButton" href="#">
-            <button className="btn btn-danger btn-block" onClick={onPublish}>Unpublish</button>
-          </Dropdown.Item>
+          <TextTooltip placement="left" title="Unpublish this message, making it invisible to everyone except coauthors and superusers. Use Unpublish (ideally when starting a message) if you still want to work on this message, but it isn't yet ready to share with the group.">
+            <Dropdown.Item className="publishButton" href="#">
+              <button className="btn btn-danger btn-block" onClick={onPublish}>Unpublish</button>
+            </Dropdown.Item>
+          </TextTooltip>
         </li>
       }
       {if can.private
         <li>
-          <Dropdown.Item className="privateButton" href="#">
-            {if message.private
-              <button className="btn btn-success btn-block" onClick={onPrivate}>Make Public</button>
-            else
-              <button className="btn btn-danger btn-block" onClick={onPrivate}>Make Private</button>
-            }
-          </Dropdown.Item>
+          <TextTooltip placement="left" title="Change the privacy of this message. Private messages can be seen only by coauthors you list, those you add to the access list, and superusers.">
+            <Dropdown.Item className="privateButton" href="#">
+              {if message.private
+                <button className="btn btn-success btn-block" onClick={onPrivate}>Make Public</button>
+              else
+                <button className="btn btn-danger btn-block" onClick={onPrivate}>Make Private</button>
+              }
+            </Dropdown.Item>
+          </TextTooltip>
         </li>
       }
       {if can.parent
         <li>
           <Dropdown.Item className="parentButton" href="#">
-            <button className="btn btn-warning btn-block" onClick={onParent}>Move</button>
+            <TextTooltip placement="left" title='Re-organize messages by making this message a reply (child) of a different message (parent), or split it off into a new thread (by choosing the group itself as the new "parent").'>
+              <button className="btn btn-warning btn-block" onClick={onParent}>Move</button>
+            </TextTooltip>
           </Dropdown.Item>
         </li>
       }
