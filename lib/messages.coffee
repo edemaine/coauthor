@@ -575,12 +575,16 @@ if Meteor.isServer
     true
   else
     ## Regular user can change private flag for their coauthored messages,
-    ## and only if thread privacy allows for both public and private.
+    ## and only if thread privacy allows for both public and private,
+    ## and not for the root message of the thread.
     unless amCoauthor message
       false
     else
       root = findMessageRoot message
-      root?.threadPrivacy? and 'public' in root.threadPrivacy and 'private' in root.threadPrivacy
+      root._id != message._id and
+      root?.threadPrivacy? and
+      'public' in root.threadPrivacy and
+      'private' in root.threadPrivacy
 
 @canAdmin = (group, message = null) ->
   messageRoleCheck group, message, 'admin'
