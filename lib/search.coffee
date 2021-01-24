@@ -118,9 +118,11 @@ unescapeRegExp = (regex) ->
         wants.push "tags.#{escapeTag token}": $exists: not negate
       when 'emoji:'
         if 0 <= atIndex = token.indexOf '@'
-          username = regexForWord token[atIndex+1..]
-          unless username?  # default username is self
+          username = token[atIndex+1..]
+          if username == 'me'
             username = Meteor.user()?.username
+          else
+            username = regexForWord username
           token = token[...atIndex]
         else
           username = undefined
@@ -148,8 +150,11 @@ unescapeRegExp = (regex) ->
         else
           console.warn "No emoji match query #{regex}" if Meteor.isClient
       when 'by:'
-        token = token[1..] if token.startsWith '@'
-        regex = regexForWord token
+        if token == 'me'
+          regex = Meteor.user()?.username
+        else
+          token = token[1..] if token.startsWith '@'
+          regex = regexForWord token
         continue unless regex?
         if negate
           wants.push coauthors: $not: regex
@@ -384,7 +389,7 @@ formatParsedSearch = (query, group) ->
 
 formatUserSearch = (value) ->
   formatParsedSearch value
-  .replace /^“(.*)” whole-word$/, '$1' # simplify normal usernames
+  .replace /^“(.*)”( whole-word)?$/, '$1' # simplify normal usernames
 
 emojiLike = /^(no )?([\-\w]+) emoji(.*)$/
 checkAllEmoji = (parts, group) ->

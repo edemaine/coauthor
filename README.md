@@ -193,13 +193,13 @@ support, but it has proved useful in other fields too.
     spaces act as an AND query.
   * Connect words/phrases with `|` to get an OR query instead.
   * `by:username` searches for messages coauthored by a specified username
-    (which can include `*`s or use regular expressions via `regex:`)
+    (which can include `*`s or use regular expressions via `regex:`);
+    `by:me` is shorthand for searching for your own username.
   * `tag:...` does an exact match for a specified tag; it can be negated.
   * `emoji:heart`, `emoji:thumbs-up`, `emoji:thumbs*`, `emoji:*` etc. search
     for messages with (certain) emoji symbol responses;
     `emoji:@username` searches for messages with emoji response by
-    a specific user, defaulting to yourself
-    (`emoji:@` finds your own emoji responses);
+    a specific user (`emoji:@me` finds your own emoji responses);
     or you can combine the two with e.g. `emoji:thumbs*@username`.
   * `is:root` matches root messages (tops of threads).
   * `is:file` matches file messages (made via Attach).

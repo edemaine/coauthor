@@ -38,7 +38,9 @@ import React from 'react'
     display
 
 @validUsername = (username) ->
-  validKey(username) and not username.match /[\s@]/
+  validKey(username) and
+  not username.match(/[\s@]/) and  # bad characters for at-mentions
+  username.toLowerCase() != 'me'  # used in search as shorthand for self
 
 ## Need to escape dots in usernames.
 @escapeUser = escapeKey
