@@ -2,7 +2,7 @@
 
 **Coauthor** is a tool for group collaboration, discussion, keeping track of
 notes/results of meetings, etc., in particular to enable
-**[supercollaboration](http://erikdemaine.org/supercollaboration/)**.
+**[supercollaboration](https://supercollaboration.org/)**.
 Coauthor's primary goal is to ease multiauthor collaboration on unsolved
 problems in theoretical computer science, so e.g. you'll find LaTeX math
 support, but it has proved useful in other fields too.
