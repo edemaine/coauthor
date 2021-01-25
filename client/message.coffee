@@ -4,6 +4,7 @@ import OverlayTrigger from 'react-bootstrap/OverlayTrigger'
 import Tooltip from 'react-bootstrap/Tooltip'
 import {useTracker} from 'meteor/react-meteor-data'
 import Blaze from 'meteor/gadicc:blaze-react-component'
+import {useMediaQuery} from 'react-responsive'
 import useEventListener from '@use-it/event-listener'
 
 import {Credits} from './layout.coffee'
@@ -207,6 +208,17 @@ Message = React.memo ({message}) ->
     undefined
   , [message.title]
 
+  ## Display table of contents according to whether screen is at least
+  ## Bootstrap 3's "sm" size, but allow user to override.
+  isScreenSm = useMediaQuery query: '(min-width: 768px)'
+  [toc, setToc] = useState()
+  useLayoutEffect ->
+    setToc isScreenSm
+  , [isScreenSm]
+  onToc = (e) ->
+    e.preventDefault()
+    setToc not toc
+
   ## Set sticky column height to remaining height of screen:
   ## 100vh when stuck, and less when header is (partly) visible.
   stickyRef = useRef()
@@ -215,22 +227,36 @@ Message = React.memo ({message}) ->
     stickyRef.current.style.height = "calc(100vh - #{rect.y}px)" if rect.height
     undefined
   , 100), []
-  useEffect stickyHeight, []  # initialize
+  useEffect stickyHeight, [toc]  # initialize
   useEventListener 'resize', stickyHeight
   useEventListener 'scroll', stickyHeight
 
-  <div className="row">
-    <div className="col-sm-9" role="main">
-      <MaybeRootHeader message={message}/>
-      <Submessage message={message}/>
-      <MessageInfoBoxes message={message}/>
-      <Credits/>
+  <>
+    <div className="hidden-print text-right toc-toggle">
+      <a href="#" onClick={onToc}>
+        {if toc
+          <span className="fas fa-caret-down"/>
+        else
+          <span className="fas fa-caret-right"/>
+        }
+        {' Table of Contents'}
+      </a>
     </div>
-    <div className="col-sm-3 hidden-print hidden-xs sticky-top"
-     role="complementary" ref={stickyRef}>
-      <TableOfContentsID messageID={message._id}/>
+    <div className="row">
+      <div className={if toc then "col-xs-9" else "col-xs-12"} role="main">
+        <MaybeRootHeader message={message}/>
+        <Submessage message={message}/>
+        <MessageInfoBoxes message={message}/>
+        <Credits/>
+      </div>
+      {if toc
+        <div className="col-xs-3 hidden-print sticky-top"
+        role="complementary" ref={stickyRef}>
+          <TableOfContentsID messageID={message._id}/>
+        </div>
+      }
     </div>
-  </div>
+  </>
 Message.displayName = 'Message'
 
 MessageInfoBoxes = React.memo ({message}) ->
