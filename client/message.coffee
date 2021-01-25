@@ -206,6 +206,34 @@ Message = React.memo ({message}) ->
     setTitle titleOrUntitled message
     undefined
   , [message.title]
+
+  ## Set sticky column height to remaining height of screen:
+  ## 100vh when stuck, and less when header is (partly) visible.
+  stickyRef = useRef()
+  stickyHeight = useCallback _.debounce(->
+    rect = stickyRef.current.getBoundingClientRect()
+    stickyRef.current.style.height = "calc(100vh - #{rect.y}px)" if rect.height
+    undefined
+  , 100), []
+  useEffect stickyHeight, []  # initialize
+  useEventListener 'resize', stickyHeight
+  useEventListener 'scroll', stickyHeight
+
+  <div className="row">
+    <div className="col-sm-9" role="main">
+      <MaybeRootHeader message={message}/>
+      <Submessage message={message}/>
+      <MessageInfoBoxes message={message}/>
+      <Credits/>
+    </div>
+    <div className="col-sm-3 hidden-print hidden-xs sticky-top"
+     role="complementary" ref={stickyRef}>
+      <TableOfContentsID messageID={message._id}/>
+    </div>
+  </div>
+Message.displayName = 'Message'
+
+MessageInfoBoxes = React.memo ({message}) ->
   orphans = useTracker ->
     messageOrphans message._id
   , [message._id]
@@ -249,75 +277,54 @@ Message = React.memo ({message}) ->
     )
   , [message._id, message.group]
 
-  ## Set sticky column height to remaining height of screen:
-  ## 100vh when stuck, and less when header is (partly) visible.
-  stickyRef = useRef()
-  stickyHeight = useCallback _.debounce(->
-    rect = stickyRef.current.getBoundingClientRect()
-    stickyRef.current.style.height = "calc(100vh - #{rect.y}px)" if rect.height
-    undefined
-  , 100), []
-  useEffect stickyHeight, []  # initialize
-  useEventListener 'resize', stickyHeight
-  useEventListener 'scroll', stickyHeight
-
-  <div className="row">
-    <div className="col-sm-9" role="main">
-      <MaybeRootHeader message={message}/>
-      <Submessage message={message}/>
-      <div className="authors alert alert-info">
-        {if authors.length
-          <>
-            <p>
-              <b>Coauthors of visible messages in this thread:</b>
-            </p>
-            <p>{authors}</p>
-          </>
+  <>
+    <div className="authors alert alert-info">
+      {if authors.length
+        <>
+          <p>
+            <b>Coauthors of visible messages in this thread:</b>
+          </p>
+          <p>{authors}</p>
+        </>
+      }
+      {if authors.length and mentions.length
+        <hr/>
+      }
+      {if mentions.length
+        <>
+          <p>
+            <b>Users @mentioned in visible messages in this thread:</b>
+          </p>
+          <p>{mentions}</p>
+        </>
+      }
+    </div>
+    <div className="subscribers alert alert-success">
+      <p>
+        {if emailless()
+          <b>Users who can read this message:</b>
+        else
+          <b>Users who can read this message, and whether they are subscribed to notifications:</b>
         }
-        {if authors.length and mentions.length
-          <hr/>
-        }
-        {if mentions.length
-          <>
-            <p>
-              <b>Users @mentioned in visible messages in this thread:</b>
-            </p>
-            <p>{mentions}</p>
-          </>
-        }
-      </div>
-      <div className="subscribers alert alert-success">
+      </p>
+      <p>{subscribers}</p>
+    </div>
+    {if orphans.length
+      <div className="orphans alert alert-warning">
         <p>
-          {if emailless()
-            <b>Users who can read this message:</b>
-          else
-            <b>Users who can read this message, and whether they are subscribed to notifications:</b>
+          <TextTooltip placement="right" title="Orphan subthreads are caused by someone deleting a message that has (undeleted) children, which become orphans.  You can move these orphans to a valid parent, or delete them, or ask the author or a superuser to undelete the original parent.">
+            <b>{pluralize orphans.length, 'orphaned subthread'}:</b>
+          </TextTooltip>
+        </p>
+        <p>
+          {for orphan in orphans
+            <Submessage key={orphan._id} message={orphan}/>
           }
         </p>
-        <p>{subscribers}</p>
       </div>
-      {if orphans.length
-        <div className="orphans alert alert-warning">
-          <p>
-            <TextTooltip placement="right" title="Orphan subthreads are caused by someone deleting a message that has (undeleted) children, which become orphans.  You can move these orphans to a valid parent, or delete them, or ask the author or a superuser to undelete the original parent.">
-              <b>{pluralize orphans.length, 'orphaned subthread'}:</b>
-            </TextTooltip>
-          </p>
-          <p>
-            {for orphan in orphans
-              <Submessage key={orphan._id} message={orphan}/>
-            }
-          </p>
-        </div>
-      }
-      <Credits/>
-    </div>
-    <div className="col-sm-3 hidden-print hidden-xs sticky-top"
-     role="complementary" ref={stickyRef}>
-      <TableOfContentsID messageID={message._id}/>
-    </div>
-  </div>
-Message.displayName = 'Message'
+    }
+  </>
+MessageInfoBoxes.displayName = 'MessageInfoBoxes'
 
 editingMessage = (message, user = Meteor.user()) ->
   user? and user.username in (message.editing ? [])
