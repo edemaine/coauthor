@@ -581,8 +581,9 @@ if Meteor.isServer
       false
     else
       root = findMessageRoot message
+      root? and
       root._id != message._id and
-      root?.threadPrivacy? and
+      root.threadPrivacy? and
       'public' in root.threadPrivacy and
       'private' in root.threadPrivacy
 
