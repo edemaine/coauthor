@@ -281,8 +281,5 @@ details:focus, summary:focus { outline: none; }
 details > summary::before { content: "\f067"; }       /* From .fa-plus */
 details[open] > summary::before { content: "\f068"; } /* From .fa-minus */
 
-/* Author search highlighting */
-.highlight { background: yellow; color: black; }
-
 /* Search results: 5px to match title + 2px to center vertically */
 .panel-heading .pull-right.badge { padding-top: 2px; }

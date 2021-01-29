@@ -23,8 +23,11 @@ import React from 'react'
     author: username
   link = """<a class="author" data-username="#{username}" href="#{link}" title="#{title.replace /"/g, '&#34;'}">#{prefix or ''}#{_.escape displayUser user}</a>"""
   if Meteor.isClient and
-     Router.current()?.route?.getName() == 'author' and
-     Router.current()?.params?.author == username
+     Router.current()?.route?.getName() == 'author'
+    highlight = (Router.current()?.params?.author == username)
+  else
+    highlight = (username == Meteor.user()?.username)
+  if highlight
     link = """<span class="highlight">#{link}</span>"""
   link
 
