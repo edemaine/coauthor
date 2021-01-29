@@ -549,8 +549,13 @@ latex2html = (tex) ->
     #text = replaceMathBlocks text, (block) ->
     #  block.replace /[\\`*{}\[\]()#+\-.!_]/g, '\\$&'
     #marked.Lexer.rules = {text: /^[^\n]+/} if title
+    ## First extract Markdown verbatim environments (backticks) to prevent
+    ## LaTeX processing on them (especially math mode, so $ is inert in code).
+    [text, ticks] = preprocessMarkdownTicks text
     ## Support what we can of LaTeX before doing Markdown conversion.
     [text, math] = latex2htmlLight text
+    ## Put Markdown verbatims back in.
+    text = putTicksBack text, ticks
     if title  ## use "single-line" version of Markdown
       text = markdownInline text
     else
@@ -695,9 +700,8 @@ preprocessKaTeX = (text) ->
   math = []
   i = 0
   text = replaceMathBlocks text, (block) ->
-    i += 1
-    math[i] = block
-    "MATH#{i}ENDMATH"
+    math.push block
+    "MATH#{i++}ENDMATH"
   [text, math]
 
 putMathBack = (tex, math) ->
@@ -705,6 +709,7 @@ putMathBack = (tex, math) ->
   tex.replace /MATH(\d+)ENDMATH/g, (match, id) -> math[id].all
 
 postprocessKaTeX = (text, math, initialBold) ->
+  return text unless math.length
   macros = {}  ## shared across multiple math expressions within same body
   if initialBold
     weights = [boldWeight]
@@ -752,6 +757,32 @@ postprocessKaTeX = (text, math, initialBold) ->
       '<span class="nobr">' + out + '</span>'
     else
       out
+
+preprocessMarkdownTicks = (text) ->
+  ticks = []
+  i = 0
+  ## See https://spec.commonmark.org/0.29/#code-spans and
+  ## https://spec.commonmark.org/0.29/#fenced-code-blocks for relevant specs.
+  ## Bad cases not handled by this regex:
+  ## * `foo followed by two newlines is treated as still opening a code span
+  ## * <a href="`"> is treated as opening a code span
+  text = text.replace ///
+    (^|[^\\`])  # backticks shouldn't be preceded by \escape or more backticks
+    (`+)        # one or more backticks to open
+    ([^`] |         # case 1: single nontick character inside
+     [^`][^]*?[^`]) # case 2: multiple characters inside, not bounded by ticks
+    (\2|$)      # matching number of backticks to close
+    ([^`]|$)    # not any additional `s afterward
+  ///g, (match, pre, left, mid, right, post) ->
+    ## Three or more backticks (fenced code blocks) are terminated by end of doc
+    return match unless right or left.length >= 3
+    ticks.push match[pre.length..]
+    "#{pre}TICK#{i++}ENDTICK#{post}"
+  [text, ticks]
+
+putTicksBack = (text, ticks) ->
+  return text unless ticks.length
+  text.replace /TICK(\d+)ENDTICK/g, (match, id) -> ticks[id]
 
 ## Search highlighting
 formatSearchHighlight = (isTitle, text) ->
