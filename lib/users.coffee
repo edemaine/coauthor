@@ -21,7 +21,7 @@ import React from 'react'
   link = urlFor 'author',
     group: group
     author: username
-  link = """<a class="author" data-username="#{username}" href="#{link}" title="#{title.replace /"/g, '&#34;'}">#{prefix or ''}#{displayUser user}</a>"""
+  link = """<a class="author" data-username="#{username}" href="#{link}" title="#{title.replace /"/g, '&#34;'}">#{prefix or ''}#{_.escape displayUser user}</a>"""
   if Meteor.isClient and
      Router.current()?.route?.getName() == 'author' and
      Router.current()?.params?.author == username
@@ -39,7 +39,7 @@ import React from 'react'
 
 @validUsername = (username) ->
   validKey(username) and
-  not username.match(/[\s@]/) and  # bad characters for at-mentions
+  not /[\s@`&<>{}\\]/.test(username) and  # bad characters for at-mentions
   username.toLowerCase() != 'me'  # used in search as shorthand for self
 
 ## Need to escape dots in usernames.
