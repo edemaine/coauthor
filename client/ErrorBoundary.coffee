@@ -13,7 +13,7 @@ export class ErrorBoundary extends React.Component
         <blockquote style={marginTop: '5px', marginBottom: '5px'}>
           {@state.error.toString()}
         </blockquote>
-        <p>Please <a href="https://github.com/edemaine/coauthor/issues">report this bug</a> along with what caused it and the error messages in the <a href="https://javascript.info/devtools">developer console</a>.</p>
+        <p>Please <a target="_blank" rel="noreferrer" href="https://github.com/edemaine/coauthor/issues">report this bug</a> along with what caused it and the error messages and trace in the <a target="_blank" rel="noreferrer" href="https://javascript.info/devtools">developer console</a>.</p>
       </div>
     else
       @props.children
