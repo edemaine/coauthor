@@ -225,6 +225,7 @@ Message = React.memo ({message}) ->
   ## 100vh when stuck, and less when header is (partly) visible.
   stickyRef = useRef()
   stickyHeight = useCallback _.debounce(->
+    return unless stickyRef.current?
     rect = stickyRef.current.getBoundingClientRect()
     stickyRef.current.style.height = "calc(100vh - #{rect.y}px)" if rect.height
     undefined
