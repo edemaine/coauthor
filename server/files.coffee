@@ -8,9 +8,12 @@ fileRe = /^\/(\w+)$/
 
 defaultContentType = 'application/octet-stream'
 
-## Allow files to be embedded in other sites, e.g. Cocreate.
-## Note that this still requires Coauthor authentication via cookies.
-allowCors = '*'
+accessHeaders = (req) ->
+  'Cache-Control': 'stale-while-revalidate'
+  ## Allow files to be embedded in other sites, e.g. Cocreate.
+  ## Note that this still requires Coauthor authentication via cookies.
+  'Access-Control-Allow-Origin': req.headers['origin'] ? '*'
+  'Access-Control-Allow-Credentials': 'true'
 
 ## Mimicking vsivsi:file-collection http_access_server.coffee
 WebApp.rawConnectHandlers.use '/file',
@@ -23,10 +26,8 @@ WebApp.rawConnectHandlers.use '/file',
     msgId = match[1]
 
     if req.method == 'OPTIONS'
-      res.writeHead 204,
+      res.writeHead 204, Object.assign {}, accessHeaders(req),
         Allow: 'OPTIONS, GET, HEAD'
-        'Cache-Control': 'stale-while-revalidate'
-        'Access-Control-Allow-Origin': allowCors
       return res.end()
 
     ## handle_auth()
@@ -72,10 +73,8 @@ WebApp.rawConnectHandlers.use '/file',
       return res.end "#{username} lacks read permissions for group of message/file #{msgId}"
 
     ## get()
-    headers =
+    headers = Object.assign {}, accessHeaders(req),
       'Content-Type': 'text/plain'
-      'Cache-Control': 'stale-while-revalidate'
-      'Access-Control-Allow-Origin': allowCors
     if req.headers['if-modified-since']
       since = Date.parse req.headers['if-modified-since']  ## NaN if invaild
       if since and req.gridFS.uploadDate and (req.headers['if-modified-since'] == req.gridFS.uploadDate.toUTCString() or since >= req.gridFS.uploadDate.getTime())
