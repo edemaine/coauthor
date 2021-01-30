@@ -18,9 +18,16 @@ WebApp.rawConnectHandlers.use '/file',
     url = url.parse req.url, true
     req.query = url.query
     match = url.path.match fileRe
-    unless req.method in ['GET', 'HEAD'] and match?
+    unless req.method in ['GET', 'HEAD', 'OPTIONS'] and match?
       return next()
     msgId = match[1]
+
+    if req.method == 'OPTIONS'
+      res.writeHead 204,
+        Allow: 'OPTIONS, GET, HEAD'
+        'Cache-Control': 'stale-while-revalidate'
+        'Access-Control-Allow-Origin': allowCors
+      return res.end()
 
     ## handle_auth()
     req.cookies = cookie.parse req.headers.cookie if req.headers.cookie?
