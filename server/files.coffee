@@ -8,6 +8,10 @@ fileRe = /^\/(\w+)$/
 
 defaultContentType = 'application/octet-stream'
 
+## Allow files to be embedded in other sites, e.g. Cocreate.
+## Note that this still requires Coauthor authentication via cookies.
+allowCors = '*'
+
 ## Mimicking vsivsi:file-collection http_access_server.coffee
 WebApp.rawConnectHandlers.use '/file',
   Meteor.bindEnvironment (req, res, next) ->
@@ -64,6 +68,7 @@ WebApp.rawConnectHandlers.use '/file',
     headers =
       'Content-Type': 'text/plain'
       'Cache-Control': 'stale-while-revalidate'
+      'Access-Control-Allow-Origin': allowCors
     if req.headers['if-modified-since']
       since = Date.parse req.headers['if-modified-since']  ## NaN if invaild
       if since and req.gridFS.uploadDate and (req.headers['if-modified-since'] == req.gridFS.uploadDate.toUTCString() or since >= req.gridFS.uploadDate.getTime())
@@ -71,7 +76,7 @@ WebApp.rawConnectHandlers.use '/file',
         return res.end()
     if req.headers['range']
       statusCode = 206  # partial data
-      parts = req.headers["range"].replace(/bytes=/, "").split("-")
+      parts = req.headers['range'].replace(/bytes=/, "").split("-")
       start = parseInt(parts[0], 10)
       end = (if parts[1] then parseInt(parts[1], 10) else req.gridFS.length - 1)
       if (start < 0) or (end >= req.gridFS.length) or (start > end) or isNaN(start) or isNaN(end)
@@ -114,8 +119,8 @@ WebApp.rawConnectHandlers.use '/file',
         .on 'close', () ->
           res.end()
         .on 'error', (err) ->
-          res.writeHead 500, share.defaultResponseHeaders
+          res.writeHead 500
           res.end err
     else
-      res.writeHead 410, share.defaultResponseHeaders
+      res.writeHead 410
       res.end()
