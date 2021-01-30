@@ -686,13 +686,13 @@ atRePrefix = '[@\uff20]'
   ## FF20 is FULLWIDTH COMMERCIAL AT common in Asian scripts
   ///#{atRePrefix}(#{users.join '|'})(?!\w)///g
 
-postprocessAtMentions = (text) ->
+postprocessAtMentions = (text, me) ->
   return text unless ///#{atRePrefix}///.test text
   users = allUsernames()
   return text unless 0 < users.length
   text.replace (atRe users), (match, user, offset, string) ->
     unless inTag string, offset
-      "@#{linkToAuthor (routeGroup?() ? wildGroup), user}"
+      "@#{linkToAuthor (routeGroup?() ? wildGroup), user, {me}}"
     else # e.g. in <a title="..."> caused by postprocessCoauthorLinks
       match
 
@@ -804,8 +804,9 @@ formatSearchHighlight = (isTitle, text) ->
     recurse parseSearch search
   text
 
-formatEither = (isTitle, format, text, leaveTeX = false, bold = false) ->
+formatEither = (isTitle, format, text, options) ->
   return text unless text?
+  {leaveTeX, bold, me} = options if options?
 
   ## LaTeX and Markdown formats are special because they do their own math
   ## preprocessing at a specific time during its formatting.  Other formats
@@ -842,13 +843,13 @@ formatEither = (isTitle, format, text, leaveTeX = false, bold = false) ->
   text = linkify text  ## Extra support for links, unliked LaTeX
   text = postprocessCoauthorLinks text
   text = postprocessLinks text
-  text = postprocessAtMentions text
+  text = postprocessAtMentions text, me
   text = formatSearchHighlight isTitle, text
   sanitize text
 
-formatEitherSafe = (isTitle, format, text, leaveTeX = false, bold = false) ->
+formatEitherSafe = (isTitle, format, text, options) ->
   try
-    formatEither isTitle, format, text, leaveTeX, bold
+    formatEither isTitle, format, text, options
   catch e
     console.error e.stack ? e.toString()
     if isTitle
@@ -862,11 +863,11 @@ formatEitherSafe = (isTitle, format, text, leaveTeX = false, bold = false) ->
         <pre>#{_.escape text}</pre>
       """
 
-@formatBody = (format, body, leaveTeX = false, bold = false) ->
-  formatEitherSafe false, format, body, leaveTeX, bold
+@formatBody = (format, body, options) ->
+  formatEitherSafe false, format, body, options
 
-@formatTitle = (format, title, leaveTeX = false, bold = false) ->
-  formatEitherSafe true, format, title, leaveTeX, bold
+@formatTitle = (format, title, options) ->
+  formatEitherSafe true, format, title, options
 
 @formatBadFile = (fileId) ->
   """<i class="bad-file">&lt;unknown file with ID #{fileId}&gt;</i>"""
@@ -909,7 +910,9 @@ We therefore don't display any file that is still in the zero-length state.
   formatted = "<p>#{formatted}</p>" if formatted
   formatted + formatFileDescription msg, file
 
-@formatFilename = (msg, orUntitled = false) ->
+@formatFilename = (msg, options) ->
+  {orUntitled} = options if options?
+  orUntitled ?= true
   if msg.file
     file = findFile msg.file
     title = file?.filename
@@ -921,11 +924,11 @@ We therefore don't display any file that is still in the zero-length state.
   else
     title
 
-@formatTitleOrFilename = (msg, orUntitled = true, leaveTeX = false, bold = false) ->
+@formatTitleOrFilename = (msg, options) ->
   if msg.format and msg.title and msg.title.trim().length > 0
-    formatTitle msg.format, msg.title, leaveTeX, bold
+    formatTitle msg.format, msg.title, options
   else
-    formatFilename msg, orUntitled
+    formatFilename msg, options
 
 #@stripHTMLTags = (html) ->
 #  html.replace /<[^>]*>/gm, ''

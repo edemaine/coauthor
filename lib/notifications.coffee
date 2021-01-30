@@ -367,17 +367,20 @@ if Meteor.isServer
     else
       "#{group} [#{url}]"
 
-  linkToMessage = (msg, html, quote = false) ->
+  linkToMessage = (msg, user, html, quote = false) ->
     #url = Meteor.absoluteUrl "#{msg.group}/m/#{msg._id}"
     url = urlFor 'message',
       group: msg.group
       message: msg._id
     if html
+      options =
+        leaveTeX: true  # KaTeX CSS not in email
+        me: user.username
       if quote
-        """&ldquo;<a href=\"#{url}\">#{formatTitleOrFilename msg, true, true}</a>&rdquo;"""
+        """&ldquo;<a href=\"#{url}\">#{formatTitleOrFilename msg, options}</a>&rdquo;"""
       else
         #"<a href=\"#{url}\">#{_.escape titleOrUntitled msg}</a>"
-        """<a href=\"#{url}\">#{formatTitleOrFilename msg, true, true}</a>"""
+        """<a href=\"#{url}\">#{formatTitleOrFilename msg, options}</a>"""
     else
       if quote
         """"#{titleOrUntitled msg}" [#{url}]"""
@@ -456,8 +459,8 @@ if Meteor.isServer
       html += "<H1>#{linkToGroup group, true}: #{pluralize groupUpdates.length, 'update'} in #{pluralize bythread.length, 'thread'}</H1>\n\n"
       text += "=== #{group}: #{pluralize groupUpdates.length, 'update'} in #{pluralize bythread.length, 'thread'} ===\n\n"
       for [root, rootUpdates, rootmsg] in bythread
-        html += "<H2>#{linkToMessage rootmsg, true}</H2>\n\n"
-        text += "--- #{linkToMessage rootmsg, false} ---\n\n"
+        html += "<H2>#{linkToMessage rootmsg, user, true}</H2>\n\n"
+        text += "--- #{linkToMessage rootmsg, user, false} ---\n\n"
         rootUpdates = _.sortBy rootUpdates, (notification) ->
           if notification.new.root?
             notification.dateMin.getTime()
@@ -511,17 +514,19 @@ if Meteor.isServer
           updated = momentInUserTimezone msg.updated, user
           dates = "on #{updated.format 'ddd, MMM D, YYYY [at] H:mm z'}"
           if msg.root?
-            html += "<P><B>#{authorsHTML}</B> #{verb} #{adjectives}message #{linkToMessage msg, true, true} in the thread #{linkToMessage rootmsg, true, true} #{dates}:"
-            text += "#{authorsText} #{verb} #{adjectives}message #{linkToMessage msg, false, true} in the thread #{linkToMessage rootmsg, false, true} #{dates}:"
+            html += "<P><B>#{authorsHTML}</B> #{verb} #{adjectives}message #{linkToMessage msg, user, true, true} in the thread #{linkToMessage rootmsg, true, true} #{dates}:"
+            text += "#{authorsText} #{verb} #{adjectives}message #{linkToMessage msg, user, false, true} in the thread #{linkToMessage rootmsg, user, false, true} #{dates}:"
           else
-            html += "<P><B>#{authorsHTML}</B> #{verb} #{adjectives}root message in the thread #{linkToMessage msg, true, true} #{dates}:"
-            text += "#{authorsText} #{verb} #{adjectives}root message in the thread #{linkToMessage msg, false, true} #{dates}:"
+            html += "<P><B>#{authorsHTML}</B> #{verb} #{adjectives}root message in the thread #{linkToMessage msg, user, true, true} #{dates}:"
+            text += "#{authorsText} #{verb} #{adjectives}root message in the thread #{linkToMessage msg, user, false, true} #{dates}:"
           html += '\n\n'
           text += '\n\n'
           ## xxx also could use diff on body
           if changed.body
             if msg.body.trim().length > 0
-              bodyHtml = formatBody msg.format, msg.body, true
+              bodyHtml = formatBody msg.format, msg.body,
+                leaveTeX: true  # KaTeX CSS not in email
+                me: user.username
               bodyText = msg.body
             else
               bodyHtml = bodyText = '(empty body)'
@@ -536,7 +541,9 @@ if Meteor.isServer
           if changed.title
             if old?.title
               bullet "Title changed from \"#{titleOrUntitled old}\"",
-                     "Title changed from &ldquo;#{formatTitleOrFilename old, true, true}&rdquo;"
+                     "Title changed from &ldquo;#{formatTitleOrFilename old,
+                       leaveTeX: true
+                       me: user.username}&rdquo;"
             else
               bullet "Title added"
           for key in ['coauthors', 'access']
@@ -614,6 +621,11 @@ if Meteor.isServer
           text += '\n'
     if pastAuthors
       subject = authorsSubject
+
+    ## Expand some CSS classes
+    html = html
+    .replace /<span class="highlight">/g,
+             '<span style="background:yellow;color:black">'
 
     Email.send
       from: Accounts.emailTemplates.from

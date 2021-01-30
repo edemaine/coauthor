@@ -115,7 +115,9 @@ RootHeader = React.memo ({message}) ->
   , [message.root]
   formattedTitle = useMemo ->
     return unless root?
-    formatTitleOrFilename root, false, false, true
+    formatTitleOrFilename root,
+      orUntitled: false
+      bold: true
   , [root]
 
   return null unless root?
@@ -1474,7 +1476,9 @@ TableOfContents.displayName = 'TableOfContents'
 WrappedTableOfContents = React.memo ({message, parent, index}) ->
   isRoot = not parent?  # should not differ between calls (for hook properties)
   formattedTitle = useTracker ->
-    formatTitleOrFilename message, false, false, isRoot  ## don't say (untitled)
+    formatTitleOrFilename message,
+      orUntitled: false
+      bold: isRoot
   , [message, isRoot]
   user = useTracker ->
     Meteor.user()
@@ -1788,7 +1792,9 @@ WrappedSubmessage = React.memo ({message, read}) ->
       if raw
         "<CODE CLASS='raw'>#{_.escape historified.title}</CODE>"
       else
-        formatTitleOrFilename historified, false, false, bold  ## don't say (untitled)
+        formatTitleOrFilename historified,
+          orUntitled: false
+          bold: bold
   , [historified.title, historified.file, historified.format, raw, message.children.length > 0]
   formattedBody = useTracker ->
     return historified.body unless historified.body

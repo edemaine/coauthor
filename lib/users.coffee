@@ -15,7 +15,8 @@ import React from 'react'
   user = findUsername username
   user?.profile?.fullname?.trim?() or user?.username or username
 
-@linkToAuthor = (group, user, title, prefix) ->
+@linkToAuthor = (group, user, options) ->
+  {title, prefix, me} = options if options?
   username = user.username ? user
   title = "User '#{username}'" unless title?
   link = urlFor 'author',
@@ -26,7 +27,8 @@ import React from 'react'
      Router.current()?.route?.getName() == 'author'
     highlight = (Router.current()?.params?.author == username)
   else
-    highlight = (username == Meteor.user()?.username)
+    me ?= Meteor.user()?.username if Meteor.isClient
+    highlight = (username == me)
   if highlight
     link = """<span class="highlight">#{link}</span>"""
   link

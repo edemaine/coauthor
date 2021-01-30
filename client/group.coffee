@@ -401,7 +401,7 @@ MessageShort = React.memo ({message}) ->
       message: message._id
   , [message]
   formattedTitle = useTracker ->
-    formatTitleOrFilename message, true, false, true
+    formatTitleOrFilename message, bold: true
   , [message]
   creator = useTracker ->
     displayUser message.creator
