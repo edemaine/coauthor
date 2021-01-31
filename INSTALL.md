@@ -6,17 +6,14 @@ Here is how to get a **local test server** running:
 
 1. **[Install Meteor](https://www.meteor.com/install):**
    `curl https://install.meteor.com/ | sh` on UNIX. Note: this will require x86 processor, or Rosetta for machines on an M1 Chip.
-
    `choco install meteor` on Windows (in administrator command prompt
    after [installing Chocolatey](https://chocolatey.org/install))
-
 2. **Download Coauthor:** `git clone https://github.com/edemaine/coauthor.git`
 3. **Run meteor:**
    * `cd coauthor`
    * `meteor npm install`
    * `meteor`
 4. **Make a superuser account:**
-
    * Open the website [http://localhost:3000/](http://localhost:3000/)
    * Create an account
    * `meteor mongo`
@@ -29,7 +26,7 @@ Here is how to get a **local test server** running:
 
      `*` means all groups, so this user gets all permissions globally.
 
-Even a test server will be accessible from the rest of the Internet. However,
+Even a test server will be accessible from the rest of the Internet.  However,
 many features (including editing messages) will work only if you set the
 `ROOT_URL` environment variable to `http://your.host.name:3000`
 before running `meteor` in Step 3.
@@ -64,7 +61,7 @@ must be changed.
    see below, and use e.g. `smtp://yourhostname.org:25/`).
    [`smtp://localhost:25/` may not work because of mup's use of docker.]
    If you want the "From" address in email notifications to be something
-   other than coauthor@_deployed-host-name_, set the `MAIL_FROM` variable.
+   other than coauthor@*deployed-host-name*, set the `MAIL_FROM` variable.
 
 4. Edit `settings.json` to set the server's
    [timezone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
@@ -80,20 +77,20 @@ must be changed.
 ### Email
 
 You'll also need an SMTP server to send email notifications.
-Make sure that your server has both **DNS** (hostname to IP mapping) _and_
+Make sure that your server has both **DNS** (hostname to IP mapping) *and*
 **reverse DNS (PTR)** (IP to hostname mapping), and that these point to
-each other. Otherwise, many mail servers (such as
+each other.  Otherwise, many mail servers (such as
 [MIT's](http://kb.mit.edu/confluence/display/istcontrib/554+5.7.1+Delivery+not+authorized))
 will not accept email sent by the server.
 
 If you're using Postfix, modify the `/etc/postfix/main.cf` configuration as
 follows (substituting your own hostname):
 
-* Set `myhostname = yourhostname.com`
-* Add `, $myhostname` to `mydestination`
-* Add ` 172.17.0.0/16` to `mynetworks`:
+ * Set `myhostname = yourhostname.com`
+ * Add `, $myhostname` to `mydestination`
+ * Add ` 172.17.0.0/16` to `mynetworks`:
 
-  `mynetworks = 127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128 172.17.0.0/16`
+   `mynetworks = 127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128 172.17.0.0/16`
 
 Set the `MAIL_FROM` environment variable (in `.deploy/mup.js`) to the
 return email address (typically `coauthor@yourhostname.com`) you'd like
@@ -128,7 +125,6 @@ email notifications.
 ## Application Performance Management (APM)
 
 To monitor server performance, you can use one of the following:
-
 * [Monti APM](https://montiapm.com/)
   (no setup required, free for 8-hour retention); or
 * deploy your own
@@ -153,7 +149,7 @@ There's a script in `.backup` that I use to dump the database,
 copy to the development machine, and upload to Dropbox or other cloud storage
 via [rclone](https://rclone.org/).
 
-`mup`'s MongoDB stores data in `/var/lib/mongodb`. MongoDB prefers an XFS
+`mup`'s MongoDB stores data in `/var/lib/mongodb`.  MongoDB prefers an XFS
 filesystem, so you might want to
 [create an XFS filesystem](http://ask.xmodulo.com/create-mount-xfs-file-system-linux.html)
 and mount or link it there.
@@ -161,13 +157,13 @@ and mount or link it there.
 `ln -s /data/mongodb /var/lib/mongodb`).
 
 `mup` also, by default, makes the MongoDB accessible to any user on the
-deployed machine. This is a security hole: make sure that there aren't any
+deployed machine.  This is a security hole: make sure that there aren't any
 user accounts on the deployed machine.
 But it is also useful for manual database inspection and/or manipulation.
 [Install MongoDB client
 tools](https://docs.mongodb.com/manual/administration/install-community/),
 run `mongo coauthor` (or `mongo` then `use coauthor`) and you can directly
-query or update the collections. (Start with `show collections`, then
+query or update the collections.  (Start with `show collections`, then
 e.g. `db.messages.find()`.)
 On a test server, you can run `meteor mongo` to get the same interface.
 
