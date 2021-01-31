@@ -14,6 +14,7 @@ accessHeaders = (req) ->
   ## Note that this still requires Coauthor authentication via cookies.
   'Access-Control-Allow-Origin': req.headers['origin'] ? '*'
   'Access-Control-Allow-Credentials': 'true'
+  'Vary': 'Origin'
 
 ## Mimicking vsivsi:file-collection http_access_server.coffee
 WebApp.rawConnectHandlers.use '/file',
@@ -26,8 +27,8 @@ WebApp.rawConnectHandlers.use '/file',
     msgId = match[1]
 
     if req.method == 'OPTIONS'
-      res.writeHead 204, Object.assign {}, accessHeaders(req),
-        Allow: 'OPTIONS, GET, HEAD'
+      res.writeHead 204, Object.assign accessHeaders(req),
+        'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS'
       return res.end()
 
     ## handle_auth()
@@ -41,14 +42,16 @@ WebApp.rawConnectHandlers.use '/file',
           $elemMatch:
             hashedToken: Accounts?._hashLoginToken authToken
       unless user?
-        res.writeHead 400
+        res.writeHead 400, accessHeaders req
         return res.end "Invalid X-Auth-Token #{authToken}"
       username = "User '#{user.username}'"
+      accessError = 403  # Forbidden indicates client's identity is known
     else
       ## Allow null user, and check below for anonymous access.
       user = null
       username = "Not-logged-in user"
-      #res.writeHead 400
+      accessError = 401  # Unauthorized indicates client's identity is unknown
+      #res.writeHead 400, accessHeaders req
       #return res.end "Missing X-Auth-Token header/token"
 
     ## Map message -> file
@@ -60,7 +63,7 @@ WebApp.rawConnectHandlers.use '/file',
     #   file: true
     #   root: true  ## for messageRoleCheck
     unless msg? and msg.file and (req.gridFS = findFile msg.file)?
-      res.writeHead 403
+      res.writeHead accessError, accessHeaders req
       ## Use same error message whether file exists or not, so don't leak info.
       #return res.end "Invalid file message ID: #{msgId}"
       return res.end "#{username} lacks read permissions for group of message/file #{msgId}"
@@ -69,11 +72,11 @@ WebApp.rawConnectHandlers.use '/file',
     # Debatable whether that would be a bug or feature.
     #unless messageRoleCheck(msg.group, msg, 'read', user) and (msg.group == req.gridFS.metadata.group or groupRoleCheck req.gridFS.metadata.group, 'read', user)
     unless canSee msg, false, user
-      res.writeHead 403
+      res.writeHead accessError, accessHeaders req
       return res.end "#{username} lacks read permissions for group of message/file #{msgId}"
 
     ## get()
-    headers = Object.assign {}, accessHeaders(req),
+    headers = Object.assign accessHeaders(req),
       'Content-Type': 'text/plain'
     if req.headers['if-modified-since']
       since = Date.parse req.headers['if-modified-since']  ## NaN if invaild
