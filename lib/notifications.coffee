@@ -551,7 +551,7 @@ if Meteor.isServer
             authors =
               for author in msg[key]
                 author: author
-                diff: if old? and author not in old[key] then '+' else ''
+                diff: if old? and author not in (old[key] ? []) then '+' else ''
             for author in old?[key] ? []
               if author not in msg[key]
                 authors.push
