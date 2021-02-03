@@ -76,13 +76,13 @@ WebApp.rawConnectHandlers.use '/file',
       return res.end "#{username} lacks read permissions for group of message/file #{msgId}"
 
     ## get()
-    headers = Object.assign accessHeaders(req),
-      'Content-Type': 'text/plain'
+    headers = accessHeaders req
     if req.headers['if-modified-since']
       since = Date.parse req.headers['if-modified-since']  ## NaN if invaild
       if since and req.gridFS.uploadDate and (req.headers['if-modified-since'] == req.gridFS.uploadDate.toUTCString() or since >= req.gridFS.uploadDate.getTime())
         res.writeHead 304, headers
         return res.end()
+    headers['Content-Type'] = req.gridFS.contentType or defaultContentType
     if req.headers['range']
       statusCode = 206  # partial data
       parts = req.headers['range'].replace(/bytes=/, "").split("-")
@@ -97,7 +97,7 @@ WebApp.rawConnectHandlers.use '/file',
       headers['Accept-Ranges'] = 'bytes'
       headers['Content-Length'] = chunksize
       headers['Last-Modified'] = req.gridFS.uploadDate.toUTCString()
-      unless req.method is 'HEAD'
+      unless req.method == 'HEAD'
         stream = Files.findOneStream(
           _id: req.gridFS._id
         ,
@@ -110,26 +110,24 @@ WebApp.rawConnectHandlers.use '/file',
       headers['Content-MD5'] = req.gridFS.md5
       headers['Content-Length'] = req.gridFS.length
       headers['Last-Modified'] = req.gridFS.uploadDate.toUTCString()
-      unless req.method is 'HEAD'
+      unless req.method == 'HEAD'
         stream = Files.findOneStream { _id: req.gridFS._id }
-    headers['Content-Type'] = req.gridFS.contentType or defaultContentType
     filename = encodeURIComponent(req.query.filename ? req.gridFS.filename)
     headers['Content-Disposition'] = "inline; filename=\"#{filename}\"; filename*=UTF-8''#{filename}"
     if (req.query.download and req.query.download.toLowerCase() == 'true') or req.query.filename
       headers['Content-Disposition'] = "attachment; filename=\"#{filename}\"; filename*=UTF-8''#{filename}"
     if req.query.cache and not isNaN(parseInt(req.query.cache))
       headers['Cache-Control'] = "max-age=" + parseInt(req.query.cache)+", private"
-    if req.method is 'HEAD'
+    if req.method == 'HEAD'
       res.writeHead 204, headers
       return res.end()
     if stream
       res.writeHead statusCode, headers
-      stream.pipe(res)
-        .on 'close', () ->
-          res.end()
-        .on 'error', (err) ->
-          res.writeHead 500
-          res.end err
+      stream.pipe res
+      .on 'close', -> res.end()
+      .on 'error', (err) ->
+        res.writeHead 500
+        res.end err
     else
       res.writeHead 410
       res.end()
