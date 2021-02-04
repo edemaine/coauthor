@@ -2086,16 +2086,20 @@ WrappedSubmessage = React.memo ({message, read}) ->
         tags: Object.assign {}, message.tags ? {}, {"#{escapeTag tag}": true}
   onTagNew = (e) ->
     e.preventDefault()
-    textTag = $(e.target).parents('form').first().find('.tagAddText')[0]
+    textTag = $(e.target).parents('form').first().find('#tagKey')[0]
+    textTagVal = $(e.target).parents('form').first().find('#tagVal')[0]
     tag = textTag.value.trim()
+    tagval = textTagVal.value.trim()
     textTag.value = ''  ## reset custom tag
+    textTagVal.value = ''  ## reset custom tag
     if tag
       if tag of message.tags
         console.warn "Attempt to add duplicate tag '#{tag}' to message #{message._id}"
       else
+        value = if tagval then escapeTag tagval else true
         Meteor.call 'tagNew', message.group, tag, 'boolean'
         Meteor.call 'messageUpdate', message._id,
-          tags: Object.assign {}, message.tags ? {}, {"#{escapeTag tag}": true}
+          tags: Object.assign {}, message.tags ? {}, {"#{escapeTag tag}": value}
     addTagRef.current.click()
     false  ## prevent form from submitting
 
@@ -2161,7 +2165,7 @@ WrappedSubmessage = React.memo ({message, read}) ->
             {for tag in sortTags message.tags
               <React.Fragment key={tag.key}>
                 <span className="label label-default tag tagWithRemove">
-                  {tag.key + ' '}
+                  {tag.key + (if tag.value == true then "" else ":"+tag.value) + ' '}
                   <span className="tagRemove fas fa-times-circle" aria-label="Remove" data-tag={tag.key} onClick={onTagRemove}/>
                 </span>
                 {' '}
@@ -2179,7 +2183,8 @@ WrappedSubmessage = React.memo ({message, read}) ->
                 <li className="disabled">
                   <a>
                     <form className="input-group input-group-sm">
-                      <input className="tagAddText form-control" type="text" placeholder="New Tag..."/>
+                      <input className="tagAddText form-control" id="tagKey" type="text" placeholder="New Tag..."/>
+                      <input className="tagAddText form-control" id="tagVal" type="text" placeholder="Value (opt.)"/>
                       <div className="input-group-btn">
                         <button className="btn btn-default tagAddNew" type="submit" onClick={onTagNew}>
                           <span className="fas fa-plus"/>
