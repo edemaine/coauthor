@@ -220,6 +220,12 @@ Message = React.memo ({message}) ->
   onToc = (e) ->
     e.preventDefault()
     setToc not toc
+  useEventListener 'keypress', (e) ->
+    return if e.target.tagName in ['INPUT', 'TEXTAREA']
+    if e.key.toLowerCase() == 't' and not (e.ctrlKey or e.altKey or e.metaKey)
+      e.preventDefault()
+      e.stopPropagation()
+      setToc not toc
 
   ## Set sticky column height to remaining height of screen:
   ## 100vh when stuck, and less when header is (partly) visible.
@@ -236,14 +242,22 @@ Message = React.memo ({message}) ->
 
   <>
     <div className="hidden-print text-right toc-toggle">
-      <a href="#" onClick={onToc}>
-        {if toc
-          <span className="fas fa-caret-down"/>
-        else
-          <span className="fas fa-caret-right"/>
-        }
-        {' Table of Contents'}
-      </a>
+      <OverlayTrigger placement="top" flip overlay={(props) ->
+        <Tooltip {...props}>
+          Click (or type <kbd>t</kbd>) to toggle the right sidebar
+          listing all posts.  Click on post to scroll to that post;
+          drag posts to re-order.
+        </Tooltip>
+      }>
+        <a href="#" onClick={onToc}>
+          {if toc
+            <span className="fas fa-caret-down"/>
+          else
+            <span className="fas fa-caret-right"/>
+          }
+          {' Table of Contents'}
+        </a>
+      </OverlayTrigger>
     </div>
     <div className="row">
       <div className={if toc then "col-xs-9" else "col-xs-12"} role="main">
