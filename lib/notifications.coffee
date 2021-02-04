@@ -500,8 +500,8 @@ if Meteor.isServer
             ## Don't notify about empty body on new file message
             delete changed.body if msg.file and not msg.body
             ## Ignore coauthors on creation if it's still just the creator
-            delete changed.coauthors if _.isEqual changed.coauthors, [msg.creator]
-            delete changed.access if changed.access?.length == 0
+            delete changed.coauthors if _.isEqual msg.coauthors, [msg.creator]
+            delete changed.access if msg.access?.length == 0
           authors = _.sortBy notification.authors, userSortKey
           authorsText = (displayUser author for author in authors).join ', '
           authorsHTML = (linkToAuthor msg.group, author for author in authors).join ', '
