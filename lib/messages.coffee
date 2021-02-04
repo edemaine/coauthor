@@ -1555,7 +1555,8 @@ Meteor.methods
 
 ## On client, requires messages.root subscription
 @messageNeighbors = (root) ->
-  return unless root._id?
+  return {} unless root._id?
+  return {} if root.root?  # doesn't work on nonroot messages
   messages = groupSortedBy root.group, groupDefaultSort(root.group),
     fields:
       title: 1
@@ -1563,7 +1564,7 @@ Meteor.methods
   messages = messages.fetch() if messages.fetch?
   ids = (message._id for message in messages)
   index = ids.indexOf root._id
-  return unless index >= 0
+  return {} unless index >= 0
   neighbors = {}
   neighbors.prev = messages[index-1] if index > 0
   neighbors.next = messages[index+1] if index < messages.length - 1

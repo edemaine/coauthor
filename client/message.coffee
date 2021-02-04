@@ -536,10 +536,13 @@ export MessageLabels = React.memo ({message}) ->
 MessageLabels.displayName = 'MessageLabels'
 
 MessageNeighborsOrParent = React.memo ({message}) ->
-  if message.root?
-    <MessageParent message={message}/>
-  else
-    <MessageNeighbors message={message}/>
+  <ErrorBoundary>
+    {if message.root?
+      <MessageParent message={message}/>
+    else
+      <MessageNeighbors message={message}/>
+    }
+  </ErrorBoundary>
 MessageNeighborsOrParent.displayName = 'MessageNeighborsOrParent'
 
 MessageNeighbors = React.memo ({message}) ->
