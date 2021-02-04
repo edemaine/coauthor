@@ -473,15 +473,21 @@ if Meteor.isServer
             verb = 'updated'
           else
             verb = 'created'
-          adjectives = ''
+          ## Colors for adjectives based on .contents styles
+          adjectivesText = []
+          adjectivesHTML = []
           unless msg.published
-            adjectives += 'unpublished '
+            adjectivesText.push 'unpublished '
+            adjectivesHTML.push '<span style="color:#8a6d3b">unpublished</span> '
           if msg.deleted
-            adjectives += 'deleted '
+            adjectivesText.push 'deleted '
+            adjectivesHTML.push '<span style="color:#a94442">deleted</span> '
           if msg.private
-            adjectives += 'private '
+            adjectivesText.push 'private '
+            adjectivesHTML.push '<span style="color:#5bc0de">private</span> '
           if msg.minimized
-            adjectives += 'minimized '
+            adjectivesText.push 'minimized '
+            adjectivesHTML.push '<span style="color:#449d44">minimized</span> '
           changed = notification.changed
           unless old?
             ## Ignore some initial values during creation of message.
@@ -514,11 +520,11 @@ if Meteor.isServer
           updated = momentInUserTimezone msg.updated, user
           dates = "on #{updated.format 'ddd, MMM D, YYYY [at] H:mm z'}"
           if msg.root?
-            html += "<P><B>#{authorsHTML}</B> #{verb} #{adjectives}message #{linkToMessage msg, user, true, true} in the thread #{linkToMessage rootmsg, true, true} #{dates}:"
-            text += "#{authorsText} #{verb} #{adjectives}message #{linkToMessage msg, user, false, true} in the thread #{linkToMessage rootmsg, user, false, true} #{dates}:"
+            html += "<P><B>#{authorsHTML}</B> #{verb} #{adjectivesHTML.join ''}message #{linkToMessage msg, user, true, true} in the thread #{linkToMessage rootmsg, true, true} #{dates}:"
+            text += "#{authorsText} #{verb} #{adjectivesText.join ''}message #{linkToMessage msg, user, false, true} in the thread #{linkToMessage rootmsg, user, false, true} #{dates}:"
           else
-            html += "<P><B>#{authorsHTML}</B> #{verb} #{adjectives}root message in the thread #{linkToMessage msg, user, true, true} #{dates}:"
-            text += "#{authorsText} #{verb} #{adjectives}root message in the thread #{linkToMessage msg, user, false, true} #{dates}:"
+            html += "<P><B>#{authorsHTML}</B> #{verb} #{adjectivesHTML.join ''}root message in the thread #{linkToMessage msg, user, true, true} #{dates}:"
+            text += "#{authorsText} #{verb} #{adjectivesText.join ''}root message in the thread #{linkToMessage msg, user, false, true} #{dates}:"
           html += '\n\n'
           text += '\n\n'
           ## xxx also could use diff on body
