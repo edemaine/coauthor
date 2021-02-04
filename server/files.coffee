@@ -119,7 +119,7 @@ WebApp.rawConnectHandlers.use '/file',
     if req.query.cache and not isNaN(parseInt(req.query.cache))
       headers['Cache-Control'] = "max-age=" + parseInt(req.query.cache)+", private"
     if req.method == 'HEAD'
-      res.writeHead 204, headers
+      res.writeHead statusCode, headers
       return res.end()
     if stream
       res.writeHead statusCode, headers
