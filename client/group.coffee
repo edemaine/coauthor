@@ -10,6 +10,7 @@ import {MessageLabels, MessageTags, messageClass, uploaderProps} from './message
 import {TagList} from './TagList'
 import {TextTooltip} from './lib/tooltip'
 import {UserLink} from './UserLink'
+import {TagEdit} from './TagEdit'
 
 @routeGroupRoute = ->
   Router.current()?.params?.group
@@ -113,7 +114,7 @@ Group = React.memo ({group, groupData}) ->
       </ErrorBoundary>
     </div>
     <ErrorBoundary>
-      <MessageList topMessages={topMessages} sortBy={sortBy}/>
+      <MessageList group={group} topMessages={topMessages} sortBy={sortBy}/>
     </ErrorBoundary>
     <div className="panel-footer clearfix">
       <ErrorBoundary>
@@ -232,7 +233,15 @@ columnReverse =
   emoji: true
   subscribe: true
 
-MessageList = React.memo ({topMessages, sortBy}) ->
+MessageList = React.memo ({group, topMessages, sortBy}) ->
+  tags = useTracker ->
+    Tags.find
+      group: group
+      deleted: false
+    ,
+      sort: ['key']
+    .fetch()
+  , [group]
   sortLink = (key) ->
     if key == sortBy.key
       linkToSort
@@ -281,6 +290,13 @@ MessageList = React.memo ({topMessages, sortBy}) ->
                 }
               </a>
             </TextTooltip>
+            {if column == 'title'
+              <span className="gatherBtn">
+                <TagEdit absentTags={tags}>
+                  {'Gather by...'}
+                </TagEdit>
+              </span>
+            }
           </th>
         }
       </tr>
