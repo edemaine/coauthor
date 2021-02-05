@@ -13,6 +13,7 @@ import {FormatDate} from './lib/date'
 import {MessageImage, imageTransform} from './MessageImage'
 import {MessagePDF} from './MessagePDF'
 import {TagList} from './TagList'
+import {TagEdit} from './TagEdit'
 import {TextTooltip} from './lib/tooltip'
 import {UserInput} from './UserInput'
 import {UserLink} from './UserLink'
@@ -2094,12 +2095,11 @@ WrappedSubmessage = React.memo ({message, read}) ->
     textTagVal.value = ''  ## reset custom tag
     if tag
       if tag of message.tags
-        console.warn "Attempt to add duplicate tag '#{tag}' to message #{message._id}"
-      else
-        value = if tagval then escapeTag tagval else true
-        Meteor.call 'tagNew', message.group, tag, 'boolean'
-        Meteor.call 'messageUpdate', message._id,
-          tags: Object.assign {}, message.tags ? {}, {"#{escapeTag tag}": value}
+        console.warn "Updating duplicate tag '#{tag}' of message #{message._id}"
+      value = if tagval then escapeTag tagval else true
+      Meteor.call 'tagNew', message.group, tag, 'boolean'
+      Meteor.call 'messageUpdate', message._id,
+        tags: Object.assign {}, message.tags ? {}, {"#{escapeTag tag}": value}
     addTagRef.current.click()
     false  ## prevent form from submitting
 
@@ -2163,49 +2163,21 @@ WrappedSubmessage = React.memo ({message, read}) ->
           <span className="upper-strut"/>
           <span className="tags">
             {for tag in sortTags message.tags
-              <React.Fragment key={tag.key}>
-                <span className="label label-default tag tagWithRemove">
+              <TagEdit addTagRef={addTagRef} onTagNew={onTagNew} onTagAdd={onTagAdd} absentTags={absentTags} tag={tag}>
+                <React.Fragment key={tag.key}>
                   {tag.key + (if tag.value == true then "" else ":"+tag.value) + ' '}
                   <span className="tagRemove fas fa-times-circle" aria-label="Remove" data-tag={tag.key} onClick={onTagRemove}/>
-                </span>
-                {' '}
-              </React.Fragment>
+                  {' '}
+                </React.Fragment>
+              </TagEdit>
             }
           </span>
-          <span className="btn-group">
-            <Dropdown>
-              <Dropdown.Toggle variant="default"
-               className="label label-default" ref={addTagRef}>
-                <span className="fas fa-plus"/>
-                {' Tag'}
-              </Dropdown.Toggle>
-              <Dropdown.Menu className="tagMenu">
-                <li className="disabled">
-                  <a>
-                    <form className="input-group input-group-sm">
-                      <input className="tagAddText form-control" id="tagKey" type="text" placeholder="New Tag..."/>
-                      <input className="tagAddText form-control" id="tagVal" type="text" placeholder="Value (opt.)"/>
-                      <div className="input-group-btn">
-                        <button className="btn btn-default tagAddNew" type="submit" onClick={onTagNew}>
-                          <span className="fas fa-plus"/>
-                        </button>
-                      </div>
-                    </form>
-                  </a>
-                </li>
-                {if absentTags.length
-                  <>
-                    <li className="divider" role="separator"/>
-                    {for tag in absentTags
-                      <li key={tag.key}>
-                        <Dropdown.Item className="tagAdd" href="#" data-tag={tag.key} onClick={onTagAdd}>{tag.key}</Dropdown.Item>
-                      </li>
-                    }
-                  </>
-                }
-              </Dropdown.Menu>
-            </Dropdown>
-          </span>
+          <TagEdit addTagRef={addTagRef} onTagNew={onTagNew} onTagAdd={onTagAdd} absentTags={absentTags}>
+            <React.Fragment key="addTag">
+              <span className="fas fa-plus"/>
+              {' Tag'}
+            </React.Fragment>
+          </TagEdit>
           <MessageLabels message={message}/>
           <span className="lower-strut"/>
         </span>
