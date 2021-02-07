@@ -516,14 +516,16 @@ if Meteor.isServer
 @canReply = (message) ->
   canPost message.group, message._id
 
-@canEdit = (message, user = Meteor.user()) ->
-  ## Can edit message if a coauthor (explicit read/write access),
+@canEdit = (message, client = Meteor.isClient, user = Meteor.user()) ->
+  ## Can edit message if a coauthor (explicit read/write access);
   ## or if we have global edit privileges in this group or thread,
   ## in addition to being able to see the message itself
-  ## (a slight variation to the logic of `canSee` which needs `read` access).
+  ## (a slight variation to the logic of `canSee` which needs `read` access);
+  ## or a superuser.
   message = findMessage message
   return false unless message?
   user? and (
+    canSuper(message, client, user) or
     amCoauthor(message, user) or
     (messageRoleCheck(message.group, message, 'edit', user) and
      ((message.published and not message.deleted and not message.private) or
@@ -837,7 +839,7 @@ _messageUpdate = (id, message, authors = null, old = null) ->
         "Need to be logged in to edit messages (so we can track coauthors!)"
     check Meteor.userId(), String
     authors = [user.username]
-    unless canEdit old, user
+    unless canEdit old, false, user
       throw new Meteor.Error 'messageUpdate.unauthorized',
         "Insufficient permissions to edit message '#{id}' in group '#{old.group}'"
     checkPrivacy message.private, old, user
@@ -929,7 +931,7 @@ _messageUpdate = (id, message, authors = null, old = null) ->
     ## (Let them stay as editors if they made the change and can still edit.)0
     for other in (coauthorsMod?.$pull ? []).concat (accessMod?.$pull ? [])
       if other in (old.editing ? []) and
-         (other != user?.username or not canEdit id, findUsername user)
+         (other != user?.username or not canEdit id, false, findUsername user)
         _messageEditStop id, other
   diffid
 
@@ -1319,7 +1321,7 @@ Meteor.methods
   messageEditStart: (id) ->
     check Meteor.userId(), String
     return if @isSimulation
-    unless canEdit id
+    unless canEdit id, false
       throw new Meteor.Error 'messageEditStart.unauthorized',
         "Insufficient permissions to edit message '#{id}'"
     old = Messages.findOne id
