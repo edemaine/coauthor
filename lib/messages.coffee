@@ -525,7 +525,7 @@ if Meteor.isServer
   message = findMessage message
   return false unless message?
   user? and (
-    canSuper(message, client, user) or
+    canSuper(message.group, client, user) or
     amCoauthor(message, user) or
     (messageRoleCheck(message.group, message, 'edit', user) and
      ((message.published and not message.deleted and not message.private) or
