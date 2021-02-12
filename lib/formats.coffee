@@ -925,7 +925,7 @@ We therefore don't display any file that is still in the zero-length state.
     title
 
 @formatTitleOrFilename = (msg, options) ->
-  if msg.format and msg.title and msg.title.trim().length > 0
+  if msg.format and msg.title?.trim().length
     formatTitle msg.format, msg.title, options
   else
     formatFilename msg, options

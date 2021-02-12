@@ -563,29 +563,28 @@ MessageNeighbors = React.memo ({message}) ->
   neighbors = useTracker ->
     messageNeighbors message
   , [message]
+  renderNeighbor = (neighbor, icon, label) ->
+    if neighbor?
+      url = pathFor 'message',
+        group: neighbor.group
+        message: neighbor._id
+      <OverlayTrigger placement="top" flip overlay={(props) ->
+        <Tooltip {...props}>
+          <div dangerouslySetInnerHTML={__html:
+            formatTitleOrFilename neighbor}/>
+        </Tooltip>
+      }>
+        <a className="btn btn-info" href={url}>
+          <span className="fas fa-#{icon}" aria-label={label}/>
+        </a>
+      </OverlayTrigger>
+    else
+      <a className="btn btn-info disabled">
+        <span className="fas fa-#{icon}" aria-hidden="true"/>
+      </a>
   <>
-    {if prev = neighbors.prev
-      <TextTooltip title={prev.title}>
-        <a className="btn btn-info" href={pathFor 'message', {group: prev.group, message: prev._id}}>
-          <span className="fas fa-backward" aria-label="Previous"/>
-        </a>
-      </TextTooltip>
-    else
-      <a className="btn btn-info disabled">
-        <span className="fas fa-backward" aria-hidden="true"/>
-      </a>
-    }
-    {if next = neighbors.next
-      <TextTooltip title={next.title}>
-        <a className="btn btn-info" href={pathFor 'message', {group: next.group, message: next._id}}>
-          <span className="fas fa-forward" aria-label="Next"/>
-        </a>
-      </TextTooltip>
-    else
-      <a className="btn btn-info disabled">
-        <span className="fas fa-forward" aria-hidden="true"/>
-      </a>
-    }
+    {renderNeighbor neighbors.prev, 'backward', 'Previous'}
+    {renderNeighbor neighbors.next, 'forward', 'Next'}
   </>
 MessageNeighbors.displayName = 'MessageNeighbors'
 

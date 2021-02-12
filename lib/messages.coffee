@@ -1563,6 +1563,8 @@ Meteor.methods
     fields:
       title: 1
       group: 1
+      format: 1
+      file: 1
   messages = messages.fetch() if messages.fetch?
   ids = (message._id for message in messages)
   index = ids.indexOf root._id
