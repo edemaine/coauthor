@@ -1348,6 +1348,7 @@ export uploaderProps = (callback, inputRef) ->
       e.preventDefault()
       e.stopPropagation()
       inputRef.current.click()
+  dropProps:
     onDragEnter: (e) ->
       e.preventDefault()
       e.stopPropagation()
@@ -1365,17 +1366,29 @@ export uploaderProps = (callback, inputRef) ->
 
 ReplyButtons = React.memo ({message, prefix}) ->
   attachInput = useRef()
+  defaultPublished = useTracker ->
+    autopublish()
+  , []
+  oncePublished = if defaultPublished then '' else ' (once published)'
+  defaultVariant = if defaultPublished then 'default' else 'warning'
+  unless defaultPublished
+    prefix ?= 'Unpublished '
 
   onReply = (e) ->
     e.preventDefault()
     e.stopPropagation()
     return unless canReply message
     reply = {}
-    switch e.target.getAttribute 'data-privacy'
+    switch e.currentTarget.getAttribute 'data-privacy'
       when 'public'
         reply.private = false
       when 'private'
         reply.private = true
+    switch e.currentTarget.getAttribute 'data-published'
+      when 'false'
+        reply.published = false
+      when 'true'
+        reply.published = true
     Meteor.call 'messageNew', message.group, message._id, null, reply, (error, result) ->
       if error
         console.error error
@@ -1405,48 +1418,101 @@ ReplyButtons = React.memo ({message, prefix}) ->
             called += 1
       file.group = message.group
       Files.resumable.addFile file, e
-  {buttonProps, inputProps} = uploaderProps attachFiles, attachInput
+  {buttonProps, dropProps, inputProps} = uploaderProps attachFiles, attachInput
 
   threadPrivacy = message.threadPrivacy ? ['public']
   publicReply = 'public' in threadPrivacy
   privateReply = 'private' in threadPrivacy
 
-  <div className="btn-group pull-right message-reply-buttons">
-    {if publicReply and not privateReply
-      # normal reply, not necessarily public
-      if message.private
-        <TextTooltip placement="bottom" title="A reply to a private message will be private but automatically start accessible to the same users (once they are published and not deleted). You can modify that access when editing the reply. Access does not stay synchronized, so if you later modify the parent's access, consider modifying the child too.">
-          <button className="btn btn-default replyButton" onClick={onReply}>
-            {prefix}
-            Reply All
-          </button>
-        </TextTooltip>
+  <Dropdown className="message-reply-buttons btn-group pull-right">
+    <Dropdown.Toggle variant="default" {...dropProps}>
+      {"Reply "}
+      <span className="caret"/>
+    </Dropdown.Toggle>
+    <Dropdown.Menu align="right" className="buttonMenu replyMenu">
+      {if publicReply and not privateReply
+        # normal reply, not necessarily public
+        if message.private
+          <li>
+            <TextTooltip placement="bottom" title="A reply to a private message will be private but automatically start accessible to the same users (once they are published and not deleted). You can modify that access when editing the reply. Access does not stay synchronized, so if you later modify the parent's access, consider modifying the child too.">
+              <Dropdown.Item href="#" onClick={onReply}>
+                <button className="btn btn-#{defaultVariant} btn-block replyButton">
+                  {prefix}
+                  Reply All
+                </button>
+              </Dropdown.Item>
+            </TextTooltip>
+          </li>
+        else
+          <li>
+            <TextTooltip placement="left" title="Start a new child message of this one, #{if defaultPublished then 'immediately ' else ''}visible to everyone in this thread#{oncePublished}.">
+              <Dropdown.Item href="#" onClick={onReply}>
+                <button className="btn btn-#{defaultVariant} btn-block replyButton">
+                  {prefix}
+                  Reply
+                </button>
+              </Dropdown.Item>
+            </TextTooltip>
+          </li>
       else
-        <button className="btn btn-default replyButton" onClick={onReply}>
-          {prefix}
-          Reply
-        </button>
-    else
-      <>
-        {if publicReply
-          <button className="btn btn-default replyButton"
-           data-privacy="public" onClick={onReply}>
-            {prefix}
-            Public Reply
-          </button>
-        }
-        {if privateReply
-          <button className="btn btn-default replyButton"
-           data-privacy="private" onClick={onReply}>
-            {prefix}
-            Private Reply
-          </button>
-        }
-      </>
-    }
-    <input className="attachInput" type="file" multiple ref={attachInput} {...inputProps}/>
-    <button className="btn btn-default attachButton" {...buttonProps}>Attach</button>
-  </div>
+        <>
+          {if publicReply
+            <li>
+              <TextTooltip placement="left" title="Start a new child message of this one, visible to everyone in this thread#{oncePublished}.">
+                <Dropdown.Item href="#" data-privacy="public" onClick={onReply}>
+                  <button className="btn btn-#{defaultVariant} btn-block replyButton">
+                    {prefix}
+                    Public Reply
+                  </button>
+                </Dropdown.Item>
+              </TextTooltip>
+            </li>
+          }
+          {if privateReply
+            <li>
+              <TextTooltip placement="left" title="Start a new child message of this one, visible only to coauthors and those explicitly given access#{oncePublished}, initially set to coauthors of the message you're replying to.">
+                <Dropdown.Item href="#" data-privacy="private" onClick={onReply}>
+                  <button className="btn btn-#{defaultVariant} btn-block replyButton">
+                    {prefix}
+                    Private Reply
+                  </button>
+                </Dropdown.Item>
+              </TextTooltip>
+            </li>
+          }
+        </>
+      }
+      <li>
+        <Dropdown.Item href="#" {...buttonProps} {...dropProps}>
+          <TextTooltip placement="left" title="Start a new child message of this one that contains a single file attachment (or one message for each file, if you select multiple files; you can also drag files onto the Reply button). You can then edit the title and body of the file like a regular message.">
+            <button className="btn btn-#{defaultVariant} btn-block">
+              Reply with Attached File
+            </button>
+          </TextTooltip>
+        </Dropdown.Item>
+      </li>
+      <li>
+        <Dropdown.Item href="#" data-published="#{not defaultPublished}" onClick={onReply}>
+          {if defaultPublished
+            <TextTooltip placement="left" title="Start a new child message of this one that starts in the unpublished state, so it will become generally visible only when you select Action / Publish.">
+              <button className="btn btn-warning btn-block">
+                Unpublished Reply
+              </button>
+            </TextTooltip>
+          else
+            <TextTooltip placement="left" title="Start a new child message of this one that starts in the published state, so everyone in this thread can see it immediately.">
+              <button className="btn btn-success btn-block">
+                {prefix unless prefix == 'Unpublished '}
+                Published Reply
+              </button>
+            </TextTooltip>
+          }
+        </Dropdown.Item>
+      </li>
+    </Dropdown.Menu>
+    <input className="attachInput" type="file" multiple ref={attachInput}
+     {...inputProps}/>
+  </Dropdown>
 ReplyButtons.displayName = 'ReplyButtons'
 
 MessageReplace = React.memo ({_id, group, tabindex}) ->
@@ -1468,11 +1534,13 @@ MessageReplace = React.memo ({_id, group, tabindex}) ->
         Meteor.call 'messageUpdate', _id, diff, done
       file.group = group
       Files.resumable.addFile file, e
-  {buttonProps, inputProps} = uploaderProps replaceFiles, replaceInput
+  {buttonProps, dropProps, inputProps} = uploaderProps replaceFiles, replaceInput
 
   <>
     <input className="replaceInput" type="file" ref={replaceInput} {...inputProps}/>
-    <button className="btn btn-info replaceButton" tabIndex={tabindex} {...buttonProps}>Replace File</button>
+    <TextTooltip title="Replace the file attachment of this message with a new file. Alternatively, you can drag a file onto this button. The old file will still be available through History.">
+      <button className="btn btn-info replaceButton" tabIndex={tabindex} {...buttonProps} {...dropProps}>Replace File</button>
+    </TextTooltip>
   </>
 MessageReplace.displayName = 'MessageReplace'
 
@@ -2451,7 +2519,7 @@ MessageActions = React.memo ({message, can, editing, tabindex0}) ->
       {"Action "}
       <span className="caret"/>
     </Dropdown.Toggle>
-    <Dropdown.Menu align="right" className="actionMenu">
+    <Dropdown.Menu align="right" className="actionMenu buttonMenu">
       {if message.minimized
         if can.unminimize
           <li>
