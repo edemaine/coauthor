@@ -4,7 +4,7 @@ export TagList = React.memo ({group, tags, noLink}) ->
   for tag in tags
     label =
       <span className="tag label label-default">
-        {tag.key}
+        {tag.key + (if (not tag.value? or tag.value == true) then "" else ":"+tag.value)}
       </span>
     <React.Fragment key={tag.key}>
       {' '}

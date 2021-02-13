@@ -27,7 +27,7 @@ if Meteor.isServer
 ## In the future, there will be other values, checked here.  (See #86.)
 @validTags = (tags) ->
   for key, value of tags
-    unless validTag(key) and value == true
+    unless validTag(key)
       return false
   true
 
