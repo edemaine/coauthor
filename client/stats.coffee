@@ -53,6 +53,7 @@ MaybeStats.displayName = 'MaybeStats'
 
 export Stats = React.memo ({group, username, unit}) ->
   unit ?= defaultUnit
+  username = Meteor.user()?.username if username == 'me'
   useEffect ->
     title = "Statistics"
     title += " for #{username}" if username
@@ -121,6 +122,7 @@ export Stats = React.memo ({group, username, unit}) ->
   useEffect ->
     return unless updated?
     for stat, i in stats
+      continue if stat.type == 'user' and not username?
       if stat.chart?
         stat.chart.update 1000
       else
@@ -239,13 +241,15 @@ export Stats = React.memo ({group, username, unit}) ->
         </>
       }
     </h1>
-    <div className="userStats #{unless username then 'hidden' else ''}">
-      <h2>
-        <UserLink group={group} username={username}/>
-        &rsquo;s Statistics: {stats[0].msgCount} posts
-      </h2>
-      <canvas className="userStats" width="800" height="400" ref={canvasRefs[0]}/>
-    </div>
+    {if username?
+      <>
+        <h2>
+          <UserLink group={group} username={username}/>
+          &rsquo;s Statistics: {stats[0].msgCount} posts
+        </h2>
+        <canvas className="userStats" width="800" height="400" ref={canvasRefs[0]}/>
+      </>
+    }
     <h2>
       Global Statistics: {stats[1].msgCount} posts
     </h2>
