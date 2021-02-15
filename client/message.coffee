@@ -1419,7 +1419,7 @@ export ReplyButtons = React.memo ({message, prefix}) ->
 
   <Dropdown className="message-reply-buttons btn-group pull-right">
     <Dropdown.Toggle variant="default" {...dropProps}>
-      {"Reply "}
+      {"Reply/Attach "}
       <span className="caret"/>
     </Dropdown.Toggle>
     <Dropdown.Menu align="right" className="buttonMenu replyMenu">
@@ -1427,7 +1427,7 @@ export ReplyButtons = React.memo ({message, prefix}) ->
         # normal reply, not necessarily public
         if message.private
           <li>
-            <TextTooltip placement="bottom" title="A reply to a private message will be private but automatically start accessible to the same users (once they are published and not deleted). You can modify that access when editing the reply. Access does not stay synchronized, so if you later modify the parent's access, consider modifying the child too.">
+            <TextTooltip placement="left" title="A reply to a private message will be private but automatically start accessible to the same users (once they are published and not deleted). You can modify that access when editing the reply. Access does not stay synchronized, so if you later modify the parent's access, consider modifying the child too.">
               <Dropdown.Item href="#" onClick={onReply}>
                 <button className="btn btn-#{defaultVariant} btn-block replyButton">
                   {prefix}
