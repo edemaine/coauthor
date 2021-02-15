@@ -1,4 +1,5 @@
-import { idleStop } from '../lib/messages.coffee'
+import {dateMin, dateMax} from '/lib/dates'
+import {idleStop, messageDiffsExpanded} from '/lib/messages'
 
 ## Upgrade from old file message format (format 'file', body = file pointer)
 ## to new file message format (file = file pointer)

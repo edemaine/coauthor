@@ -1,11 +1,20 @@
-import { defaultFormat } from '../lib/settings.coffee'
+import {autosubscribe, defaultNotificationDelays, notificationsDefault, notificationsOn, notificationsSeparate, notifySelf} from '/lib/notifications'
+import {autopublish, defaultFormat, themeEditor, themeGlobal} from '/lib/settings'
 
 Template.registerHelper 'defaultFormat', ->
   defaultFormat
 
-Template.registerHelper 'emailless', @emailless = ->
+export defaultHeight = 300
+export messagePreviewDefault = ->
+  profile = Meteor.user()?.profile?.preview
+  on: profile?.on ? true
+  sideBySide: profile?.sideBySide ? false
+  height: profile?.height ? defaultHeight
+
+export emailless = ->
   Meteor.settings.public.coauthor?.emailless and
   not canSuper wildGroup
+Template.registerHelper 'emailless', emailless
 
 Template.settings.onCreated ->
   @autorun ->
@@ -51,6 +60,11 @@ Template.settings.helpers
   previewSideBySide: -> messagePreviewDefault().sideBySide
   dropbox: ->
     'dropbox' of (Meteor.user().services ? {})
+
+dropdownToggle = (e) ->
+  #$(e.target).parent().dropdown 'toggle'
+  $(e.target).parents('.dropdown-menu').first().parent().find('.dropdown-toggle').dropdown 'toggle'
+  $(e.target).tooltip 'hide'
 
 Template.settings.events
   'click .editorKeyboard': (e, t) ->
@@ -209,9 +223,14 @@ timezoneSource = (q, callback) ->
   callback(timezone for timezone in timezones when timezone.match re)
 
 Template.timezoneSelector.onCreated ->
-  HTTP.get '/timezones.json', (error, result) ->
-    return console.error "Failed to load timezones: #{error}" if error
-    timezones = JSON.parse result.content
+  fetch '/timezones.json'
+  .catch (error) ->
+    console.error "Failed to load timezones: #{error}" if error
+  .then (result) -> result.json()
+  .catch (error) ->
+    console.error "Failed to parse timezones: #{error}" if error
+  .then (result) ->
+    timezones = result
     console.log "Loaded #{timezones.length} timezones."
 
 Template.timezoneSelector.onRendered ->

@@ -9,7 +9,7 @@ Template.author.helpers
   wildLink: ->
     if @group != wildGroup
       pathFor 'author',
-        group: wildGroupRoute
+        group: wildGroup
         author: @author
   displayUser: ->
     displayUser @author

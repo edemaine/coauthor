@@ -1,8 +1,13 @@
+import {check, Match} from 'meteor/check'
+import {Accounts} from 'meteor/accounts-base'
+
+###
 corsHandler = (req, res, next) ->
   if req.headers?.origin
     res.setHeader 'Access-Control-Allow-Origin', req.headers.origin
     res.setHeader 'Access-Control-Allow-Credentials', true
   next()
+###
 
 @Files = new FileCollection
   resumable: true
@@ -94,13 +99,13 @@ if Meteor.isServer
       'unknown'
 
 if Meteor.isServer
-  @readableFiles = (userid) ->
+  @readableFiles = (userId) ->
     Files.find
       'metadata._Resumable': $exists: false
       $or: [
         'metadata.uploader': userId
       ,
-        'metadata.group': $in: accessibleGroupNames userid
+        'metadata.group': $in: accessibleGroupNames userId
       ]
 
   Meteor.publish 'files', (group) ->

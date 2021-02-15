@@ -1,17 +1,19 @@
+import {check, Match} from 'meteor/check'
+import {Mongo} from 'meteor/mongo'
+
 @wildGroup = '*'
-@anonymousUser = '*'
-@readAllUser = '[READ-ALL]'
-@allRoles = ['read', 'post', 'edit', 'super', 'admin']
+export anonymousUser = '*'
+export readAllUser = '[READ-ALL]'
+export allRoles = ['read', 'post', 'edit', 'super', 'admin']
 
 @escapeGroup = escapeKey
 @unescapeGroup = unescapeKey
 @validGroup = (group) ->
   validKey(group) and group.charAt(0) != '*' and group.trim().length > 0
 
-@sortKeys = ['title', 'creator', 'published', 'updated', 'posts', 'emoji',
-             'subscribe']
+export sortKeys = ['title', 'creator', 'published', 'updated', 'posts', 'emoji', 'subscribe']
 
-@defaultSort =
+export defaultSort =
   key: 'published'
   reverse: true
 
@@ -31,7 +33,7 @@ if Meteor.isServer
   Groups.findOne
     name: group
 
-@groupDefaultSort = (group) ->
+export groupDefaultSort = (group) ->
   findGroup(group)?.defaultSort ? defaultSort
 
 @groupAnonymousRoles = (group) ->

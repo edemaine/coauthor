@@ -4,6 +4,7 @@
   "description": "Coauthor supercollaboration/discussion forum",
   "main": "index.js",
   "scripts": {
+    "lint": "eslint --ext .coffee .",
     "postinstall": "grunt --gruntfile .Gruntfile.coffee"
   },
   "repository": {
@@ -53,7 +54,14 @@
     "sanitize-html": "^1.27.5"
   },
   "devDependencies": {
+    "@fellow/eslint-plugin-coffee": "^0.4.13",
     "coffeescript": "^2.5.1",
+    "eslint": "^7.17.0",
+    "eslint-import-resolver-meteor": "^0.4.0",
+    "eslint-plugin-coffeescript": "^1.0.0",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-meteor": "^7.2.2",
+    "eslint-plugin-react": "^7.22.0",
     "grunt": "^1.3.0",
     "grunt-contrib-clean": "^2.0.0",
     "grunt-contrib-copy": "^1.0.0",

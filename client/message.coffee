@@ -9,14 +9,21 @@ import useEventListener from '@use-it/event-listener'
 
 import {Credits} from './layout.coffee'
 import {ErrorBoundary} from './ErrorBoundary'
-import {FormatDate} from './lib/date'
-import {MessageImage, imageTransform} from './MessageImage'
+import {FormatDate, formatDate} from './lib/date'
+import {MessageImage, imageTransform, messageRotate} from './MessageImage'
 import {MessagePDF} from './MessagePDF'
 import {TagList} from './TagList'
 import {TextTooltip} from './lib/tooltip'
 import {UserInput} from './UserInput'
 import {UserLink} from './UserLink'
 import {resolveTheme} from './theme'
+import {defaultHeight, emailless, messagePreviewDefault} from './settings.coffee'
+import {forceImgReload} from './lib/forceImgReload'
+import {allEmoji} from '/lib/emoji'
+import {availableFormats, formatBody, formatFile, formatFileDescription, formatTitleOrFilename, parseCoauthorAuthorUrl, parseCoauthorMessageUrl} from '/lib/formats'
+import {ancestorMessages, messageDiffsExpanded, messageNeighbors, sortedMessageReaders} from '/lib/messages'
+import {autosubscribe, defaultNotificationsOn} from '/lib/notifications'
+import {autopublish, defaultKeyboard, userKeyboard, themeEditor} from '/lib/settings'
 
 sharejsEditor = 'cm'  ## 'ace' or 'cm'; also change template used in message.jade
 
@@ -53,11 +60,6 @@ switch sharejsEditor
             "ace/keyboard/#{keyboard}"
       )
 
-@dropdownToggle = (e) ->
-  #$(e.target).parent().dropdown 'toggle'
-  $(e.target).parents('.dropdown-menu').first().parent().find('.dropdown-toggle').dropdown 'toggle'
-  $(e.target).tooltip 'hide'
-
 @routeMessage = ->
   Router.current()?.params?.message
 
@@ -87,7 +89,7 @@ Template.registerHelper 'linkToTag', ->
     group: group
     search: "tag:#{search}"
 
-SubmessageHeader = React.memo ({message}) ->
+export SubmessageHeader = React.memo ({message}) ->
   <>
     <MaybeRootHeader message={message}/>
     <Submessage message={message}/>
@@ -102,14 +104,14 @@ Template.submessageHeaderNoChildren.helpers
   SubmessageHeader: -> SubmessageHeader
   messageNoChildren: -> Object.assign {}, @, children: []
 
-MaybeRootHeader = React.memo ({message}) ->
+export MaybeRootHeader = React.memo ({message}) ->
   return null unless message?.root?
   <ErrorBoundary>
     <RootHeader message={message}/>
   </ErrorBoundary>
 MaybeRootHeader.displayName = 'MaybeRootHeader'
 
-RootHeader = React.memo ({message}) ->
+export RootHeader = React.memo ({message}) ->
   root = useTracker ->
     Messages.findOne message.root
   , [message.root]
@@ -185,7 +187,7 @@ authorCount = (field, group) ->
 Template.message.helpers
   MessageID: -> MessageID
 
-MessageID = React.memo ({messageID}) ->
+export MessageID = React.memo ({messageID}) ->
   message = useTracker ->
     Messages.findOne messageID
   , [messageID]
@@ -393,12 +395,6 @@ messageHistory = new ReactiveDict
 messageHistoryAll = new ReactiveDict
 messageKeyboard = new ReactiveDict
 messagePreview = new ReactiveDict
-defaultHeight = 300
-@messagePreviewDefault = ->
-  profile = Meteor.user()?.profile?.preview
-  on: profile?.on ? true
-  sideBySide: profile?.sideBySide ? false
-  height: profile?.height ? defaultHeight
 ## The following helpers should only be called when editing.
 messagePreviewGet = (messageID) ->
   messagePreview.get(messageID) ? messagePreviewDefault()
@@ -454,7 +450,7 @@ messageOnDragStart = (message) -> (e) ->
   e.dataTransfer.setData 'application/coauthor-id', message._id
   e.dataTransfer.setData 'application/coauthor-type',
     if message.file
-      type = fileType message.file
+      fileType message.file
     else
       'message'
 
@@ -463,19 +459,7 @@ messageOnDragStart = (message) -> (e) ->
 ## message that is not naturally folded.
 export naturallyFolded = (message) -> message.minimized or message.deleted
 
-## Cache EXIF orientations, as files should be static
-image2orientation = {}
-@messageRotate = (message) ->
-  if message.file not of image2orientation
-    file = findFile message.file
-    if file
-      image2orientation[message.file] = file.metadata?.exif?.Orientation
-  exifRotate = Orientation2rotate[image2orientation[message.file]]
-  (message.rotate ? 0) + (exifRotate ? 0)
-
-scrollDelay = 750
-
-@scrollToMessage = (id) ->
+export scrollToMessage = (id) ->
   if id[0] == '#'
     id = id[1..]
   if id of id2dom
@@ -504,11 +488,12 @@ Template.readMessage.helpers
   ReadMessage: -> ReadMessage
   messageNoChildren: -> Object.assign {}, @, children: []
 
-ReadMessage = ({message}) ->
+export ReadMessage = ({message}) ->
   <>
     <MaybeRootHeader message={message}/>
     <Submessage message={message} read={true}/>
   </>
+ReadMessage.displayName = 'ReadMessage'
 
 Template.submessage.helpers
   Submessage: -> Submessage
@@ -549,7 +534,7 @@ export MessageLabels = React.memo ({message}) ->
   </span>
 MessageLabels.displayName = 'MessageLabels'
 
-MessageNeighborsOrParent = React.memo ({message}) ->
+export MessageNeighborsOrParent = React.memo ({message}) ->
   <ErrorBoundary>
     {if message.root?
       <MessageParent message={message}/>
@@ -588,7 +573,7 @@ MessageNeighbors = React.memo ({message}) ->
   </>
 MessageNeighbors.displayName = 'MessageNeighbors'
 
-MessageParent = React.memo ({message}) ->
+export MessageParent = React.memo ({message}) ->
   parent = useTracker ->
     findMessageParent message._id
   , [message._id]
@@ -600,7 +585,7 @@ MessageParent = React.memo ({message}) ->
   </TextTooltip>
 MessageParent.displayName = 'MessageParent'
 
-MessageEditor = React.memo ({message, setEditBody, tabindex}) ->
+export MessageEditor = React.memo ({message, setEditBody, tabindex}) ->
   messageID = message._id
   [editor, setEditor] = useState()
   useEffect ->
@@ -826,13 +811,14 @@ MessageEditor = React.memo ({message, setEditBody, tabindex}) ->
     editorKeyboard editor, messageKeyboard.get(messageID) ? userKeyboard()
   , [editor, messageID]
   <MessageEditor_ messageID={messageID} setEditor={setEditor} tabindex={tabindex}/>
-
-MessageEditor_ = React.memo ({messageID, setEditor, tabindex}) ->
-  <Blaze template="sharejs" docid={messageID}
-   onRender={-> (editor) -> setEditor editor}/>
 MessageEditor.displayName = 'MessageEditor'
 
-BelowEditor = React.memo ({message, preview, safeToStopEditing, editStopping}) ->
+export MessageEditor_ = React.memo ({messageID, setEditor, tabindex}) ->
+  <Blaze template="sharejs" docid={messageID}
+   onRender={-> (editor) -> setEditor editor}/>
+MessageEditor_.displayName = 'MessageEditor_'
+
+export BelowEditor = React.memo ({message, preview, safeToStopEditing, editStopping}) ->
   myUsername = useTracker ->
     Meteor.user()?.username
   , []
@@ -1003,7 +989,7 @@ BelowEditor = React.memo ({message, preview, safeToStopEditing, editStopping}) -
               <React.Fragment key={user}>
                 {', ' if count++}
                 <UserLink group={message.group} username={user}/>
-                {if true
+                {if true ### eslint-disable-line no-constant-condition ###
                   <>
                     {' '}
                     <a href="#" onClick={onRemoveAccess}
@@ -1057,7 +1043,7 @@ messagePanelClass = (message, editing) ->
 Template.registerHelper 'creator', ->
   displayUser @creator
 
-KeyboardSelector = React.memo ({messageID, tabindex}) ->
+export KeyboardSelector = React.memo ({messageID, tabindex}) ->
   keyboard = useTracker ->
     messageKeyboard.get(messageID) ? userKeyboard()
   , [messageID]
@@ -1083,7 +1069,7 @@ KeyboardSelector = React.memo ({messageID, tabindex}) ->
   </Dropdown>
 KeyboardSelector.displayName = 'KeyboardSelector'
 
-FormatSelector = React.memo ({messageID, format, tabindex}) ->
+export FormatSelector = React.memo ({messageID, format, tabindex}) ->
   format ?= defaultFormat
 
   onClick = (e) ->
@@ -1153,7 +1139,7 @@ Slider = null  # will become default import of 'bootstrap-slider' NPM package
 MessageHistory = React.memo ({message}) ->
   ready = useTracker ->
     Meteor.subscribe 'messages.diff', message._id
-    .ready
+    .ready()
   , [message._id]
   input = useRef()
   {diffs, index} = useTracker ->
@@ -1185,7 +1171,9 @@ MessageHistory = React.memo ({message}) ->
       index = diffs.length - 1
     {diffs, index}
   , [message._id, message.creator, message.created]
+  ### eslint-disable no-unused-vars ###
   useEffect ->
+    ### eslint-enable no-unused-vars ###
     ## Don't show a zero-length slider
     return unless diffs?.length
     ## Draw slider
@@ -1213,7 +1201,11 @@ MessageHistory = React.memo ({message}) ->
 
   <div className="historySlider">
     <input type="text" ref={input}/>
+    {unless ready
+      <Blaze template="loading"/>
+    }
   </div>
+MessageHistory.displayName = 'MessageHistory'
 
 privacyOptions = [
   code: 'public'
@@ -1232,7 +1224,7 @@ privacyOptionsByCode = {}
 for option in privacyOptions
   privacyOptionsByCode[option.code] = option
 
-ThreadPrivacy = React.memo ({message, tabindex}) ->
+export ThreadPrivacy = React.memo ({message, tabindex}) ->
   onPrivacy = (e) ->
     e.preventDefault()
     Meteor.call 'threadPrivacy', message._id,
@@ -1255,8 +1247,9 @@ ThreadPrivacy = React.memo ({message, tabindex}) ->
       }
     </Dropdown.Menu>
   </Dropdown>
+ThreadPrivacy.displayName = 'ThreadPrivacy'
 
-EmojiButtons = React.memo ({message, can}) ->
+export EmojiButtons = React.memo ({message, can}) ->
   emojis = useTracker ->
     allEmoji message.group
   , [message.group]
@@ -1364,7 +1357,7 @@ export uploaderProps = (callback, inputRef) ->
       callback e.target.files, e
       e.target.value = ''
 
-ReplyButtons = React.memo ({message, prefix}) ->
+export ReplyButtons = React.memo ({message, prefix}) ->
   attachInput = useRef()
   defaultPublished = useTracker ->
     autopublish()
@@ -1515,7 +1508,7 @@ ReplyButtons = React.memo ({message, prefix}) ->
   </Dropdown>
 ReplyButtons.displayName = 'ReplyButtons'
 
-MessageReplace = React.memo ({_id, group, tabindex}) ->
+export MessageReplace = React.memo ({_id, group, tabindex}) ->
   replaceInput = useRef()
 
   replaceFiles = (files, e, t) ->
@@ -1544,7 +1537,7 @@ MessageReplace = React.memo ({_id, group, tabindex}) ->
   </>
 MessageReplace.displayName = 'MessageReplace'
 
-TableOfContentsID = React.memo ({messageID, parent, index}) ->
+export TableOfContentsID = React.memo ({messageID, parent, index}) ->
   message = useTracker ->
     Messages.findOne messageID
   , [messageID]
@@ -1552,13 +1545,13 @@ TableOfContentsID = React.memo ({messageID, parent, index}) ->
   <TableOfContents message={message} parent={parent} index={index}/>
 TableOfContentsID.displayName = 'TableOfContentsID'
 
-TableOfContents = React.memo ({message, parent, index}) ->
+export TableOfContents = React.memo ({message, parent, index}) ->
   <ErrorBoundary>
     <WrappedTableOfContents message={message} parent={parent} index={index}/>
   </ErrorBoundary>
 TableOfContents.displayName = 'TableOfContents'
 
-WrappedTableOfContents = React.memo ({message, parent, index}) ->
+export WrappedTableOfContents = React.memo ({message, parent, index}) ->
   isRoot = not parent?  # should not differ between calls (for hook properties)
   formattedTitle = useTracker ->
     formatTitleOrFilename message,
@@ -1812,7 +1805,7 @@ Template.messageParentDialog.events
 Template.groupOrMessage.helpers
   loadedMessage: -> @creator?
 
-SubmessageID = React.memo ({messageID, read}) ->
+export SubmessageID = React.memo ({messageID, read}) ->
   message = useTracker ->
     Messages.findOne messageID
   , [messageID]
@@ -1820,14 +1813,14 @@ SubmessageID = React.memo ({messageID, read}) ->
   <Submessage message={message} read={read}/>
 SubmessageID.displayName = 'SubmessageID'
 
-Submessage = React.memo ({message, read}) ->
+export Submessage = React.memo ({message, read}) ->
   <ErrorBoundary>
     <WrappedSubmessage message={message} read={read}/>
   </ErrorBoundary>
 Submessage.displayName = 'Submessage'
 
 submessageCount = 0
-WrappedSubmessage = React.memo ({message, read}) ->
+export WrappedSubmessage = React.memo ({message, read}) ->
   here = useTracker ->
     routeHere message._id
   , [message._id]
@@ -2085,7 +2078,7 @@ WrappedSubmessage = React.memo ({message, read}) ->
 
   ## Transform images
   ## Retransform when window width changes
-  [windowWidth, setWindowWidth] = useState window.innerWidth
+  [windowWidth, setWindowWidth] = useState window.innerWidth # eslint-disable-line no-unused-vars
   useEventListener 'resize', (e) -> setWindowWidth window.innerWidth
   useEffect ->
     return unless messageBodyRef.current?
@@ -2470,7 +2463,7 @@ WrappedSubmessage = React.memo ({message, read}) ->
   </div>
 WrappedSubmessage.displayName = 'WrappedSubmessage'
 
-MessageActions = React.memo ({message, can, editing, tabindex0}) ->
+export MessageActions = React.memo ({message, can, editing, tabindex0}) ->
   myUsername = useTracker ->
     Meteor.user()?.username
   , []
@@ -2637,6 +2630,7 @@ MessageActions = React.memo ({message, can, editing, tabindex0}) ->
       ###}
     </Dropdown.Menu>
   </Dropdown>
+MessageActions.displayName = 'MessageActions'
 
 messageAuthorSubtitle = (message, author) -> ->
   if updated = message.authors[escapeUser author]
@@ -2648,7 +2642,7 @@ messageAuthorSubtitle = (message, author) -> ->
   else
     "No explicit edit to this message"
 
-MessageAuthor = React.memo ({message, also}) ->
+export MessageAuthor = React.memo ({message, also}) ->
   if also
     also = {}
     also[unescapeUser author] for author of message.authors

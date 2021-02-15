@@ -1,6 +1,8 @@
 parseXML = (xml) ->
-  xml = xml.replace /\x0C/g, 'fi'  ## must be from some LaTeX copy/paste...
-  xml = xml.replace /â€™/g, '’'    ## CP-1253 encoding
+  ## Must be from some LaTeX copy/paste...:
+  xml = xml.replace /\x0C/g, 'fi' # eslint-disable-line no-control-regex
+  ## CP-1253 encoding:
+  xml = xml.replace /â€™/g, '’'
   xml = $($.parseXML xml)
 
 bodymap = (body) ->
@@ -95,7 +97,6 @@ importOSQA = (group, zip) ->
   nodes = await zip.file('nodes.xml').async('string')
   nodes = parseXML nodes
   idmap = {}
-  count = 0
   for node in nodes.find('node')
     node = $(node)
     id = node.children('id').text()
@@ -182,8 +183,6 @@ importOSQA = (group, zip) ->
       Meteor.callPromise 'messageImport', group, parent, message, revisions
       .catch (error) -> throw error
     )
-    count += 1
-    #return if count == 5
 
     await Promise.all(
       for file2 in attachFiles
@@ -409,7 +408,6 @@ importLaTeX = (group, zip) ->
     labels = {}
     links = {}
     messages = []
-    figurecount = 0
     r = /\\(sub)*section\s*{((?:[^{}]|{[^{}]*})*)}|\\bibliography/g
     while (match = r.exec tex)?
       if start?

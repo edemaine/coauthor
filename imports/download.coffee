@@ -1,5 +1,7 @@
-import { messageFolded } from '../client/message.coffee'
-import { updateUploading } from '../lib/files.coffee'
+import {formatDate} from '/client/lib/date'
+import {messageFolded} from '/client/message.coffee'
+import {updateUploading} from '/lib/files'
+import {rootMessages} from '/lib/messages'
 
 title = 'Downloading ZIP archive...'
 
@@ -18,7 +20,7 @@ urlBasename = (url) ->
   file
 
 files = {}
-internalFiles = {}
+#internalFiles = {}
 subthreads = false
 
 downloadAux = (zip, group) ->
@@ -161,7 +163,7 @@ export downloadGroup = (group) ->
   unless group?
     return console.error 'No group specified for download'
   files = {}
-  internalFiles = {}
+  #internalFiles = {}
   JSZip = (await import('jszip')).default
   zip = new JSZip
   downloadAux zip, group

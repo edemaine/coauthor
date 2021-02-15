@@ -215,6 +215,7 @@ WrappedMessagePDF = React.memo ({file}) ->
             onClick = do (annotation) -> (e) ->
               e.preventDefault()
               setPageNum annotation.explicitPage
+          ### eslint-disable react/jsx-no-target-blank ###
           <TextTooltip key={annotation.id} title={title}>
             <a style={
               left: "#{annotation.rect[0]}px"
@@ -226,6 +227,7 @@ WrappedMessagePDF = React.memo ({file}) ->
             rel={if annotation.url then 'noopener noreferrer'}
             onClick={onClick}/>
           </TextTooltip>
+          ### eslint-enable react/jsx-no-target-blank ###
         }
       </div>
     </div>

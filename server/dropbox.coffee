@@ -1,5 +1,5 @@
 #userInfo = ->
-#  HTTP.get "https://api.dropbox.com/1/account/info",
+#  fetch "https://api.dropbox.com/1/account/info",
 #    headers: Authorization: "Bearer #{user.services.dropbox.accessToken}"
 
 README = '''
@@ -22,42 +22,41 @@ class Dropbox
   writeFile: (path, content) ->
     while path[0] == '/'
       path = path[1..]
-    HTTP.put "https://content.dropboxapi.com/1/files_put/auto/#{path}",
+    fetch "https://content.dropboxapi.com/1/files_put/auto/#{path}",
+      method: 'PUT'
       headers: @headers()
-      content: content
+      body: content
   writeReadme: ->
     @writeFile 'README.txt', README
   mkdir: (path) ->
-    try
-      HTTP.post 'https://api.dropboxapi.com/1/fileops/create_folder',
-        headers: @headers()
-        params:
-          root: 'auto'
-          path: path
-    catch error
-      null
+    fetch 'https://api.dropboxapi.com/1/fileops/create_folder',
+      method: 'POST'
+      headers: @headers()
+      body: "root=auto&path=#{encodeURIComponent path}"
+    .catch (error) -> null
   makeGroupDirs: ->
-    readableGroups(@user._id).forEach (group) =>
-      @mkdir group.name
+    for group in memberOfGroups @user
+      @mkdir group
   writeFiles: ->
     readableFiles(@user._id).forEach (file) =>
       stream = Files.findOneStream file._id
       ## The following loads files entirely into memory...  For giant files,
       ## it would be better to spread this out over multiple operations,
-      ## using the stream of an HTTP put request (but then can't use HTTP.put).
+      ## using the stream of an HTTP PUT request.
       buffers = []
       stream.on 'data', (chunk) -> buffers.push chunk
       stream.on 'end', Meteor.bindEnvironment =>
         data = Buffer.concat buffers
         @writeFile dropboxFilename(file), data
   delta: (cursor) ->
-    HTTP.post 'https://api.dropboxapi.com/1/delta',
+    fetch 'https://api.dropboxapi.com/1/delta',
+      method: 'POST'
       headers: @headers()
-      params:
+      body:
         if cursor?
-          cursor: cursor
+          "cursor=#{encodeURIComponent cursor}"
         else
-          {}
+          ''
 
 Meteor.startup ->
   return  ## temporary

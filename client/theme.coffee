@@ -1,3 +1,5 @@
+import {themeGlobal} from '/lib/settings'
+
 prefersDark = window.matchMedia '(prefers-color-scheme: dark)'
 
 export resolveTheme = (theme) ->

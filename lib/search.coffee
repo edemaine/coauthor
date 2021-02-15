@@ -2,6 +2,10 @@
 Search language parsing and formatting, as documented in README.md.
 ###
 
+import {check} from 'meteor/check'
+
+import {allEmoji} from './emoji'
+
 @escapeRegExp = (regex) ->
   ## https://stackoverflow.com/questions/3446170/escape-string-for-use-in-javascript-regex
   regex.replace /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&"
@@ -27,7 +31,7 @@ realRegExp = (regex) ->
 unescapeRegExp = (regex) ->
   regex.replace /\\(.)/g, "$1"
 
-@parseSearch = (search, group) ->
+export parseSearch = (search, group) ->
   ## Quoted strings turn off separation by spaces.
   ## Last quoted strings doesn't have to be terminated.
   tokenRe = /(\s+)|((?:"[^"]*"|'[^']*'|[^'"\s|])+)('[^']*$|"[^"]*$)?|'([^']*)$|"([^"]*)$|([|])/g
@@ -218,7 +222,7 @@ unescapeRegExp = (regex) ->
     else
       $or: options
 
-@formatSearch = (search, group) ->
+export formatSearch = (search, group) ->
   query = parseSearch search, group
   if query?
     formatted = formatParsedSearch query, group

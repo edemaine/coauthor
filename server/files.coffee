@@ -1,3 +1,4 @@
+import {Accounts} from 'meteor/accounts-base'
 cookie = require 'cookie'
 url = require 'url'
 

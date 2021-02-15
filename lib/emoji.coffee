@@ -1,3 +1,6 @@
+import {check} from 'meteor/check'
+import {Mongo} from 'meteor/mongo'
+
 ## Database of available emoji
 @Emoji = new Mongo.Collection 'emoji'
 
@@ -69,7 +72,7 @@ if Meteor.isServer
         @ready()
 ###
 
-@allEmoji = (group) ->
+export allEmoji = (group) ->
   Emoji.find
     group:
       if group == wildGroup
@@ -146,7 +149,7 @@ Meteor.methods
         $set: emoji: emoji
 
 ## Emoji lookup tool.  Note that emojiFilter is modified by the function.
-@emojiReplies = (message, emojiFilter = {}) ->
+export emojiReplies = (message, emojiFilter = {}) ->
   message = findMessage message
   return [] unless message.emoji
   #for key, value of message.emoji

@@ -1,5 +1,11 @@
-import { profiling, isProfiling } from './profiling.coffee'
-import { messageContentFields, messageFilterExtraFields } from './messages.coffee'
+import {Accounts} from 'meteor/accounts-base'
+import {Email} from 'meteor/email'
+import {Mongo} from 'meteor/mongo'
+
+#import {dateMin, dateMax} from './dates'
+import {formatBody, formatTitleOrFilename} from './formats'
+import {angle180, messageContentFields, messageEmpty, messageFilterExtraFields} from './messages'
+import {profiling, isProfiling} from './profiling'
 
 @Notifications = new Mongo.Collection 'notifications'
 
@@ -19,7 +25,7 @@ if Meteor.isServer
 
 @units = ['second', 'minute', 'hour', 'day']
 
-@defaultNotificationDelays =
+export defaultNotificationDelays =
   after:
     after: 1
     unit: 'hour'
@@ -38,28 +44,28 @@ if Meteor.isServer
     unit: 'second'
   #OR: 'instant' has no delays, but 'settled' also applies
 
-@defaultNotificationsOn = true
+export defaultNotificationsOn = true
 
-@notificationsDefault = ->
+export notificationsDefault = ->
   not Meteor.user().profile.notifications?.on?
 
-@notificationsOn = ->
+export notificationsOn = ->
   if notificationsDefault()
     defaultNotificationsOn
   else
     Meteor.user().profile.notifications.on
 
-@notificationsSeparate = (user = Meteor.user()) ->
+export notificationsSeparate = (user = Meteor.user()) ->
   user.profile.notifications?.separate
 
-@notifySelf = (user = Meteor.user()) ->
+export notifySelf = (user = Meteor.user()) ->
   #user = findUser user if _.isString user
   user.profile.notifications?.self
 
-#@autosubscribeGroup = (group, user = Meteor.user()) ->
+#export autosubscribeGroup = (group, user = Meteor.user()) ->
 #  user.profile?.notifications?.autosubscribe?[escapeGroup group] != false
 
-@autosubscribe = (group, user = Meteor.user()) ->
+export autosubscribe = (group, user = Meteor.user()) ->
   ###
   Return whether the user is autosubscribed to the specified group.
   If the user hasn't specified whether they are autosubscribed to that group,
@@ -122,21 +128,21 @@ if Meteor.isServer
 @messageSubscribers =
   profiling @messageSubscribers, 'notifications.messageSubscribers'
 
-@sortedMessageSubscribers = (msg, options = {}) ->
+export sortedMessageSubscribers = (msg, options = {}) ->
   if options.fields?
     options.fields.username = true
     options.fields['profile.fullname'] = true  ## for sorting by fullname
   users = messageSubscribers msg, options
   _.sortBy users, userSortKey
 
-@notificationTime = (base, user) ->
+export notificationTime = (base, user) ->
   ## base = notification.dateMin
   user = findUsername user
   delays = user.profile?.notifications?.after ?
            defaultNotificationDelays.after
   try
     moment(base).add(delays.after, delays.unit).toDate()
-  catch e
+  catch
     ## Handle buggy specification of user.profile.notifications.after
     delays = defaultNotificationDelays.after
     moment(base).add(delays.after, delays.unit).toDate()
@@ -144,6 +150,9 @@ if Meteor.isServer
   #settleTime = moment(dateMax(notification.dates...)).add(delays.settle, delays.unit).toDate()
   #maximumTime = moment(dateMin(notification.dates...)).add(delays.maximum, delays.unit).toDate()
   #dateMin settleTime, maximumTime
+
+indentLines = (text, indent) ->
+  text.replace /^/gm, indent
 
 ## Notification consists of
 ##   - to: username to notify
@@ -458,7 +467,9 @@ if Meteor.isServer
       bythread = _.sortBy bythread, (triple) -> titleSort triple[2].title  ## root msg title
       html += "<H1>#{linkToGroup group, true}: #{pluralize groupUpdates.length, 'update'} in #{pluralize bythread.length, 'thread'}</H1>\n\n"
       text += "=== #{group}: #{pluralize groupUpdates.length, 'update'} in #{pluralize bythread.length, 'thread'} ===\n\n"
+      ### eslint-disable no-unused-vars ###
       for [root, rootUpdates, rootmsg] in bythread
+        ### eslint-enable no-unused-vars ###
         html += "<H2>#{linkToMessage rootmsg, user, true}</H2>\n\n"
         text += "--- #{linkToMessage rootmsg, user, false} ---\n\n"
         rootUpdates = _.sortBy rootUpdates, (notification) ->

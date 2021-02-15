@@ -1,4 +1,5 @@
-import React from 'react'
+import {Accounts} from 'meteor/accounts-base'
+import {check} from 'meteor/check'
 
 @findUser = (userId) ->
   if userId?
@@ -53,6 +54,7 @@ import React from 'react'
 
 if Meteor.isServer
   Meteor.publish 'users', (group) ->
+    check group, String
     @autorun ->
       user = findUser @userId
       ## User can see the list of all users of the Coauthor instance
@@ -84,6 +86,7 @@ else  ## client
 Meteor.methods
   userEditEmail: (email) ->
     check Meteor.userId(), String
+    check email, String
     if Meteor.isServer  ## no Accounts on client
       if Meteor.user().emails?[0]?.address?
         Accounts.removeEmail Meteor.userId(), Meteor.user().emails[0].address

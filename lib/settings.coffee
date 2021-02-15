@@ -1,27 +1,28 @@
-@defaultAutopublish = true
+export defaultAutopublish = true
 
-@autopublish = (user = Meteor.user()) ->
+export autopublish = (user = Meteor.user()) ->
   user?.profile?.autopublish ? defaultAutopublish
 
 export defaultFormat = 'markdown'
 
-@defaultThemeEditor = @defaultThemeGlobal = 'auto'
-@themeEditor = ->
+export defaultThemeEditor = 'auto'
+export defaultThemeGlobal = 'auto'
+export themeEditor = ->
   Session?.get('coop:themeEditor') ? \
   Meteor.user()?.profile?.theme?.editor ? defaultThemeEditor
-@themeGlobal = ->
+export themeGlobal = ->
   Session?.get('coop:themeGlobal') ? \
   Meteor.user()?.profile?.theme?.global ? defaultThemeGlobal
 
-@defaultKeyboard = 'normal'
+export defaultKeyboard = 'normal'
 
-@userKeyboard = ->
+export userKeyboard = ->
   Meteor.user()?.profile?.keyboard ? defaultKeyboard
 
-@timezoneCanon = (zone) -> zone.replace /[ (].*/, ''
+export timezoneCanon = (zone) -> zone.replace /[ (].*/, ''
 
 if Meteor.isServer  ## only server has moment-timezone library
-  @serverTimezone = ->
+  serverTimezone = ->
     ## Server/default timezone: Use settings's coauthor.timezone if specified.
     ## Otherwise, try Moment's guessing function.
     Meteor.settings?.coauthor?.timezone ? moment.tz.guess()

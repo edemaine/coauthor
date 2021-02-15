@@ -30,14 +30,14 @@ groupWeekStart = (group) ->
   findGroup(group)?.weekStart ? defaultWeekStart
 
 purple = (alpha) -> "rgba(102,51,153,#{alpha})"
-blue = (alpha) -> "rgba(5,141,199,#{alpha})"
+#blue = (alpha) -> "rgba(5,141,199,#{alpha})"
 
 Template.stats.helpers
   MaybeStats: -> MaybeStats
 
 Chart = null  # eventually Chart.js
 
-MaybeStats = React.memo (props) ->
+export MaybeStats = React.memo (props) ->
   {group} = props
   groupData = useTracker ->
     findGroup group
@@ -49,9 +49,9 @@ MaybeStats = React.memo (props) ->
     </ErrorBoundary>
   else
     <Blaze template="badGroup" group={group}/>
-MaybeStats.displayName = 'Stats'
+MaybeStats.displayName = 'MaybeStats'
 
-Stats = React.memo ({group, username, unit}) ->
+export Stats = React.memo ({group, username, unit}) ->
   unit ?= defaultUnit
   useEffect ->
     title = "Statistics"
@@ -201,8 +201,7 @@ Stats = React.memo ({group, username, unit}) ->
           </Dropdown.Toggle>
           <Dropdown.Menu>
             {for unitKey, unitTitle of statsUnits
-              <li key={unitKey} className="unit"
-              className={if unit == unitKey then 'active'}>
+              <li key={unitKey} className={if unit == unitKey then 'active'}>
                 <Dropdown.Item href="#" data-unit={unitKey} onClick={onUnit}>
                   {unitTitle}
                 </Dropdown.Item>

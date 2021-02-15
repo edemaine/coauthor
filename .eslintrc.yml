@@ -1,0 +1,220 @@
+env:
+  browser: true
+  es2020: true
+  node: true
+extends:
+  - eslint:recommended
+  - plugin:import/errors
+  - plugin:import/warnings
+  - plugin:meteor/recommended
+  - plugin:react/recommended
+globals:
+  $: readonly
+  _: readonly
+  s: readonly # underscore.string
+  Blaze: readonly
+  BrowserPolicy: readonly
+  FileCollection: readonly
+  Meteor: readonly
+  Modal: readonly
+  ReactiveDict: readonly
+  ReactiveVar: readonly
+  Router: readonly
+  Session: readonly
+  Subscribe: readonly
+  SubsManager: readonly
+  Template: readonly
+  Tracker: readonly
+  WebApp: readonly
+  moment: readonly
+  # Coauthor databases
+  Emoji: readonly
+  EmojiMessages: readonly
+  Files: readonly
+  Groups: readonly
+  Tags: readonly
+  Messages: readonly
+  MessagesDiff: readonly
+  MessagesParent: readonly
+  Notifications: readonly
+  # Global functions that should be converted to imports
+  accessibleGroups: readonly
+  accessibleGroupNames: readonly
+  accessibleMessagesQuery: readonly
+  allUsernames: readonly
+  amCoauthor: readonly
+  atMentions: readonly
+  atRe: readonly
+  canAdmin: readonly
+  canCoauthorsMod: readonly
+  canDelete: readonly
+  canEdit: readonly
+  canImport: readonly
+  canMaybeParent: readonly
+  canMinimize: readonly
+  canParent: readonly
+  canPost: readonly
+  canPrivate: readonly
+  canPublish: readonly
+  canReply: readonly
+  canUndelete: readonly
+  canUnpublish: readonly
+  canUnminimize: readonly
+  canSee: readonly
+  canSuper: readonly
+  canSuperdelete: readonly
+  capitalize: readonly
+  defaultFormat: readonly
+  deleteFile: readonly
+  displayUser: readonly
+  escapeGroup: readonly
+  escapeKey: readonly
+  escapeRegExp: readonly
+  escapeUser: readonly
+  escapeTag: readonly
+  fileAbsoluteUrlPrefix: readonly
+  fileType: readonly
+  fileUrlPattern: readonly
+  fileUrlPrefix: readonly
+  findFile: readonly
+  findGroup: readonly
+  findMessage: readonly
+  findMessageParent: readonly
+  findMessageRoot: readonly
+  findUser: readonly
+  findUsername: readonly
+  fullMemberOfGroup: readonly
+  groupAnonymousRoles: readonly
+  groupData: readonly
+  groupFullMembers: readonly
+  groupMembers: readonly
+  groupPartialMembers: readonly
+  groupPartialMessagesWithRole: readonly
+  groupRoleCheck: readonly
+  groupSortedBy: readonly
+  groupTags: readonly
+  groupVisible: readonly
+  haveExplicitAccess: readonly
+  highlight: readonly
+  idRegex: readonly
+  internalFileAbsoluteUrlPrefix: readonly
+  internalFileUrlPrefix: readonly
+  linkToAuthor: readonly
+  linkToSort: readonly
+  linkToTag: readonly
+  linkify: readonly
+  listToTags: readonly
+  markdown: readonly
+  markdownInline: readonly
+  marked: readonly # not actually used
+  maybeAddRootsToQuery: readonly
+  memberOfGroup: readonly
+  memberOfGroups: readonly
+  memberOfThread: readonly
+  message2group: readonly
+  message2root: readonly
+  messageReaders: readonly
+  messageRoleCheck: readonly
+  messageSubscribers: readonly
+  messagesBy: readonly
+  messagesByQuery: readonly
+  messagesTaggedQuery: readonly
+  momentInUserTimezone: readonly
+  notifyMessageUpdate: readonly
+  pathFor: readonly
+  pluralize: readonly
+  readableFiles: readonly
+  routeGroup: readonly
+  routeGroupOrWild: readonly
+  routeMessage: readonly
+  routeSortBy: readonly
+  sanitize: readonly
+  setTitle: readonly
+  sortTags: readonly
+  sortedGroupFullMembers: readonly
+  sortedGroupPartialMembers: readonly
+  subscribedToMessage: readonly
+  titleOrUntitled: readonly
+  titleSort: readonly
+  undeletedMessagesQuery: readonly
+  unescapeGroup: readonly
+  unescapeKey: readonly
+  unescapeTag: readonly
+  unescapeUser: readonly
+  url2file: readonly
+  url2internalFile: readonly
+  urlFor: readonly
+  urlToInternalFile: readonly
+  urlToFile: readonly
+  userSortKey: readonly
+  validGroup: readonly
+  validKey: readonly
+  validTag: readonly
+  validTags: readonly
+  validUsername: readonly
+  wildGroup: readonly
+ignorePatterns:
+  - .meteor
+parserOptions:
+  ecmaFeatures:
+    globalReturn: true
+    jsx: true
+  ecmaVersion: 11
+  sourceType: module
+plugins:
+  - "@fellow/eslint-plugin-coffee"
+  - import
+  - meteor
+  - react
+rules:
+  indent: off  # incompatible with CoffeeScript
+    #- error
+    #- 2
+  linebreak-style:
+    - error
+    - unix
+  no-constant-condition:
+    - error
+    - checkLoops: false  # for CoffeeScript's loop
+  no-empty:
+    - error
+    - allowEmptyCatch: true  # CoffeeScript's try without catch block
+  no-unreachable: off  # currently incompatible with CoffeeScript's switch
+  no-unused-vars:
+    - error
+    - args: none  # allow callbacks of the form (e) -> ...not using e...
+  no-useless-escape: off  # incompatible with CoffeeScript's ///
+  quotes:
+    - error
+    - single
+  semi:
+    - error
+    - always
+  react/jsx-no-target-blank:
+    - error
+    - allowReferrer: true
+  react/no-unescaped-entities:
+    - warn
+    - forbid: ['>', '"', '}']
+  react/prop-types: off
+  meteor/eventmap-params:
+    - error
+    - eventParamName: e
+      templateInstanceParamName: t
+  meteor/no-session: off
+  meteor/no-zero-timeout: off
+  meteor/audit-argument-checks:
+    - error
+    - checkEquivalents:
+      - checkId
+      - checkMeeting
+settings:
+  import/ignore:
+    - node_modules
+  import/resolver:
+    meteor:
+      extensions:
+        - .coffee
+        - .js
+  react:
+    version: detect

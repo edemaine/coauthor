@@ -10,16 +10,12 @@ import {MessageLabels, MessageTags, messageClass, uploaderProps} from './message
 import {TagList} from './TagList'
 import {TextTooltip} from './lib/tooltip'
 import {UserLink} from './UserLink'
-
-@routeGroupRoute = ->
-  Router.current()?.params?.group
+import {emojiReplies} from '/lib/emoji'
+import {formatTitleOrFilename} from '/lib/formats'
+import {groupDefaultSort, sortKeys} from '/lib/groups'
 
 @routeGroup = ->
-  group = routeGroupRoute()
-  if group == wildGroupRoute
-    wildGroup
-  else
-    group
+  Router.current()?.params?.group
 
 @routeGroupOrWild = ->
   routeGroup() ? wildGroup
@@ -87,7 +83,7 @@ export MaybeGroup = React.memo ({group}) ->
     <Blaze template="badGroup" group={group}/>
 MaybeGroup.displayName = 'MaybeGroup'
 
-Group = React.memo ({group, groupData}) ->
+export Group = React.memo ({group, groupData}) ->
   sortBy = useTracker ->
     routeSortBy()
   , []
@@ -131,7 +127,7 @@ Group = React.memo ({group, groupData}) ->
   </div>
 Group.displayName = 'Group'
 
-GroupButtons = React.memo ({group, can, sortBy}) ->
+export GroupButtons = React.memo ({group, can, sortBy}) ->
   superuser = useTracker ->
     Session.get 'super'
   , []
@@ -156,7 +152,6 @@ GroupButtons = React.memo ({group, can, sortBy}) ->
   onPost = (e) ->
     e.preventDefault()
     e.stopPropagation()
-    type = e.target.id
     #e.target.addClass 'disabled'
     return unless canPost group
     Meteor.call 'messageNew', group, (error, result) ->
@@ -232,7 +227,7 @@ columnReverse =
   emoji: true
   subscribe: true
 
-MessageList = React.memo ({topMessages, sortBy}) ->
+export MessageList = React.memo ({topMessages, sortBy}) ->
   sortLink = (key) ->
     if key == sortBy.key
       linkToSort
@@ -297,7 +292,7 @@ MessageList = React.memo ({topMessages, sortBy}) ->
   </table>
 MessageList.displayName = 'MessageList'
 
-ImportExportButtons = React.memo ({group, can}) ->
+export ImportExportButtons = React.memo ({group, can}) ->
   onImport = (files, e) ->
     import('/imports/import.coffee').then (i) ->
       i.importFiles e.target.getAttribute('data-format'), group, files
@@ -337,7 +332,7 @@ ImportExportButtons = React.memo ({group, can}) ->
   </div>
 ImportExportButtons.displayName = 'ImportExportButtons'
 
-GroupTags = React.memo ({group}) ->
+export GroupTags = React.memo ({group}) ->
   tags = useTracker ->
     groupTags group
   , [group]
@@ -365,7 +360,7 @@ memberLinks = (group, sortedMembers) ->
       <UserLink user={member} group={group} subtitle={subtitle}/>
     </React.Fragment>
 
-GroupMembers = React.memo ({group}) ->
+export GroupMembers = React.memo ({group}) ->
   members = useTracker ->
     full: memberLinks group, sortedGroupFullMembers group
     partial: memberLinks group, sortedGroupPartialMembers group
@@ -394,7 +389,7 @@ GroupMembers = React.memo ({group}) ->
   </div>
 GroupMembers.displayName = 'GroupMembers'
 
-MessageShort = React.memo ({message}) ->
+export MessageShort = React.memo ({message}) ->
   messageLink = useMemo ->
     pathFor 'message',
       group: message.group

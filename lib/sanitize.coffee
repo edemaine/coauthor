@@ -155,14 +155,14 @@ sanitizeHtml.defaults.transformTags =
     tagName: tagName
     attribs: attribs
 
-@sanitized = []
+window.sanitized = [] if Meteor.isClient
 
 @sanitize = (html) ->
   htmlSanitized = sanitizeHtml html
   if Meteor.isClient and htmlSanitized != html
-    unless sanitized.length
+    unless window.sanitized.length
       console.log "Sanitized some messages' HTML; see global variable `sanitized` for details."
-    sanitized.push
+    window.sanitized.push
       before: html
       after: htmlSanitized
   htmlSanitized

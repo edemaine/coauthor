@@ -1,3 +1,5 @@
+import {coauthorLinkBodyHashRe, inTag} from './formats'
+
 #markdownMode = 'marked'
 markdownMode = 'markdown-it'
 
@@ -20,7 +22,7 @@ switch markdownMode
     blocks[..] = []
     require('markdown-it/lib/common/html_re').HTML_OPEN_CLOSE_TAG_RE = /\0\0\0/
 
-    @markdownIt = require('markdown-it')
+    markdownIt = require('markdown-it')
       html: true
       linkify: true
       typographer: true

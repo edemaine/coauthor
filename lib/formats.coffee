@@ -1,10 +1,15 @@
+import {Random} from 'meteor/random'
+
+import {untitledMessage} from './messages'
+import {parseSearch} from './search'
+
 katex = require 'katex'
 katex.__defineMacro '\\epsilon', '\\varepsilon'
 
 romanNumeral = require 'roman-numeral'
 
-@availableFormats = ['markdown', 'latex', 'html']
-@mathjaxFormats = availableFormats
+export availableFormats = ['markdown', 'latex', 'html']
+#export mathjaxFormats = availableFormats
 
 if Meteor.isClient
   Template.registerHelper 'formats', ->
@@ -94,7 +99,7 @@ replaceMathBlocks = (text, replacer) ->
   else
     text
 
-@inTag = (string, offset) ->
+export inTag = (string, offset) ->
   ## Known issue: `<a title=">"` looks like a terminated tag to this code.
   ## This is why `escapeForQuotedHTML` escapes >s.
   open = string.lastIndexOf '<', offset
@@ -458,7 +463,7 @@ latex2htmlCommandsAlpha = (tex, math) ->
       else
         value = "-#{value}"
       """<span style="margin-top: #{value}#{unit};">#{arg}</span>"""
-  .replace /\\begin\s*{(problem|question|idea|theorem|conjecture|lemma|corollary|fact|observation|proposition|claim|definition)}(\s*\[([^\]]*)\])?/g, (m, env, x, opt) -> """<blockquote class="thm"><p><b>#{s.capitalize env}#{if opt then " (#{opt})" else ''}:</b> """
+  .replace /\\begin\s*{(problem|question|idea|theorem|conjecture|lemma|corollary|fact|observation|proposition|claim|definition)}(\s*\[([^\]]*)\])?/g, (m, env, x, opt) -> """<blockquote class="thm"><p><b>#{capitalize env}#{if opt then " (#{opt})" else ''}:</b> """
   .replace /\\end\s*{(problem|question|idea|theorem|conjecture|lemma|corollary|fact|observation|proposition|claim|definition)}/g, '</blockquote>'
   .replace /\\begin\s*{(quote)}/g, '<blockquote><p>'
   .replace /\\end\s*{(quote)}/g, '</blockquote>'
@@ -541,7 +546,7 @@ latex2html = (tex) ->
   .replace /\[DOUBLEBACKSLASH\]/g, '<br>'
   [tex, math]
 
-@formats =
+formats =
   markdown: (text, title) ->
     ## Escape all characters that can be (in particular, _s) that appear
     ## inside math mode, to prevent Marked from processing them.
@@ -574,12 +579,12 @@ latex2html = (tex) ->
   html: (text, title) ->
     linkify text
 
-@coauthorLinkBodyRe = "/?/?([a-zA-Z0-9]+)"
-@coauthorLinkBodyHashRe = "#{coauthorLinkBodyRe}(#[a-zA-Z0-9]*)?"
-@coauthorLinkRe = "coauthor:#{coauthorLinkBodyRe}"
-@coauthorLinkHashRe = "coauthor:#{coauthorLinkBodyHashRe}"
+export coauthorLinkBodyRe = "/?/?([a-zA-Z0-9]+)"
+export coauthorLinkBodyHashRe = "#{coauthorLinkBodyRe}(#[a-zA-Z0-9]*)?"
+export coauthorLinkRe = "coauthor:#{coauthorLinkBodyRe}"
+export coauthorLinkHashRe = "coauthor:#{coauthorLinkBodyHashRe}"
 
-@parseCoauthorMessageUrl = (url, simplify) ->
+export parseCoauthorMessageUrl = (url, simplify) ->
   match = new RegExp("^#{urlFor 'message',
     group: '(.*)'
     message: '(.*)'
@@ -596,7 +601,7 @@ latex2html = (tex) ->
       match.hash = ''
     match
 
-@parseCoauthorAuthorUrl = (url) ->
+export parseCoauthorAuthorUrl = (url) ->
   match = new RegExp("^#{urlFor 'author',
     group: '(.*)'
     author: '(.*)'
@@ -659,7 +664,7 @@ postprocessCoauthorLinks = (text) ->
           match
 
 ## URL regular expression with scheme:// required, to avoid extraneous matching
-@urlRe = /\w+:\/\/[-\w~!$&'()*+,;=.:@%#?\/]+/g
+export urlRe = /\w+:\/\/[-\w~!$&'()*+,;=.:@%#?\/]+/g
 
 postprocessLinks = (text) ->
   text.replace urlRe, (match, offset, string) ->
@@ -671,7 +676,7 @@ postprocessLinks = (text) ->
         "#{slash}&#8203;"  ## Add zero-width space after every slash group
 
 @allUsernames = ->
-  users = Meteor.users.find {}, fields: username: 1
+  Meteor.users.find {}, fields: username: 1
   .map (user) -> user.username
 
 atRePrefix = '[@\uff20]'
@@ -792,10 +797,12 @@ formatSearchHighlight = (isTitle, text) ->
       if (query.title and isTitle) or (query.body and not isTitle)
         pattern = query.title ? query.body
         unless pattern.$not
+          ### eslint-disable no-unused-vars ###
           pattern = new RegExp pattern, 'g' if pattern instanceof RegExp
           text = text.replace pattern, (match, ...args, offset, string, grps) ->
             return match if inTag string, offset
             """<span class="highlight">#{match}</span>"""
+          ### eslint-enable no-unused-vars ###
       for list in [query.$and, query.$or]
         continue unless list
         for part in list
@@ -863,13 +870,13 @@ formatEitherSafe = (isTitle, format, text, options) ->
         <pre>#{_.escape text}</pre>
       """
 
-@formatBody = (format, body, options) ->
+export formatBody = (format, body, options) ->
   formatEitherSafe false, format, body, options
 
-@formatTitle = (format, title, options) ->
+export formatTitle = (format, title, options) ->
   formatEitherSafe true, format, title, options
 
-@formatBadFile = (fileId) ->
+export formatBadFile = (fileId) ->
   """<i class="bad-file">&lt;unknown file with ID #{fileId}&gt;</i>"""
 
 ###
@@ -881,21 +888,21 @@ length gets set correctly; see the end of resumable_post_handler in
   https://github.com/vsivsi/meteor-file-collection/blob/master/src/resumable_server.coffee
 We therefore don't display any file that is still in the zero-length state.
 ###
-@formatEmptyFile = (fileId) ->
+export formatEmptyFile = (fileId) ->
   """<i class="empty-file">(uploading file...)</i>"""
 
-@formatFileDescription = (msg, file = null) ->
+export formatFileDescription = (msg, file = null) ->
   file = findFile msg.file unless file?
   return formatBadFile msg.file unless file?
   """<i class="odd-file"><a href="#{urlToFile msg}">&lt;#{s.numberFormat file.length}-byte #{file.contentType} file &ldquo;#{file.filename}&rdquo;&gt;</a></i>"""
 
-@formatVideo = (file, url) ->
+export formatVideo = (file, url) ->
   if file?.contentType
     """<video controls><source src="#{url}" type="#{file.contentType}"></video>"""
   else
     """<video controls><source src="#{url}"></video>"""
 
-@formatFile = (msg, file = null) ->
+export formatFile = (msg, file = null) ->
   file = findFile msg.file unless file?
   return formatBadFile msg.file unless file?
   return formatEmptyFile msg.file unless file.length
@@ -910,7 +917,7 @@ We therefore don't display any file that is still in the zero-length state.
   formatted = "<p>#{formatted}</p>" if formatted
   formatted + formatFileDescription msg, file
 
-@formatFilename = (msg, options) ->
+export formatFilename = (msg, options) ->
   {orUntitled} = options if options?
   orUntitled ?= true
   if msg.file
@@ -924,7 +931,7 @@ We therefore don't display any file that is still in the zero-length state.
   else
     title
 
-@formatTitleOrFilename = (msg, options) ->
+export formatTitleOrFilename = (msg, options) ->
   if msg.format and msg.title?.trim().length
     formatTitle msg.format, msg.title, options
   else
@@ -932,6 +939,3 @@ We therefore don't display any file that is still in the zero-length state.
 
 #@stripHTMLTags = (html) ->
 #  html.replace /<[^>]*>/gm, ''
-
-@indentLines = (text, indent) ->
-  text.replace /^/gm, indent

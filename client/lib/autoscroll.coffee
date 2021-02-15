@@ -6,6 +6,8 @@
 ## Also support instantly going to certain paths (handled by WebApp)
 ## as specified by internalPath.
 
+import {scrollToMessage} from '../message'
+
 lastURL = null
 pastTops = {}
 transitioning = false

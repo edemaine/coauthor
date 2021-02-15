@@ -1,3 +1,5 @@
+import {Accounts} from 'meteor/accounts-base'
+
 unless process.env['MAIL_URL']?
   console.warn "MAIL_URL not set -- email notifications won't work!"
 
