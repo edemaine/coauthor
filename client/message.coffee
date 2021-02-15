@@ -2301,23 +2301,35 @@ WrappedSubmessage = React.memo ({message, read}) ->
           {unless folded or editing or read
             <>
               {if raw
-                <button className="btn btn-default rawButton" tabIndex={tabindex0+1} onClick={onRaw}>Formatted</button>
+                <TextTooltip title="Switch back to viewing the formatted message.">
+                  <button className="btn btn-default rawButton" tabIndex={tabindex0+1} onClick={onRaw}>Formatted</button>
+                </TextTooltip>
               else
-                <button className="btn btn-default rawButton" tabIndex={tabindex0+1} onClick={onRaw}>Raw</button>
+                <TextTooltip title="Switch to viewing raw source code. Useful for copy/pasting into another message, or to see how something was done.">
+                  <button className="btn btn-default rawButton" tabIndex={tabindex0+1} onClick={onRaw}>Raw</button>
+                </TextTooltip>
               }
               {unless history
-                <button className="btn btn-default historyButton" tabIndex={tabindex0+2} onClick={onHistory}>History</button>
+                <TextTooltip title="View past versions of this message, and who edited when">
+                  <button className="btn btn-default historyButton" tabIndex={tabindex0+2} onClick={onHistory}>History</button>
+                </TextTooltip>
               }
             </>
           }
           {if history?
             <>
               {if historyAll
-                <button className="btn btn-default historyAllButton" tabIndex={tabindex0+2} onClick={onHistoryAll}>Show Finished</button>
+                <TextTooltip title="Switch back to showing just the versions when this message stopped being edited.">
+                  <button className="btn btn-default historyAllButton" tabIndex={tabindex0+2} onClick={onHistoryAll}>Show Finished</button>
+                </TextTooltip>
               else
-                <button className="btn btn-default historyAllButton" tabIndex={tabindex0+2} onClick={onHistoryAll}>Show All</button>
+                <TextTooltip title="Show every version of this message (recorded roughly every two seconds), instead of just the versions when the message stopped being edited. Useful if the version you need is missing.">
+                  <button className="btn btn-default historyAllButton" tabIndex={tabindex0+2} onClick={onHistoryAll}>Show All</button>
+                </TextTooltip>
               }
-              <button className="btn btn-default historyButton" tabIndex={tabindex0+3} onClick={onHistory}>Exit History</button>
+              <TextTooltip title="Return to viewing the present version of this message">
+                <button className="btn btn-default historyButton" tabIndex={tabindex0+3} onClick={onHistory}>Exit History</button>
+              </TextTooltip>
             </>
           }
           {if editing
