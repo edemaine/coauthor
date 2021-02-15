@@ -536,15 +536,27 @@ if Meteor.isServer
      ((message.published and not message.deleted and not message.private) or
       haveExplicitAccess(message, user))))
 
-@canDelete = canEdit
 @canUndelete = canEdit
 @canPublish = canEdit
-@canUnpublish = canEdit
 @canMinimize = canEdit
 @canUnminimize = canEdit
 ## Older behavior: only superusers can unpublish once published
 #@canUnpublish = (message) ->
 #  canSuper message2group message
+
+@canDelete = (message, client = Meteor.isClient, user = Meteor.user()) ->
+  ## Can delete or unpublish a message if coauthor or superuser.
+  ## This avoids the confusing scenario where you make a message invisible
+  ## to yourself, now that such edits don't count as coauthorship.
+  ## If you have edit ability, you can always become a coauthor
+  ## and then delete/unpublish.
+  message = findMessage message
+  return false unless message?
+  user? and (
+    canSuper(message.group, client, user) or
+    amCoauthor(message, user)
+  )
+@canUnpublish = canDelete
 
 @canSuper = (group, client = Meteor.isClient, user = Meteor.user()) ->
   ## If client is true, we use the session variable 'super' to fake whether
