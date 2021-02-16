@@ -1362,7 +1362,17 @@ export ReplyButtons = React.memo ({message, prefix}) ->
   defaultPublished = useTracker ->
     autopublish()
   , []
-  oncePublished = if defaultPublished then '' else ' (once published)'
+  ## If parent is unpublished or deleted, inherit that state by default
+  ## (in the former case, overriding autopublish setting).
+  defaultPublished and= Boolean message.published
+  defaultDeleted = Boolean message.deleted
+  once = []
+  once.push 'published' unless defaultPublished
+  once.push 'undeleted' if defaultDeleted
+  if once.length
+    once = " (once #{once.join ' and '})"
+  else
+    once = ''
   defaultVariant = if defaultPublished then 'default' else 'warning'
   unless defaultPublished
     prefix ?= 'Unpublished '
@@ -1382,6 +1392,9 @@ export ReplyButtons = React.memo ({message, prefix}) ->
         reply.published = false
       when 'true'
         reply.published = true
+      else
+        reply.published = defaultPublished
+    reply.deleted = defaultDeleted
     Meteor.call 'messageNew', message.group, message._id, null, reply, (error, result) ->
       if error
         console.error error
@@ -1402,6 +1415,8 @@ export ReplyButtons = React.memo ({message, prefix}) ->
           callbacks[i] = ->
             Meteor.call 'messageNew', message.group, message._id, null,
               file: file2.uniqueIdentifier
+              deleted: defaultDeleted
+              published: defaultPublished
               finished: true
             , done
           ## But call all the callbacks in order by file, so that replies
@@ -1438,7 +1453,7 @@ export ReplyButtons = React.memo ({message, prefix}) ->
           </li>
         else
           <li>
-            <TextTooltip placement="left" title="Start a new child message of this one, #{if defaultPublished then 'immediately ' else ''}visible to everyone in this thread#{oncePublished}.">
+            <TextTooltip placement="left" title="Start a new child message of this one, #{if defaultPublished then 'immediately ' else ''}visible to everyone in this thread#{once}.">
               <Dropdown.Item href="#" onClick={onReply}>
                 <button className="btn btn-#{defaultVariant} btn-block replyButton">
                   {prefix}
@@ -1451,7 +1466,7 @@ export ReplyButtons = React.memo ({message, prefix}) ->
         <>
           {if publicReply
             <li>
-              <TextTooltip placement="left" title="Start a new child message of this one, visible to everyone in this thread#{oncePublished}.">
+              <TextTooltip placement="left" title="Start a new child message of this one, visible to everyone in this thread#{once}.">
                 <Dropdown.Item href="#" data-privacy="public" onClick={onReply}>
                   <button className="btn btn-#{defaultVariant} btn-block replyButton">
                     {prefix}
@@ -1463,7 +1478,7 @@ export ReplyButtons = React.memo ({message, prefix}) ->
           }
           {if privateReply
             <li>
-              <TextTooltip placement="left" title="Start a new child message of this one, visible only to coauthors and those explicitly given access#{oncePublished}, initially set to coauthors of the message you're replying to.">
+              <TextTooltip placement="left" title="Start a new child message of this one, visible only to coauthors and those explicitly given access#{once}, initially set to coauthors of the message you're replying to.">
                 <Dropdown.Item href="#" data-privacy="private" onClick={onReply}>
                   <button className="btn btn-#{defaultVariant} btn-block replyButton">
                     {prefix}
@@ -1484,24 +1499,29 @@ export ReplyButtons = React.memo ({message, prefix}) ->
           </TextTooltip>
         </Dropdown.Item>
       </li>
-      <li>
-        <Dropdown.Item href="#" data-published="#{not defaultPublished}" onClick={onReply}>
-          {if defaultPublished
-            <TextTooltip placement="left" title="Start a new child message of this one that starts in the unpublished state, so it will become generally visible only when you select Action / Publish.">
-              <button className="btn btn-warning btn-block">
-                Unpublished Reply
-              </button>
-            </TextTooltip>
-          else
-            <TextTooltip placement="left" title="Start a new child message of this one that starts in the published state, so everyone in this thread can see it immediately.">
-              <button className="btn btn-success btn-block">
-                {prefix unless prefix == 'Unpublished '}
-                Published Reply
-              </button>
-            </TextTooltip>
-          }
-        </Dropdown.Item>
-      </li>
+      {
+      ## Offer second (un)published option only if parent published;
+      ## if parent unpublisehd, then we only offer unpublished above.
+      if message.published
+        <li>
+          <Dropdown.Item href="#" data-published="#{not defaultPublished}" onClick={onReply}>
+            {if defaultPublished
+              <TextTooltip placement="left" title="Start a new child message of this one that starts in the unpublished state, so it will become generally visible only when you select Action / Publish.">
+                <button className="btn btn-warning btn-block">
+                  Unpublished Reply
+                </button>
+              </TextTooltip>
+            else
+              <TextTooltip placement="left" title="Start a new child message of this one that starts in the published state, so everyone in this thread can see it immediately#{if defaultDeleted then ' (once undeleted)' else ''}.">
+                <button className="btn btn-success btn-block">
+                  {prefix unless prefix == 'Unpublished '}
+                  Published Reply
+                </button>
+              </TextTooltip>
+            }
+          </Dropdown.Item>
+        </li>
+      }
     </Dropdown.Menu>
     <input className="attachInput" type="file" multiple ref={attachInput}
      {...inputProps}/>
