@@ -662,9 +662,9 @@ export MessageEditor = React.memo ({message, setEditBody, tabindex}) ->
               left: e.x
               top: e.y
             replacement = embedFile type, id, pos
-          else if match = parseCoauthorMessageUrl text, true
+          else if (match = parseCoauthorMessageUrl text, true)?
             replacement = "coauthor:#{match.message}#{match.hash}"
-          else if match = parseCoauthorAuthorUrl text
+          else if (match = parseCoauthorAuthorUrl text)?
             replacement = "@#{match.author}"
           else
             replacement = text
@@ -713,13 +713,13 @@ export MessageEditor = React.memo ({message, setEditBody, tabindex}) ->
               paste = (line for line in paste when line.length)
           else if 'text/plain' in e.clipboardData.types
             text = e.clipboardData.getData 'text/plain'
-            if match = parseCoauthorMessageUrl text, true
+            if (match = parseCoauthorMessageUrl text, true)?
               paste = ["coauthor:#{match.message}#{match.hash}"]
               if not match.hash
                 msg = findMessage match.message
                 if msg?.file? and type = fileType msg.file
                   paste = [embedFile type, match.message, editor.getCursor()]
-            else if match = parseCoauthorAuthorUrl text
+            else if (match = parseCoauthorAuthorUrl text)?
               paste = ["@#{match.author}"]
         editor.on 'beforeChange', (cm, change) ->
           if change.origin == 'paste' and paste?
@@ -1000,7 +1000,7 @@ export BelowEditor = React.memo ({message, preview, safeToStopEditing, editStopp
               <React.Fragment key={user}>
                 {', ' if count++}
                 <UserLink group={message.group} username={user}/>
-                {if true ### eslint-disable-line no-constant-condition ###
+                {if true ### eslint-disable-line coffee/no-constant-condition ###
                   <>
                     {' '}
                     <a href="#" onClick={onRemoveAccess}
@@ -1182,9 +1182,7 @@ MessageHistory = React.memo ({message}) ->
       index = diffs.length - 1
     {diffs, index}
   , [message._id, message.creator, message.created]
-  ### eslint-disable no-unused-vars ###
   useEffect ->
-    ### eslint-enable no-unused-vars ###
     ## Don't show a zero-length slider
     return unless diffs?.length
     ## Draw slider
@@ -1719,7 +1717,7 @@ dropOn = (e) ->
         dragId = url.hash[1..]
       else
         dragId = url?.message
-  if index = e.currentTarget.getAttribute 'data-index'
+  if (index = e.currentTarget.getAttribute 'data-index')
     index = parseInt index
     dropId = e.currentTarget.getAttribute 'data-parent'
   else
@@ -1824,13 +1822,13 @@ Template.messageParentDialog.onRendered ->
 Template.messageParentDialog.events
   "typeahead:autocomplete .parent, typeahead:cursorchange .parent, typeahead:select .parent, input .parent": (e, t) ->
     text = t.find('.tt-input').value
-    if match = ///(?:^\s*|[\[/:])(#{idRegex})\]?\s*$///.exec text
+    if (match = ///(?:^\s*|[\[/:])(#{idRegex})\]?\s*$///.exec text)?
       msg = findMessage(match[1]) ? {_id: match[1]}  # allow unknown message ID
       if e.type == 'input' and t.parent.get()?._id != match[1] and
          msg.creator?  # hand-typed new good message ID
         t.$('.typeahead').typeahead 'close'
       t.parent.set msg
-    else if match = /^\s*Group:\s*(.*?)\s*$/i.exec text
+    else if (match = /^\s*Group:\s*(.*?)\s*$/i.exec text)?
       t.parent.set
         isGroup: true
         group: match[1]
@@ -2154,7 +2152,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
 
   ## Transform images
   ## Retransform when window width changes
-  [windowWidth, setWindowWidth] = useState window.innerWidth # eslint-disable-line no-unused-vars
+  [windowWidth, setWindowWidth] = useState window.innerWidth # eslint-disable-line coffee/no-unused-vars
   useEventListener 'resize', (e) -> setWindowWidth window.innerWidth
   useEffect ->
     return unless messageBodyRef.current?
@@ -2786,7 +2784,7 @@ export MessageActions = React.memo ({message, can, editing, tabindex0}) ->
 MessageActions.displayName = 'MessageActions'
 
 messageAuthorSubtitle = (message, author) -> ->
-  if updated = message.authors[escapeUser author]
+  if (updated = message.authors[escapeUser author])?
     (if message.creator == author
       "Created this message and last edited "
     else

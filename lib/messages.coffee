@@ -118,7 +118,7 @@ explicitAccessQuery = (user) ->
   ]
 readableCanSeeQuery = (user) ->
   ## Users with read permission can see the union of above two queries.
-  if query = explicitAccessQuery user
+  if (query = explicitAccessQuery user)?
     # ASSERT: query consists solely of an $or node
     query.$or.unshift naturallyVisibleQuery()
     query

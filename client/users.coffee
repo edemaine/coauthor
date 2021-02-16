@@ -135,12 +135,12 @@ User = React.memo ({group, messageID, user, admin}) ->
     <tr data-username={user.username}>
       <th>
         <div className="name">
-          {if fullname = user.profile?.fullname
+          {if (fullname = user.profile?.fullname)
             "#{fullname} ("
           }
           <a href={authorLink}>{user.username}</a>
           {', '}
-          {if email = user.emails?[0]
+          {if (email = user.emails?[0])?
             <>
               {email.address}
               {unless email.verified

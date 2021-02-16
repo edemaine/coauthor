@@ -470,9 +470,7 @@ if Meteor.isServer
       bythread = _.sortBy bythread, (triple) -> titleSort triple[2].title  ## root msg title
       html += "<H1>#{linkToGroup group, true}: #{pluralize groupUpdates.length, 'update'} in #{pluralize bythread.length, 'thread'}</H1>\n\n"
       text += "=== #{group}: #{pluralize groupUpdates.length, 'update'} in #{pluralize bythread.length, 'thread'} ===\n\n"
-      ### eslint-disable no-unused-vars ###
-      for [root, rootUpdates, rootmsg] in bythread
-        ### eslint-enable no-unused-vars ###
+      for [, rootUpdates, rootmsg] in bythread
         html += "<H2>#{linkToMessage rootmsg, user, true}</H2>\n\n"
         text += "--- #{linkToMessage rootmsg, user, false} ---\n\n"
         rootUpdates = _.sortBy rootUpdates, (notification) ->

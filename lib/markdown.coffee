@@ -40,7 +40,7 @@ switch markdownMode
       if links?
         existing = []
         linkRe = /<\s*a\b[^]*<\s*\/a\s*>/g
-        while match = linkRe.exec text
+        while (match = linkRe.exec text)?
           existing.push [match.index, match.index + match[0].length]
         links.reverse()
         for link in links

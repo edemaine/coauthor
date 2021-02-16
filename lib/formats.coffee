@@ -296,13 +296,13 @@ latex2htmlCommandsAlpha = (tex, math) ->
             ## "If you want to use both \multirow and \multicolumn on the same
             ## entry, you must put the \multirow inside the \multicolumn"
             ## [http://ctan.mirrors.hoobly.com/macros/latex/contrib/multirow/multirow.pdf]
-            if match = /\\multicolumn\s*(\d+|{\s*(\d+)\s*})\s*(\w|{([^{}]*)})\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/.exec col
+            if (match = /\\multicolumn\s*(\d+|{\s*(\d+)\s*})\s*(\w|{([^{}]*)})\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/.exec col)?
               attrs += " colspan=\"#{match[2] ? match[1]}\""
               align = match[4] ? match[3]
               col = match[5]
             ## In HTML, rowspan means that later rows shouldn't specify <td>s
             ## for that column, while in LaTeX, they are still present.
-            if match = /\\multirow\s*(\d+|{\s*(\d+)\s*})\s*(\*|{([^{}]*)})\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/.exec col
+            if (match = /\\multirow\s*(\d+|{\s*(\d+)\s*})\s*(\*|{([^{}]*)})\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/.exec col)?
               rowspan = parseInt match[2] ? match[1]
               skip[colnum] += rowspan - 1
               attrs += " rowspan=\"#{rowspan}\""
@@ -853,12 +853,10 @@ formatSearchHighlight = (isTitle, text) ->
       if (query.title and isTitle) or (query.body and not isTitle)
         pattern = query.title ? query.body
         unless pattern.$not
-          ### eslint-disable no-unused-vars ###
           pattern = new RegExp pattern, 'g' if pattern instanceof RegExp
           text = text.replace pattern, (match, ...args, offset, string, grps) ->
             return match if inTag string, offset
             """<span class="highlight">#{match}</span>"""
-          ### eslint-enable no-unused-vars ###
       for list in [query.$and, query.$or]
         continue unless list
         for part in list

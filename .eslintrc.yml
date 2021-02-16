@@ -3,11 +3,11 @@ env:
   es2020: true
   node: true
 extends:
-  - eslint:recommended
-  - plugin:import/errors
-  - plugin:import/warnings
+  - plugin:coffee/eslint-recommended
+  - plugin:coffee/import
   - plugin:meteor/recommended
-  - plugin:react/recommended
+  - plugin:coffee/react-recommended
+  - plugin:coffee/disable-incompatible
 globals:
   $: readonly
   _: readonly
@@ -162,6 +162,7 @@ overrides:
     - server/bootstrap.coffee
     parserOptions:
       sourceType: script  # support for module-level return (but no import)
+parser: eslint-plugin-coffee
 parserOptions:
   ecmaFeatures:
     globalReturn: true
@@ -169,34 +170,19 @@ parserOptions:
   ecmaVersion: 11
   sourceType: module
 plugins:
-  - "@fellow/eslint-plugin-coffee"
+  - coffee
   - import
   - meteor
   - react
 rules:
-  indent: off  # incompatible with CoffeeScript
-    #- error
-    #- 2
   linebreak-style:
     - error
     - unix
-  no-constant-condition:
-    - error
-    - checkLoops: false  # for CoffeeScript's loop
-  no-empty:
-    - error
-    - allowEmptyCatch: true  # CoffeeScript's try without catch block
-  no-unreachable: off  # currently incompatible with CoffeeScript's switch
-  no-unused-vars:
+  coffee/no-inner-declarations: off
+  coffee/no-unused-vars:
     - error
     - args: none  # allow callbacks of the form (e) -> ...not using e...
-  no-useless-escape: off  # incompatible with CoffeeScript's ///
-  quotes:
-    - error
-    - single
-  semi:
-    - error
-    - always
+  coffee/no-useless-escape: off
   react/no-unescaped-entities:
     - warn
     - forbid: ['>', '"', '}']
@@ -211,7 +197,6 @@ rules:
     - error
     - checkEquivalents:
       - checkId
-      - checkMeeting
 settings:
   import/ignore:
     - node_modules

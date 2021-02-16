@@ -58,6 +58,7 @@ class Dropbox
         else
           ''
 
+### eslint-disable coffee/no-unreachable ###
 Meteor.startup ->
   return  ## temporary
   Meteor.users.find

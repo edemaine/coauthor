@@ -25,7 +25,7 @@ export UserLink = React.memo ({user, username, group, title, subtitle, prefix, p
       else if user?
         <>
           <b>Username:</b> {username}
-          {if email = user.emails?[0]
+          {if (email = user.emails?[0])?
             <>
               <br/>
               <b>Email:</b> {email.address}

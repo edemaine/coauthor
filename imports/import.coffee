@@ -437,7 +437,7 @@ importLaTeX = (group, zip) ->
       title = "#{depths.join('.')} #{match[2]}"
       start = match.index + match[0].length
 
-    for message, i in messages
+    for message in messages
       ## First, find which figures are used in this message.
       ## We upload the figures before the message so that the message
       ## can easily hyperlink directly to the messages.

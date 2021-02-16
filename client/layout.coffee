@@ -45,14 +45,14 @@ Template.layout.helpers
   inUsers: ->
     (Router.current().route?.getName() ? '')[...5] == 'users'
   linkToUsers: ->
-    if message = routeMessage()
+    if (message = routeMessage())
       pathFor 'users.message',
         group: routeGroupOrWild()
         message: message2root message
     else
       pathFor 'users', group: routeGroupOrWild()
   linkToUsersExit: ->
-    if message = routeMessage()
+    if (message = routeMessage())
       pathFor 'message',
         group: routeGroupOrWild()
         message: message
@@ -142,7 +142,7 @@ Template.layout.events
 
 Template.footer.helpers
   showFooter: ->
-    return true for own key of Session.get 'uploading'
+    return true for own key of Session.get 'uploading' # eslint-disable-line coffee/no-unused-vars
     return true if Session.get 'migrate'
 
 Template.migrate.helpers
