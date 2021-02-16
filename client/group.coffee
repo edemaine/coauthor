@@ -1,4 +1,5 @@
 import React, {useEffect, useMemo, useRef} from 'react'
+import Dropdown from 'react-bootstrap/Dropdown'
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger'
 import Tooltip from 'react-bootstrap/Tooltip'
 import {useTracker} from 'meteor/react-meteor-data'
@@ -13,6 +14,7 @@ import {UserLink} from './UserLink'
 import {emojiReplies} from '/lib/emoji'
 import {formatTitleOrFilename} from '/lib/formats'
 import {groupDefaultSort, sortKeys} from '/lib/groups'
+import {autopublish} from '/lib/settings'
 
 @routeGroup = ->
   Router.current()?.params?.group
@@ -136,12 +138,15 @@ export GroupButtons = React.memo ({group, can, sortBy}) ->
   , []
   postTitle = useMemo ->
     if can.post
-      'Start a new thread with a new top-level message.'
+      'Start a new thread / problem / discussion with a new top-level message.'
     else if user?
       'You do not have permission to post a message in this group.'
     else
       'You need to be logged in to post a message in this group.'
   , [can.post, user?]
+  defaultPublished = useTracker ->
+    autopublish()
+  , []
 
   onSortSetDefault = (e) ->
     e.stopPropagation()
@@ -154,7 +159,15 @@ export GroupButtons = React.memo ({group, can, sortBy}) ->
     e.stopPropagation()
     #e.target.addClass 'disabled'
     return unless canPost group
-    Meteor.call 'messageNew', group, (error, result) ->
+    message = {}
+    switch e.currentTarget.getAttribute 'data-published'
+      when 'false'
+        message.published = false
+      when 'true'
+        message.published = true
+      else
+        message.published = defaultPublished
+    Meteor.call 'messageNew', group, null, null, message, (error, result) ->
       #e.target.removeClass 'disabled'
       if error
         console.error error
@@ -179,12 +192,43 @@ export GroupButtons = React.memo ({group, can, sortBy}) ->
         }
       </div>
     }
-    <TextTooltip title={postTitle}>
-      <button onClick={onPost}
-       className="btn btn-info postButton #{unless can.post then 'disabled' else ''}">
-        Pose New Problem / Discussion
-      </button>
-    </TextTooltip>
+    
+    <Dropdown className="btn-group">
+      <TextTooltip title={postTitle}>
+        <Dropdown.Toggle variant="info" className={'disabled' unless can.post}>
+          {'New Thread '}
+          <span className="caret"/>
+        </Dropdown.Toggle>
+      </TextTooltip>
+      <Dropdown.Menu className="buttonMenu postMenu">
+        <li>
+          <Dropdown.Item href="#" onClick={onPost}>
+            <TextTooltip placement="left" title="Start a new root message, #{if defaultPublished then 'immediately ' else ''}visible to everyone in this group#{if defaultPublished then '' else ' (once published)'}.">
+              <button className="btn btn-#{if defaultPublished then 'default' else 'warning'} btn-block postButton">
+                New Root Message
+              </button>
+            </TextTooltip>
+          </Dropdown.Item>
+        </li>
+        <li>
+          <Dropdown.Item href="#" data-published={not defaultPublished} onClick={onPost}>
+            {if defaultPublished
+              <TextTooltip placement="left" title="Start a new root message that starts in the unpublished state, so it will become generally visible only when you select Action / Publish.">
+                <button className="btn btn-warning btn-block postButton">
+                  New Unpublished Root Message
+                </button>
+              </TextTooltip>
+            else
+              <TextTooltip placement="left" title="Start a new root message that starts in the published state, so everyone in this group can see it immediately.">
+                <button className="btn btn-success btn-block postButton">
+                  New Published Root Message
+                </button>
+              </TextTooltip>
+            }
+          </Dropdown.Item>
+        </li>
+      </Dropdown.Menu>
+    </Dropdown>
     <div className="btn-group">
       <TextTooltip title="Show all messages you have authored or been @mentioned in">
         <a className="btn btn-default myPostsButton #{unless user? then 'disabled'}"

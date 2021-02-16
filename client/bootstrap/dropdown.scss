@@ -63,3 +63,7 @@ $dropdown-link-disabled-color: lighten(#000, 46.7%); // @dropdown-link-disabled-
     background-color: transparent;
   }
 }
+
+// Fix display caused by Bootstrap 3's .show { display: block !important }
+
+.dropdown.btn-group.show { display: inline-block !important }
