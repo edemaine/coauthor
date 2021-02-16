@@ -224,7 +224,7 @@ WrappedMessagePDF = React.memo ({file}) ->
               height: "#{annotation.rect[3] - annotation.rect[1]}px"
             } href={annotation.url or '#'}
             target={if annotation.url then '_blank'}
-            rel={if annotation.url then 'noopener noreferrer'}
+            rel={if annotation.url then 'noreferrer'}
             onClick={onClick}/>
           </TextTooltip>
           ### eslint-enable react/jsx-no-target-blank ###

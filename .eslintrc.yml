@@ -190,9 +190,6 @@ rules:
   semi:
     - error
     - always
-  react/jsx-no-target-blank:
-    - error
-    - allowReferrer: true
   react/no-unescaped-entities:
     - warn
     - forbid: ['>', '"', '}']
