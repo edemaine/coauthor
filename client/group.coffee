@@ -195,10 +195,12 @@ export GroupButtons = React.memo ({group, can, sortBy}) ->
     
     <Dropdown className="btn-group">
       <TextTooltip title={postTitle}>
-        <Dropdown.Toggle variant="info" className={'disabled' unless can.post}>
-          {'New Thread '}
-          <span className="caret"/>
-        </Dropdown.Toggle>
+        <span className="wrapper #{if can.post then '' else 'disabled'}">
+          <Dropdown.Toggle variant="info" disabled={not can.post}>
+            {'New Thread '}
+            <span className="caret"/>
+          </Dropdown.Toggle>
+        </span>
       </TextTooltip>
       <Dropdown.Menu className="buttonMenu postMenu">
         <li>
