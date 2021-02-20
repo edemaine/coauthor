@@ -771,18 +771,20 @@ preprocessMarkdownTicks = (text) ->
   ## Bad cases not handled by this regex:
   ## * `foo followed by two newlines is treated as still opening a code span
   ## * <a href="`"> is treated as opening a code span
+  ## * ~~~code block~~~ ignored
+  ## * Indented blocks ignored
   text = text.replace ///
     (^|[^\\`])  # backticks shouldn't be preceded by \escape or more backticks
     (`+)        # one or more backticks to open
     ([^`] |         # case 1: single nontick character inside
      [^`][^]*?[^`]) # case 2: multiple characters inside, not bounded by ticks
     (\2|$)      # matching number of backticks to close
-    ([^`]|$)    # not any additional `s afterward
-  ///g, (match, pre, left, mid, right, post) ->
+    (?!`)       # not any additional `s afterward
+  ///g, (match, pre, left, mid, right) ->
     ## Three or more backticks (fenced code blocks) are terminated by end of doc
     return match unless right or left.length >= 3
     ticks.push match[pre.length..]
-    "#{pre}TICK#{i++}ENDTICK#{post}"
+    "#{pre}TICK#{i++}ENDTICK"
   [text, ticks]
 
 putTicksBack = (text, ticks) ->
