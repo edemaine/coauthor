@@ -1267,9 +1267,9 @@ export EmojiButtons = React.memo ({message, can}) ->
         me: Meteor.user()?.username in usernames
         count: usernames.length
   , [message.emoji, emojis]
+  [showTooltip, setShowTooltip] = useState false
 
   onEmojiAdd = (e) ->
-    e.preventDefault()
     symbol = e.currentTarget.getAttribute 'data-symbol'
     #exists = EmojiMessages.findOne
     #  message: message._id
@@ -1281,9 +1281,10 @@ export EmojiButtons = React.memo ({message, can}) ->
       console.warn "Attempt to add duplicate emoji '#{symbol}' to message #{message}"
     else
       Meteor.call 'emojiToggle', message._id, symbol
+    setTimeout ->
+      setShowTooltip false
+    , 0  # hide tooltip after it gets focus from menu close
   onEmojiToggle = (e) ->
-    e.preventDefault()
-    e.stopPropagation()
     symbol = e.currentTarget.getAttribute 'data-symbol'
     Meteor.call 'emojiToggle', message._id, symbol
 
@@ -1292,7 +1293,8 @@ export EmojiButtons = React.memo ({message, can}) ->
       <>
         {if emojis.length
           <Dropdown className="btn-group">
-            <TextTooltip title="Add emoji response">
+            <TextTooltip title="Add emoji response"
+             show={showTooltip} onToggle={setShowTooltip}>
               <Dropdown.Toggle variant="default">
                 <span className="fas fa-plus emoji-plus" aria-hidden="true"/>
                 {' '}
