@@ -1456,6 +1456,7 @@ Meteor.methods
     unless canSuperdelete message
       throw new Meteor.Error 'messageSuperdelete.unauthorized',
         "Insufficient permissions to superdelete message '#{message}'"
+    return if @isSimulation
     user = Meteor.user().username
     now = new Date
     msg = Messages.findOne message
