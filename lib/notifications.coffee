@@ -499,6 +499,9 @@ if Meteor.isServer
           if msg.minimized
             adjectivesText.push 'minimized '
             adjectivesHTML.push '<span style="color:#449d44">minimized</span> '
+          if msg.protected
+            adjectivesText.push 'protected '
+            adjectivesHTML.push '<span style="color:#5bc0de">protected</span> '
           changed = notification.changed
           unless old?
             ## Ignore some initial values during creation of message.
@@ -608,6 +611,11 @@ if Meteor.isServer
               bullet "MINIMIZED"
             else
               bullet "UNMINIMIZED"
+          if changed.protected
+            if msg.protected
+              bullet "PROTECTED"
+            else
+              bullet "UNPROTECTED"
           if changed.format
             bullet "Format: #{msg.format}"
           if changed.tags
