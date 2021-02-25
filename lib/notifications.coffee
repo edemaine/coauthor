@@ -488,20 +488,20 @@ if Meteor.isServer
           adjectivesText = []
           adjectivesHTML = []
           unless msg.published
-            adjectivesText.push 'unpublished '
-            adjectivesHTML.push '<span style="color:#8a6d3b">unpublished</span> '
+            adjectivesText.push 'UNPUBLISHED '
+            adjectivesHTML.push '<span style="color:#8a6d3b">UNPUBLISHED</span> '
           if msg.deleted
-            adjectivesText.push 'deleted '
-            adjectivesHTML.push '<span style="color:#a94442">deleted</span> '
+            adjectivesText.push 'DELETED '
+            adjectivesHTML.push '<span style="color:#a94442">DELETED</span> '
           if msg.private
-            adjectivesText.push 'private '
-            adjectivesHTML.push '<span style="color:#5bc0de">private</span> '
+            adjectivesText.push 'PRIVATE '
+            adjectivesHTML.push '<span style="color:#5bc0de">PRIVATE</span> '
           if msg.minimized
-            adjectivesText.push 'minimized '
-            adjectivesHTML.push '<span style="color:#449d44">minimized</span> '
+            adjectivesText.push 'MINIMIZED '
+            adjectivesHTML.push '<span style="color:#449d44">MINIMIZED</span> '
           if msg.protected
-            adjectivesText.push 'protected '
-            adjectivesHTML.push '<span style="color:#5bc0de">protected</span> '
+            adjectivesText.push 'PROTECTED '
+            adjectivesHTML.push '<span style="color:#5bc0de">PROTECTED</span> '
           changed = notification.changed
           unless old?
             ## Ignore some initial values during creation of message.
