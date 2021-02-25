@@ -569,7 +569,7 @@ if Meteor.isServer
 @canImport = (group) -> canSuper group
 @canSuperdelete = (message) ->
   canSuper message2group message
-@canProtect = canSuperdelete
+@canProtect = canSuperdelete  ## same logic as checkProtected
 
 ## A user has explicit [read] access to a message if they are a coauthor or
 ## they are listed in the 'access' list and the message is published and
@@ -771,6 +771,12 @@ checkPrivacy = (privacy, root, user = Meteor.user()) ->
             "Cannot make message public in thread '#{root._id}'"
   null
 
+## Same logic as canProtect
+checkProtected = (protect, group, user = Meteor.user()) ->
+  if protect? and not canSuper group, false, user
+    throw new Meteor.Error 'checkProtected.forbidden',
+      "Insufficient permissions to (un)protect message in group '#{group}'"
+
 @canCoauthorsMod = (message, coauthorsMod, client = Meteor.isClient, user = Meteor.user()) ->
   ## Adding coauthors requires no additional permission.
   ## Removing coauthors can be done in the following situations:
@@ -847,6 +853,9 @@ _messageUpdate = (id, message, authors = null, old = null) ->
   ## Compare with 'old' if provided (in cases when it's already been
   ## fetched by the server); otherwise, load id from Messages.
   old = Messages.findOne id unless old?
+  unless old?  # attempt to update nonexisting message
+    throw new Meteor.Error 'messageUpdate.unauthorized',
+      "Insufficient permissions to edit message '#{id}'"
 
   ## authors is set only when internal to server, in which case we bypass
   ## authorization checks, which already happened in messageEditStart.
@@ -863,6 +872,7 @@ _messageUpdate = (id, message, authors = null, old = null) ->
       throw new Meteor.Error 'messageUpdate.unauthorized',
         "Insufficient permissions to edit message '#{id}' in group '#{old.group}'"
     checkPrivacy message.private, old, user
+    checkProtected message.protected, old.group, user
   check message,
     #url: Match.Optional String
     title: Match.Optional String
@@ -1256,6 +1266,7 @@ Meteor.methods
       ## Old default: public if available, private otherwise
       #if root?.threadPrivacy? and 'public' not in root.threadPrivacy
       #  message.private = true
+    checkProtected message.protected, group, user
     ## "Reply All" behavior: Initial access for a private message
     ## includes all coauthors and access of parent message,
     ## except for the actual author of this message which isn't needed.
