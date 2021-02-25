@@ -55,6 +55,7 @@ globals:
   canParent: readonly
   canPost: readonly
   canPrivate: readonly
+  canProtect: readonly
   canPublish: readonly
   canReply: readonly
   canUndelete: readonly
