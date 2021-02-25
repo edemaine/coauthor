@@ -531,6 +531,12 @@ export MessageLabels = React.memo ({message}) ->
         <span className="label label-success">Minimized</span>
       </>
     }
+    {if message.protected
+      <>
+        {' '}
+        <span className="label label-info">Protected</span>
+      </>
+    }
   </span>
 MessageLabels.displayName = 'MessageLabels'
 
@@ -1929,6 +1935,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
     unpublish: canUnpublish message._id
     minimize: canMinimize message._id
     unminimize: canUnminimize message._id
+    protect: canProtect message._id
     superdelete: canSuperdelete message._id
     private: canPrivate message._id
     parent: canMaybeParent message._id
@@ -2519,6 +2526,11 @@ export MessageActions = React.memo ({message, can, editing, tabindex0}) ->
     Meteor.call 'messageUpdate', message._id,
       minimized: not message.minimized
       finished: true
+  onProtect = (e) ->
+    e.preventDefault()
+    Meteor.call 'messageUpdate', message._id,
+      protected: not message.protected
+      finished: true
   onParent = (e) ->
     e.preventDefault()
     oldParent = findMessageParent message
@@ -2540,7 +2552,7 @@ export MessageActions = React.memo ({message, can, editing, tabindex0}) ->
       coauthors: $addToSet: [myUsername]
       finished: true
 
-  return null unless can.minimize or can.unminimize or can.delete or can.undelete or can.publish or can.unpublish or can.superdelete or can.private
+  return null unless can.minimize or can.unminimize or can.delete or can.undelete or can.publish or can.unpublish or can.superdelete or can.private or can.protect
   <Dropdown className="btn-group">
     <Dropdown.Toggle variant="info" tabIndex={tabindex0+4}>
       {"Action "}
@@ -2619,6 +2631,19 @@ export MessageActions = React.memo ({message, can, editing, tabindex0}) ->
                 <button className="btn btn-success btn-block" onClick={onPrivate}>Make Public</button>
               else
                 <button className="btn btn-danger btn-block" onClick={onPrivate}>Make Private</button>
+              }
+            </Dropdown.Item>
+          </TextTooltip>
+        </li>
+      }
+      {if can.protect
+        <li>
+          <TextTooltip placement="left" title="Toggle whether this message is protected, meaning that it can be edited only by coauthors and superusers (but can still be seen normally and get emoji responses).">
+            <Dropdown.Item className="protectButton" href="#">
+              {if message.protected
+                <button className="btn btn-success btn-block" onClick={onProtect}>Unprotect</button>
+              else
+                <button className="btn btn-danger btn-block" onClick={onProtect}>Protect</button>
               }
             </Dropdown.Item>
           </TextTooltip>

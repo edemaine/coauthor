@@ -525,14 +525,15 @@ if Meteor.isServer
   ## Can edit message if a coauthor (explicit read/write access);
   ## or if we have global edit privileges in this group or thread,
   ## in addition to being able to see the message itself
-  ## (a slight variation to the logic of `canSee` which needs `read` access);
-  ## or a superuser.
+  ## (a slight variation to the logic of `canSee` which needs `read` access)
+  ## and message not being protected; or a superuser.
   message = findMessage message
   return false unless message?
   user? and (
     canSuper(message.group, client, user) or
     amCoauthor(message, user) or
-    (messageRoleCheck(message.group, message, 'edit', user) and
+    (not message.protected and
+     messageRoleCheck(message.group, message, 'edit', user) and
      ((message.published and not message.deleted and not message.private) or
       haveExplicitAccess(message, user))))
 
@@ -568,6 +569,7 @@ if Meteor.isServer
 @canImport = (group) -> canSuper group
 @canSuperdelete = (message) ->
   canSuper message2group message
+@canProtect = canSuperdelete
 
 ## A user has explicit [read] access to a message if they are a coauthor or
 ## they are listed in the 'access' list and the message is published and
@@ -795,6 +797,7 @@ export messageContentFields = [
   'deleted'
   'private'
   'minimized'
+  'protected'
   'rotate'
   'coauthors'
   'access'
@@ -873,6 +876,7 @@ _messageUpdate = (id, message, authors = null, old = null) ->
     deleted: Match.Optional Boolean
     private: Match.Optional Boolean
     minimized: Match.Optional Boolean
+    protected: Match.Optional Boolean
     rotate: Match.Optional Match.Where (r) ->
       typeof r == "number" and -180 < r <= 180
     finished: Match.Optional Boolean
@@ -1225,6 +1229,7 @@ Meteor.methods
       deleted: Match.Optional Boolean
       private: Match.Optional Boolean
       minimized: Match.Optional Boolean
+      protected: Match.Optional Boolean
       rotate: Match.Optional Match.Where (r) ->
         typeof r == "number" and -180 < r <= 180
       finished: Match.Optional Boolean
@@ -1380,6 +1385,7 @@ Meteor.methods
       deleted: Match.Optional Boolean
       #private: Match.Optional Boolean
       #minimized: Match.Optional Boolean
+      #protected: Match.Optional Boolean
       creator: Match.Optional String
       created: Match.Optional Date
       #updated and updators added automatically from last diff
@@ -1398,6 +1404,7 @@ Meteor.methods
       deleted: Match.Optional Boolean
       #private: Match.Optional Boolean
       #minimized: Match.Optional Boolean
+      #protected: Match.Optional Boolean
       updated: Match.Optional Date
       updators: Match.Optional [String]
       coauthors: Match.Optional [String]

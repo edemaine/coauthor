@@ -182,7 +182,7 @@ export parseSearch = (search, group) ->
               wants.push published: false
             else
               wants.push published: $ne: false
-          when 'deleted', 'minimized', 'private'
+          when 'deleted', 'minimized', 'private', 'protected'
             if negate
               wants.push "#{token}": $ne: true
             else
@@ -360,6 +360,13 @@ formatParsedSearch = (query, group) ->
       'not minimized'
     else
       "minimized: #{query.minimized}"
+  else if _.isEqual keys, ['protected']
+    if _.isEqual query.protected, true
+      'protected'
+    else if _.isEqual query.protected, {$ne: true}
+      'not protected'
+    else
+      "protected: #{query.protected}"
   else if _.isEqual keys, ['private']
     if _.isEqual query.private, true
       'private'

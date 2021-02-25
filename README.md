@@ -203,7 +203,7 @@ support, but it has proved useful in other fields too.
     or you can combine the two with e.g. `emoji:thumbs*@username`.
   * `is:root` matches root messages (tops of threads).
   * `is:file` matches file messages (made via Attach).
-  * `is:deleted`, `is:published`, `is:private`, `is:minimized`
+  * `is:deleted`, `is:published`, `is:private`, `is:minimized`, `is:protected`
     match various states of messages.
   * `is:empty` matches empty messages (no title, body, or file).
   * `not:...` or `isnt:...` are negated forms of the above `is:...` operators,
@@ -261,6 +261,11 @@ support, but it has proved useful in other fields too.
   * Replies to replies inherit the public/private state of their parent.
   * Superusers can see all the messages and change them between public and
     private.
+  * Superusers can also mark messages as **protected**, meaning they can be
+    edited only by coauthors and superusers.  This is useful to prevent someone
+    from accidentally becoming a coauthor on the root message of a
+    private-replies thread, thereby gaining access to all subsequent replies.
+    Protected messages can still be seen normally and gain emoji responses.
 
 * **Email notifications** for subscribed threads, clustering together all
   updates since the last email, with a maximum lag of a specified number of
