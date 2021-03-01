@@ -93,9 +93,9 @@ export autosubscribe = (group, user = Meteor.user()) ->
   #canSee(message, false, user) and \
   #memberOfGroup(message.group, user) and \
   if autosubscribe message.group, user
-    root not in (user.profile.notifications?.unsubscribed ? [])
+    root not in (user?.profile?.notifications?.unsubscribed ? [])
   else
-    root in (user.profile.notifications?.subscribed ? [])
+    root in (user?.profile?.notifications?.subscribed ? [])
 
 ## Mimicks logic of subscribedToMessage above, plus requires group membership,
 ## verified email, and canSee (everything required for notifications).
