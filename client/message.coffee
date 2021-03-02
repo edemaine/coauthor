@@ -1885,12 +1885,12 @@ export WrappedSubmessage = React.memo ({message, read}) ->
       fileType historified.file
   , [historified.file]
   preview = useTracker ->
-    if history?
+    if history? or not editing
       on: true
       sideBySide: false
     else
       messagePreviewGet message._id
-  , [history?, message._id]
+  , [history?, editing, message._id]
   formattedTitle = useTracker ->
     for bold in [true, false]
       ## Only render unbold title if we have children (for back pointer)
@@ -2386,7 +2386,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
       </div>
     </div>
     {unless folded
-      previewSideBySide = editing and preview.on and preview.sideBySide
+      previewSideBySide = preview.on and preview.sideBySide
       <>
         {if history?
           <MessageHistory message={message}/>
@@ -2433,7 +2433,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
             </div>
           }
         </div>
-        {if editing and previewSideBySide
+        {if previewSideBySide
           <BelowEditor message={message} preview={preview} safeToStopEditing={safeToStopEditing} editStopping={editStopping}/>
         }
         <div className="message-footer">
