@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useRef} from 'react'
+import React, {useEffect, useMemo, useRef, useState} from 'react'
 import Dropdown from 'react-bootstrap/Dropdown'
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger'
 import Tooltip from 'react-bootstrap/Tooltip'
@@ -147,6 +147,7 @@ export GroupButtons = React.memo ({group, can, sortBy}) ->
   defaultPublished = useTracker ->
     autopublish()
   , []
+  [dropdown, setDropdown] = useState false
 
   onSortSetDefault = (e) ->
     e.stopPropagation()
@@ -157,7 +158,9 @@ export GroupButtons = React.memo ({group, can, sortBy}) ->
   onPost = (e) ->
     e.preventDefault()
     e.stopPropagation()
+    newTab = (e.button != 0) or e.ctrlKey or e.metaKey or e.shiftKey
     #e.target.addClass 'disabled'
+    setDropdown false  # not automatic for auxclick
     return unless canPost group
     message = {}
     switch e.currentTarget.getAttribute 'data-published'
@@ -173,9 +176,15 @@ export GroupButtons = React.memo ({group, can, sortBy}) ->
         console.error error
       else if result
         Meteor.call 'messageEditStart', result
-        Router.go 'message',
-          group: group
-          message: result
+        if newTab
+          url = urlFor 'message',
+            group: group
+            message: result
+          window.open url, '_blank'
+        else
+          Router.go 'message',
+            group: group
+            message: result
       else
         console.error "messageNew did not return problem -- not authorized?"
 
@@ -193,7 +202,8 @@ export GroupButtons = React.memo ({group, can, sortBy}) ->
       </div>
     }
     
-    <Dropdown className="btn-group">
+    <Dropdown className="btn-group" show={dropdown}
+     onToggle={(open) -> setDropdown open}>
       <TextTooltip title={postTitle}>
         <span className="wrapper #{if can.post then '' else 'disabled'}">
           <Dropdown.Toggle variant="info" disabled={not can.post}>
@@ -204,7 +214,7 @@ export GroupButtons = React.memo ({group, can, sortBy}) ->
       </TextTooltip>
       <Dropdown.Menu className="buttonMenu postMenu">
         <li>
-          <Dropdown.Item href="#" onClick={onPost}>
+          <Dropdown.Item href="#" onClick={onPost} onAuxClick={onPost}>
             <TextTooltip placement="left" title="Start a new root message, #{if defaultPublished then 'immediately ' else ''}visible to everyone in this group#{if defaultPublished then '' else ' (once published)'}.">
               <button className="btn btn-#{if defaultPublished then 'default' else 'warning'} btn-block postButton">
                 New Root Message
@@ -213,7 +223,8 @@ export GroupButtons = React.memo ({group, can, sortBy}) ->
           </Dropdown.Item>
         </li>
         <li>
-          <Dropdown.Item href="#" data-published={not defaultPublished} onClick={onPost}>
+          <Dropdown.Item href="#" data-published={not defaultPublished}
+           onClick={onPost} onAuxClick={onPost}>
             {if defaultPublished
               <TextTooltip placement="left" title="Start a new root message that starts in the unpublished state, so it will become generally visible only when you select Action / Publish.">
                 <button className="btn btn-warning btn-block postButton">
