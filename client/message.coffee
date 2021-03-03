@@ -531,12 +531,6 @@ export MessageLabels = React.memo ({message}) ->
         <span className="label label-success">Minimized</span>
       </>
     }
-    {if message.protected
-      <>
-        {' '}
-        <span className="label label-info">Protected</span>
-      </>
-    }
   </span>
 MessageLabels.displayName = 'MessageLabels'
 
@@ -1942,6 +1936,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
     edit: canEdit message._id
     reply: canReply message
     super: canSuper message.group
+    becomeSuper: canSuper message.group, false
   , [message._id]
   ref = useRef()
   messageBodyRef = useRef()
@@ -2367,18 +2362,72 @@ export WrappedSubmessage = React.memo ({message, read}) ->
             <>
               <MessageActions message={message} can={can} editing={editing} tabindex0={tabindex0}/>
               {if editing
-                if editStopping
-                  <button className="btn btn-info editButton disabled" tabIndex={tabindex0+8} title="Waiting for save to complete before stopping editing...">Stop Editing</button>
-                else
-                  <button className="btn btn-info editButton" tabIndex={tabindex0+8} onClick={onEdit}>Stop Editing</button>
-              else
-                if can.edit and not folded
-                  <>
-                    {if message.file
-                      <MessageReplace _id={message._id} group={message.group} tabindex={tabindex0+7}/>
+                <OverlayTrigger flip overlay={(props) ->
+                  <Tooltip {...props}>
+                    {if editStopping
+                      <>Waiting for message to save before stopping editing...</>
+                    else
+                      <>
+                        <p>Close editor and mark this version as "finished". (Your edits are already saved, and users with access to this message can already see your edits.)</p>
+                        {unless message.published
+                          <p>Don't forget to <b>publish</b> your message when you're ready for others to see it!</p>
+                        }
+                        {if message.deleted
+                          <p><b>Undelete</b> your message if you want others to see it.</p>
+                        }
+                      </>
                     }
-                    <button className="btn btn-info editButton" tabIndex={tabindex0+8} onClick={onEdit}>Edit</button>
-                  </>
+                  </Tooltip>
+                }>
+                  <span className="wrapper #{if editStopping then 'disabled' else ''}">
+                    <button className="btn btn-info editButton" onClick={onEdit}
+                     disabled={editStopping} tabIndex={tabindex0+8}>
+                      Stop Editing
+                    </button>
+                  </span>
+                </OverlayTrigger>
+              else unless folded
+                <>
+                  {if message.file and can.edit
+                    <MessageReplace _id={message._id} group={message.group} tabindex={tabindex0+7}/>
+                  }
+                  <OverlayTrigger flip overlay={(props) ->
+                    <Tooltip {...props}>
+                      {if can.edit
+                        <p>
+                          Start editing this message (possibly with other users).
+                          {unless amCoauthor message, user
+                            <><br/>Changes will automatically make you a coauthor.</>
+                          }
+                        </p>
+                      else unless messageRoleCheck message.group, message, 'edit', user
+                        <p>
+                          You do not have edit permissions in this group/thread.
+                        </p>
+                      }
+                      {if message.protected
+                        <p>Message is <b>protected</b>, so edits are restricted to coauthors and superusers.</p>
+                      }
+                      {if can.becomeSuper and not can.edit
+                        <p>Become Superuser (or type <kbd>s</kbd>) to edit this message.</p>
+                      }
+                    </Tooltip>
+                  }>
+                    <span className="wrapper #{if can.edit then '' else 'disabled'}">
+                      <button className="btn btn-info editButton"
+                       tabIndex={tabindex0+8} onClick={onEdit}
+                       disabled={not can.edit}>
+                        Edit
+                        {if message.protected
+                          <>
+                            {' '}
+                            <span className="fas fa-lock"/>
+                          </>
+                        }
+                      </button>
+                    </span>
+                  </OverlayTrigger>
+                </>
               }
             </>
           }
