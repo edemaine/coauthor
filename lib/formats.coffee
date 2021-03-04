@@ -249,9 +249,18 @@ latex2htmlDef = (tex) ->
   #for def, val of defs
   #  console.log "\\#{def} = #{val}"
   if 0 < _.size defs
-    r = ///\\(#{_.keys(defs).join '|'})\s*///g
-    while 0 <= tex.search(r)
-      tex = tex.replace r, (match, def) -> defs[def]
+    r = ///
+      ({?)     # allow {\macro} notation to force space after macro
+      \\(#{_.keys(defs).join '|'})
+      (?![a-zA-z])  # ensure full-word match
+      \s*      # consume spaces after \macro, like TeX does
+      (?:{})?  # allow \macro{} notation to force space after macro
+      (}?)     # allow {\macro} notation to force space after macro
+    ///g
+    while r.test tex
+      tex = tex.replace r, (match, left, def, right) ->
+        left = right = '' if left and right
+        left + defs[def] + right
   tex
 
 texAlign =
