@@ -133,8 +133,8 @@ export RootHeader = React.memo ({message}) ->
       <span className="space"/>
       <span className="title panel-title"
        dangerouslySetInnerHTML={__html: formattedTitle}/>
-      <MessageTags message={message}/>
-      <MessageLabels message={message}/>
+      <MessageTags message={root}/>
+      <MessageLabels message={root}/>
     </div>
   </div>
 RootHeader.displayName = 'RootHeader'
