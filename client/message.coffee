@@ -2741,7 +2741,7 @@ messageAuthorSubtitle = (message, author) -> ->
 export MessageAuthor = React.memo ({message, also}) ->
   if also
     also = {}
-    also[unescapeUser author] for author of message.authors
+    also[unescapeUser author] = updated for author, updated of message.authors
   count = 0
   <div className="author text-right">
     {'(by '}
@@ -2753,7 +2753,7 @@ export MessageAuthor = React.memo ({message, also}) ->
          subtitle={messageAuthorSubtitle message, author}/>
       </React.Fragment>
     }
-    {if also and not _.isEmpty also
+    {console.log (_.keys also); if also and not _.isEmpty also
       for author, updated of also
         <React.Fragment key={author}>
           {', ' if count++}
