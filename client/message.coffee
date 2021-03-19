@@ -2753,7 +2753,7 @@ export MessageAuthor = React.memo ({message, also}) ->
          subtitle={messageAuthorSubtitle message, author}/>
       </React.Fragment>
     }
-    {console.log (_.keys also); if also and not _.isEmpty also
+    {if also and not _.isEmpty also
       for author, updated of also
         <React.Fragment key={author}>
           {', ' if count++}
