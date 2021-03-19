@@ -729,8 +729,16 @@ postprocessKaTeX = (text, math, initialBold) ->
     weights = [boldWeight]
   else
     weights = [mediumWeight]
-  text.replace /MATH(\d+)ENDMATH([,.!?:;'"\-)\]}]*)|<span([^<>]*)>|<b\b|<strong\b|<\/\s*(b|strong|span)\s*>/g, (match, id, punct, spanArgs) ->
-    ## Detect math within bold mode
+  text.replace ///
+    MATH(\d+)ENDMATH
+    ([,.!?:;'"\-)\]}]*) # puncutation to pull into math mode
+    (?! -?> ) # prevent accidentally grabbing some of --> (end of HTML comment)
+    | ## Detect math within bold mode:
+    <span([^<>]*)> |
+    <b\b |
+    <strong\b |
+    <\/\s*(b|strong|span)\s*>
+  ///g, (match, id, punct, spanArgs) ->
     unless id?
       if spanArgs?
         spanArgs = /style\s*=\s*['"]font-weight:\s*(\d+)/i.exec spanArgs
