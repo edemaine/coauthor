@@ -774,11 +774,19 @@ postprocessKaTeX = (text, math, initialBold) ->
     ## Remove \boldsymbol{...} from TeX source, in particular for copy/paste
     if bold
       out = out.replace /(<annotation encoding="application\/x-tex">)\\boldsymbol{([^]*?)}(<\/annotation>)/i, '$1$2$3'
-    out += punct
     if punct and not block.display
-      '<span class="nobr">' + out + '</span>'
+      ## Push punctuation inside the final base element
+      ## (<span class="katex"><span class="katex-html"><span class="base">)
+      ## which prevents it from being separated, while still allowing KaTeX
+      ## to do its automatic line breaking.
+      out = out.replace ///(</span></span></span>)?$///, (match, spans) ->
+        if spans
+          """<span class="nonmath">#{punct}</span>#{spans}"""
+        else
+          punct
     else
-      out
+      out += punct
+    out
 
 preprocessMarkdownTicks = (text) ->
   ticks = []
