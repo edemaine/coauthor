@@ -112,7 +112,8 @@ WrappedMessagePDF = React.memo ({file}) ->
     renderTask = page.render
       canvasContext: context
       viewport: scaledViewport
-    renderTask.promise.then ->
+    Promise.all [renderTask.promise, page.getAnnotations()]
+    .then ([rendered, annotationsLoaded]) ->
       replaceCanvas canvasRef, canvas
       setRendering false
       ## Clear existing annotations, and load this page's annotations
@@ -120,7 +121,7 @@ WrappedMessagePDF = React.memo ({file}) ->
       setAnnotationsTransform "scale(#{1/dpiScale},#{1/dpiScale}) matrix(#{scaledViewport.transform.join ','})"
       ## Annotation links, based loosely on
       ## https://stackoverflow.com/a/20141227/7797661
-      page.getAnnotations().then (annotationsLoaded) -> setAnnotations(
+      setAnnotations(
         for annotation in annotationsLoaded
           if annotation.dest  # local link
             ## Refer to https://github.com/mozilla/pdf.js/blob/master/web/pdf_link_service.js goToDestination & _goToDestinationHelper
@@ -134,7 +135,7 @@ WrappedMessagePDF = React.memo ({file}) ->
               annotation.explicitPage = 1 + await pdf.getPageIndex annotation.explicit[0]
           annotation
       )
-    -> renderTask.cancel()
+    -> try renderTask.cancel()  # suppress pdfjs's error message
   , [page, windowWidth, fit, inView]
 
   onChangePage = (delta) -> (e) ->
