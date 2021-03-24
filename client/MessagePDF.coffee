@@ -135,7 +135,10 @@ WrappedMessagePDF = React.memo ({file}) ->
               annotation.explicitPage = 1 + await pdf.getPageIndex annotation.explicit[0]
           annotation
       )
-    -> try renderTask.cancel()  # suppress pdfjs's error message
+    .catch (error) ->
+      ## Ignore pdfjs's error when rendering gets canceled from page flipping
+      throw error unless error.name == 'RenderingCancelledException'
+    -> renderTask.cancel()
   , [page, windowWidth, fit, inView]
 
   onChangePage = (delta) -> (e) ->
