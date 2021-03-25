@@ -2368,7 +2368,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
                       <>Waiting for message to save before stopping editing...</>
                     else
                       <>
-                        <p>Close editor and mark this version as "finished". (Your edits are already saved, and users with access to this message can already see your edits.)</p>
+                        <p>Close editor and mark this version as &quot;finished&quot;. (Your edits are already saved, and users with access to this message can already see your edits.)</p>
                         {unless message.published
                           <p>Don't forget to <b>publish</b> your message when you're ready for others to see it!</p>
                         }

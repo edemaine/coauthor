@@ -46,8 +46,10 @@ Installation instructions:
    (for sending email notifications &mdash; to run a local SMTP server,
    see below, and use e.g. `smtp://yourhostname.org:25/`).
    [`smtp://localhost:25/` may not work because of mup's use of docker.]
-   If you want the "From" address in email notifications to be something
-   other than coauthor@*deployed-host-name*, set the `MAIL_FROM` variable.
+   * If you want the "From" address in email notifications to be something
+     other than coauthor@*deployed-host-name*, set the `MAIL_FROM` variable.
+   * If you're upgrading from an older Coauthor, don't set the
+     `COAUTHOR_SKIP_UPGRADE_DB` variable for the first deploy.
 4. Edit `settings.json` to set the server's
    [timezone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
    (used as the default email notification timezone for all users).

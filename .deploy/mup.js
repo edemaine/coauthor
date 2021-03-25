@@ -26,14 +26,28 @@ module.exports = {
       buildLocation: '/scratch/coauthor-build'
     },
     env: {
+      // Comment this out to upgrade the database (for Coauthor upgrades).
+      // This can take a while on startup, so be sure to also increase
+      // deployCheckWaitTime below.
+      COAUTHOR_SKIP_UPGRADE_DB: '1',
+      // Set to your public-facing URL
       ROOT_URL: 'https://coauthor.csail.mit.edu',
+      // Set to your SMTP server, to enable Coauthor email notifications.
+      // Comment out this line to turn off email notifications.
       MAIL_URL: 'smtp://coauthor.csail.mit.edu:25?ignoreTLS=true',
+      // Default From address for mail notifications is
+      // coauthor@deployed-host-name; set this to override:
       //MAIL_FROM: 'coauthor@coauthor.csail.mit.edu',
+      // If you don't use MUP's MongoDB server, set this to your server:
       MONGO_URL: 'mongodb://mongodb/meteor',
+      // You shouldn't need to change this:
       MONGO_OPLOG_URL: 'mongodb://mongodb/local',
+      // Set to fill available RAM:
       NODE_OPTIONS: '--trace-warnings --max-old-space-size=8192'
     },
+    // If you're upgrading the database, you probably need to increase this:
     deployCheckWaitTime: 200,
+    //deployCheckWaitTime: 2000,
     /* Old mup-frontend-server configuration:
     ssl: {
       // pem: '../coauthor_csail_mit_edu.ssl/coauthor_csail_mit_edu.pem'

@@ -15,6 +15,7 @@ globals:
   Blaze: readonly
   BrowserPolicy: readonly
   FileCollection: readonly
+  Kadira: readonly
   Meteor: readonly
   Modal: readonly
   ReactiveDict: readonly
@@ -156,6 +157,11 @@ globals:
   wildGroup: readonly
 ignorePatterns:
   - .meteor
+overrides:
+  - files:
+    - server/bootstrap.coffee
+    parserOptions:
+      sourceType: script  # support for module-level return (but no import)
 parserOptions:
   ecmaFeatures:
     globalReturn: true
