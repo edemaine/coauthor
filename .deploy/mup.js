@@ -49,6 +49,7 @@ module.exports = {
 
   // Mongo server
   mongo: {
+    version: '4.4.4',
     oplog: true,
     port: 27017,
     servers: {
