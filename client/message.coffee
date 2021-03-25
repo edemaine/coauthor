@@ -816,7 +816,11 @@ MessageEditor.displayName = 'MessageEditor'
 
 export MessageEditor_ = React.memo ({messageID, setEditor, tabindex}) ->
   <Blaze template="sharejs" docid={messageID}
-   onRender={-> (editor) -> setEditor editor}/>
+   onRender={-> (editor) -> setEditor editor}
+   onError={-> (error) ->
+     if error == 'Document does not exist'  # Server restarted
+       @disconnect() # => preserve local edits (otherwise rejects everything)
+   }/>
 MessageEditor_.displayName = 'MessageEditor_'
 
 export BelowEditor = React.memo ({message, preview, safeToStopEditing, editStopping}) ->
@@ -1592,6 +1596,9 @@ export WrappedTableOfContents = React.memo ({message, parent, index}) ->
     Meteor.user()
   , []
   editing = editingMessage message, user
+  editors = useTracker ->
+    (displayUser editor for editor in message.editing ? []).join ', '
+  , [message.editing?.join ',']
   folded = useTracker ->
     (messageFolded.get message._id) and
     not (routeHere message._id) and           # never fold if top-level message
@@ -1614,9 +1621,11 @@ export WrappedTableOfContents = React.memo ({message, parent, index}) ->
        onDragStart={messageOnDragStart message}
        onDragEnter={addDragOver} onDragLeave={removeDragOver}
        onDragOver={dragOver} onDrop={dropOn}>
-        {if message.editing?.length
+        {if editors
           <>
-            <span className="fas fa-edit"/>
+            <TextTooltip title={"Being edited by #{editors}"}>
+              <span className="fas fa-edit"/>
+            </TextTooltip>
             {' '}
           </>
         }
@@ -1861,74 +1870,6 @@ export WrappedSubmessage = React.memo ({message, read}) ->
   user = useTracker ->
     Meteor.user()
   , []
-  editing = editingMessage message, user
-  editing = false if read
-  editors = useTracker ->
-    (displayUser editor for editor in message.editing ? []).join ', '
-  , [message.editing?.join ',']
-  raw = useTracker ->
-    not editing and messageRaw.get message._id
-  , [message._id, editing]
-  raw = false if read
-  folded = useTracker ->
-    (messageFolded.get message._id) and
-    not here and                              # never fold if top-level message
-    not editing and                           # never fold if editing
-    not read
-  , [message._id, here, editing]
-  {history, historyAll} = useTracker ->
-    history: messageHistory.get message._id
-    historyAll: messageHistoryAll.get message._id
-  , [message._id]
-  history = historyAll = null if read
-  historified = history ? message
-  messageFileType = useTracker ->
-    if historified.file
-      fileType historified.file
-  , [historified.file]
-  preview = useTracker ->
-    if history? or not editing
-      on: true
-      sideBySide: false
-    else
-      messagePreviewGet message._id
-  , [history?, editing, message._id]
-  formattedTitle = useTracker ->
-    for bold in [true, false]
-      ## Only render unbold title if we have children (for back pointer)
-      continue unless bold or message.children.length > 0
-      if raw
-        "<CODE CLASS='raw'>#{_.escape historified.title}</CODE>"
-      else
-        formatTitleOrFilename historified,
-          orUntitled: false
-          bold: bold
-  , [historified.title, historified.file, historified.format, raw, message.children.length > 0]
-  formattedBody = useTracker ->
-    return historified.body unless historified.body
-    if raw
-      "<PRE CLASS='raw'>#{_.escape historified.body}</PRE>"
-    else
-      formatBody historified.format, historified.body
-  , [historified.body, historified.format, raw]
-  formattedFile = useTracker ->
-    formatted = formatFile historified
-    description: formatFileDescription historified
-    file:
-      if raw and formatted
-        "<PRE CLASS='raw'>#{_.escape formatted}</PRE>"
-      else
-        formatted
-  , [historified.file, historified._id, raw]
-  absentTags = useTracker ->
-    Tags.find
-      group: message.group
-      key: $nin: _.keys message.tags ? {}
-      deleted: false
-    ,
-      sort: ['key']
-    .fetch()
-  , [message.group, _.keys(message.tags ? {}).join '\n']
   children = message.readChildren ? useChildren message
   can = useTracker ->
     delete: canDelete message._id
@@ -1960,13 +1901,18 @@ export WrappedSubmessage = React.memo ({message, read}) ->
     -> elt.removeEventListener 'dragstart', listener for elt in elts
   , [folded, history?, message]
 
-  unless read  # should not change
+  if read  # should not change
+    editing = raw = folded = false
+    history = historyAll = null
+    preview = messagePreviewDefault
+  else
     ## Editing toggle
     [editTitle, setEditTitle] = useState ''
-    [editBody, setEditBody] = useState ''
+    [editBody, setEditBody] = useState null
+      # special value null indicates meaning not editing so safe
     [editStopping, setEditStopping] = useState()
-    safeToStopEditing =
-      message.title == editTitle and message.body == editBody
+    safeToStopEditing = not editBody? or
+      (message.title == editTitle and message.body == editBody)
     useEffect ->
       setMigrateSafe message._id, safeToStopEditing
       if editStopping and safeToStopEditing
@@ -1980,6 +1926,30 @@ export WrappedSubmessage = React.memo ({message, read}) ->
     useEffect ->
       -> setMigrateSafe message._id, true
     , []
+
+    ## Are we editing?
+    editing = editingMessage message, user
+    editing or= not safeToStopEditing  # Keep editing if unsaved changes
+    raw = useTracker ->
+      not editing and messageRaw.get message._id
+    , [message._id, editing]
+    folded = useTracker ->
+      (messageFolded.get message._id) and
+      not here and                         # never fold if top-level message
+      not editing                          # never fold if editing
+    , [message._id, here, editing]
+    {history, historyAll} = useTracker ->
+      history: messageHistory.get message._id
+      historyAll: messageHistoryAll.get message._id
+    , [message._id]
+    history = null if editing
+    preview = useTracker ->
+      if history? or not editing  # Always show message in these views
+        on: true
+        sideBySide: false
+      else
+        messagePreviewGet message._id
+    , [history?, editing, message._id]
 
     ## Title editing
     timer = useRef null
@@ -2010,6 +1980,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
       else
         lastTitle.current = null
         savedTitles.current = []
+        setEditBody null
       undefined
     , [editing, editTitle, message.title]
 
@@ -2112,6 +2083,52 @@ export WrappedSubmessage = React.memo ({message, read}) ->
         defaultFolded.set message._id, newDefault
         messageFolded.set message._id, newDefault
     , [message._id, message.file, natural, not message.children?.length, not imageRefs and not imageInternalRefs]
+
+    absentTags = useTracker ->
+      Tags.find
+        group: message.group
+        key: $nin: _.keys message.tags ? {}
+        deleted: false
+      ,
+        sort: ['key']
+      .fetch()
+    , [message.group, _.keys(message.tags ? {}).join '\n']
+
+  editors = useTracker ->
+    (displayUser editor for editor in message.editing ? []).join ', '
+  , [message.editing?.join ',']
+  historified = history ? message
+  messageFileType = useTracker ->
+    if historified.file
+      fileType historified.file
+  , [historified.file]
+  formattedTitle = useTracker ->
+    for bold in [true, false]
+      ## Only render unbold title if we have children (for back pointer)
+      continue unless bold or message.children.length > 0
+      if raw
+        "<CODE CLASS='raw'>#{_.escape historified.title}</CODE>"
+      else
+        formatTitleOrFilename historified,
+          orUntitled: false
+          bold: bold
+  , [historified.title, historified.file, historified.format, raw, message.children.length > 0]
+  formattedBody = useTracker ->
+    return historified.body unless historified.body
+    if raw
+      "<PRE CLASS='raw'>#{_.escape historified.body}</PRE>"
+    else
+      formatBody historified.format, historified.body
+  , [historified.body, historified.format, raw]
+  formattedFile = useTracker ->
+    formatted = formatFile historified
+    description: formatFileDescription historified
+    file:
+      if raw and formatted
+        "<PRE CLASS='raw'>#{_.escape formatted}</PRE>"
+      else
+        formatted
+  , [historified.file, historified._id, raw]
 
   ## Transform images
   ## Retransform when window width changes
@@ -2455,7 +2472,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
         }
         <div className="editorAndBody clearfix #{if previewSideBySide then 'sideBySide' else ''}">
           <div className="editorContainer">
-            {if editing and not history
+            {if editing
               <>
                 <MessageEditor message={message} setEditBody={setEditBody} tabindex={tabindex0+19}/>
                 {unless previewSideBySide

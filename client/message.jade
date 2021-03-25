@@ -9,7 +9,7 @@ template(name="readMessage")
 //- 'sharejsCM' is a helper, not an actual template,
     so we need an intermediate template to call it properly.
 template(name="sharejs")
-  +sharejsCM docid=docid onRender=onRender
+  +sharejsCM docid=docid onRender=onRender onError=onError
 
 template(name="submessageHeader")
   div
