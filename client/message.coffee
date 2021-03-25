@@ -19,6 +19,7 @@ import {UserLink} from './UserLink'
 import {resolveTheme} from './theme'
 import {defaultHeight, emailless, messagePreviewDefault} from './settings.coffee'
 import {forceImgReload} from './lib/forceImgReload'
+import {setMigrateSafe, migrateWant} from './lib/migrate'
 import {allEmoji} from '/lib/emoji'
 import {availableFormats, formatBody, formatFile, formatFileDescription, formatTitleOrFilename, parseCoauthorAuthorUrl, parseCoauthorMessageUrl} from '/lib/formats'
 import {ancestorMessages, messageDiffsExpanded, messageNeighbors, sortedMessageReaders} from '/lib/messages'
@@ -819,6 +820,9 @@ export MessageEditor_ = React.memo ({messageID, setEditor, tabindex}) ->
 MessageEditor_.displayName = 'MessageEditor_'
 
 export BelowEditor = React.memo ({message, preview, safeToStopEditing, editStopping}) ->
+  migrated = useTracker ->
+    migrateWant.get()
+  , []
   myUsername = useTracker ->
     Meteor.user()?.username
   , []
@@ -922,6 +926,10 @@ export BelowEditor = React.memo ({message, preview, safeToStopEditing, editStopp
       <div className="alert alert-#{if safeToStopEditing then 'success' else 'danger'} below-editor-alert">
         {if safeToStopEditing
           'All changes saved.'
+        else if migrated
+          <>
+            <b>SERVER HAS RESET</b>. Please copy this message's contents to your clipboard and a temporary file, and then reload the page.
+          </>
         else if editStopping
           'Unsaved changes. Stopping editing once saved...'
         else
@@ -1960,13 +1968,18 @@ export WrappedSubmessage = React.memo ({message, read}) ->
     safeToStopEditing =
       message.title == editTitle and message.body == editBody
     useEffect ->
+      setMigrateSafe message._id, safeToStopEditing
       if editStopping and safeToStopEditing
         Meteor.call 'messageEditStop', message._id, (error, result) ->
           if error?
             console.error error
           else
             setEditStopping false
-      undefined
+    , [editStopping, safeToStopEditing]
+    ## When component unmounts, editor closes, so mark migration as safe.
+    useEffect ->
+      -> setMigrateSafe message._id, true
+    , []
 
     ## Title editing
     timer = useRef null
