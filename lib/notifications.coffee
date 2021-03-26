@@ -15,7 +15,7 @@ autoHeaders =
   #'X-Auto-Response-Suppress': 'OOF'
 
 if Meteor.isServer
-  Notifications._ensureIndex [['to', 1], ['seen', 1], ['message', 1]]
+  Notifications._ensureIndex [['seen', 1], ['to', 1], ['message', 1]]
 
 @notificationLevels = [
   'batched'
@@ -180,14 +180,17 @@ if Meteor.isServer
           seen: false
       else
         @ready()
+  ###
   Meteor.publish 'notifications.all', () ->
     @autorun ->
       user = findUser @userId
       if user?
         Notifications.find
           to: user.username
+          seen: $in: [false, true]  # help use index
       else
         @ready()
+  ###
 
   notifiers = {}
 
