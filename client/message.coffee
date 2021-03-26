@@ -1380,6 +1380,12 @@ export ReplyButtons = React.memo ({message, prefix}) ->
   ## (in the former case, overriding autopublish setting).
   defaultPublished and= Boolean message.published
   defaultDeleted = Boolean message.deleted
+  adjectives = []
+  adjectives.push 'unpublished' unless defaultPublished
+  adjectives.push 'deleted' if defaultDeleted
+  adjectives.push 'private' if message.private
+  adjectives = adjectives.join ' '
+  adjectives += ' ' if adjectives
   once = []
   once.push 'published' unless defaultPublished
   once.push 'undeleted' if defaultDeleted
@@ -1387,7 +1393,14 @@ export ReplyButtons = React.memo ({message, prefix}) ->
     once = " (once #{once.join ' and '})"
   else
     once = ''
-  defaultVariant = if defaultPublished then 'default' else 'warning'
+  defaultVariant =
+    if defaultPublished
+      if message.private
+        'info'
+      else
+        'default'
+    else
+      'warning'
   unless defaultPublished
     prefix ?= 'Unpublished '
 
@@ -1460,14 +1473,14 @@ export ReplyButtons = React.memo ({message, prefix}) ->
               <Dropdown.Item href="#" onClick={onReply}>
                 <button className="btn btn-#{defaultVariant} btn-block replyButton">
                   {prefix}
-                  Reply All
+                  Reply
                 </button>
               </Dropdown.Item>
             </TextTooltip>
           </li>
         else
           <li>
-            <TextTooltip placement="left" title="Start a new child message of this one, #{if defaultPublished then 'immediately ' else ''}visible to everyone in this thread#{once}.">
+            <TextTooltip placement="left" title="Start a new #{adjectives}child message of this one, #{if defaultPublished then 'immediately ' else ''}visible to everyone in this thread#{once}.">
               <Dropdown.Item href="#" onClick={onReply}>
                 <button className="btn btn-#{defaultVariant} btn-block replyButton">
                   {prefix}
@@ -1480,7 +1493,7 @@ export ReplyButtons = React.memo ({message, prefix}) ->
         <>
           {if publicReply
             <li>
-              <TextTooltip placement="left" title="Start a new child message of this one, visible to everyone in this thread#{once}.">
+              <TextTooltip placement="left" title="Start a new #{adjectives}child message of this one, visible to everyone in this thread#{once}.">
                 <Dropdown.Item href="#" data-privacy="public" onClick={onReply}>
                   <button className="btn btn-#{defaultVariant} btn-block replyButton">
                     {prefix}
@@ -1492,9 +1505,9 @@ export ReplyButtons = React.memo ({message, prefix}) ->
           }
           {if privateReply
             <li>
-              <TextTooltip placement="left" title="Start a new child message of this one, visible only to coauthors and those explicitly given access#{once}, initially set to coauthors of the message you're replying to.">
+              <TextTooltip placement="left" title="Start a new #{adjectives}child message of this one, visible only to coauthors and those explicitly given access#{once}, initially set to coauthors of the message you're replying to.">
                 <Dropdown.Item href="#" data-privacy="private" onClick={onReply}>
-                  <button className="btn btn-#{defaultVariant} btn-block replyButton">
+                  <button className="btn btn-info btn-block replyButton">
                     {prefix}
                     Private Reply
                   </button>
@@ -1506,7 +1519,7 @@ export ReplyButtons = React.memo ({message, prefix}) ->
       }
       <li>
         <Dropdown.Item href="#" {...buttonProps} {...dropProps}>
-          <TextTooltip placement="left" title="Start a new child message of this one that contains a single file attachment (or one message for each file, if you select multiple files; you can also drag files onto the Reply button). You can then edit the title and body of the file like a regular message.">
+          <TextTooltip placement="left" title="Start a new #{adjectives}child message of this one that contains a single file attachment (or one message for each file, if you select multiple files; you can also drag files onto the Reply button). You can then edit the title and body of the file like a regular message.">
             <button className="btn btn-#{defaultVariant} btn-block">
               Reply with Attached File
             </button>
@@ -1520,13 +1533,13 @@ export ReplyButtons = React.memo ({message, prefix}) ->
         <li>
           <Dropdown.Item href="#" data-published="#{not defaultPublished}" onClick={onReply}>
             {if defaultPublished
-              <TextTooltip placement="left" title="Start a new child message of this one that starts in the unpublished state, so it will become generally visible only when you select Action / Publish.">
+              <TextTooltip placement="left" title="Start a new #{adjectives}child message of this one that starts in the unpublished state, so it will become generally visible only when you select Action / Publish.">
                 <button className="btn btn-warning btn-block">
                   Unpublished Reply
                 </button>
               </TextTooltip>
             else
-              <TextTooltip placement="left" title="Start a new child message of this one that starts in the published state, so everyone in this thread can see it immediately#{if defaultDeleted then ' (once undeleted)' else ''}.">
+              <TextTooltip placement="left" title="Start a new #{adjectives}child message of this one that starts in the published state, so everyone in this thread can see it immediately#{if defaultDeleted then ' (once undeleted)' else ''}.">
                 <button className="btn btn-success btn-block">
                   {prefix unless prefix == 'Unpublished '}
                   Published Reply
