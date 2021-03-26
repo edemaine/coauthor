@@ -1,8 +1,5 @@
 import React from 'react'
 
-Template.registerHelper 'uploading', ->
-  value for own key, value of Session.get 'uploading'
-
 linkToRoutes =
   since: true
   live: true
@@ -141,3 +138,15 @@ Template.layout.events
   'dragover a.author': (e) ->
     e.preventDefault()
     e.stopPropagation()
+
+Template.footer.helpers
+  showFooter: ->
+    return true for own key of Session.get 'uploading'
+    return true if Session.get 'migrate'
+
+Template.migrate.helpers
+  migrate: -> Session.get 'migrate'
+
+Template.uploadProgress.helpers
+  uploading: ->
+    value for own key, value of Session.get 'uploading'

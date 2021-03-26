@@ -34,9 +34,12 @@ export setMigrateSafe = (id, isSafe) ->
     unsafeMap[id] = true
     unsafeCount++
 
+Session.set 'migrate', null
+
 ## See https://github.com/meteor/meteor/blob/master/packages/reload/reload.js
 Reload._onMigrate 'coauthor', (retry) ->
   if unsafeCount
+    Session.set 'migrate', "<b>COAUTHOR SERVER HAS UPGRADED</b>. Please backup any unsaved messages' contents to temporary files, and then reload the page."
     migrateNow = retry
     migrateWant.set true
   ## Return format: [ready, optionalState]

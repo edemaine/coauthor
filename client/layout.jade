@@ -87,9 +87,7 @@ template(name="layout")
     if creditsWide
       +credits
   +loading
-  if uploading
-    .alert.alert-success.footer
-      +uploadProgress
+  +footer
 
 template(name="credits")
   p.credits.clearfix
@@ -103,8 +101,20 @@ template(name="credits")
       a.btn.btn-default(href="https://github.com/edemaine/coauthor/issues/") Suggestions/Issues
       a.btn.btn-default(href="https://github.com/edemaine/coauthor/") Download Source
 
+template(name="footer")
+  if showFooter
+    .footer
+      +uploadProgress
+      +migrate
+
 template(name="uploadProgress")
   each uploading
-    label= filename
-    .progress
-      .progress-bar.progress-bar-striped.active(role="progressbar", aria-valuenow=progress, aria-valuemin="0", aria-valuemax="100", style="width: #{progress}%") #{progress}%
+    .alert.alert-success
+      label= filename
+      .progress
+        .progress-bar.progress-bar-striped.active(role="progressbar", aria-valuenow=progress, aria-valuemin="0", aria-valuemax="100", style="width: #{progress}%") #{progress}%
+
+template(name="migrate")
+  if migrate
+    .alert.alert-danger
+      !{migrate}

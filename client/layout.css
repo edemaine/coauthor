@@ -11,6 +11,7 @@ body, .nonmath { font-family: 'Merriweather', serif; }
 }
 
 .footer { position: fixed; bottom: 0px; right: 0px; width: 50%; margin: 1ex }
+.footer .alert { margin-bottom: 0 }
 .credits { font-style: italic; font-size: small; margin-top: 1.5ex; padding: 6px }
 
 /* For our half-link half-caret dropdown, we need to change <a> to render
