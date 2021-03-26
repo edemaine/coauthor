@@ -574,6 +574,9 @@ formats =
       text = markdownInline text
     else
       text = markdown text
+    ## Convert <ol start=...> output from Markdown to CSS-compatible reset.
+    text = text.replace /<ol start="([\d+])">/ig, (match, start) ->
+      """<ol style="counter-reset: enum #{-1 + parseInt start}">"""
     ## Wrap markdown-it-task-checkbox checkboxes in <span class="itemlab">
     text = text.replace /(<li\b[^<>]*>\s*)(<input\b[^<>]*>)\s*/ig,
       (match, li, input) ->
