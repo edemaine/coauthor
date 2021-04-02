@@ -733,15 +733,16 @@ postprocessKaTeX = (text, math, initialBold) ->
   else
     weights = [mediumWeight]
   text.replace ///
+    (['"(\[{]*)         # left puncutation to pull into math mode
     MATH(\d+)ENDMATH
-    ([,.!?:;'"\-)\]}]*) # puncutation to pull into math mode
+    ([,.!?:;'"\-)\]}]*) # right puncutation to pull into math mode
     (?! -?> ) # prevent accidentally grabbing some of --> (end of HTML comment)
     | ## Detect math within bold mode:
     <span([^<>]*)> |
     <b\b |
     <strong\b |
     <\/\s*(b|strong|span)\s*>
-  ///g, (match, id, punct, spanArgs) ->
+  ///g, (match, leftPunct, id, rightPunct, spanArgs) ->
     unless id?
       if spanArgs?
         spanArgs = /style\s*=\s*['"]font-weight:\s*(\d+)/i.exec spanArgs
@@ -777,18 +778,27 @@ postprocessKaTeX = (text, math, initialBold) ->
     ## Remove \boldsymbol{...} from TeX source, in particular for copy/paste
     if bold
       out = out.replace /(<annotation encoding="application\/x-tex">)\\boldsymbol{([^]*?)}(<\/annotation>)/i, '$1$2$3'
-    if punct and not block.display
-      ## Push punctuation inside the final base element
-      ## (<span class="katex"><span class="katex-html"><span class="base">)
-      ## which prevents it from being separated, while still allowing KaTeX
-      ## to do its automatic line breaking.
-      out = out.replace ///(</span></span></span>)?$///, (match, spans) ->
-        if spans
-          """<span class="nonmath">#{punct}</span>#{spans}"""
-        else
-          punct
-    else
-      out += punct
+    if leftPunct
+      if block.display or not out.includes '<span class="base">'
+        out = leftPunct + out
+      else
+        ## Push left punctuation inside the first base element
+        ## (<span class="katex"><span class="katex-html"><span class="base">)
+        ## which prevents it from being separated, while still allowing KaTeX
+        ## to do its automatic line breaking.
+        console.log out
+        out = out.replace '<span class="base">', (match) ->
+          """#{match}<span class="nonmath">#{leftPunct}</span>"""
+    if rightPunct
+      if block.display
+        out += rightPunct
+      else
+        ## Push right punctuation inside the final base element
+        ## (<span class="katex"><span class="katex-html"><span class="base">)
+        ## which prevents it from being separated, while still allowing KaTeX
+        ## to do its automatic line breaking.
+        out = out.replace ///(</span></span></span>)?$///, (match) ->
+          """<span class="nonmath">#{rightPunct}</span>#{match}"""
     out
 
 preprocessMarkdownTicks = (text) ->
