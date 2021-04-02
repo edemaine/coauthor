@@ -2531,6 +2531,9 @@ export WrappedSubmessage = React.memo ({message, read}) ->
         <div className="message-footer">
           <MessageAuthor message={historified} also={history?}/>
           <div className="message-response-buttons clearfix hidden-print">
+            {unless read
+              <EmojiButtons message={message} can={can}/>
+            }
             {if editing
               <div className="btn-group pull-right">
                 {if editStopping
@@ -2546,11 +2549,9 @@ export WrappedSubmessage = React.memo ({message, read}) ->
                   <ReplyButtons message={message} prefix="Another "/>
                 }
               </div>
-            else unless read
-              <>
-                <EmojiButtons message={message} can={can}/>
+            else
+              if can.reply and not read
                 <ReplyButtons message={message}/>
-              </>
             }
           </div>
         </div>
