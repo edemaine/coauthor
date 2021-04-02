@@ -934,6 +934,7 @@ export formatEmptyFile = (fileId) ->
 export formatFileDescription = (msg, file = null) ->
   file = findFile msg.file unless file?
   return formatBadFile msg.file unless file?
+  return formatEmptyFile msg.file unless file.length
   """<i class="odd-file"><a href="#{urlToFile msg}">&lt;#{s.numberFormat file.length}-byte #{file.contentType} file &ldquo;#{file.filename}&rdquo;&gt;</a></i>"""
 
 export formatVideo = (file, url) ->
@@ -944,18 +945,14 @@ export formatVideo = (file, url) ->
 
 export formatFile = (msg, file = null) ->
   file = findFile msg.file unless file?
-  return formatBadFile msg.file unless file?
-  return formatEmptyFile msg.file unless file.length
-  formatted =
-    switch fileType file
-      when 'image'
-        """<img src="#{urlToFile msg}">"""
-      when 'video'
-        formatVideo file, urlToFile msg
-      else  ## 'unknown'
-        ''
-  formatted = "<p>#{formatted}</p>" if formatted
-  formatted + formatFileDescription msg, file
+  return '' unless file? and file.length
+  switch fileType file
+    when 'image'
+      """<img src="#{urlToFile msg}">"""
+    when 'video'
+      formatVideo file, urlToFile msg
+    else  ## 'unknown'
+      ''
 
 export formatFilename = (msg, options) ->
   {orUntitled} = options if options?

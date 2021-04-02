@@ -2134,14 +2134,16 @@ export WrappedSubmessage = React.memo ({message, read}) ->
       formatBody historified.format, historified.body
   , [historified.body, historified.format, raw]
   formattedFile = useTracker ->
-    formatted = formatFile historified
-    description: formatFileDescription historified
+    file = findFile historified.file
+    return {} unless file?
+    formatted = formatFile historified, file
     file:
       if raw and formatted
         "<PRE CLASS='raw'>#{_.escape formatted}</PRE>"
       else
         formatted
-  , [historified.file, historified._id, raw]
+    description: formatFileDescription historified, file
+  , [history?, historified.file, historified._id, raw]
 
   ## Transform images
   ## Retransform when window width changes
@@ -2518,8 +2520,12 @@ export WrappedSubmessage = React.memo ({message, read}) ->
                   <MessagePDF file={message.file}/>
                 }
                 {if historified.file
-                  <p className="message-file" ref={messageFileRef}
-                  dangerouslySetInnerHTML={__html: formattedFile.file}/>
+                  <>
+                    <p className="message-file" ref={messageFileRef}
+                     dangerouslySetInnerHTML={__html: formattedFile.file}/>
+                    <p className="message-file-description"
+                     dangerouslySetInnerHTML={__html: formattedFile.description}/>
+                  </>
                 }
               </div>
             </div>
