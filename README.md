@@ -1,4 +1,4 @@
-# Coauthor #
+# Coauthor
 
 **Coauthor** is a tool for group collaboration, discussion, keeping track of
 notes/results of meetings, etc., in particular to enable
@@ -9,7 +9,10 @@ support, but it has proved useful in other fields too.
 
 ![Coauthor screenshot](http://erikdemaine.org/software/coauthor_large.png)
 
-## Features So Far ##
+To see what's changed in Coauthor recently, check out the
+[Changelog](CHANGELOG.md).
+
+## Features
 
 * **Live updates**/redraw of everything, thanks to
   [Meteor](https://www.meteor.com/).
@@ -317,7 +320,7 @@ support, but it has proved useful in other fields too.
   * Setting the default sort for a group
   * Setting message threads as allowing public and/or private messages
 
-## User Tips ##
+## User Tips
 
 * On Android, the
   [Chrome browser](https://play.google.com/store/apps/details?id=com.android.chrome&hl=en)
@@ -339,6 +342,6 @@ support, but it has proved useful in other fields too.
   (specifically, both capture the Escape key), so be sure to disable Vimium if
   you want to use Vim keybindings in the message editor.
 
-## [Installation](INSTALL.md) ##
+## [Installation](INSTALL.md)
 
 See [detailed installation instructions](INSTALL.md).
