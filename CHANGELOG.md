@@ -9,6 +9,9 @@ instead of version numbers.
 
 ## 2021-04-02
 
+* You can use GitHub Flavored Markdown checkboxes in lists (again) via
+  `* [ ]` and `* [x]`.  (The checkboxes can't be clicked,
+  but are still useful visual indicators for to-do lists.)
 * You can see and add emoji responses to messages while editing them.
   (This restores functionality removed on 2020-11-02 in an experiment for
   [#488](https://github.com/edemaine/coauthor/issues/488).)

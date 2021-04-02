@@ -40,14 +40,14 @@ To see what's changed in Coauthor recently, check out the
   (see also [this support table](https://katex.org/docs/support_table.html)).
   Macros defined with `\gdef` can be used throughout one message.
 
-  * [Github-style Markdown](https://guides.github.com/features/mastering-markdown/)
+  * [GitHub-flavored Markdown](https://guides.github.com/features/mastering-markdown/)
     (default), e.g., `*italic*`, `**bold**`, `~~strikethrough~~`,
     `# Heading`, `## Subheading`, \`code\`, `> Block quote`,
     <code>\`\`\`multiple lines of code\`\`\`</code>
     (including [language-based highlighting](https://highlightjs.org/)
      if you start with <code>\`\`\`language</code>),
     links via `[text](url)`, images via `![caption](url)`,
-    lists via `*` or `1.`,
+    lists via `*` or `1.`, to-do lists via `* [ ]` and `* [x]`,
     [tables](http://www.tablesgenerator.com/markdown_tables), etc.
     Also supports all LaTeX commands listed below that start with a letter
     (notably, not accents) and math mode, and all HTML commands listed below.
@@ -127,7 +127,7 @@ To see what's changed in Coauthor recently, check out the
     paste mode via Ctrl-Shift-H.
   * @mentioning has automatic completion of all users in group. You can type
     any substring of the real name or username (but skipping spaces, like
-    Github), and select by pressing enter, or ignore by pressing space.
+    GitHub), and select by pressing enter, or ignore by pressing space.
 
 * Messages are organized by **groups** (intended to correspond to groups of
   people who meet), so it's easy to share material with everyone in the group.
@@ -173,7 +173,7 @@ To see what's changed in Coauthor recently, check out the
   messages with the same tag by clicking on a tag.
 
 * **Emoji** for super-short responses that show appreciation but don't cause
-  email notifications or take up much space.  (Like Github and Slack.)
+  email notifications or take up much space.  (Like GitHub and Slack.)
   Hover over an emoji to see a list of people who added the emoji; click to
   toggle your own status.  Emoji are positive (purple) or negative (red).
   Positive emoji on root messages are counted on the group page, enabling
