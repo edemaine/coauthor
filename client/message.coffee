@@ -1904,16 +1904,6 @@ export WrappedSubmessage = React.memo ({message, read}) ->
   messageBodyRef = useRef()
   addTagRef = useRef()
 
-  ## Support dragging rendered attachment like dragging message itself
-  messageFileRef = useRef()
-  useEffect ->
-    return if folded or history? or not messageFileRef.current?
-    listener = messageOnDragStart message
-    elts = messageFileRef.current.querySelectorAll 'img, video, a, canvas'
-    elt.addEventListener 'dragstart', listener for elt in elts
-    -> elt.removeEventListener 'dragstart', listener for elt in elts
-  , [folded, history?, message]
-
   if read  # should not change
     editing = raw = folded = false
     history = historyAll = null
@@ -2143,7 +2133,17 @@ export WrappedSubmessage = React.memo ({message, read}) ->
       else
         formatted
     description: formatFileDescription historified, file
-  , [history?, historified.file, historified._id, raw]
+  , [historified.file, historified._id, historified.diffId, raw]
+
+  ## Support dragging rendered attachment like dragging message itself
+  messageFileRef = useRef()
+  useEffect ->
+    return if folded or history? or not messageFileRef.current?
+    listener = messageOnDragStart message
+    elts = messageFileRef.current.querySelectorAll 'img, video, a, canvas'
+    elt.addEventListener 'dragstart', listener for elt in elts
+    -> elt.removeEventListener 'dragstart', listener for elt in elts
+  , [folded, history?, message]
 
   ## Transform images
   ## Retransform when window width changes
