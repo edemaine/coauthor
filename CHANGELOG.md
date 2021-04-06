@@ -7,6 +7,13 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2021-04-06
+
+* Improved visual styling of GitHub Flavored Markdown checkboxes in lists,
+  in particular rendering both a number and a checkbox for ordered lists,
+  and fix multiparagraph checkbox items.
+  [[#545](https://github.com/edemaine/coauthor/issues/545)]
+
 ## 2021-04-02
 
 * You can use GitHub Flavored Markdown checkboxes in lists (again) via
