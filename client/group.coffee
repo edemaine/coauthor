@@ -403,15 +403,14 @@ memberLinks = (group, sortedMembers) ->
   count = 0
   for member in sortedMembers
     partial = member.rolesPartial?[escapedGroup]
+    subtitle = null
     if partial?
       msgs = Messages.find _id: $in: (id for id of partial)
       .fetch()
       subtitle = "Access to: " + (
         for msg in msgs
           "“#{titleOrUntitled msg}”"
-      ).join '; '
-    else
-      subtitle = null
+      ).join '; ' if msgs.length
     <React.Fragment key={member.username}>
       {', ' if count++}
       <UserLink user={member} group={group} subtitle={subtitle}/>
