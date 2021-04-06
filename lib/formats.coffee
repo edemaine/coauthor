@@ -577,14 +577,20 @@ formats =
     ## Convert <ol start=...> output from Markdown to CSS-compatible reset.
     text = text.replace /<ol start="([\d+])">/ig, (match, start) ->
       """<ol style="counter-reset: enum #{-1 + parseInt start}">"""
-    ## Wrap markdown-it-task-checkbox checkboxes in <span class="itemlab">
-    text = text.replace /(<li\b[^<>]*>\s*)(<input\b[^<>]*>)\s*/ig,
-      (match, li, input) ->
+    ## Wrap markdown-it-task-checkbox checkboxes in <span class="itemlab">,
+    ## and remove the <label> applied to the item's first paragraph.
+    text = text.replace ///
+      (<li\b[^<>]*>\s*)
+      (<p>\s*)?
+      (<input\b[^<>]*>) \s*
+      (<label[^<>]*>\s*(.*?)</label>)?
+    ///ig,
+      (match, li, p, input, label, labelInner) ->
         if /type\s*=\s*"checkbox"/.test input
-          "#{li}<span class=\"itemlab\">#{input}</span>"
+          "#{li}<span class=\"itemlab\">#{input}</span>#{p ? ''}#{labelInner ? ''}"
         else
           match
-    .replace /(<label\b[^<>]*>)\s*/ig, '$1'
+    #.replace /(<label\b[^<>]*>)\s*/ig, '$1'
     [text, math]
   latex: (text, title) ->
     latex2html text
