@@ -1,4 +1,5 @@
-body, .nonmath { font-family: 'Merriweather', serif; font-size: 14px; }
+body, .nonmath { font-family: 'Merriweather', serif; }
+.nonmath { font-size: 0.82644628099em; }
 .slant { font-family: 'SlantMerriweather', serif; }
 
 .navbar-flex .searchForm { width: 100%; }
