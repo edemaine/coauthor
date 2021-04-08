@@ -729,7 +729,7 @@ preprocessKaTeX = (text) ->
 
 putMathBack = (tex, math) ->
   ## Restore math
-  tex.replace /MATH(\d+)ENDMATH/g, (match, id) -> math[id].all
+  tex.replace /MATH(\d+)ENDMATH/g, (match, id) -> _.escape math[id].all
 
 postprocessKaTeX = (text, math, initialBold) ->
   return text unless math.length
