@@ -578,7 +578,8 @@ formats =
     text = text.replace /<ol start="([\d+])">/ig, (match, start) ->
       """<ol style="counter-reset: enum #{-1 + parseInt start}">"""
     ## Wrap markdown-it-task-checkbox checkboxes in <span class="itemlab">,
-    ## and remove the <label> applied to the item's first paragraph.
+    ## remove the <label> applied to the item's first paragraph, and
+    ## (until checking is supported) replace checkbox with Unicode symbol.
     text = text.replace ///
       (<li\b[^<>]*>\s*)
       (<p>\s*)?
@@ -587,6 +588,11 @@ formats =
     ///ig,
       (match, li, p, input, label, labelInner) ->
         if /type\s*=\s*"checkbox"/.test input
+          if /checked/.test input
+            #input = '<span class="fake-checkbox">\u{1f5f9}</span>'
+            input = '<span class="fake-checkbox">\u2611</span>'
+          else
+            input = '<span class="fake-checkbox">\u2610</span>'
           "#{li}<span class=\"itemlab\">#{input}</span>#{p ? ''}#{labelInner ? ''}"
         else
           match

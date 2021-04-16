@@ -7,6 +7,12 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2021-04-16
+
+* Further improved visual styling of GitHub Flavored Markdown checkboxes in
+  lists, now using Unicode symbols instead of actual disabled checkboxes.
+  It's now much easier to distinguish the checked vs. unchecked state.
+
 ## 2021-04-06
 
 * Improved visual styling of GitHub Flavored Markdown checkboxes in lists,
