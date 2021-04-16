@@ -1169,11 +1169,15 @@ if Meteor.isServer
   ## Remove all editors on server start, so that we can restart listeners.
   ## Update finished field accordingly, but don't prevent finished bootstrap.
   needBootstrap = not MessagesDiff.findOne finished: $exists: true
-  Messages.find().forEach (message) ->
-    if message.editing?.length
-      finishLastDiff message._id, message.editing unless needBootstrap
-      Messages.update message._id,
-        $unset: editing: ''
+  Messages.find
+    editing:
+      $exists: true
+      $ne: []
+  .forEach (message) ->
+    return unless message.editing?.length
+    finishLastDiff message._id, message.editing unless needBootstrap
+    Messages.update message._id,
+      $unset: editing: ''
 
   #onExit ->
   #  console.log 'EXITING'

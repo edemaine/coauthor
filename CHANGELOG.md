@@ -12,6 +12,7 @@ instead of version numbers.
 * Further improved visual styling of GitHub Flavored Markdown checkboxes in
   lists, now using Unicode symbols instead of actual disabled checkboxes.
   It's now much easier to distinguish the checked vs. unchecked state.
+* Further speed up Coauthor server restart.
 
 ## 2021-04-06
 
