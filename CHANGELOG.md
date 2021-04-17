@@ -7,6 +7,11 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2021-04-17
+
+* Syntax highlighting should fail less often now, by telling `highlight.js`
+  to keep highlighting even if it encounters what it considers a syntax error.
+
 ## 2021-04-16
 
 * Further improved visual styling of GitHub Flavored Markdown checkboxes in
