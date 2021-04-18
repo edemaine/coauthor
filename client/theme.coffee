@@ -18,8 +18,8 @@ lastTheme = null  ## initial value from link in layout.jade
 Tracker.autorun updateTheme = ->
   newTheme = resolveTheme themeGlobal()
   if newTheme != lastTheme
-    $('body').removeClass lastTheme
-    $('body').addClass newTheme
+    document.documentElement.classList.remove lastTheme
+    document.documentElement.classList.add newTheme
     themeLink = $('#themeLink')
     if themeLink.length
       themeLink.attr 'href', Meteor.absoluteUrl "bootstrap/#{newTheme}.min.css"
