@@ -34,7 +34,7 @@ escapeForQuotedHTML = (s) ->
 replaceMathBlocks = (text, replacer) ->
   #console.log text
   blocks = []
-  re = /[{}]|\$\$?|\\(begin|end)\s*{(equation|eqnarray|align)\*?}|(\\par(?![a-zA-Z])|\n[ \f\r\t\v]*\n\s*)|\\./g
+  re = /[{}]|\$\$?|\\(begin|end)\s*{(equation|eqnarray|align|alignat|gather|CD)\*?}|(\\par(?![a-zA-Z])|\n[ \f\r\t\v]*\n\s*)|\\./g
   block = null
   startBlock = (b) ->
     block = b
@@ -43,9 +43,11 @@ replaceMathBlocks = (text, replacer) ->
   endBlock = (skipThisToken) ->
     block.content = text[block.contentStart...match.index]
     delete block.contentStart  ## no longer needed
-    ## Simulate \begin{align}...\end{align} with \begin{aligned}...\end{aligned}
-    if block.environment and block.environment in ['eqnarray', 'align']
-      block.content = "\\begin{aligned}#{block.content}\\end{aligned}"
+    ## Pass enclosing environment to KaTeX
+    if block.environment
+      ## Simulate \begin{eqnarray} with \begin{align} (close enough for now)
+      block.environment = block.environment.replace /eqnarray/, 'align'
+      block.content = "\\begin{#{block.environment}}#{block.content}\\end{#{block.environment}}"
     block.end = match.index
     block.end += match[0].length unless skipThisToken
     block.all = text[block.start...block.end]

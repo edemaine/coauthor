@@ -7,6 +7,12 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2021-04-19
+
+* Add support for LaTeX amsmath environments `\begin{alignat}`,
+  `\begin{gather}`, and `\begin{CD}` (thanks to KaTeX 0.13).
+  [[#531](https://github.com/edemaine/coauthor/issues/531)]
+
 ## 2021-04-18
 
 * Custom scrollbars should look nicer especially in dark mode.

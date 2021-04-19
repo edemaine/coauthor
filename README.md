@@ -95,7 +95,7 @@ To see what's changed in Coauthor recently, check out the
     `enumerate` (including [enumerate.sty's optional argument](http://ctan.mirrors.hoobly.com/macros/latex/required/tools/enumerate.pdf))
     `quote`, `center`,
     `tabular` (basic but including `\multicolumn` and `\multirow`),
-    `equation`, `eqnarray`, `align`,
+    `equation`, `eqnarray`, `align`, `alignat`, `gather`, `CD`,
     `problem`, `question`, `idea`, `theorem`, `conjecture`, `lemma`,
     `corollary`, `fact`, `observation`, `proposition`, `claim`, `proof`.
     Also supports all HTML commands listed below.
