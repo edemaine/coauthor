@@ -7,6 +7,11 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2021-04-18
+
+* Custom scrollbars should look nicer especially in dark mode.
+  [[#548](https://github.com/edemaine/coauthor/issues/548)]
+
 ## 2021-04-17
 
 * Syntax highlighting should fail less often now, by telling `highlight.js`
