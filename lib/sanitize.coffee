@@ -91,13 +91,15 @@ sanitizeHtml.defaults.allowedTags.push 'math', 'annotation', 'semantics',
   'mmultiscripts', 'mn', 'mo', 'mover', 'mpadded', 'mphantom', 'mroot',
   'mrow', 'mspace', 'msub', 'msup', 'msubsup', 'msqrt', 'mstyle', 'mtable',
   'mtd', 'mtext', 'mtr', 'munder', 'munderover'
+sanitizeHtml.defaults.allowedAttributes.math = ['xmlns', 'display']
 sanitizeHtml.defaults.allowedAttributes.annotation = ['encoding']
 sanitizeHtml.defaults.allowedAttributes.menclose = ['notation']
 sanitizeHtml.defaults.allowedAttributes.mfrac = ['linethickness']
 sanitizeHtml.defaults.allowedAttributes.mi = ['mathvariant']
 sanitizeHtml.defaults.allowedAttributes.mn = ['mathvariant']
 sanitizeHtml.defaults.allowedAttributes.mo = ['fence', 'mathvariant', 'separator', 'stretchy']
-sanitizeHtml.defaults.allowedAttributes.mstyle = ['mathcolor']
+sanitizeHtml.defaults.allowedAttributes.mstyle = ['displaystyle', 'mathcolor', 'scriptlevel']
+sanitizeHtml.defaults.allowedAttributes.mtable = ['columnalign', 'rowspacing', 'columnspacing']
 sanitizeHtml.defaults.allowedTags.push 'nobr'
 
 ## Whitelist for class argument, to avoid access to e.g. classes with
@@ -124,7 +126,7 @@ allowedClasses = [
   'mbin', 'mclose', 'minner', 'mopen', 'mrel', 'mord', 'mop', 'mpunct', 'mtight'
   # Above exist but not actually styled so not caught by the following:
   # python -c 'import re; print(sorted(set(x.lstrip(".") for x in re.findall(r"\.[-a-zA-Z_][-\w]*", open("node_modules/katex/dist/katex.css").read()))))'
-  'accent', 'accent-body', 'accent-full', 'amsrm', 'arraycolsep', 'base', 'boldsymbol', 'boxpad', 'brace-center', 'brace-left', 'brace-right', 'cancel-lap', 'cancel-pad', 'clap', 'col-align-c', 'col-align-l', 'col-align-r', 'delim-size1', 'delim-size4', 'delimcenter', 'delimsizing', 'fbox', 'fcolorbox', 'fix', 'fleqn', 'fontsize-ensurer', 'frac-line', 'halfarrow-left', 'halfarrow-right', 'hbox', 'hdashline', 'hide-tail', 'hline', 'inner', 'katex', 'katex-display', 'katex-html', 'katex-mathml', 'katex-version', 'large-op', 'leqno', 'llap', 'mainrm', 'mathbb', 'mathbf', 'mathboldsf', 'mathcal', 'mathfrak', 'mathit', 'mathitsf', 'mathnormal', 'mathrm', 'mathscr', 'mathsf', 'mathtt', 'mfrac', 'mover', 'mspace', 'msupsub', 'mtable', 'mult', 'munder', 'newline', 'nulldelimiter', 'op-limits', 'op-symbol', 'overlay', 'overline', 'overline-line', 'pstrut', 'reset-size1', 'reset-size10', 'reset-size11', 'reset-size2', 'reset-size3', 'reset-size4', 'reset-size5', 'reset-size6', 'reset-size7', 'reset-size8', 'reset-size9', 'rlap', 'root', 'rule', 'size1', 'size10', 'size11', 'size2', 'size3', 'size4', 'size5', 'size6', 'size7', 'size8', 'size9', 'sizing', 'small-op', 'sout', 'sqrt', 'stretchy', 'strut', 'svg-align', 'tag', 'textbb', 'textbf', 'textboldsf', 'textfrak', 'textit', 'textitsf', 'textrm', 'textscr', 'textsf', 'texttt', 'thinbox', 'ttf', 'underline', 'underline-line', 'vbox', 'vertical-separator', 'vlist', 'vlist-r', 'vlist-s', 'vlist-t', 'vlist-t2', 'woff', 'woff2', 'x-arrow', 'x-arrow-pad'
+  'accent', 'accent-body', 'accent-full', 'amsrm', 'angl', 'anglpad', 'arraycolsep', 'base', 'boldsymbol', 'boxpad', 'brace-center', 'brace-left', 'brace-right', 'cancel-lap', 'cancel-pad', 'cd-arrow-pad', 'cd-label-left', 'cd-label-right', 'cd-vert-arrow', 'clap', 'col-align-c', 'col-align-l', 'col-align-r', 'com', 'delim-size1', 'delim-size4', 'delimcenter', 'delimsizing', 'eqn-num', 'fbox', 'fcolorbox', 'fix', 'fleqn', 'fontsize-ensurer', 'frac-line', 'halfarrow-left', 'halfarrow-right', 'hbox', 'hdashline', 'hide-tail', 'hline', 'inner', 'katex', 'katex-display', 'katex-html', 'katex-mathml', 'katex-version', 'large-op', 'leqno', 'llap', 'mainrm', 'mathbb', 'mathbf', 'mathboldsf', 'mathcal', 'mathfrak', 'mathit', 'mathitsf', 'mathnormal', 'mathrm', 'mathscr', 'mathsf', 'mathtt', 'mfrac', 'mml-eqn-num', 'mover', 'mspace', 'msupsub', 'mtable', 'mtr-glue', 'mult', 'munder', 'newline', 'nulldelimiter', 'op-limits', 'op-symbol', 'overlay', 'overline', 'overline-line', 'pstrut', 'reset-size1', 'reset-size10', 'reset-size11', 'reset-size2', 'reset-size3', 'reset-size4', 'reset-size5', 'reset-size6', 'reset-size7', 'reset-size8', 'reset-size9', 'rlap', 'root', 'rule', 'size1', 'size10', 'size11', 'size2', 'size3', 'size4', 'size5', 'size6', 'size7', 'size8', 'size9', 'sizing', 'small-op', 'sout', 'sqrt', 'stretchy', 'strut', 'svg-align', 'tag', 'textbb', 'textbf', 'textboldsf', 'textfrak', 'textit', 'textitsf', 'textrm', 'textscr', 'textsf', 'texttt', 'thinbox', 'ttf', 'underline', 'underline-line', 'vbox', 'vertical-separator', 'vlist', 'vlist-r', 'vlist-s', 'vlist-t', 'vlist-t2', 'woff', 'woff2', 'x-arrow', 'x-arrow-pad'
 ]
 allowedClassMap = {}
 for className in allowedClasses

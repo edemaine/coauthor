@@ -9,6 +9,9 @@ instead of version numbers.
 
 ## 2021-04-21
 
+* Equation numbering with `\begin{align/alignat/equation/eqnarray/gather}`
+  environments.  Use `\begin{align*}` etc. to prevent equation numbers.
+  (Further incorporating KaTeX 0.13.)
 * Fix horizontal scrollbar when editing wide formulas (say)
   in side-by-side mode.
 * When starting a New Thread, automatically focus on the message title
