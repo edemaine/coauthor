@@ -34,7 +34,7 @@ To see what's changed in Coauthor recently, check out the
 
 * Three **formats** for writing messages (and easy to add additional formats).
   All formats support LaTeX math (via `$...$`, `$$...$$`, `\(...\)`, `\[...\]`,
-  or `\begin{align/equation/eqnarray}...\end{align/equation/eqnarray}`)
+  or `\begin{align/alignat/equation/eqnarray/gather/CD}...\end{align/alignat/equation/eqnarray/gather/CD}`)
   via [KaTeX](https://katex.org/), so math mode supports
   [this list of supported functions](https://katex.org/docs/supported.html)
   (see also [this support table](https://katex.org/docs/support_table.html)).
