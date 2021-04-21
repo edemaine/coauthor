@@ -471,8 +471,7 @@ export scrollToMessage = (id) ->
       ## Focus on title edit box when scrolling to message being edited.
       ## We'd like to use `$(dom).find('input.title')`
       ## but want to exclude children.
-      heading = dom.firstChild
-      $(heading).find('input.title').focus() if heading?
+      dom.firstChild?.querySelector('input.title')?.focus()
   else
     scrollToLater = id
     ## Unfold ancestors of clicked message so that it becomes visible.
@@ -2022,6 +2021,14 @@ export WrappedSubmessage = React.memo ({message, read}) ->
         delete id2dom[message._id]
         checkImage message._id
     , [message._id]
+
+    ## Give focus to Title input if this is the only message (e.g., we just
+    ## started a new thread) and we start editing.
+    useEffect ->
+      if here and editing and not message.children?.length
+        ref.current?.firstChild?.querySelector('input.title')?.focus()
+      undefined
+    , [editing]
 
     ## Image reference counting:
     ## List images referenced by this message.
