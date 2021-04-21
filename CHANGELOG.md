@@ -7,6 +7,13 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2021-04-21
+
+* Fix horizontal scrollbar when editing wide formulas (say)
+  in side-by-side mode.
+* When starting a New Thread, automatically focus on the message title
+  for more immediate typing.
+
 ## 2021-04-19
 
 * Add support for LaTeX amsmath environments `\begin{alignat}`,
