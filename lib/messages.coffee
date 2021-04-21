@@ -1154,7 +1154,7 @@ _messageEditStop = (id, username = Meteor.user()?.username) ->
   return unless Meteor.isServer
   Messages.update id,
     $pull: editing: username
-  unless Messages.findOne(id).editing?.length  ## removed last editor
+  unless findMessage(id)?.editing?.length  ## removed last editor
     Meteor.clearTimeout stopTimers[id]
     editor2messageUpdate id, [username]
     ShareJS.model.delete id
@@ -1195,6 +1195,7 @@ if Meteor.isServer
     doc = Meteor.wrapAsync(ShareJS.model.getSnapshot) id
     #console.log id, 'changed to', doc.snapshot
     msg = findMessage id
+    return unless msg?
     unless msg.body == doc.snapshot
       _messageUpdate id,
         body: doc.snapshot
@@ -1212,7 +1213,9 @@ if Meteor.isServer
     Meteor.clearTimeout stopTimers[id]
     stopTimers[id] = Meteor.setTimeout ->
       ## This code is like an extreme form of `messageEditStop` below:
-      editing = Messages.findOne(id).editing ? []
+      msg = findMessage id
+      return unless msg?  # maybe superdeleted
+      editing = msg.editing ? []
       editor2messageUpdate id, editing
       Messages.update id,
         $unset: editing: ''
