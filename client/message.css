@@ -232,7 +232,6 @@ details > summary {
 }
 details:not([open]) > summary { margin-bottom: -10px }
 details[open] > summary { margin-bottom: 10px }
-details > summary::-webkit-details-marker { display: none; } /* Chrome */
 details > summary::before {
   margin-right: 0.5em; /* like .space */
   /* From .fas */
