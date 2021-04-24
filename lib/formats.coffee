@@ -592,9 +592,9 @@ formats =
         if /type\s*=\s*"checkbox"/.test input
           if /checked/.test input
             #input = '<span class="fake-checkbox">\u{1f5f9}</span>'
-            input = '<span class="fake-checkbox">\u2611</span>'
+            input = '<span class="fake-checkbox">\u2713</span>'
           else
-            input = '<span class="fake-checkbox">\u2610</span>'
+            input = '<span class="fake-checkbox"></span>'
           "#{li}<span class=\"itemlab\">#{input}</span>#{p ? ''}#{labelInner ? ''}"
         else
           match
