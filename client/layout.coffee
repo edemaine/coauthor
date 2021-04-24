@@ -79,7 +79,7 @@ export Credits = React.memo ->
     <span className="space"/>
     <span className="btn-group btn-group-sm pull-right">
       <a className="btn btn-default" href="https://github.com/edemaine/coauthor/#coauthor">Documentation</a>
-      <a className="btn btn-default" href="https://github.com/edemaine/coauthor/blob/master/CHANGELOG.md">Changelog</a>
+      <a className="btn btn-default" href="https://github.com/edemaine/coauthor/blob/main/CHANGELOG.md">Changelog</a>
       <a className="btn btn-default" href="https://github.com/edemaine/coauthor/issues/">Suggestions/Issues</a>
       <a className="btn btn-default" href="https://github.com/edemaine/coauthor/">Source Code</a>
     </span>

@@ -3,7 +3,7 @@
 This file describes significant changes to Coauthor to an audience of
 both everyday users and administrators running their own Coauthor server.
 To see every change with descriptions aimed at developers, see
-[the Git log](https://github.com/edemaine/coauthor/commits/master).
+[the Git log](https://github.com/edemaine/coauthor/commits/main).
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
@@ -11,6 +11,8 @@ instead of version numbers.
 
 * Use Font Awesome icons for GitHub Flavored Markdown checkbox icons,
   fixing their rendering on Android.
+* Rename main branch from `master` to `main`.
+  The link to this Changelog has changed (but the old link redirects).
 
 ## 2021-04-21
 
@@ -190,5 +192,5 @@ instead of version numbers.
 
 ## Older Changes
 
-Refer to [the Git log](https://github.com/edemaine/coauthor/commits/master)
+Refer to [the Git log](https://github.com/edemaine/coauthor/commits/main)
 for changes older than listed in this document.
