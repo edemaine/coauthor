@@ -5,6 +5,7 @@ env:
 extends:
   - plugin:coffee/eslint-recommended
   - plugin:coffee/import
+  - plugin:import/recommended
   - plugin:meteor/recommended
   - plugin:coffee/react-recommended
   - plugin:coffee/disable-incompatible
