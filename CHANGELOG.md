@@ -7,6 +7,11 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2021-04-24
+
+* Use Font Awesome icons for GitHub Flavored Markdown checkbox icons,
+  fixing their rendering on Android.
+
 ## 2021-04-21
 
 * Equation numbering with `\begin{align/alignat/equation/eqnarray/gather}`
