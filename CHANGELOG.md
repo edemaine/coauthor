@@ -9,6 +9,7 @@ instead of version numbers.
 
 ## 2021-04-24
 
+* Support empty `{align}` environments again (thanks to KaTeX 0.13.3).
 * Use Font Awesome icons for GitHub Flavored Markdown checkbox icons,
   fixing their rendering on Android.
 * Rename main branch from `master` to `main`.
