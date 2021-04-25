@@ -1,5 +1,3 @@
-import {Random} from 'meteor/random'
-
 import {untitledMessage} from './messages'
 import {parseSearch} from './search'
 
