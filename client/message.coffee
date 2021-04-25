@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react'
+import ReactDOM from 'react-dom'
 import Dropdown from 'react-bootstrap/Dropdown'
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger'
 import Tooltip from 'react-bootstrap/Tooltip'
@@ -2049,13 +2050,17 @@ export WrappedSubmessage = React.memo ({message, read}) ->
           video source[src^="#{fileUrlPrefix}"],
           video source[src^="#{fileAbsoluteUrlPrefix}"],
           video source[src^="#{internalFileUrlPrefix}"],
-          video source[src^="#{internalFileAbsoluteUrlPrefix}"]
+          video source[src^="#{internalFileAbsoluteUrlPrefix}"],
+          div[data-messagepdf]
         """
-          src = elt.getAttribute 'src'
-          if 0 <= src.indexOf 'gridfs'
-            messageImagesInternal[url2internalFile src] = true
+          if elt.dataset.messagepdf
+            messageImagesInternal[elt.dataset.messagepdf] = true
           else
-            messageImages[url2file src] = true
+            src = elt.getAttribute 'src'
+            if 0 <= src.indexOf 'gridfs'
+              messageImagesInternal[url2internalFile src] = true
+            else
+              messageImages[url2file src] = true
         setImageRefs (_.sortBy _.keys messageImages).join ','
         setImageInternalRefs (_.sortBy _.keys messageImagesInternal).join ','
     # too many dependencies to list
@@ -2173,6 +2178,16 @@ export WrappedSubmessage = React.memo ({message, read}) ->
         imageTransform img, messageRotate historified
     -> tracker.stop() for tracker in trackers
   # too many dependencies to list
+
+  ## Render embedded PDF files
+  useEffect ->
+    elts =
+      for elt in messageBodyRef.current.querySelectorAll 'div[data-messagepdf]'
+        ReactDOM.render <MessagePDF file={elt.dataset.messagepdf}/>, elt
+        elt
+    ->
+      ReactDOM.unmountComponentAtNode elt for elt in elts
+  , [formattedBody]
 
   onFold = (e) ->
     e.preventDefault()

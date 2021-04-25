@@ -678,16 +678,10 @@ postprocessCoauthorLinks = (text) ->
         when 'video'
           formatVideo file, url
         when 'pdf'
-          template = Template?.instance?()
-          if template?
-            id = Random.id()
-            Meteor.defer =>
-              parent = template.find """div[data-id="#{id}"]"""
-              return unless parent?
-              Blaze.renderWithData Template.messagePDF, fileId, parent
-            """<div data-id="#{id}"></div>"""
-          else  ## e.g. server has no templates
-            match
+          if Meteor.isServer
+            """<div>[PDF file &ldquo;<a href="#{url}">#{file.filename}</a>&rdquo;]</div>"""
+          else
+            """<div data-messagepdf="#{fileId}"></div>"""
         else
           match
 

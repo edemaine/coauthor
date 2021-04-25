@@ -7,6 +7,11 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2021-04-25
+
+* Fix embedding of PDF Coauthor files within a message.
+  (This has been broken since 2021 because of the React port.)
+
 ## 2021-04-24
 
 * Support empty `{align}` environments again (thanks to KaTeX 0.13.3).
