@@ -794,7 +794,6 @@ postprocessKaTeX = (text, math, initialBold) ->
         ## (<span class="katex"><span class="katex-html"><span class="base">)
         ## which prevents it from being separated, while still allowing KaTeX
         ## to do its automatic line breaking.
-        console.log out
         out = out.replace '<span class="base">', (match) ->
           """#{match}<span class="nonmath">#{leftPunct}</span>"""
     if rightPunct
