@@ -7,6 +7,11 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2021-04-26
+
+* Display equations now get their own horizontal scrollbars, for easier
+  scrolling within large messages.
+
 ## 2021-04-25
 
 * Fix embedding of PDF Coauthor files within a message.
