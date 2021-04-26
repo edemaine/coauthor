@@ -2181,6 +2181,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
 
   ## Render embedded PDF files
   useEffect ->
+    return unless messageBodyRef.current?
     elts =
       for elt in messageBodyRef.current.querySelectorAll 'div[data-messagepdf]'
         ReactDOM.render <MessagePDF file={elt.dataset.messagepdf}/>, elt
