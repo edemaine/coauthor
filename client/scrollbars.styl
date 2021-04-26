@@ -9,6 +9,7 @@
   --scrollbar-button: #aaa
   --scrollbar-button-hover: #888
   --scrollbar-button-active: #666
+  --scrollbar-button-triangle: black
 
 .dark
   --scrollbar-bar: #777
@@ -46,7 +47,7 @@
     &:active
       --scrollbar-bar: var(--scrollbar-bar-active)
   &::-webkit-scrollbar-button:single-button
-    background-color: var(--scrollbar-bar)
+    background-color: var(--scrollbar-button)
     &:hover
       --scrollbar-button: var(--scrollbar-button-hover)
     &:active
@@ -55,19 +56,23 @@
       background:
         linear-gradient(130deg, var(--scrollbar-button) 40%, rgba(0, 0, 0, 0) 41%),
         linear-gradient(230deg, var(--scrollbar-button) 40%, rgba(0, 0, 0, 0) 41%),
-        linear-gradient(0deg, var(--scrollbar-button) 40%, rgba(0, 0, 0, 0) 31%)
+        linear-gradient(0deg, var(--scrollbar-button) 40%, rgba(0, 0, 0, 0) 31%),
+        var(--scrollbar-button-triangle)
     &:vertical:end:increment
       background:
         linear-gradient(310deg, var(--scrollbar-button) 40%, rgba(0, 0, 0, 0) 41%),
         linear-gradient(50deg, var(--scrollbar-button) 40%, rgba(0, 0, 0, 0) 41%),
-        linear-gradient(180deg, var(--scrollbar-button) 40%, rgba(0, 0, 0, 0) 31%)
+        linear-gradient(180deg, var(--scrollbar-button) 40%, rgba(0, 0, 0, 0) 31%),
+        var(--scrollbar-button-triangle)
     &:horizontal:end:increment
       background:
         linear-gradient(210deg, var(--scrollbar-button) 40%, rgba(0, 0, 0, 0) 41%),
         linear-gradient(330deg, var(--scrollbar-button) 40%, rgba(0, 0, 0, 0) 41%),
-        linear-gradient(90deg, var(--scrollbar-button) 30%, rgba(0, 0, 0, 0) 31%)
+        linear-gradient(90deg, var(--scrollbar-button) 30%, rgba(0, 0, 0, 0) 31%),
+        var(--scrollbar-button-triangle)
     &:horizontal:start:decrement
       background:
         linear-gradient(30deg, var(--scrollbar-button) 40%, rgba(0, 0, 0, 0) 41%),
         linear-gradient(150deg, var(--scrollbar-button) 40%, rgba(0, 0, 0, 0) 41%),
-        linear-gradient(270deg, var(--scrollbar-button) 30%, rgba(0, 0, 0, 0) 31%)
+        linear-gradient(270deg, var(--scrollbar-button) 30%, rgba(0, 0, 0, 0) 31%),
+        var(--scrollbar-button-triangle)
