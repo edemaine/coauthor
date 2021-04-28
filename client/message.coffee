@@ -1646,7 +1646,9 @@ export WrappedTableOfContents = React.memo ({message, parent, index}) ->
         }
         <span dangerouslySetInnerHTML={__html: formattedTitle}/>
         {' '}
-        [{creator}]
+        <span className="creator">
+          [{creator}]
+        </span>
       </a>
     </>
   renderedChildren = useMemo ->
