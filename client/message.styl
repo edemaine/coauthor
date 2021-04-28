@@ -133,6 +133,64 @@ nav.contents
   padding-bottom: 5px
   height: 100%  // match parent height set in JavaScript
   overflow-y: auto
+  font-size: small
+
+  li > a
+    padding: 4px 5px 4px 0px  // no left padding to match vertical lines
+    overflow-wrap: break-word
+
+    // Push subtrees closer to parent
+    + .subcontents
+      margin-top: -2px
+
+    /*
+    &.deleted, &.unpublished, &.minimized
+      font-size: x-small
+      padding-block: 2px
+    */
+
+    /.dark &
+      color: #eee
+    &.deleted
+      color: #a94442
+      /.dark &
+        color: #d9534f
+    &.unpublished
+      color: #8a6d3b
+      /.dark &
+        color: #f0ad4e
+    &.private
+      color: #5bc0de
+    &.minimized
+      color: #449d44
+      /.dark &
+        color: #5cb85c
+
+  li.folded
+    a
+      font-size: x-small
+      /*
+      + .subcontents
+        margin-top: -1px
+      */
+    li > a
+      opacity: 0.7
+
+  // Purples based on #563d7c from Bootstrap docs
+  li.active > a, .contents > li > a  // always highlight root
+    background: #d1c5e2
+    /.dark &
+      background: #3c245e
+
+.subcontents
+  border-left: solid 2px #8465b3
+  border-bottom-left-radius: 5px
+  padding-left: 5px
+
+  /*
+  > li:last-child > a
+    padding-bottom: 0px
+  */
 
 // Message body
 
