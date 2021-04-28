@@ -7,6 +7,13 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2021-04-28
+
+* Improve table of contents layout
+  [[#486](https://github.com/edemaine/coauthor/issues/486)]
+  and highlighting of top message
+  [[#552](https://github.com/edemaine/coauthor/issues/552)]
+
 ## 2021-04-26
 
 * Display equations now get their own horizontal scrollbars, for easier

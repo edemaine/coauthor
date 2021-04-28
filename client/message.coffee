@@ -462,12 +462,10 @@ messageOnDragStart = (message) -> (e) ->
 export naturallyFolded = (message) -> message.minimized or message.deleted
 
 export scrollToMessage = (id) ->
-  if id[0] == '#'
-    id = id[1..]
-  if id of id2dom
-    dom = id2dom[id]
+  id = id[1..] if id[0] == '#'
+  if (dom = id2dom[id])?
     $('html, body').animate
-      scrollTop: dom.offsetTop
+      scrollTop: Math.max 0, $(dom).offset().top - 15
     , 200, 'swing', ->
       ## Focus on title edit box when scrolling to message being edited.
       ## We'd like to use `$(dom).find('input.title')`
@@ -1666,14 +1664,7 @@ export WrappedTableOfContents = React.memo ({message, parent, index}) ->
       return unless ref.current?
       $('body').scrollspy
         target: 'nav.contents'
-				###
-      nav = $(ref.current)
-      nav.affix
-        offset: top: $('#top').outerHeight true
-      affixResize()
-      nav.on 'affixed.bs.affix', affixResize
-      nav.on 'affixed-top.bs.affix', affixResize
-			###
+        offset: 100
       undefined
     , []
 
