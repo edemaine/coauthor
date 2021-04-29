@@ -1653,12 +1653,25 @@ export WrappedTableOfContents = React.memo ({message, parent, index}) ->
     </>
   renderedChildren = useMemo ->
     return unless children.length
-    <ul className="nav subcontents">
-      {for [child, index] in children
-        <TableOfContents key={child._id} message={child} parent={message._id} index={index}/>
-      }
-    </ul>
+    for [child, index] in children
+      <TableOfContents key={child._id} message={child} parent={message._id} index={index}/>
   , [children]
+  [hover, setHover] = useState false
+  [tocFolded, setTocFolded] = useState Boolean message.minimized
+
+  children =
+    if renderedChildren?
+      if tocFolded
+        <div className="nav foldedContents" onClick={(e) -> setTocFolded false}>
+          <div className="line"/>
+        </div>
+      else
+        <ul className="nav subcontents #{if hover then 'hover' else ''}"
+         onMouseOver={(e) -> setHover e.target == e.currentTarget}
+         onMouseLeave={(e) -> setHover false if e.target == e.currentTarget}
+         onClick={(e) -> setTocFolded true if e.target == e.currentTarget}>
+          {renderedChildren}
+        </ul>
 
   if isRoot
     ref = useRef()
@@ -1676,12 +1689,12 @@ export WrappedTableOfContents = React.memo ({message, parent, index}) ->
           {inner}
         </li>
       </ul>
-      {renderedChildren}
+      {children}
     </nav>
   else
     <li className="btn-group-xs #{if folded then 'folded' else ''}">
       {inner}
-      {renderedChildren}
+      {children}
     </li>
 WrappedTableOfContents.displayName = 'WrappedTableOfContents'
 
@@ -1689,11 +1702,13 @@ addDragOver = (e) ->
   e.preventDefault()
   e.stopPropagation()
   e.currentTarget.classList.add 'dragover'
+  e.target.classList.add 'dragging'
 removeDragOver = (e) ->
   return unless e.target == e.currentTarget
   e.preventDefault()
   e.stopPropagation()
   e.currentTarget.classList.remove 'dragover'
+  e.target.classList.remove 'dragging'
 dragOver = (e) ->
   return unless e.target == e.currentTarget
   e.preventDefault()

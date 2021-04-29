@@ -121,7 +121,7 @@ s a, del a { text-decoration-color: #c7254e; }
 
 .root { margin-bottom: 0px; } /* glom onto message below */
 
-.beforeMessageDrop { position: absolute; left: 0px; top: -1ex; width: 100%; height: 2ex; }
+.beforeMessageDrop { position: absolute; left: 0px; top: -5px; width: 100%; height: 10px; }
 .beforeMessageDrop.dragover { z-index: 1;
   background-image: linear-gradient(rgba(0,0,0,0), red, rgba(0,0,0,0)); }
 .onMessageDrop.dragover { background-image: linear-gradient(rgba(0,0,0,0), red, rgba(0,0,0,0)); }

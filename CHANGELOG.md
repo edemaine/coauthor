@@ -13,6 +13,9 @@ instead of version numbers.
   [[#486](https://github.com/edemaine/coauthor/issues/486)]
   and highlighting of top message
   [[#552](https://github.com/edemaine/coauthor/issues/552)]
+* You can now fold a section of the table of contents
+  by clicking on one of the vertical lines.
+  [[#551](https://github.com/edemaine/coauthor/issues/551)]
 
 ## 2021-04-26
 

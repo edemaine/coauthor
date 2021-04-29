@@ -192,10 +192,35 @@ nav.contents
   border-bottom-left-radius: 5px
   padding-left: 5px
 
+  &.hover
+    cursor: pointer
+    border-left: solid 3px #6a3dad
+    /.dark &
+      border-left-color: #a37dde
+    padding-left: 4px
+
   /*
   > li:last-child > a
     padding-bottom: 0px
   */
+
+.foldedContents
+  padding-bottom: 2px
+  margin-top: -2px
+  margin-bottom: 2px
+  &:hover
+    cursor: pointer
+    .line
+      border-left: solid 3px #6a3dad
+      border-bottom: solid 3px #6a3dad
+      /.dark &
+        border-left-color: #a37dde
+        border-bottom-color: #a37dde
+  .line
+    border-bottom: solid 2px #8465b3
+    border-left: solid 2px #8465b3
+    border-bottom-left-radius: 5px
+    height: 4px
 
 // Message body
 
