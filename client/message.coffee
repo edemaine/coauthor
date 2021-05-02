@@ -65,14 +65,6 @@ switch sharejsEditor
 @routeMessage = ->
   Router.current()?.params?.message
 
-Template.registerHelper 'titleOrUntitled', ->
-  titleOrUntitled @
-
-Template.registerHelper 'tags', ->
-  sortTags @tags
-
-Template.registerHelper 'linkToTag', ->
-  linkToTag @, Template.parentData().group
 @linkToTag = (tag, group) ->
   #pathFor 'tag',
   #  group: group
