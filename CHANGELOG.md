@@ -9,8 +9,10 @@ instead of version numbers.
 
 ## 2021-05-02
 
-* Fix scrolling to message specified by hash in URL
+* Fix scrolling to message specified by hash in URL.
   [[#553](https://github.com/edemaine/coauthor/issues/553)]
+* Automatically focus on title of message when we start editing it,
+  including when we start a new reply or thread.
 
 ## 2021-04-28
 

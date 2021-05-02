@@ -464,6 +464,7 @@ export naturallyFolded = (message) -> message.minimized or message.deleted
 export scrollToMessage = (id) ->
   id = id[1..] if id[0] == '#'
   if (dom = id2dom[id])?
+    scrollToLater = null
     $('html, body').animate
       scrollTop: Math.max 0, $(dom).offset().top - 15
     , 200, 'swing', ->
@@ -1422,9 +1423,9 @@ export ReplyButtons = React.memo ({message, prefix}) ->
       if error
         console.error error
       else if result
-        Meteor.call 'messageEditStart', result
-        scrollToMessage result
-        #Router.go 'message', {group: group, message: result}
+        Meteor.call 'messageEditStart', result, (error2, result2) ->
+          scrollToMessage result
+          #Router.go 'message', {group: group, message: result}
       else
         console.error "messageNew did not return message ID -- not authorized?"
   attachFiles = (files, e) ->
@@ -2017,25 +2018,28 @@ export WrappedSubmessage = React.memo ({message, read}) ->
 
     ## One-time effects
     useEffect ->
+      ## Maintain id2dom mapping
+      id2dom[message._id] = ref.current
+      checkImage message._id
       ## Scroll to this message if it's been requested.
       if scrollToLater == message._id
         scrollToLater = null
         scrollToMessage message._id
-      ## Maintain id2dom mapping
-      id2dom[message._id] = ref.current
-      checkImage message._id
+      ## Restore id2dom mapping
       ->
         delete id2dom[message._id]
         checkImage message._id
     , [message._id]
 
-    ## Give focus to Title input if this is the only message (e.g., we just
-    ## started a new thread) and we start editing.
+    ## Give focus to Title input if we just started editing this message,
+    ## or if this is the only message (e.g., we just started a new thread).
+    [startEdit, setStartEdit] = useState false
     useEffect ->
-      if here and editing and not message.children?.length
+      if editing and (startEdit or (here and not message.children?.length))
         ref.current?.firstChild?.querySelector('input.title')?.focus()
+        setStartEdit false if startEdit
       undefined
-    , [editing]
+    , [editing, startEdit, here]
 
     ## Image reference counting:
     ## List images referenced by this message.
@@ -2227,6 +2231,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
       else
         setEditStopping true
     else
+      setStartEdit true
       Meteor.call 'messageEditStart', message._id
   onChangeTitle = (e) ->
     newTitle = e.target.value
