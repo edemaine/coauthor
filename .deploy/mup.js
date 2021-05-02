@@ -1,18 +1,19 @@
 module.exports = {
   servers: {
     one: {
+      // Server host name / IP address
       host: 'coauthor.csail.mit.edu',
+      // Root-level username on server
       username: 'ubuntu',
+      // Local SSH key to use to authenticate to server
       pem: "/afs/csail/u/e/edemaine/.ssh/private/id_rsa"
-      // pem:
-      // password:
-      // or leave blank for authenticate from ssh-agent
     }
   },
 
   // Meteor server
   meteor: {
     name: 'coauthor',
+    // Location of the Coauthor source code (parent directory of this file)
     path: '/afs/csail/u/e/edemaine/Projects/coauthor',
     servers: {
       one: {}
@@ -48,17 +49,6 @@ module.exports = {
     // If you're upgrading the database, you probably need to increase this:
     deployCheckWaitTime: 200,
     //deployCheckWaitTime: 2000,
-    /* Old mup-frontend-server configuration:
-    ssl: {
-      // pem: '../coauthor_csail_mit_edu.ssl/coauthor_csail_mit_edu.pem'
-      crt: '../../coauthor_csail_mit_edu.ssl/coauthor_csail_mit_edu.pem',
-      key: '../../coauthor_csail_mit_edu.ssl/coauthor_csail_mit_edu.key',
-      port: 443
-    },
-    nginx: {
-      clientUploadLimit: '0', // disable upload limit
-    },
-    */
   },
 
   // Mongo server
@@ -78,9 +68,13 @@ module.exports = {
   proxy: {
     domains: 'coauthor.csail.mit.edu',
     ssl: {
-      // pem: '../coauthor_csail_mit_edu.ssl/coauthor_csail_mit_edu.pem'
+      // The simple way to enable SSL on your server is Let's Encrypt.
+      // Just specify your email address as follows:
+      //letsEncryptEmail: 'you@email.com',
+      // Alternatively, specify a certificate manually as follows:
       crt: '../../coauthor_csail_mit_edu.ssl/coauthor_csail_mit_edu.pem',
       key: '../../coauthor_csail_mit_edu.ssl/coauthor_csail_mit_edu.key',
+      // Redirect all http traffic to the https site:
       forceSSL: true,
     },
     clientUploadLimit: '0', // disable upload limit
