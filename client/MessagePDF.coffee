@@ -49,7 +49,7 @@ WrappedMessagePDF = React.memo ({file}) ->
     unless pdfjs?
       Session.set 'pdfjsLoading', true
       Session.get 'pdfjsLoading'  # rerun tracker once pdfjs loaded
-      return `import('pdfjs-dist')`.then (imported) ->
+      return import('pdfjs-dist').then (imported) ->
         pdfjs = imported
         pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'  # in /public
         Session.set 'pdfjsLoading', false
@@ -112,7 +112,8 @@ WrappedMessagePDF = React.memo ({file}) ->
     renderTask = page.render
       canvasContext: context
       viewport: scaledViewport
-    renderTask.promise.then ->
+    Promise.all [renderTask.promise, page.getAnnotations()]
+    .then ([rendered, annotationsLoaded]) ->
       replaceCanvas canvasRef, canvas
       setRendering false
       ## Clear existing annotations, and load this page's annotations
@@ -120,7 +121,7 @@ WrappedMessagePDF = React.memo ({file}) ->
       setAnnotationsTransform "scale(#{1/dpiScale},#{1/dpiScale}) matrix(#{scaledViewport.transform.join ','})"
       ## Annotation links, based loosely on
       ## https://stackoverflow.com/a/20141227/7797661
-      page.getAnnotations().then (annotationsLoaded) -> setAnnotations(
+      setAnnotations(
         for annotation in annotationsLoaded
           if annotation.dest  # local link
             ## Refer to https://github.com/mozilla/pdf.js/blob/master/web/pdf_link_service.js goToDestination & _goToDestinationHelper
@@ -134,6 +135,9 @@ WrappedMessagePDF = React.memo ({file}) ->
               annotation.explicitPage = 1 + await pdf.getPageIndex annotation.explicit[0]
           annotation
       )
+    .catch (error) ->
+      ## Ignore pdfjs's error when rendering gets canceled from page flipping
+      throw error unless error.name == 'RenderingCancelledException'
     -> renderTask.cancel()
   , [page, windowWidth, fit, inView]
 
@@ -215,6 +219,7 @@ WrappedMessagePDF = React.memo ({file}) ->
             onClick = do (annotation) -> (e) ->
               e.preventDefault()
               setPageNum annotation.explicitPage
+          ### eslint-disable coffee/jsx-no-target-blank ###
           <TextTooltip key={annotation.id} title={title}>
             <a style={
               left: "#{annotation.rect[0]}px"
@@ -223,9 +228,10 @@ WrappedMessagePDF = React.memo ({file}) ->
               height: "#{annotation.rect[3] - annotation.rect[1]}px"
             } href={annotation.url or '#'}
             target={if annotation.url then '_blank'}
-            rel={if annotation.url then 'noopener noreferrer'}
+            rel={if annotation.url then 'noreferrer'}
             onClick={onClick}/>
           </TextTooltip>
+          ### eslint-enable coffee/jsx-no-target-blank ###
         }
       </div>
     </div>

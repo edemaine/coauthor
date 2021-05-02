@@ -7,7 +7,7 @@
 input.title { width: calc(100% + 5px); margin: 0px -5px 0px 0px; }
 .author { font-style: italic; }
 .message-body { text-align: justify; }
-.message-body, .message-title { position: relative; overflow: auto; overflow-wrap: break-word; contain: layout paint style; }
+.bodyContainer, .message-title { position: relative; overflow: auto; overflow-wrap: break-word; contain: layout paint style; }
   /* We set `position: relative` so any position: absolute's within have
    * this as the containing block. We set `overflow: auto` to prevent hacks
    * that render outside the rectangle of this message; also, it handles
@@ -60,32 +60,6 @@ input.title { width: calc(100% + 5px); margin: 0px -5px 0px 0px; }
 }
 .message-body .katex svg { background: inherit; outline: none; }
 
-/* LaTeX-like nested <ol> */
-.message-body ol { counter-reset: enum; }
-.message-body ol > li { list-style: none; counter-increment: enum; }
-.message-body ol ol ol ol ol ol ol > li::before { content: counter(enum) "." }
-.message-body ol ol ol ol ol ol > li::before { content: counter(enum, lower-greek) "." }
-.message-body ol ol ol ol ol > li::before { content: counter(enum, upper-roman) "." }
-.message-body ol ol ol ol > li::before { content: "(" counter(enum, upper-alpha) ")" }
-.message-body ol ol ol > li::before { content: counter(enum, lower-roman) "." }
-.message-body ol ol > li::before { content: "(" counter(enum, lower-alpha) ")" }
-.message-body ol > li::before { content: counter(enum) "." }
-/* Custom item labels. Data approach didn't support e.g. math: */
-/*.message-body ol > li[data-itemlab]::before { content: attr(data-itemlab) }*/
-.message-body li.noitemlab::before { content: none }
-.message-body ul > li.noitemlab { list-style: none }
-/* 40px is ol's default left padding on most browsers; fill that size */
-.message-body ol > li::before, .itemlab {
-  position: relative; display: inline-block; vertical-align: baseline;
-  width: 40px; margin-left: -40px; text-align: right; padding-right: 0.25em; }
-/* Switch first paragraph within an item to inline-block, so that it stacks
- * next to (instead of on top of) item label's inline-block.
- */
-.message-body li > p:first-child, .message-body li.noitemlab > p:nth-child(2) {
-  display: inline-block; width: 100%; vertical-align: top; }
-/* markdown-it-task-checkbox */
-.message-body input[type="checkbox"] { margin-top: 0; margin-right: 2px; vertical-align: -2px; }
-
 .sideBySide { display: flex; align-items: stretch; }
 .sideBySide .editorContainer { flex: 1 1; width: 50%; margin: 0px; display: inline-block; }
 .sideBySide .bodyContainer { flex: 1 1; overflow: scroll; }
@@ -127,30 +101,7 @@ img { image-orientation: none; } /* we do manual EXIF rotation */
   .pdf > .annotations > a { display: none; }
 }
 
-.historySlider { margin-left: 25px; margin-right: 25px; margin-top: 5px; }
-  /* 15px to match panel + 10px for tick radius */
-.slider.slider-horizontal { width: 100%; }
-
 .panel-secondbody { margin-top: -10px; padding-top: 0px; padding-bottom: 10px; }
-
-nav.contents { overflow-y: scroll; padding-bottom: 5px; }
-.contents > li > a { padding: 5px 5px; }
-.subcontents > li > a { font-size: small; padding: 5px 10px; }
-/* Purples based on #563d7c from Bootstrap docs */
-.subcontents { border-left: solid 2px #8465b3; padding-left: 3px; }
-.dark .contents li > a { color: #eee; }
-.contents li.active > a { background: #d1c5e2; }
-.dark .contents li.active > a { background: #3c245e; }
-.contents li > a.deleted, .contents li > a.unpublished, .contents li > a.minimized { font-size: x-small; padding: 2px 10px; }
-.contents li > a.deleted { color: #a94442; }
-.contents li > a.unpublished { color: #8a6d3b; }
-.contents li > a.private { color: #5bc0de; }
-.contents li > a.minimized { color: #449d44; }
-.dark .contents li > a.deleted { color: #d9534f; }
-.dark .contents li > a.unpublished { color: #f0ad4e; }
-.dark .contents li > a.minimized { color: #5cb85c; }
-.contents li.folded li > a { opacity: 0.7; }
-.affix { top: 0px; }
 
 code.raw, pre { white-space: pre-wrap; }
 /* line-height normal to make box drawing look right */
@@ -170,7 +121,7 @@ s a, del a { text-decoration-color: #c7254e; }
 
 .root { margin-bottom: 0px; } /* glom onto message below */
 
-.beforeMessageDrop { position: absolute; left: 0px; top: -1ex; width: 100%; height: 2ex; }
+.beforeMessageDrop { position: absolute; left: 0px; top: -5px; width: 100%; height: 10px; }
 .beforeMessageDrop.dragover { z-index: 1;
   background-image: linear-gradient(rgba(0,0,0,0), red, rgba(0,0,0,0)); }
 .onMessageDrop.dragover { background-image: linear-gradient(rgba(0,0,0,0), red, rgba(0,0,0,0)); }
@@ -264,7 +215,6 @@ details > summary {
 }
 details:not([open]) > summary { margin-bottom: -10px }
 details[open] > summary { margin-bottom: 10px }
-details > summary::-webkit-details-marker { display: none; } /* Chrome */
 details > summary::before {
   margin-right: 0.5em; /* like .space */
   /* From .fas */
@@ -286,9 +236,6 @@ details > summary:focus::before { outline: 5px auto -webkit-focus-ring-color; ou
 details:focus, summary:focus { outline: none; }
 details > summary::before { content: "\f067"; }       /* From .fa-plus */
 details[open] > summary::before { content: "\f068"; } /* From .fa-minus */
-
-/* Author search highlighting */
-.highlight { background: yellow; color: black; }
 
 /* Search results: 5px to match title + 2px to center vertically */
 .panel-heading .pull-right.badge { padding-top: 2px; }

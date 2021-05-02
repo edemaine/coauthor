@@ -33,7 +33,6 @@ peerlibrary:reactive-publish
 gcampax:accounts-dropbox
 bozhao:link-accounts
 gcampax:dropbox-oauth
-http@1.4.2
 underscorestring:underscore.string
 standard-minifier-css@1.6.1
 reactive-dict@1.3.0
@@ -44,8 +43,8 @@ webapp@1.9.1
 sergeyt:typeahead
 dynamic-import@0.5.2
 browser-policy@1.1.0
-edemaine:sharejs
-edemaine:sharejs-codemirror
+edemaine:sharejs@0.11.0
+edemaine:sharejs-codemirror@5.40.0
 deanius:promise
 edemaine:accounts-ui-bootstrap-3
 montiapm:agent
@@ -55,3 +54,4 @@ react-meteor-data
 coagmano:stylus@1.1.0
 gadicc:blaze-react-component@1.4.3-pre.0
 fourseven:scss
+fetch

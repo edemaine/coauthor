@@ -6,36 +6,50 @@
 ## On Ubuntu: sudo apt-get install mongodb-clients
 ## On Debian: sudo apt-get install mongo-tools
 
-REMOTE=ubuntu@coauthor
-#REMOTE=root@coauthor
+## Where to ssh to do the mongodump
+HOSTNAME=coauthor
+USERNAME=ubuntu
+#USERNAME=root
+SSH_REMOTE=$USERNAME@$HOSTNAME
 
-cd "`dirname "$0"`"
-echo \* mongodump
-ssh $REMOTE mongodump --db coauthor
-echo \* rsync
-rsync -e ssh -a $REMOTE:dump/coauthor/ coauthor-backup/
+## Mongo collection to dump
+MONGO_COLLECTION=coauthor
+
+## Local backup directory name
+BACKUP_DIR=coauthor-backup
 
 ## rclone is the recommended system to copy backups to a cloud service.
-## Just setup a remote called `coauthor-backup` using `rclone config`.
 ## (acd_cli is another option, but it sadly was turned off by Amazon.)
-method=rclone
-#method=acd_cli
-echo \* $method
+METHOD=rclone
+#METHOD=acd_cli
 
 ## 1 for a separate backup for each day; 0 to overwrite the backup each time
-datedir=0
-
-if [ "$datedir" -eq 1 ]
+DATE_IN_DIR=0
+if [ "$DATE_IN_DIR" -eq 1 ]
 then
   datedir=/`date +%Y-%m-%d`
 else
   datedir=
 fi
 
-case $method in
+## Set up an rclone remote with this name using `rclone config`.
+CLOUD_REMOTE=coauthor-backup
+
+## Directory to create on cloud remote.
+CLOUD_DIR="coauthor-backup$datedir"
+
+cd "`dirname "$0"`"
+echo \* mongodump
+ssh "$SSH_REMOTE" mongodump --db "$MONGO_COLLECTION"
+echo \* rsync
+rsync -e ssh -a "$SSH_REMOTE:dump/$MONGO_COLLECTION/" "$BACKUP_DIR/"
+
+echo \* $METHOD
+
+case $METHOD in
 
 rclone)
-  if rclone --retries 10 copy coauthor-backup coauthor-backup:coauthor-backup$datedir
+  if rclone --retries 10 copy "$BACKUP_DIR" $CLOUD_REMOTE:$CLOUD_DIR
   then
     echo SUCCESS\!\!
   else
@@ -47,8 +61,8 @@ acd_cli)
   count=0
   limit=20
   acd_cli sync
-  acd_cli mkdir /coauthor-backup$datedir
-  while ! acd_cli ul -q -o coauthor-backup/* /coauthor-backup$datedir
+  acd_cli mkdir /$CLOUD_DIR
+  while ! acd_cli ul -q -o "$BACKUP_DIR"/* /${CLOUD_DIR}
   do
     echo Trying again... $count
     acd_cli sync

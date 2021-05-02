@@ -1,10 +1,13 @@
+import {untitledMessage} from './messages'
+import {parseSearch} from './search'
+
 katex = require 'katex'
 katex.__defineMacro '\\epsilon', '\\varepsilon'
 
 romanNumeral = require 'roman-numeral'
 
-@availableFormats = ['markdown', 'latex', 'html']
-@mathjaxFormats = availableFormats
+export availableFormats = ['markdown', 'latex', 'html']
+#export mathjaxFormats = availableFormats
 
 if Meteor.isClient
   Template.registerHelper 'formats', ->
@@ -29,7 +32,7 @@ escapeForQuotedHTML = (s) ->
 replaceMathBlocks = (text, replacer) ->
   #console.log text
   blocks = []
-  re = /[{}]|\$\$?|\\(begin|end)\s*{(equation|eqnarray|align)\*?}|(\\par(?![a-zA-Z])|\n[ \f\r\t\v]*\n\s*)|\\./g
+  re = /[{}]|\$\$?|\\(begin|end)\s*{((?:equation|eqnarray|align|alignat|gather|CD)\*?)}|(\\par(?![a-zA-Z])|\n[ \f\r\t\v]*\n\s*)|\\./g
   block = null
   startBlock = (b) ->
     block = b
@@ -38,9 +41,11 @@ replaceMathBlocks = (text, replacer) ->
   endBlock = (skipThisToken) ->
     block.content = text[block.contentStart...match.index]
     delete block.contentStart  ## no longer needed
-    ## Simulate \begin{align}...\end{align} with \begin{aligned}...\end{aligned}
-    if block.environment and block.environment in ['eqnarray', 'align']
-      block.content = "\\begin{aligned}#{block.content}\\end{aligned}"
+    ## Pass enclosing environment to KaTeX
+    if block.environment
+      ## Simulate \begin{eqnarray} with \begin{align} (close enough for now)
+      block.environment = block.environment.replace /eqnarray/, 'align'
+      block.content = "\\begin{#{block.environment}}#{block.content}\\end{#{block.environment}}"
     block.end = match.index
     block.end += match[0].length unless skipThisToken
     block.all = text[block.start...block.end]
@@ -94,7 +99,7 @@ replaceMathBlocks = (text, replacer) ->
   else
     text
 
-@inTag = (string, offset) ->
+export inTag = (string, offset) ->
   ## Known issue: `<a title=">"` looks like a terminated tag to this code.
   ## This is why `escapeForQuotedHTML` escapes >s.
   open = string.lastIndexOf '<', offset
@@ -244,9 +249,18 @@ latex2htmlDef = (tex) ->
   #for def, val of defs
   #  console.log "\\#{def} = #{val}"
   if 0 < _.size defs
-    r = ///\\(#{_.keys(defs).join '|'})\s*///g
-    while 0 <= tex.search(r)
-      tex = tex.replace r, (match, def) -> defs[def]
+    r = ///
+      ({?)     # allow {\macro} notation to force space after macro
+      \\(#{_.keys(defs).join '|'})
+      (?![a-zA-z])  # ensure full-word match
+      \s*      # consume spaces after \macro, like TeX does
+      (?:{})?  # allow \macro{} notation to force space after macro
+      (}?)     # allow {\macro} notation to force space after macro
+    ///g
+    while r.test tex
+      tex = tex.replace r, (match, left, def, right) ->
+        left = right = '' if left and right
+        left + defs[def] + right
   tex
 
 texAlign =
@@ -280,13 +294,13 @@ latex2htmlCommandsAlpha = (tex, math) ->
             ## "If you want to use both \multirow and \multicolumn on the same
             ## entry, you must put the \multirow inside the \multicolumn"
             ## [http://ctan.mirrors.hoobly.com/macros/latex/contrib/multirow/multirow.pdf]
-            if match = /\\multicolumn\s*(\d+|{\s*(\d+)\s*})\s*(\w|{([^{}]*)})\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/.exec col
+            if (match = /\\multicolumn\s*(\d+|{\s*(\d+)\s*})\s*(\w|{([^{}]*)})\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/.exec col)?
               attrs += " colspan=\"#{match[2] ? match[1]}\""
               align = match[4] ? match[3]
               col = match[5]
             ## In HTML, rowspan means that later rows shouldn't specify <td>s
             ## for that column, while in LaTeX, they are still present.
-            if match = /\\multirow\s*(\d+|{\s*(\d+)\s*})\s*(\*|{([^{}]*)})\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/.exec col
+            if (match = /\\multirow\s*(\d+|{\s*(\d+)\s*})\s*(\*|{([^{}]*)})\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/.exec col)?
               rowspan = parseInt match[2] ? match[1]
               skip[colnum] += rowspan - 1
               attrs += " rowspan=\"#{rowspan}\""
@@ -458,7 +472,7 @@ latex2htmlCommandsAlpha = (tex, math) ->
       else
         value = "-#{value}"
       """<span style="margin-top: #{value}#{unit};">#{arg}</span>"""
-  .replace /\\begin\s*{(problem|question|idea|theorem|conjecture|lemma|corollary|fact|observation|proposition|claim|definition)}(\s*\[([^\]]*)\])?/g, (m, env, x, opt) -> """<blockquote class="thm"><p><b>#{s.capitalize env}#{if opt then " (#{opt})" else ''}:</b> """
+  .replace /\\begin\s*{(problem|question|idea|theorem|conjecture|lemma|corollary|fact|observation|proposition|claim|definition)}(\s*\[([^\]]*)\])?/g, (m, env, x, opt) -> """<blockquote class="thm"><p><b>#{capitalize env}#{if opt then " (#{opt})" else ''}:</b> """
   .replace /\\end\s*{(problem|question|idea|theorem|conjecture|lemma|corollary|fact|observation|proposition|claim|definition)}/g, '</blockquote>'
   .replace /\\begin\s*{(quote)}/g, '<blockquote><p>'
   .replace /\\end\s*{(quote)}/g, '</blockquote>'
@@ -541,7 +555,7 @@ latex2html = (tex) ->
   .replace /\[DOUBLEBACKSLASH\]/g, '<br>'
   [tex, math]
 
-@formats =
+formats =
   markdown: (text, title) ->
     ## Escape all characters that can be (in particular, _s) that appear
     ## inside math mode, to prevent Marked from processing them.
@@ -549,32 +563,54 @@ latex2html = (tex) ->
     #text = replaceMathBlocks text, (block) ->
     #  block.replace /[\\`*{}\[\]()#+\-.!_]/g, '\\$&'
     #marked.Lexer.rules = {text: /^[^\n]+/} if title
+    ## First extract Markdown verbatim environments (backticks) to prevent
+    ## LaTeX processing on them (especially math mode, so $ is inert in code).
+    [text, ticks] = preprocessMarkdownTicks text
     ## Support what we can of LaTeX before doing Markdown conversion.
     [text, math] = latex2htmlLight text
+    ## Put Markdown verbatims back in.
+    text = putTicksBack text, ticks
     if title  ## use "single-line" version of Markdown
       text = markdownInline text
     else
       text = markdown text
-    ## Wrap markdown-it-task-checkbox checkboxes in <span class="itemlab">
-    text = text.replace /(<li\b[^<>]*>\s*)(<input\b[^<>]*>)\s*/ig,
-      (match, li, input) ->
+    ## Convert <ol start=...> output from Markdown to CSS-compatible reset.
+    text = text.replace /<ol start="([\d+])">/ig, (match, start) ->
+      """<ol style="counter-reset: enum #{-1 + parseInt start}">"""
+    ## Wrap markdown-it-task-checkbox checkboxes in <span class="itemlab">,
+    ## remove the <label> applied to the item's first paragraph, and
+    ## (until checking is supported) replace checkbox with Unicode symbol.
+    text = text.replace ///
+      (<li\b[^<>]*>\s*)
+      (<p>\s*)?
+      (<input\b[^<>]*>) \s*
+      (<label[^<>]*>\s*(.*?)</label>)?
+    ///ig,
+      (match, li, p, input, label, labelInner) ->
         if /type\s*=\s*"checkbox"/.test input
-          "#{li}<span class=\"itemlab\">#{input}</span>"
+          if /checked/.test input
+            #input = '<span class="fake-checkbox">\u{1f5f9}</span>'
+            #input = '<span class="fake-checkbox">\u2611</span>'
+            input = '<span class="fas fa-check-square"></span>'
+          else
+            #input = '<span class="fake-checkbox">\u2610</span>'
+            input = '<span class="far fa-square"></span>'
+          "#{li}<span class=\"itemlab\">#{input}</span>#{p ? ''}#{labelInner ? ''}"
         else
           match
-    .replace /(<label\b[^<>]*>)\s*/ig, '$1'
+    #.replace /(<label\b[^<>]*>)\s*/ig, '$1'
     [text, math]
   latex: (text, title) ->
     latex2html text
   html: (text, title) ->
     linkify text
 
-@coauthorLinkBodyRe = "/?/?([a-zA-Z0-9]+)"
-@coauthorLinkBodyHashRe = "#{coauthorLinkBodyRe}(#[a-zA-Z0-9]*)?"
-@coauthorLinkRe = "coauthor:#{coauthorLinkBodyRe}"
-@coauthorLinkHashRe = "coauthor:#{coauthorLinkBodyHashRe}"
+export coauthorLinkBodyRe = "/?/?([a-zA-Z0-9]+)"
+export coauthorLinkBodyHashRe = "#{coauthorLinkBodyRe}(#[a-zA-Z0-9]*)?"
+export coauthorLinkRe = "coauthor:#{coauthorLinkBodyRe}"
+export coauthorLinkHashRe = "coauthor:#{coauthorLinkBodyHashRe}"
 
-@parseCoauthorMessageUrl = (url, simplify) ->
+export parseCoauthorMessageUrl = (url, simplify) ->
   match = new RegExp("^#{urlFor 'message',
     group: '(.*)'
     message: '(.*)'
@@ -591,7 +627,7 @@ latex2html = (tex) ->
       match.hash = ''
     match
 
-@parseCoauthorAuthorUrl = (url) ->
+export parseCoauthorAuthorUrl = (url) ->
   match = new RegExp("^#{urlFor 'author',
     group: '(.*)'
     author: '(.*)'
@@ -640,21 +676,15 @@ postprocessCoauthorLinks = (text) ->
         when 'video'
           formatVideo file, url
         when 'pdf'
-          template = Template?.instance?()
-          if template?
-            id = Random.id()
-            Meteor.defer =>
-              parent = template.find """div[data-id="#{id}"]"""
-              return unless parent?
-              Blaze.renderWithData Template.messagePDF, fileId, parent
-            """<div data-id="#{id}"></div>"""
-          else  ## e.g. server has no templates
-            match
+          if Meteor.isServer
+            """<div>[PDF file &ldquo;<a href="#{url}">#{file.filename}</a>&rdquo;]</div>"""
+          else
+            """<div data-messagepdf="#{fileId}"></div>"""
         else
           match
 
 ## URL regular expression with scheme:// required, to avoid extraneous matching
-@urlRe = /\w+:\/\/[-\w~!$&'()*+,;=.:@%#?\/]+/g
+export urlRe = /\w+:\/\/[-\w~!$&'()*+,;=.:@%#?\/]+/g
 
 postprocessLinks = (text) ->
   text.replace urlRe, (match, offset, string) ->
@@ -666,7 +696,7 @@ postprocessLinks = (text) ->
         "#{slash}&#8203;"  ## Add zero-width space after every slash group
 
 @allUsernames = ->
-  users = Meteor.users.find {}, fields: username: 1
+  Meteor.users.find {}, fields: username: 1
   .map (user) -> user.username
 
 atRePrefix = '[@\uff20]'
@@ -681,13 +711,13 @@ atRePrefix = '[@\uff20]'
   ## FF20 is FULLWIDTH COMMERCIAL AT common in Asian scripts
   ///#{atRePrefix}(#{users.join '|'})(?!\w)///g
 
-postprocessAtMentions = (text) ->
+postprocessAtMentions = (text, me) ->
   return text unless ///#{atRePrefix}///.test text
   users = allUsernames()
   return text unless 0 < users.length
   text.replace (atRe users), (match, user, offset, string) ->
     unless inTag string, offset
-      "@#{linkToAuthor (routeGroup?() ? wildGroup), user}"
+      "@#{linkToAuthor (routeGroup?() ? wildGroup), user, {me}}"
     else # e.g. in <a title="..."> caused by postprocessCoauthorLinks
       match
 
@@ -695,23 +725,32 @@ preprocessKaTeX = (text) ->
   math = []
   i = 0
   text = replaceMathBlocks text, (block) ->
-    i += 1
-    math[i] = block
-    "MATH#{i}ENDMATH"
+    math.push block
+    "MATH#{i++}ENDMATH"
   [text, math]
 
 putMathBack = (tex, math) ->
   ## Restore math
-  tex.replace /MATH(\d+)ENDMATH/g, (match, id) -> math[id].all
+  tex.replace /MATH(\d+)ENDMATH/g, (match, id) -> _.escape math[id].all
 
 postprocessKaTeX = (text, math, initialBold) ->
+  return text unless math.length
   macros = {}  ## shared across multiple math expressions within same body
   if initialBold
     weights = [boldWeight]
   else
     weights = [mediumWeight]
-  text.replace /MATH(\d+)ENDMATH([,.!?:;'"\-)\]}]*)|<span([^<>]*)>|<b\b|<strong\b|<\/\s*(b|strong|span)\s*>/g, (match, id, punct, spanArgs) ->
-    ## Detect math within bold mode
+  text.replace ///
+    (['"(\[{]*)         # left puncutation to pull into math mode
+    MATH(\d+)ENDMATH
+    ([,.!?:;'"\-)\]}]*) # right puncutation to pull into math mode
+    (?! -?> ) # prevent accidentally grabbing some of --> (end of HTML comment)
+    | ## Detect math within bold mode:
+    <span([^<>]*)> |
+    <b\b |
+    <strong\b |
+    <\/\s*(b|strong|span)\s*>
+  ///g, (match, leftPunct, id, rightPunct, spanArgs) ->
     unless id?
       if spanArgs?
         spanArgs = /style\s*=\s*['"]font-weight:\s*(\d+)/i.exec spanArgs
@@ -747,14 +786,58 @@ postprocessKaTeX = (text, math, initialBold) ->
     ## Remove \boldsymbol{...} from TeX source, in particular for copy/paste
     if bold
       out = out.replace /(<annotation encoding="application\/x-tex">)\\boldsymbol{([^]*?)}(<\/annotation>)/i, '$1$2$3'
-    out += punct
-    if punct and not block.display
-      '<span class="nobr">' + out + '</span>'
-    else
-      out
+    if leftPunct
+      if block.display or not out.includes '<span class="base">'
+        out = leftPunct + out
+      else
+        ## Push left punctuation inside the first base element
+        ## (<span class="katex"><span class="katex-html"><span class="base">)
+        ## which prevents it from being separated, while still allowing KaTeX
+        ## to do its automatic line breaking.
+        out = out.replace '<span class="base">', (match) ->
+          """#{match}<span class="nonmath">#{leftPunct}</span>"""
+    if rightPunct
+      if block.display
+        out += rightPunct
+      else
+        ## Push right punctuation inside the final base element
+        ## (<span class="katex"><span class="katex-html"><span class="base">)
+        ## which prevents it from being separated, while still allowing KaTeX
+        ## to do its automatic line breaking.
+        out = out.replace ///(</span></span></span>)?$///, (match) ->
+          """<span class="nonmath">#{rightPunct}</span>#{match}"""
+    out
+
+preprocessMarkdownTicks = (text) ->
+  ticks = []
+  i = 0
+  ## See https://spec.commonmark.org/0.29/#code-spans and
+  ## https://spec.commonmark.org/0.29/#fenced-code-blocks for relevant specs.
+  ## Bad cases not handled by this regex:
+  ## * `foo followed by two newlines is treated as still opening a code span
+  ## * <a href="`"> is treated as opening a code span
+  ## * ~~~code block~~~ ignored
+  ## * Indented blocks ignored
+  text = text.replace ///
+    (^|[^\\`])  # backticks shouldn't be preceded by \escape or more backticks
+    (`+)        # one or more backticks to open
+    ([^`] |         # case 1: single nontick character inside
+     [^`][^]*?[^`]) # case 2: multiple characters inside, not bounded by ticks
+    (\2|$)      # matching number of backticks to close
+    (?!`)       # not any additional `s afterward
+  ///g, (match, pre, left, mid, right) ->
+    ## Three or more backticks (fenced code blocks) are terminated by end of doc
+    return match unless right or left.length >= 3
+    ticks.push match[pre.length..]
+    "#{pre}TICK#{i++}ENDTICK"
+  [text, ticks]
+
+putTicksBack = (text, ticks) ->
+  return text unless ticks.length
+  text.replace /TICK(\d+)ENDTICK/g, (match, id) -> ticks[id]
 
 ## Search highlighting
-formatSearch = (isTitle, text) ->
+formatSearchHighlight = (isTitle, text) ->
   if Meteor.isClient and Router.current()?.route?.getName() == 'search' and
      (search = Router.current()?.params?.search)?
     recurse = (query) ->
@@ -773,8 +856,9 @@ formatSearch = (isTitle, text) ->
     recurse parseSearch search
   text
 
-formatEither = (isTitle, format, text, leaveTeX = false, bold = false) ->
+formatEither = (isTitle, format, text, options) ->
   return text unless text?
+  {leaveTeX, bold, me} = options if options?
 
   ## LaTeX and Markdown formats are special because they do their own math
   ## preprocessing at a specific time during its formatting.  Other formats
@@ -811,13 +895,13 @@ formatEither = (isTitle, format, text, leaveTeX = false, bold = false) ->
   text = linkify text  ## Extra support for links, unliked LaTeX
   text = postprocessCoauthorLinks text
   text = postprocessLinks text
-  text = postprocessAtMentions text
-  text = formatSearch isTitle, text
+  text = postprocessAtMentions text, me
+  text = formatSearchHighlight isTitle, text
   sanitize text
 
-formatEitherSafe = (isTitle, format, text, leaveTeX = false, bold = false) ->
+formatEitherSafe = (isTitle, format, text, options) ->
   try
-    formatEither isTitle, format, text, leaveTeX, bold
+    formatEither isTitle, format, text, options
   catch e
     console.error e.stack ? e.toString()
     if isTitle
@@ -831,13 +915,13 @@ formatEitherSafe = (isTitle, format, text, leaveTeX = false, bold = false) ->
         <pre>#{_.escape text}</pre>
       """
 
-@formatBody = (format, body, leaveTeX = false, bold = false) ->
-  formatEitherSafe false, format, body, leaveTeX, bold
+export formatBody = (format, body, options) ->
+  formatEitherSafe false, format, body, options
 
-@formatTitle = (format, title, leaveTeX = false, bold = false) ->
-  formatEitherSafe true, format, title, leaveTeX, bold
+export formatTitle = (format, title, options) ->
+  formatEitherSafe true, format, title, options
 
-@formatBadFile = (fileId) ->
+export formatBadFile = (fileId) ->
   """<i class="bad-file">&lt;unknown file with ID #{fileId}&gt;</i>"""
 
 ###
@@ -849,36 +933,35 @@ length gets set correctly; see the end of resumable_post_handler in
   https://github.com/vsivsi/meteor-file-collection/blob/master/src/resumable_server.coffee
 We therefore don't display any file that is still in the zero-length state.
 ###
-@formatEmptyFile = (fileId) ->
+export formatEmptyFile = (fileId) ->
   """<i class="empty-file">(uploading file...)</i>"""
 
-@formatFileDescription = (msg, file = null) ->
+export formatFileDescription = (msg, file = null) ->
   file = findFile msg.file unless file?
   return formatBadFile msg.file unless file?
+  return formatEmptyFile msg.file unless file.length
   """<i class="odd-file"><a href="#{urlToFile msg}">&lt;#{s.numberFormat file.length}-byte #{file.contentType} file &ldquo;#{file.filename}&rdquo;&gt;</a></i>"""
 
-@formatVideo = (file, url) ->
+export formatVideo = (file, url) ->
   if file?.contentType
     """<video controls><source src="#{url}" type="#{file.contentType}"></video>"""
   else
     """<video controls><source src="#{url}"></video>"""
 
-@formatFile = (msg, file = null) ->
+export formatFile = (msg, file = null) ->
   file = findFile msg.file unless file?
-  return formatBadFile msg.file unless file?
-  return formatEmptyFile msg.file unless file.length
-  formatted =
-    switch fileType file
-      when 'image'
-        """<img src="#{urlToFile msg}">"""
-      when 'video'
-        formatVideo file, urlToFile msg
-      else  ## 'unknown'
-        ''
-  formatted = "<p>#{formatted}</p>" if formatted
-  formatted + formatFileDescription msg, file
+  return '' unless file? and file.length
+  switch fileType file
+    when 'image'
+      """<img src="#{urlToFile msg}">"""
+    when 'video'
+      formatVideo file, urlToFile msg
+    else  ## 'unknown'
+      ''
 
-@formatFilename = (msg, orUntitled = false) ->
+export formatFilename = (msg, options) ->
+  {orUntitled} = options if options?
+  orUntitled ?= true
   if msg.file
     file = findFile msg.file
     title = file?.filename
@@ -890,14 +973,11 @@ We therefore don't display any file that is still in the zero-length state.
   else
     title
 
-@formatTitleOrFilename = (msg, orUntitled = true, leaveTeX = false, bold = false) ->
-  if msg.format and msg.title and msg.title.trim().length > 0
-    formatTitle msg.format, msg.title, leaveTeX, bold
+export formatTitleOrFilename = (msg, options) ->
+  if msg.format and msg.title?.trim().length
+    formatTitle msg.format, msg.title, options
   else
-    formatFilename msg, orUntitled
+    formatFilename msg, options
 
 #@stripHTMLTags = (html) ->
 #  html.replace /<[^>]*>/gm, ''
-
-@indentLines = (text, indent) ->
-  text.replace /^/gm, indent

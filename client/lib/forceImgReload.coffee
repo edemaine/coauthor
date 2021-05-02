@@ -3,7 +3,7 @@
 
 blankImg = '/updating.png'
 
-@forceImgReload = (src) ->
+export forceImgReload = (src) ->
   init = 0
   tags = null
   loadCallback = (e) ->

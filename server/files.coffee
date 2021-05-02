@@ -1,3 +1,4 @@
+import {Accounts} from 'meteor/accounts-base'
 cookie = require 'cookie'
 url = require 'url'
 
@@ -8,15 +9,28 @@ fileRe = /^\/(\w+)$/
 
 defaultContentType = 'application/octet-stream'
 
+accessHeaders = (req) ->
+  'Cache-Control': 'stale-while-revalidate'
+  ## Allow files to be embedded in other sites, e.g. Cocreate.
+  ## Note that this still requires Coauthor authentication via cookies.
+  'Access-Control-Allow-Origin': req.headers['origin'] ? '*'
+  'Access-Control-Allow-Credentials': 'true'
+  'Vary': 'Origin'
+
 ## Mimicking vsivsi:file-collection http_access_server.coffee
 WebApp.rawConnectHandlers.use '/file',
   Meteor.bindEnvironment (req, res, next) ->
     url = url.parse req.url, true
     req.query = url.query
     match = url.path.match fileRe
-    unless req.method in ['GET', 'HEAD'] and match?
+    unless req.method in ['GET', 'HEAD', 'OPTIONS'] and match?
       return next()
     msgId = match[1]
+
+    if req.method == 'OPTIONS'
+      res.writeHead 204, Object.assign accessHeaders(req),
+        'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS'
+      return res.end()
 
     ## handle_auth()
     req.cookies = cookie.parse req.headers.cookie if req.headers.cookie?
@@ -29,14 +43,16 @@ WebApp.rawConnectHandlers.use '/file',
           $elemMatch:
             hashedToken: Accounts?._hashLoginToken authToken
       unless user?
-        res.writeHead 400
+        res.writeHead 400, accessHeaders req
         return res.end "Invalid X-Auth-Token #{authToken}"
       username = "User '#{user.username}'"
+      accessError = 403  # Forbidden indicates client's identity is known
     else
       ## Allow null user, and check below for anonymous access.
       user = null
       username = "Not-logged-in user"
-      #res.writeHead 400
+      accessError = 401  # Unauthorized indicates client's identity is unknown
+      #res.writeHead 400, accessHeaders req
       #return res.end "Missing X-Auth-Token header/token"
 
     ## Map message -> file
@@ -48,7 +64,7 @@ WebApp.rawConnectHandlers.use '/file',
     #   file: true
     #   root: true  ## for messageRoleCheck
     unless msg? and msg.file and (req.gridFS = findFile msg.file)?
-      res.writeHead 403
+      res.writeHead accessError, accessHeaders req
       ## Use same error message whether file exists or not, so don't leak info.
       #return res.end "Invalid file message ID: #{msgId}"
       return res.end "#{username} lacks read permissions for group of message/file #{msgId}"
@@ -57,21 +73,20 @@ WebApp.rawConnectHandlers.use '/file',
     # Debatable whether that would be a bug or feature.
     #unless messageRoleCheck(msg.group, msg, 'read', user) and (msg.group == req.gridFS.metadata.group or groupRoleCheck req.gridFS.metadata.group, 'read', user)
     unless canSee msg, false, user
-      res.writeHead 403
+      res.writeHead accessError, accessHeaders req
       return res.end "#{username} lacks read permissions for group of message/file #{msgId}"
 
     ## get()
-    headers =
-      'Content-Type': 'text/plain'
-      'Cache-Control': 'stale-while-revalidate'
+    headers = accessHeaders req
     if req.headers['if-modified-since']
       since = Date.parse req.headers['if-modified-since']  ## NaN if invaild
       if since and req.gridFS.uploadDate and (req.headers['if-modified-since'] == req.gridFS.uploadDate.toUTCString() or since >= req.gridFS.uploadDate.getTime())
         res.writeHead 304, headers
         return res.end()
+    headers['Content-Type'] = req.gridFS.contentType or defaultContentType
     if req.headers['range']
       statusCode = 206  # partial data
-      parts = req.headers["range"].replace(/bytes=/, "").split("-")
+      parts = req.headers['range'].replace(/bytes=/, "").split("-")
       start = parseInt(parts[0], 10)
       end = (if parts[1] then parseInt(parts[1], 10) else req.gridFS.length - 1)
       if (start < 0) or (end >= req.gridFS.length) or (start > end) or isNaN(start) or isNaN(end)
@@ -83,7 +98,7 @@ WebApp.rawConnectHandlers.use '/file',
       headers['Accept-Ranges'] = 'bytes'
       headers['Content-Length'] = chunksize
       headers['Last-Modified'] = req.gridFS.uploadDate.toUTCString()
-      unless req.method is 'HEAD'
+      unless req.method == 'HEAD'
         stream = Files.findOneStream(
           _id: req.gridFS._id
         ,
@@ -96,26 +111,24 @@ WebApp.rawConnectHandlers.use '/file',
       headers['Content-MD5'] = req.gridFS.md5
       headers['Content-Length'] = req.gridFS.length
       headers['Last-Modified'] = req.gridFS.uploadDate.toUTCString()
-      unless req.method is 'HEAD'
+      unless req.method == 'HEAD'
         stream = Files.findOneStream { _id: req.gridFS._id }
-    headers['Content-Type'] = req.gridFS.contentType or defaultContentType
     filename = encodeURIComponent(req.query.filename ? req.gridFS.filename)
     headers['Content-Disposition'] = "inline; filename=\"#{filename}\"; filename*=UTF-8''#{filename}"
     if (req.query.download and req.query.download.toLowerCase() == 'true') or req.query.filename
       headers['Content-Disposition'] = "attachment; filename=\"#{filename}\"; filename*=UTF-8''#{filename}"
     if req.query.cache and not isNaN(parseInt(req.query.cache))
       headers['Cache-Control'] = "max-age=" + parseInt(req.query.cache)+", private"
-    if req.method is 'HEAD'
-      res.writeHead 204, headers
+    if req.method == 'HEAD'
+      res.writeHead statusCode, headers
       return res.end()
     if stream
       res.writeHead statusCode, headers
-      stream.pipe(res)
-        .on 'close', () ->
-          res.end()
-        .on 'error', (err) ->
-          res.writeHead 500, share.defaultResponseHeaders
-          res.end err
+      stream.pipe res
+      .on 'close', -> res.end()
+      .on 'error', (err) ->
+        res.writeHead 500
+        res.end err
     else
-      res.writeHead 410, share.defaultResponseHeaders
+      res.writeHead 410
       res.end()

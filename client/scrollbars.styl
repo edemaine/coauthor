@@ -1,0 +1,78 @@
+// Custom scrollbars, customized by CSS variables for light and dark theme
+
+:root
+  --scrollbar-size: 15px
+  --scrollbar-bar: #aaa
+  --scrollbar-bar-hover: #888
+  --scrollbar-bar-active: #666
+  --scrollbar-track: #ddd
+  --scrollbar-button: #aaa
+  --scrollbar-button-hover: #888
+  --scrollbar-button-active: #666
+  --scrollbar-button-triangle: black
+
+.dark
+  --scrollbar-bar: #777
+  --scrollbar-bar-hover: #999
+  --scrollbar-bar-active: #bbb
+  --scrollbar-track: #333
+  --scrollbar-button: #999
+  --scrollbar-button-hover: #bbb
+  --scrollbar-button-active: #ddd
+
+*
+  // Firefox supports CSS Scrollbars Module Level 1:
+  // [https://drafts.csswg.org/css-scrollbars-1/}
+  scrollbar-width: auto
+  scrollbar-color: var(--scrollbar-bar) var(--scrollbar-track)
+
+  // Webkit/Blink browsers support more detailed customization:
+  &::-webkit-scrollbar, &::-webkit-scrollbar-button:single-button
+    width: var(--scrollbar-size)
+    height: var(--scrollbar-size)
+  &::-webkit-scrollbar-track,
+  &::-webkit-scrollbar-piece,
+  &::-webkit-scrollbar-corner
+    background: var(--scrollbar-track)
+  &::-webkit-scrollbar-thumb
+    &:horizontal
+      min-width: 50px
+    &:vertical
+      min-height: 50px
+    border-radius: 6px
+    background-color: var(--scrollbar-bar)
+    border: 3px solid var(--scrollbar-track)
+    &:hover
+      --scrollbar-bar: var(--scrollbar-bar-hover)
+    &:active
+      --scrollbar-bar: var(--scrollbar-bar-active)
+  &::-webkit-scrollbar-button:single-button
+    background-color: var(--scrollbar-button)
+    &:hover
+      --scrollbar-button: var(--scrollbar-button-hover)
+    &:active
+      --scrollbar-button: var(--scrollbar-button-active)
+    &:vertical:start:decrement
+      background:
+        linear-gradient(130deg, var(--scrollbar-button) 40%, rgba(0, 0, 0, 0) 41%),
+        linear-gradient(230deg, var(--scrollbar-button) 40%, rgba(0, 0, 0, 0) 41%),
+        linear-gradient(0deg, var(--scrollbar-button) 40%, rgba(0, 0, 0, 0) 31%),
+        var(--scrollbar-button-triangle)
+    &:vertical:end:increment
+      background:
+        linear-gradient(310deg, var(--scrollbar-button) 40%, rgba(0, 0, 0, 0) 41%),
+        linear-gradient(50deg, var(--scrollbar-button) 40%, rgba(0, 0, 0, 0) 41%),
+        linear-gradient(180deg, var(--scrollbar-button) 40%, rgba(0, 0, 0, 0) 31%),
+        var(--scrollbar-button-triangle)
+    &:horizontal:end:increment
+      background:
+        linear-gradient(210deg, var(--scrollbar-button) 40%, rgba(0, 0, 0, 0) 41%),
+        linear-gradient(330deg, var(--scrollbar-button) 40%, rgba(0, 0, 0, 0) 41%),
+        linear-gradient(90deg, var(--scrollbar-button) 30%, rgba(0, 0, 0, 0) 31%),
+        var(--scrollbar-button-triangle)
+    &:horizontal:start:decrement
+      background:
+        linear-gradient(30deg, var(--scrollbar-button) 40%, rgba(0, 0, 0, 0) 41%),
+        linear-gradient(150deg, var(--scrollbar-button) 40%, rgba(0, 0, 0, 0) 41%),
+        linear-gradient(270deg, var(--scrollbar-button) 30%, rgba(0, 0, 0, 0) 31%),
+        var(--scrollbar-button-triangle)

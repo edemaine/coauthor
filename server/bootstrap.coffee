@@ -1,4 +1,11 @@
-import { idleStop } from '../lib/messages.coffee'
+## Avoid module syntax to support top-level return in eslint.
+#import {dateMin, dateMax} from '/lib/dates'
+#import {idleStop, messageDiffsExpanded} from '/lib/messages'
+{dateMin, dateMax} = require '/lib/dates'
+{idleStop, messageDiffsExpanded} = require '/lib/messages'
+
+if process.env.COAUTHOR_SKIP_UPGRADE_DB
+  return console.log 'Skipping database upgrades.'
 
 ## Upgrade from old file message format (format 'file', body = file pointer)
 ## to new file message format (file = file pointer)

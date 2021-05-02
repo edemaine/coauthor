@@ -1,9 +1,12 @@
+import {formatSearch, parseSearch} from '/lib/search'
+
 Template.search.onCreated ->
   @autorun ->
     setTitle "Search #{Template.currentData()?.search}"
 
 messagesSearch = (group, search) ->
-  query = parseSearch search
+  query = parseSearch search, group
+  return unless query?
   if group != wildGroup
     query = $and: [
       group: group
@@ -13,7 +16,8 @@ messagesSearch = (group, search) ->
 
 topMessagesSearch = (group, search) ->
   msgs = messagesSearch group, search
-  .fetch()
+  return [] unless msgs?
+  msgs = msgs.fetch()
   ## xxx should use default sort, not title sort?
   msgs = _.sortBy msgs, (msg) ->
     msg.group + '/' +
@@ -47,10 +51,10 @@ Template.search.helpers
   messages: ->
     topMessagesSearch @group, @search
   messageCountText: ->
-    pluralize messagesSearch(@group, @search).count(), 'message'
+    pluralize messagesSearch(@group, @search)?.count() ? 0, 'message'
   messageCount: ->
-    messagesSearch(@group, @search).count()
+    messagesSearch(@group, @search)?.count() ? 0
   valid: ->
     parseSearch(@search)?
   formatSearch: ->
-    formatSearch @search
+    formatSearch @search, @group

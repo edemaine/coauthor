@@ -10,6 +10,10 @@ module.exports = (grunt) ->
         src: [
           'client/*.min.css'
         ]
+      old: # used to be copied via Grunt
+        src: [
+          'client/bootstrap/bootstrap-slider.min.css'
+        ]
     less:
       options: ## Based on node_modules/bootstrap/Gruntfile.js
         ieCompat: true
@@ -136,11 +140,6 @@ module.exports = (grunt) ->
         src: [
           'node_modules/bootstrap/dist/js/bootstrap.min.js'
         ]
-        dest: 'client/bootstrap/'
-      bootstrap_slider:
-        expand: true
-        flatten: true
-        src: 'node_modules/bootstrap-slider/dist/css/bootstrap-slider.min.css'
         dest: 'client/bootstrap/'
     replace:
       katex:
@@ -313,7 +312,10 @@ module.exports = (grunt) ->
       return '' unless lang
       if hljs.getLanguage lang
         try
-          return hljs.highlight(lang, text).value
+          return hljs.highlight text,
+            language: lang
+            ignoreIllegals: true
+          .value
       else
         lang = aliases[lang] if lang of aliases
         if lang of languages

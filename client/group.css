@@ -1,7 +1,3 @@
-.disabled {
-  pointer-events: all !important;
-}
-
 .table > tbody > tr.messageShort > td { padding: 0px; } /* override 8px */
 .table > tbody > tr.messageShort > td > a { display: block; color: inherit; padding: 6px 8px; }
 .table > tbody > tr.messageShort:hover > td { background-color: #5cb85c; }

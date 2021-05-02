@@ -1,7 +1,7 @@
 import React from 'react'
 import {useTracker} from 'meteor/react-meteor-data'
 
-@formatDateOnly = (date, prefix = '', absolute) ->
+export formatDateOnly = (date, prefix = '', absolute) ->
   return '???' unless date?
   return "?#{date}?" unless date instanceof Date  ## have seen this briefly, not sure when
   now = new Date
@@ -24,7 +24,7 @@ import {useTracker} from 'meteor/react-meteor-data'
     options.year = 'numeric'
     "#{prefix}#{date.toLocaleDateString 'en-US', options}"
 
-@formatDate = (date, prefix, absolute) ->
+export formatDate = (date, prefix, absolute) ->
   dateOnly = formatDateOnly date, prefix, absolute
   return dateOnly if dateOnly.startsWith '?'
   time = date.getHours() + ':'

@@ -87,24 +87,34 @@ template(name="layout")
     if creditsWide
       +credits
   +loading
-  if uploading
-    .alert.alert-success.footer
-      +uploadProgress
+  +footer
 
 template(name="credits")
   p.credits.clearfix
-    img(src=favicon)
+    img(src=favicon, alt="Coauthor logo")
     | <b>Coauthor</b> written by <a href="http://erikdemaine.org">Erik Demaine</a>, with help from many others.
     span.space
     span.btn-group.btn-group-sm.pull-right
       //-
         a.btn.btn-default(href="mailto:edemaine@mit.edu") Contact Erik
       a.btn.btn-default(href="https://github.com/edemaine/coauthor/#coauthor") Documentation
+      a.btn.btn-default(href="https://github.com/edemaine/coauthor/blob/main/CHANGELOG.md") Recent Changes
       a.btn.btn-default(href="https://github.com/edemaine/coauthor/issues/") Suggestions/Issues
-      a.btn.btn-default(href="https://github.com/edemaine/coauthor/") Download Source
+      a.btn.btn-default(href="https://github.com/edemaine/coauthor/") Source Code
+
+template(name="footer")
+  if showFooter
+    .footer
+      +uploadProgress
+      +migrate
 
 template(name="uploadProgress")
   each uploading
-    label= filename
-    .progress
-      .progress-bar.progress-bar-striped.active(role="progressbar", aria-valuenow=progress, aria-valuemin="0", aria-valuemax="100", style="width: #{progress}%") #{progress}%
+    .alert.alert-success
+      label= filename
+      .progress
+        .progress-bar.progress-bar-striped.active(role="progressbar", aria-valuenow=progress, aria-valuemin="0", aria-valuemax="100", style="width: #{progress}%") #{progress}%
+
+template(name="migrate")
+  if migrate
+    .alert.alert-danger !{migrate}

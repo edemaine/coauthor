@@ -1,3 +1,5 @@
+import {coauthorLinkBodyHashRe, inTag} from './formats'
+
 #markdownMode = 'marked'
 markdownMode = 'markdown-it'
 
@@ -20,7 +22,7 @@ switch markdownMode
     blocks[..] = []
     require('markdown-it/lib/common/html_re').HTML_OPEN_CLOSE_TAG_RE = /\0\0\0/
 
-    @markdownIt = require('markdown-it')
+    markdownIt = require('markdown-it')
       html: true
       linkify: true
       typographer: true
@@ -38,7 +40,7 @@ switch markdownMode
       if links?
         existing = []
         linkRe = /<\s*a\b[^]*<\s*\/a\s*>/g
-        while match = linkRe.exec text
+        while (match = linkRe.exec text)?
           existing.push [match.index, match.index + match[0].length]
         links.reverse()
         for link in links

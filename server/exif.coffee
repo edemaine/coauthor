@@ -28,7 +28,11 @@ Files.find
     stream.on 'data', (chunk) -> chunks.push chunk
     stream.on 'end', Meteor.bindEnvironment ->
       buffer = Buffer.concat chunks
-      meta = ExifParser.create(buffer).parse()
+      try
+        meta = ExifParser.create(buffer).parse()
+      catch e
+        console.warn "Failed to parse EXIF header for file #{file._id}: #{e}"
+        meta = tags: {}
       ## `imageSize` is set to actual image width and height when seeing the
       ## stream, but given that we only look at the initial `readSize` bytes,
       ## we may not see that.  Use `ExifImageWidth` and `ExifImageHeight`
@@ -56,4 +60,5 @@ Files.find
         settings['metadata.height'] = meta.imageSize.height
       Files.update
         _id: file._id
-      , $set: settings
+      ,
+        $set: settings

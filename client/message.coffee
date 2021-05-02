@@ -1,21 +1,31 @@
-import React, {useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react'
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react'
+import ReactDOM from 'react-dom'
 import Dropdown from 'react-bootstrap/Dropdown'
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger'
 import Tooltip from 'react-bootstrap/Tooltip'
 import {useTracker} from 'meteor/react-meteor-data'
 import Blaze from 'meteor/gadicc:blaze-react-component'
+import {useMediaQuery} from 'react-responsive'
 import useEventListener from '@use-it/event-listener'
 
 import {Credits} from './layout.coffee'
 import {ErrorBoundary} from './ErrorBoundary'
-import {FormatDate} from './lib/date'
-import {MessageImage, imageTransform} from './MessageImage'
+import {FormatDate, formatDate} from './lib/date'
+import {MessageImage, imageTransform, messageRotate} from './MessageImage'
 import {MessagePDF} from './MessagePDF'
 import {TagList} from './TagList'
 import {TextTooltip} from './lib/tooltip'
 import {UserInput} from './UserInput'
 import {UserLink} from './UserLink'
 import {resolveTheme} from './theme'
+import {defaultHeight, emailless, messagePreviewDefault} from './settings.coffee'
+import {forceImgReload} from './lib/forceImgReload'
+import {setMigrateSafe, migrateWant} from './lib/migrate'
+import {allEmoji} from '/lib/emoji'
+import {availableFormats, formatBody, formatFile, formatFileDescription, formatTitleOrFilename, parseCoauthorAuthorUrl, parseCoauthorMessageUrl} from '/lib/formats'
+import {ancestorMessages, messageDiffsExpanded, messageNeighbors, sortedMessageReaders} from '/lib/messages'
+import {autosubscribe, defaultNotificationsOn} from '/lib/notifications'
+import {autopublish, defaultKeyboard, userKeyboard, themeEditor} from '/lib/settings'
 
 sharejsEditor = 'cm'  ## 'ace' or 'cm'; also change template used in message.jade
 
@@ -52,11 +62,6 @@ switch sharejsEditor
             "ace/keyboard/#{keyboard}"
       )
 
-@dropdownToggle = (e) ->
-  #$(e.target).parent().dropdown 'toggle'
-  $(e.target).parents('.dropdown-menu').first().parent().find('.dropdown-toggle').dropdown 'toggle'
-  $(e.target).tooltip 'hide'
-
 @routeMessage = ->
   Router.current()?.params?.message
 
@@ -86,7 +91,7 @@ Template.registerHelper 'linkToTag', ->
     group: group
     search: "tag:#{search}"
 
-SubmessageHeader = React.memo ({message}) ->
+export SubmessageHeader = React.memo ({message}) ->
   <>
     <MaybeRootHeader message={message}/>
     <Submessage message={message}/>
@@ -101,20 +106,22 @@ Template.submessageHeaderNoChildren.helpers
   SubmessageHeader: -> SubmessageHeader
   messageNoChildren: -> Object.assign {}, @, children: []
 
-MaybeRootHeader = React.memo ({message}) ->
+export MaybeRootHeader = React.memo ({message}) ->
   return null unless message?.root?
   <ErrorBoundary>
     <RootHeader message={message}/>
   </ErrorBoundary>
 MaybeRootHeader.displayName = 'MaybeRootHeader'
 
-RootHeader = React.memo ({message}) ->
+export RootHeader = React.memo ({message}) ->
   root = useTracker ->
     Messages.findOne message.root
   , [message.root]
   formattedTitle = useMemo ->
     return unless root?
-    formatTitleOrFilename root, false, false, true
+    formatTitleOrFilename root,
+      orUntitled: false
+      bold: true
   , [root]
 
   return null unless root?
@@ -128,8 +135,8 @@ RootHeader = React.memo ({message}) ->
       <span className="space"/>
       <span className="title panel-title"
        dangerouslySetInnerHTML={__html: formattedTitle}/>
-      <MessageTags message={message}/>
-      <MessageLabels message={message}/>
+      <MessageTags message={root}/>
+      <MessageLabels message={root}/>
     </div>
   </div>
 RootHeader.displayName = 'RootHeader'
@@ -182,7 +189,7 @@ authorCount = (field, group) ->
 Template.message.helpers
   MessageID: -> MessageID
 
-MessageID = React.memo ({messageID}) ->
+export MessageID = React.memo ({messageID}) ->
   message = useTracker ->
     Messages.findOne messageID
   , [messageID]
@@ -206,6 +213,74 @@ Message = React.memo ({message}) ->
     setTitle titleOrUntitled message
     undefined
   , [message.title]
+
+  ## Display table of contents according to whether screen is at least
+  ## Bootstrap 3's "sm" size, but allow user to override.
+  isScreenSm = useMediaQuery query: '(min-width: 768px)'
+  [toc, setToc] = useState()
+  useLayoutEffect ->
+    setToc isScreenSm
+  , [isScreenSm]
+  onToc = (e) ->
+    e.preventDefault()
+    setToc not toc
+  useEventListener 'keypress', (e) ->
+    return if e.target.tagName in ['INPUT', 'TEXTAREA']
+    if e.key.toLowerCase() == 't' and not (e.ctrlKey or e.altKey or e.metaKey)
+      e.preventDefault()
+      e.stopPropagation()
+      setToc not toc
+
+  ## Set sticky column height to remaining height of screen:
+  ## 100vh when stuck, and less when header is (partly) visible.
+  stickyRef = useRef()
+  stickyHeight = useCallback _.debounce(->
+    return unless stickyRef.current?
+    rect = stickyRef.current.getBoundingClientRect()
+    stickyRef.current.style.height = "calc(100vh - #{rect.y}px)" if rect.height
+    undefined
+  , 100), []
+  useEffect stickyHeight, [toc]  # initialize
+  useEventListener 'resize', stickyHeight
+  useEventListener 'scroll', stickyHeight
+
+  <>
+    <div className="hidden-print text-right toc-toggle">
+      <OverlayTrigger placement="top" flip overlay={(props) ->
+        <Tooltip {...props}>
+          Click (or type <kbd>t</kbd>) to toggle the right sidebar
+          listing all posts.  Click on post to scroll to that post;
+          drag posts to re-order.
+        </Tooltip>
+      }>
+        <a href="#" onClick={onToc}>
+          {if toc
+            <span className="fas fa-caret-down"/>
+          else
+            <span className="fas fa-caret-right"/>
+          }
+          {' Table of Contents'}
+        </a>
+      </OverlayTrigger>
+    </div>
+    <div className="row">
+      <div className={if toc then "col-xs-9" else "col-xs-12"} role="main">
+        <MaybeRootHeader message={message}/>
+        <Submessage message={message}/>
+        <MessageInfoBoxes message={message}/>
+        <Credits/>
+      </div>
+      {if toc
+        <div className="col-xs-3 hidden-print sticky-top"
+        role="complementary" ref={stickyRef}>
+          <TableOfContentsID messageID={message._id}/>
+        </div>
+      }
+    </div>
+  </>
+Message.displayName = 'Message'
+
+MessageInfoBoxes = React.memo ({message}) ->
   orphans = useTracker ->
     messageOrphans message._id
   , [message._id]
@@ -249,62 +324,54 @@ Message = React.memo ({message}) ->
     )
   , [message._id, message.group]
 
-  <div className="row">
-    <div className="col-md-9" role="main">
-      <MaybeRootHeader message={message}/>
-      <Submessage message={message}/>
-      <div className="authors alert alert-info">
-        {if authors.length
-          <>
-            <p>
-              <b>Coauthors of visible messages in this thread:</b>
-            </p>
-            <p>{authors}</p>
-          </>
+  <>
+    <div className="authors alert alert-info">
+      {if authors.length
+        <>
+          <p>
+            <b>Coauthors of visible messages in this thread:</b>
+          </p>
+          <p>{authors}</p>
+        </>
+      }
+      {if authors.length and mentions.length
+        <hr/>
+      }
+      {if mentions.length
+        <>
+          <p>
+            <b>Users @mentioned in visible messages in this thread:</b>
+          </p>
+          <p>{mentions}</p>
+        </>
+      }
+    </div>
+    <div className="subscribers alert alert-success">
+      <p>
+        {if emailless()
+          <b>Users who can read this message:</b>
+        else
+          <b>Users who can read this message, and whether they are subscribed to notifications:</b>
         }
-        {if authors.length and mentions.length
-          <hr/>
-        }
-        {if mentions.length
-          <>
-            <p>
-              <b>Users @mentioned in visible messages in this thread:</b>
-            </p>
-            <p>{mentions}</p>
-          </>
-        }
-      </div>
-      <div className="subscribers alert alert-success">
+      </p>
+      <p>{subscribers}</p>
+    </div>
+    {if orphans.length
+      <div className="orphans alert alert-warning">
         <p>
-          {if emailless()
-            <b>Users who can read this message:</b>
-          else
-            <b>Users who can read this message, and whether they are subscribed to notifications:</b>
+          <TextTooltip placement="right" title="Orphan subthreads are caused by someone deleting a message that has (undeleted) children, which become orphans.  You can move these orphans to a valid parent, or delete them, or ask the author or a superuser to undelete the original parent.">
+            <b>{pluralize orphans.length, 'orphaned subthread'}:</b>
+          </TextTooltip>
+        </p>
+        <p>
+          {for orphan in orphans
+            <Submessage key={orphan._id} message={orphan}/>
           }
         </p>
-        <p>{subscribers}</p>
       </div>
-      {if orphans.length
-        <div className="orphans alert alert-warning">
-          <p>
-            <TextTooltip placement="right" title="Orphan subthreads are caused by someone deleting a message that has (undeleted) children, which become orphans.  You can move these orphans to a valid parent, or delete them, or ask the author or a superuser to undelete the original parent.">
-              <b>{pluralize orphans.length, 'orphaned subthread'}:</b>
-            </TextTooltip>
-          </p>
-          <p>
-            {for orphan in orphans
-              <Submessage key={orphan._id} message={orphan}/>
-            }
-          </p>
-        </div>
-      }
-      <Credits/>
-    </div>
-    <div className="col-md-3 hidden-print hidden-xs hidden-sm" role="complementary">
-      <TableOfContentsID messageID={message._id}/>
-    </div>
-  </div>
-Message.displayName = 'Message'
+    }
+  </>
+MessageInfoBoxes.displayName = 'MessageInfoBoxes'
 
 editingMessage = (message, user = Meteor.user()) ->
   user? and user.username in (message.editing ? [])
@@ -330,12 +397,6 @@ messageHistory = new ReactiveDict
 messageHistoryAll = new ReactiveDict
 messageKeyboard = new ReactiveDict
 messagePreview = new ReactiveDict
-defaultHeight = 300
-@messagePreviewDefault = ->
-  profile = Meteor.user()?.profile?.preview
-  on: profile?.on ? true
-  sideBySide: profile?.sideBySide ? false
-  height: profile?.height ? defaultHeight
 ## The following helpers should only be called when editing.
 messagePreviewGet = (messageID) ->
   messagePreview.get(messageID) ? messagePreviewDefault()
@@ -391,7 +452,7 @@ messageOnDragStart = (message) -> (e) ->
   e.dataTransfer.setData 'application/coauthor-id', message._id
   e.dataTransfer.setData 'application/coauthor-type',
     if message.file
-      type = fileType message.file
+      fileType message.file
     else
       'message'
 
@@ -400,31 +461,16 @@ messageOnDragStart = (message) -> (e) ->
 ## message that is not naturally folded.
 export naturallyFolded = (message) -> message.minimized or message.deleted
 
-## Cache EXIF orientations, as files should be static
-image2orientation = {}
-@messageRotate = (message) ->
-  if message.file not of image2orientation
-    file = findFile message.file
-    if file
-      image2orientation[message.file] = file.metadata?.exif?.Orientation
-  exifRotate = Orientation2rotate[image2orientation[message.file]]
-  (message.rotate ? 0) + (exifRotate ? 0)
-
-scrollDelay = 750
-
-@scrollToMessage = (id) ->
-  if id[0] == '#'
-    id = id[1..]
-  if id of id2dom
-    dom = id2dom[id]
+export scrollToMessage = (id) ->
+  id = id[1..] if id[0] == '#'
+  if (dom = id2dom[id])?
     $('html, body').animate
-      scrollTop: dom.offsetTop
+      scrollTop: Math.max 0, $(dom).offset().top - 15
     , 200, 'swing', ->
       ## Focus on title edit box when scrolling to message being edited.
       ## We'd like to use `$(dom).find('input.title')`
       ## but want to exclude children.
-      heading = dom.firstChild
-      $(heading).find('input.title').focus() if heading?
+      dom.firstChild?.querySelector('input.title')?.focus()
   else
     scrollToLater = id
     ## Unfold ancestors of clicked message so that it becomes visible.
@@ -441,11 +487,12 @@ Template.readMessage.helpers
   ReadMessage: -> ReadMessage
   messageNoChildren: -> Object.assign {}, @, children: []
 
-ReadMessage = ({message}) ->
+export ReadMessage = ({message}) ->
   <>
     <MaybeRootHeader message={message}/>
     <Submessage message={message} read={true}/>
   </>
+ReadMessage.displayName = 'ReadMessage'
 
 Template.submessage.helpers
   Submessage: -> Submessage
@@ -486,44 +533,46 @@ export MessageLabels = React.memo ({message}) ->
   </span>
 MessageLabels.displayName = 'MessageLabels'
 
-MessageNeighborsOrParent = React.memo ({message}) ->
-  if message.root?
-    <MessageParent message={message}/>
-  else
-    <MessageNeighbors message={message}/>
+export MessageNeighborsOrParent = React.memo ({message}) ->
+  <ErrorBoundary>
+    {if message.root?
+      <MessageParent message={message}/>
+    else
+      <MessageNeighbors message={message}/>
+    }
+  </ErrorBoundary>
 MessageNeighborsOrParent.displayName = 'MessageNeighborsOrParent'
 
 MessageNeighbors = React.memo ({message}) ->
   neighbors = useTracker ->
     messageNeighbors message
   , [message]
+  renderNeighbor = (neighbor, icon, label) ->
+    if neighbor?
+      url = pathFor 'message',
+        group: neighbor.group
+        message: neighbor._id
+      <OverlayTrigger placement="top" flip overlay={(props) ->
+        <Tooltip {...props}>
+          <div dangerouslySetInnerHTML={__html:
+            formatTitleOrFilename neighbor}/>
+        </Tooltip>
+      }>
+        <a className="btn btn-info" href={url}>
+          <span className="fas fa-#{icon}" aria-label={label}/>
+        </a>
+      </OverlayTrigger>
+    else
+      <a className="btn btn-info disabled">
+        <span className="fas fa-#{icon}" aria-hidden="true"/>
+      </a>
   <>
-    {if prev = neighbors.prev
-      <TextTooltip title={prev.title}>
-        <a className="btn btn-info" href={pathFor 'message', {group: prev.group, message: prev._id}}>
-          <span className="fas fa-backward" aria-label="Previous"/>
-        </a>
-      </TextTooltip>
-    else
-      <a className="btn btn-info disabled">
-        <span className="fas fa-backward" aria-hidden="true"/>
-      </a>
-    }
-    {if next = neighbors.next
-      <TextTooltip title={next.title}>
-        <a className="btn btn-info" href={pathFor 'message', {group: next.group, message: next._id}}>
-          <span className="fas fa-forward" aria-label="Next"/>
-        </a>
-      </TextTooltip>
-    else
-      <a className="btn btn-info disabled">
-        <span className="fas fa-forward" aria-hidden="true"/>
-      </a>
-    }
+    {renderNeighbor neighbors.prev, 'backward', 'Previous'}
+    {renderNeighbor neighbors.next, 'forward', 'Next'}
   </>
 MessageNeighbors.displayName = 'MessageNeighbors'
 
-MessageParent = React.memo ({message}) ->
+export MessageParent = React.memo ({message}) ->
   parent = useTracker ->
     findMessageParent message._id
   , [message._id]
@@ -535,7 +584,7 @@ MessageParent = React.memo ({message}) ->
   </TextTooltip>
 MessageParent.displayName = 'MessageParent'
 
-MessageEditor = React.memo ({message, setEditBody, tabindex}) ->
+export MessageEditor = React.memo ({message, setEditBody, tabindex}) ->
   messageID = message._id
   [editor, setEditor] = useState()
   useEffect ->
@@ -612,9 +661,9 @@ MessageEditor = React.memo ({message, setEditBody, tabindex}) ->
               left: e.x
               top: e.y
             replacement = embedFile type, id, pos
-          else if match = parseCoauthorMessageUrl text, true
+          else if (match = parseCoauthorMessageUrl text, true)?
             replacement = "coauthor:#{match.message}#{match.hash}"
-          else if match = parseCoauthorAuthorUrl text
+          else if (match = parseCoauthorAuthorUrl text)?
             replacement = "@#{match.author}"
           else
             replacement = text
@@ -663,13 +712,13 @@ MessageEditor = React.memo ({message, setEditBody, tabindex}) ->
               paste = (line for line in paste when line.length)
           else if 'text/plain' in e.clipboardData.types
             text = e.clipboardData.getData 'text/plain'
-            if match = parseCoauthorMessageUrl text, true
+            if (match = parseCoauthorMessageUrl text, true)?
               paste = ["coauthor:#{match.message}#{match.hash}"]
               if not match.hash
                 msg = findMessage match.message
                 if msg?.file? and type = fileType msg.file
                   paste = [embedFile type, match.message, editor.getCursor()]
-            else if match = parseCoauthorAuthorUrl text
+            else if (match = parseCoauthorAuthorUrl text)?
               paste = ["@#{match.author}"]
         editor.on 'beforeChange', (cm, change) ->
           if change.origin == 'paste' and paste?
@@ -761,13 +810,21 @@ MessageEditor = React.memo ({message, setEditBody, tabindex}) ->
     editorKeyboard editor, messageKeyboard.get(messageID) ? userKeyboard()
   , [editor, messageID]
   <MessageEditor_ messageID={messageID} setEditor={setEditor} tabindex={tabindex}/>
-
-MessageEditor_ = React.memo ({messageID, setEditor, tabindex}) ->
-  <Blaze template="sharejs" docid={messageID}
-   onRender={-> (editor) -> setEditor editor}/>
 MessageEditor.displayName = 'MessageEditor'
 
-BelowEditor = React.memo ({message, preview, safeToStopEditing, editStopping}) ->
+export MessageEditor_ = React.memo ({messageID, setEditor, tabindex}) ->
+  <Blaze template="sharejs" docid={messageID}
+   onRender={-> (editor) -> setEditor editor}
+   onError={-> (error) ->
+     if error == 'Document does not exist'  # Server restarted
+       @disconnect() # => preserve local edits (otherwise rejects everything)
+   }/>
+MessageEditor_.displayName = 'MessageEditor_'
+
+export BelowEditor = React.memo ({message, preview, safeToStopEditing, editStopping}) ->
+  migrated = useTracker ->
+    migrateWant.get()
+  , []
   myUsername = useTracker ->
     Meteor.user()?.username
   , []
@@ -871,6 +928,10 @@ BelowEditor = React.memo ({message, preview, safeToStopEditing, editStopping}) -
       <div className="alert alert-#{if safeToStopEditing then 'success' else 'danger'} below-editor-alert">
         {if safeToStopEditing
           'All changes saved.'
+        else if migrated
+          <>
+            <b>SERVER HAS RESET</b>. Please copy this message's contents to your clipboard and a temporary file, and then reload the page.
+          </>
         else if editStopping
           'Unsaved changes. Stopping editing once saved...'
         else
@@ -938,7 +999,7 @@ BelowEditor = React.memo ({message, preview, safeToStopEditing, editStopping}) -
               <React.Fragment key={user}>
                 {', ' if count++}
                 <UserLink group={message.group} username={user}/>
-                {if true
+                {if true ### eslint-disable-line coffee/no-constant-condition ###
                   <>
                     {' '}
                     <a href="#" onClick={onRemoveAccess}
@@ -992,55 +1053,55 @@ messagePanelClass = (message, editing) ->
 Template.registerHelper 'creator', ->
   displayUser @creator
 
-KeyboardSelector = React.memo ({messageID, tabindex}) ->
+export KeyboardSelector = React.memo ({messageID, tabindex}) ->
   keyboard = useTracker ->
     messageKeyboard.get(messageID) ? userKeyboard()
   , [messageID]
 
   onClick = (e) ->
     e.preventDefault()
-    e.stopPropagation()
     messageKeyboard.set messageID, e.target.getAttribute 'data-keyboard'
-    dropdownToggle e
 
-  <div className="btn-group">
-    <button className="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" tabIndex={tabindex}>
+  <Dropdown className="btn-group">
+    <Dropdown.Toggle variant="default" tabIndex={tabindex}>
       {"#{capitalize keyboard} "}
       <span className="caret"/>
-    </button>
-    <ul className="dropdown-menu" role="menu">
+    </Dropdown.Toggle>
+    <Dropdown.Menu>
       {for k in ['normal', 'vim', 'emacs']
-        <li key={k} className="editorKeyboard #{if keyboard == k then 'active' else ''}" onClick={onClick}>
-          <a href="#" data-keyboard={k}>{capitalize k}</a>
+        <li key={k} className="editorKeyboard #{if keyboard == k then 'active' else ''}">
+          <Dropdown.Item href="#" data-keyboard={k} onClick={onClick}>
+            {capitalize k}
+          </Dropdown.Item>
         </li>
       }
-    </ul>
-  </div>
+    </Dropdown.Menu>
+  </Dropdown>
 KeyboardSelector.displayName = 'KeyboardSelector'
 
-FormatSelector = React.memo ({messageID, format, tabindex}) ->
+export FormatSelector = React.memo ({messageID, format, tabindex}) ->
   format ?= defaultFormat
 
   onClick = (e) ->
     e.preventDefault()
-    e.stopPropagation()
     Meteor.call 'messageUpdate', messageID,
       format: e.target.getAttribute 'data-format'
-    dropdownToggle e
 
-  <div className="btn-group">
-    <button className="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" tabIndex={tabindex}>
+  <Dropdown className="btn-group">
+    <Dropdown.Toggle variant="default" tabIndex={tabindex}>
       {"#{capitalize format} "}
       <span className="caret"/>
-    </button>
-    <ul className="dropdown-menu" role="menu">
+    </Dropdown.Toggle>
+    <Dropdown.Menu>
       {for f in availableFormats
-        <li key={f} className="editorFormat #{if format == f then 'active' else ''}" onClick={onClick}>
-          <a href="#" data-format={f}>{capitalize f}</a>
+        <li key={f} className="editorFormat #{if format == f then 'active' else ''}">
+          <Dropdown.Item href="#" data-format={f} onClick={onClick}>
+            {capitalize f}
+          </Dropdown.Item>
         </li>
       }
-    </ul>
-  </div>
+    </Dropdown.Menu>
+  </Dropdown>
 FormatSelector.displayName = 'FormatSelector'
 
 # Still needed for Settings
@@ -1082,20 +1143,23 @@ Template.superdelete.events
     e.stopPropagation()
     Modal.hide()
 
+import 'bootstrap-slider/dist/css/bootstrap-slider.min.css'
+
 Slider = null  # will become default import of 'bootstrap-slider' NPM package
 MessageHistory = React.memo ({message}) ->
   ready = useTracker ->
     Meteor.subscribe 'messages.diff', message._id
-    .ready
+    .ready()
   , [message._id]
   input = useRef()
   {diffs, index} = useTracker ->
     unless Slider?
       Session.set 'SliderLoading', true
       Session.get 'SliderLoading'  # rerun tracker once Slider loaded
-      return `import('bootstrap-slider')`.then (imported) ->
+      import('bootstrap-slider').then (imported) ->
         Slider = imported.default
         Session.set 'SliderLoading', false
+      return {}
     previous = messageHistory.get(message._id)?.diffId
     diffs = messageDiffsExpanded message
     ## Restrict to finished diffs if requested, preserving last chosen diff
@@ -1130,6 +1194,7 @@ MessageHistory = React.memo ({message}) ->
       reversed: diffs.length == 1  ## put one tick at far right
       tooltip: 'always'
       tooltip_position: 'bottom'
+      preventOverflow: true
       formatter: (i) ->
         if i of diffs
           formatDate(diffs[i].updated) + '\n' + diffs[i].updators.join ', '
@@ -1144,7 +1209,11 @@ MessageHistory = React.memo ({message}) ->
 
   <div className="historySlider">
     <input type="text" ref={input}/>
+    {unless ready
+      <Blaze template="loading"/>
+    }
   </div>
+MessageHistory.displayName = 'MessageHistory'
 
 privacyOptions = [
   code: 'public'
@@ -1163,36 +1232,34 @@ privacyOptionsByCode = {}
 for option in privacyOptions
   privacyOptionsByCode[option.code] = option
 
-ThreadPrivacy = React.memo ({message, tabindex}) ->
+export ThreadPrivacy = React.memo ({message, tabindex}) ->
   onPrivacy = (e) ->
     e.preventDefault()
-    e.stopPropagation()
     Meteor.call 'threadPrivacy', message._id,
       privacyOptionsByCode[e.target.getAttribute 'data-code'].list
-    dropdownToggle e
 
-  <div className="btn-group">
-    <button className="btn btn-warning dropdown-toggle threadPrivacyToggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" tabIndex={tabindex}>
+  <Dropdown className="btn-group">
+    <Dropdown.Toggle variant="warning" tabIndex={tabindex}>
       {"Thread Privacy "}
       <span className="caret"/>
-    </button>
-    <ul className="dropdown-menu" role="menu">
+    </Dropdown.Toggle>
+    <Dropdown.Menu>
       {for privacy in privacyOptions
         active = _.isEqual _.sortBy(privacy.list),
                            _.sortBy(message.threadPrivacy ? ['public'])
         <li key={privacy.code} className="threadPrivacy #{if active then 'active' else ''}">
-          <a href="#" data-code={privacy.code} onClick={onPrivacy}>
+          <Dropdown.Item href="#" data-code={privacy.code} onClick={onPrivacy}>
             {privacy.display}
-          </a>
+          </Dropdown.Item>
         </li>
       }
-    </ul>
-  </div>
+    </Dropdown.Menu>
+  </Dropdown>
+ThreadPrivacy.displayName = 'ThreadPrivacy'
 
-EmojiButtons = React.memo ({message, can}) ->
+export EmojiButtons = React.memo ({message, can}) ->
   emojis = useTracker ->
-    Emoji.find group: $in: [wildGroup, message.group]
-    .fetch()
+    allEmoji message.group
   , [message.group]
   ## Variation of lib/emoji.coffee's `emojiReplies`:
   replies = useTracker ->
@@ -1208,9 +1275,9 @@ EmojiButtons = React.memo ({message, can}) ->
         me: Meteor.user()?.username in usernames
         count: usernames.length
   , [message.emoji, emojis]
+  [showTooltip, setShowTooltip] = useState false
 
   onEmojiAdd = (e) ->
-    e.preventDefault()
     symbol = e.currentTarget.getAttribute 'data-symbol'
     #exists = EmojiMessages.findOne
     #  message: message._id
@@ -1222,9 +1289,10 @@ EmojiButtons = React.memo ({message, can}) ->
       console.warn "Attempt to add duplicate emoji '#{symbol}' to message #{message}"
     else
       Meteor.call 'emojiToggle', message._id, symbol
+    setTimeout ->
+      setShowTooltip false
+    , 0  # hide tooltip after it gets focus from menu close
   onEmojiToggle = (e) ->
-    e.preventDefault()
-    e.stopPropagation()
     symbol = e.currentTarget.getAttribute 'data-symbol'
     Meteor.call 'emojiToggle', message._id, symbol
 
@@ -1233,7 +1301,8 @@ EmojiButtons = React.memo ({message, can}) ->
       <>
         {if emojis.length
           <Dropdown className="btn-group">
-            <TextTooltip title="Add emoji response">
+            <TextTooltip title="Add emoji response"
+             show={showTooltip} onToggle={setShowTooltip}>
               <Dropdown.Toggle variant="default">
                 <span className="fas fa-plus emoji-plus" aria-hidden="true"/>
                 {' '}
@@ -1282,6 +1351,7 @@ export uploaderProps = (callback, inputRef) ->
       e.preventDefault()
       e.stopPropagation()
       inputRef.current.click()
+  dropProps:
     onDragEnter: (e) ->
       e.preventDefault()
       e.stopPropagation()
@@ -1297,19 +1367,57 @@ export uploaderProps = (callback, inputRef) ->
       callback e.target.files, e
       e.target.value = ''
 
-ReplyButtons = React.memo ({message, prefix}) ->
+export ReplyButtons = React.memo ({message, prefix}) ->
   attachInput = useRef()
+  defaultPublished = useTracker ->
+    autopublish()
+  , []
+  ## If parent is unpublished or deleted, inherit that state by default
+  ## (in the former case, overriding autopublish setting).
+  defaultPublished and= Boolean message.published
+  defaultDeleted = Boolean message.deleted
+  adjectives = []
+  adjectives.push 'unpublished' unless defaultPublished
+  adjectives.push 'deleted' if defaultDeleted
+  adjectives.push 'private' if message.private
+  adjectives = adjectives.join ' '
+  adjectives += ' ' if adjectives
+  once = []
+  once.push 'published' unless defaultPublished
+  once.push 'undeleted' if defaultDeleted
+  if once.length
+    once = " (once #{once.join ' and '})"
+  else
+    once = ''
+  defaultVariant =
+    if defaultPublished
+      if message.private
+        'info'
+      else
+        'default'
+    else
+      'warning'
+  unless defaultPublished
+    prefix ?= 'Unpublished '
 
   onReply = (e) ->
     e.preventDefault()
     e.stopPropagation()
     return unless canReply message
     reply = {}
-    switch e.target.getAttribute 'data-privacy'
+    switch e.currentTarget.getAttribute 'data-privacy'
       when 'public'
         reply.private = false
       when 'private'
         reply.private = true
+    switch e.currentTarget.getAttribute 'data-published'
+      when 'false'
+        reply.published = false
+      when 'true'
+        reply.published = true
+      else
+        reply.published = defaultPublished
+    reply.deleted = defaultDeleted
     Meteor.call 'messageNew', message.group, message._id, null, reply, (error, result) ->
       if error
         console.error error
@@ -1330,6 +1438,8 @@ ReplyButtons = React.memo ({message, prefix}) ->
           callbacks[i] = ->
             Meteor.call 'messageNew', message.group, message._id, null,
               file: file2.uniqueIdentifier
+              deleted: defaultDeleted
+              published: defaultPublished
               finished: true
             , done
           ## But call all the callbacks in order by file, so that replies
@@ -1339,51 +1449,109 @@ ReplyButtons = React.memo ({message, prefix}) ->
             called += 1
       file.group = message.group
       Files.resumable.addFile file, e
-  {buttonProps, inputProps} = uploaderProps attachFiles, attachInput
+  {buttonProps, dropProps, inputProps} = uploaderProps attachFiles, attachInput
 
   threadPrivacy = message.threadPrivacy ? ['public']
   publicReply = 'public' in threadPrivacy
   privateReply = 'private' in threadPrivacy
 
-  <div className="btn-group pull-right message-reply-buttons">
-    {if publicReply and not privateReply
-      # normal reply, not necessarily public
-      if message.private
-        <TextTooltip placement="bottom" title="A reply to a private message will be private but automatically start accessible to the same users (once they are published and not deleted). You can modify that access when editing the reply. Access does not stay synchronized, so if you later modify the parent's access, consider modifying the child too.">
-          <button className="btn btn-default replyButton" onClick={onReply}>
-            {prefix}
-            Reply All
-          </button>
-        </TextTooltip>
+  <Dropdown className="message-reply-buttons btn-group pull-right">
+    <Dropdown.Toggle variant="default" {...dropProps}>
+      {"Reply/Attach "}
+      <span className="caret"/>
+    </Dropdown.Toggle>
+    <Dropdown.Menu align="right" className="buttonMenu replyMenu">
+      {if publicReply and not privateReply
+        # normal reply, not necessarily public
+        if message.private
+          <li>
+            <TextTooltip placement="left" title="A reply to a private message will be private but automatically start accessible to the same users (once they are published and not deleted). You can modify that access when editing the reply. Access does not stay synchronized, so if you later modify the parent's access, consider modifying the child too.">
+              <Dropdown.Item href="#" onClick={onReply}>
+                <button className="btn btn-#{defaultVariant} btn-block replyButton">
+                  {prefix}
+                  Reply
+                </button>
+              </Dropdown.Item>
+            </TextTooltip>
+          </li>
+        else
+          <li>
+            <TextTooltip placement="left" title="Start a new #{adjectives}child message of this one, #{if defaultPublished then 'immediately ' else ''}visible to everyone in this thread#{once}.">
+              <Dropdown.Item href="#" onClick={onReply}>
+                <button className="btn btn-#{defaultVariant} btn-block replyButton">
+                  {prefix}
+                  Reply
+                </button>
+              </Dropdown.Item>
+            </TextTooltip>
+          </li>
       else
-        <button className="btn btn-default replyButton" onClick={onReply}>
-          {prefix}
-          Reply
-        </button>
-    else
-      <>
-        {if publicReply
-          <button className="btn btn-default replyButton"
-           data-privacy="public" onClick={onReply}>
-            {prefix}
-            Public Reply
-          </button>
-        }
-        {if privateReply
-          <button className="btn btn-default replyButton"
-           data-privacy="private" onClick={onReply}>
-            {prefix}
-            Private Reply
-          </button>
-        }
-      </>
-    }
-    <input className="attachInput" type="file" multiple ref={attachInput} {...inputProps}/>
-    <button className="btn btn-default attachButton" {...buttonProps}>Attach</button>
-  </div>
+        <>
+          {if publicReply
+            <li>
+              <TextTooltip placement="left" title="Start a new #{adjectives}child message of this one, visible to everyone in this thread#{once}.">
+                <Dropdown.Item href="#" data-privacy="public" onClick={onReply}>
+                  <button className="btn btn-#{defaultVariant} btn-block replyButton">
+                    {prefix}
+                    Public Reply
+                  </button>
+                </Dropdown.Item>
+              </TextTooltip>
+            </li>
+          }
+          {if privateReply
+            <li>
+              <TextTooltip placement="left" title="Start a new #{adjectives}child message of this one, visible only to coauthors and those explicitly given access#{once}, initially set to coauthors of the message you're replying to.">
+                <Dropdown.Item href="#" data-privacy="private" onClick={onReply}>
+                  <button className="btn btn-info btn-block replyButton">
+                    {prefix}
+                    Private Reply
+                  </button>
+                </Dropdown.Item>
+              </TextTooltip>
+            </li>
+          }
+        </>
+      }
+      <li>
+        <Dropdown.Item href="#" {...buttonProps} {...dropProps}>
+          <TextTooltip placement="left" title="Start a new #{adjectives}child message of this one that contains a single file attachment (or one message for each file, if you select multiple files; you can also drag files onto the Reply button). You can then edit the title and body of the file like a regular message.">
+            <button className="btn btn-#{defaultVariant} btn-block">
+              Reply with Attached File
+            </button>
+          </TextTooltip>
+        </Dropdown.Item>
+      </li>
+      {
+      ## Offer second (un)published option only if parent published;
+      ## if parent unpublisehd, then we only offer unpublished above.
+      if message.published
+        <li>
+          <Dropdown.Item href="#" data-published="#{not defaultPublished}" onClick={onReply}>
+            {if defaultPublished
+              <TextTooltip placement="left" title="Start a new #{adjectives}child message of this one that starts in the unpublished state, so it will become generally visible only when you select Action / Publish.">
+                <button className="btn btn-warning btn-block">
+                  Unpublished Reply
+                </button>
+              </TextTooltip>
+            else
+              <TextTooltip placement="left" title="Start a new #{adjectives}child message of this one that starts in the published state, so everyone in this thread can see it immediately#{if defaultDeleted then ' (once undeleted)' else ''}.">
+                <button className="btn btn-success btn-block">
+                  {prefix unless prefix == 'Unpublished '}
+                  Published Reply
+                </button>
+              </TextTooltip>
+            }
+          </Dropdown.Item>
+        </li>
+      }
+    </Dropdown.Menu>
+    <input className="attachInput" type="file" multiple ref={attachInput}
+     {...inputProps}/>
+  </Dropdown>
 ReplyButtons.displayName = 'ReplyButtons'
 
-MessageReplace = React.memo ({_id, group, tabindex}) ->
+export MessageReplace = React.memo ({_id, group, tabindex}) ->
   replaceInput = useRef()
 
   replaceFiles = (files, e, t) ->
@@ -1402,20 +1570,17 @@ MessageReplace = React.memo ({_id, group, tabindex}) ->
         Meteor.call 'messageUpdate', _id, diff, done
       file.group = group
       Files.resumable.addFile file, e
-  {buttonProps, inputProps} = uploaderProps replaceFiles, replaceInput
+  {buttonProps, dropProps, inputProps} = uploaderProps replaceFiles, replaceInput
 
   <>
     <input className="replaceInput" type="file" ref={replaceInput} {...inputProps}/>
-    <button className="btn btn-info replaceButton" tabIndex={tabindex} {...buttonProps}>Replace File</button>
+    <TextTooltip title="Replace the file attachment of this message with a new file. Alternatively, you can drag a file onto this button. The old file will still be available through History.">
+      <button className="btn btn-info replaceButton" tabIndex={tabindex} {...buttonProps} {...dropProps}>Replace File</button>
+    </TextTooltip>
   </>
 MessageReplace.displayName = 'MessageReplace'
 
-$(window).resize affixResize = _.debounce ->
-  $('.affix').height $(window).height()
-  $('.affix-top').height $(window).height() - $('#top').outerHeight true
-, 100
-
-TableOfContentsID = React.memo ({messageID, parent, index}) ->
+export TableOfContentsID = React.memo ({messageID, parent, index}) ->
   message = useTracker ->
     Messages.findOne messageID
   , [messageID]
@@ -1423,21 +1588,26 @@ TableOfContentsID = React.memo ({messageID, parent, index}) ->
   <TableOfContents message={message} parent={parent} index={index}/>
 TableOfContentsID.displayName = 'TableOfContentsID'
 
-TableOfContents = React.memo ({message, parent, index}) ->
+export TableOfContents = React.memo ({message, parent, index}) ->
   <ErrorBoundary>
     <WrappedTableOfContents message={message} parent={parent} index={index}/>
   </ErrorBoundary>
 TableOfContents.displayName = 'TableOfContents'
 
-WrappedTableOfContents = React.memo ({message, parent, index}) ->
+export WrappedTableOfContents = React.memo ({message, parent, index}) ->
   isRoot = not parent?  # should not differ between calls (for hook properties)
   formattedTitle = useTracker ->
-    formatTitleOrFilename message, false, false, isRoot  ## don't say (untitled)
+    formatTitleOrFilename message,
+      orUntitled: false
+      bold: isRoot
   , [message, isRoot]
   user = useTracker ->
     Meteor.user()
   , []
   editing = editingMessage message, user
+  editors = useTracker ->
+    (displayUser editor for editor in message.editing ? []).join ', '
+  , [message.editing?.join ',']
   folded = useTracker ->
     (messageFolded.get message._id) and
     not (routeHere message._id) and           # never fold if top-level message
@@ -1460,9 +1630,11 @@ WrappedTableOfContents = React.memo ({message, parent, index}) ->
        onDragStart={messageOnDragStart message}
        onDragEnter={addDragOver} onDragLeave={removeDragOver}
        onDragOver={dragOver} onDrop={dropOn}>
-        {if message.editing?.length
+        {if editors
           <>
-            <span className="fas fa-edit"/>
+            <TextTooltip title={"Being edited by #{editors}"}>
+              <span className="fas fa-edit"/>
+            </TextTooltip>
             {' '}
           </>
         }
@@ -1474,17 +1646,32 @@ WrappedTableOfContents = React.memo ({message, parent, index}) ->
         }
         <span dangerouslySetInnerHTML={__html: formattedTitle}/>
         {' '}
-        [{creator}]
+        <span className="creator">
+          [{creator}]
+        </span>
       </a>
     </>
   renderedChildren = useMemo ->
     return unless children.length
-    <ul className="nav subcontents">
-      {for [child, index] in children
-        <TableOfContents key={child._id} message={child} parent={message._id} index={index}/>
-      }
-    </ul>
+    for [child, index] in children
+      <TableOfContents key={child._id} message={child} parent={message._id} index={index}/>
   , [children]
+  [hover, setHover] = useState false
+  [tocFolded, setTocFolded] = useState Boolean message.minimized
+
+  children =
+    if renderedChildren?
+      if tocFolded
+        <div className="nav foldedContents" onClick={(e) -> setTocFolded false}>
+          <div className="line"/>
+        </div>
+      else
+        <ul className="nav subcontents #{if hover then 'hover' else ''}"
+         onMouseOver={(e) -> setHover e.target == e.currentTarget}
+         onMouseLeave={(e) -> setHover false if e.target == e.currentTarget}
+         onClick={(e) -> setTocFolded true if e.target == e.currentTarget}>
+          {renderedChildren}
+        </ul>
 
   if isRoot
     ref = useRef()
@@ -1492,12 +1679,7 @@ WrappedTableOfContents = React.memo ({message, parent, index}) ->
       return unless ref.current?
       $('body').scrollspy
         target: 'nav.contents'
-      nav = $(ref.current)
-      nav.affix
-        offset: top: $('#top').outerHeight true
-      affixResize()
-      nav.on 'affixed.bs.affix', affixResize
-      nav.on 'affixed-top.bs.affix', affixResize
+        offset: 100
       undefined
     , []
 
@@ -1507,12 +1689,12 @@ WrappedTableOfContents = React.memo ({message, parent, index}) ->
           {inner}
         </li>
       </ul>
-      {renderedChildren}
+      {children}
     </nav>
   else
     <li className="btn-group-xs #{if folded then 'folded' else ''}">
       {inner}
-      {renderedChildren}
+      {children}
     </li>
 WrappedTableOfContents.displayName = 'WrappedTableOfContents'
 
@@ -1520,11 +1702,13 @@ addDragOver = (e) ->
   e.preventDefault()
   e.stopPropagation()
   e.currentTarget.classList.add 'dragover'
+  e.target.classList.add 'dragging'
 removeDragOver = (e) ->
   return unless e.target == e.currentTarget
   e.preventDefault()
   e.stopPropagation()
   e.currentTarget.classList.remove 'dragover'
+  e.target.classList.remove 'dragging'
 dragOver = (e) ->
   return unless e.target == e.currentTarget
   e.preventDefault()
@@ -1542,7 +1726,7 @@ dropOn = (e) ->
         dragId = url.hash[1..]
       else
         dragId = url?.message
-  if index = e.currentTarget.getAttribute 'data-index'
+  if (index = e.currentTarget.getAttribute 'data-index')
     index = parseInt index
     dropId = e.currentTarget.getAttribute 'data-parent'
   else
@@ -1647,13 +1831,13 @@ Template.messageParentDialog.onRendered ->
 Template.messageParentDialog.events
   "typeahead:autocomplete .parent, typeahead:cursorchange .parent, typeahead:select .parent, input .parent": (e, t) ->
     text = t.find('.tt-input').value
-    if match = ///(?:^\s*|[\[/:])(#{idRegex})\]?\s*$///.exec text
+    if (match = ///(?:^\s*|[\[/:])(#{idRegex})\]?\s*$///.exec text)?
       msg = findMessage(match[1]) ? {_id: match[1]}  # allow unknown message ID
       if e.type == 'input' and t.parent.get()?._id != match[1] and
          msg.creator?  # hand-typed new good message ID
         t.$('.typeahead').typeahead 'close'
       t.parent.set msg
-    else if match = /^\s*Group:\s*(.*?)\s*$/i.exec text
+    else if (match = /^\s*Group:\s*(.*?)\s*$/i.exec text)?
       t.parent.set
         isGroup: true
         group: match[1]
@@ -1679,7 +1863,7 @@ Template.messageParentDialog.events
 Template.groupOrMessage.helpers
   loadedMessage: -> @creator?
 
-SubmessageID = React.memo ({messageID, read}) ->
+export SubmessageID = React.memo ({messageID, read}) ->
   message = useTracker ->
     Messages.findOne messageID
   , [messageID]
@@ -1687,14 +1871,14 @@ SubmessageID = React.memo ({messageID, read}) ->
   <Submessage message={message} read={read}/>
 SubmessageID.displayName = 'SubmessageID'
 
-Submessage = React.memo ({message, read}) ->
+export Submessage = React.memo ({message, read}) ->
   <ErrorBoundary>
     <WrappedSubmessage message={message} read={read}/>
   </ErrorBoundary>
 Submessage.displayName = 'Submessage'
 
 submessageCount = 0
-WrappedSubmessage = React.memo ({message, read}) ->
+export WrappedSubmessage = React.memo ({message, read}) ->
   here = useTracker ->
     routeHere message._id
   , [message._id]
@@ -1705,72 +1889,6 @@ WrappedSubmessage = React.memo ({message, read}) ->
   user = useTracker ->
     Meteor.user()
   , []
-  editing = editingMessage message, user
-  editing = false if read
-  editors = useTracker ->
-    (displayUser editor for editor in message.editing ? []).join ', '
-  , [message.editing?.join ',']
-  raw = useTracker ->
-    not editing and messageRaw.get message._id
-  , [message._id, editing]
-  raw = false if read
-  folded = useTracker ->
-    (messageFolded.get message._id) and
-    not here and                              # never fold if top-level message
-    not editing and                           # never fold if editing
-    not read
-  , [message._id, here, editing]
-  {history, historyAll} = useTracker ->
-    history: messageHistory.get message._id
-    historyAll: messageHistoryAll.get message._id
-  , [message._id]
-  history = historyAll = null if read
-  historified = history ? message
-  messageFileType = useTracker ->
-    if historified.file
-      fileType historified.file
-  , [historified.file]
-  preview = useTracker ->
-    if history?
-      on: true
-      sideBySide: false
-    else
-      messagePreviewGet message._id
-  , [history?, message._id]
-  formattedTitle = useTracker ->
-    for bold in [true, false]
-      ## Only render unbold title if we have children (for back pointer)
-      continue unless bold or message.children.length > 0
-      if raw
-        "<CODE CLASS='raw'>#{_.escape historified.title}</CODE>"
-      else
-        formatTitleOrFilename historified, false, false, bold  ## don't say (untitled)
-  , [historified.title, historified.file, historified.format, raw, message.children.length > 0]
-  formattedBody = useTracker ->
-    return historified.body unless historified.body
-    if raw
-      "<PRE CLASS='raw'>#{_.escape historified.body}</PRE>"
-    else
-      formatBody historified.format, historified.body
-  , [historified.body, historified.format, raw]
-  formattedFile = useTracker ->
-    formatted = formatFile historified
-    description: formatFileDescription historified
-    file:
-      if raw and formatted
-        "<PRE CLASS='raw'>#{_.escape formatted}</PRE>"
-      else
-        formatted
-  , [historified.file, historified._id, raw]
-  absentTags = useTracker ->
-    Tags.find
-      group: message.group
-      key: $nin: _.keys message.tags ? {}
-      deleted: false
-    ,
-      sort: ['key']
-    .fetch()
-  , [message.group, _.keys(message.tags ? {}).join '\n']
   children = message.readChildren ? useChildren message
   can = useTracker ->
     delete: canDelete message._id
@@ -1779,41 +1897,68 @@ WrappedSubmessage = React.memo ({message, read}) ->
     unpublish: canUnpublish message._id
     minimize: canMinimize message._id
     unminimize: canUnminimize message._id
+    protect: canProtect message._id
     superdelete: canSuperdelete message._id
     private: canPrivate message._id
     parent: canMaybeParent message._id
     edit: canEdit message._id
     reply: canReply message
     super: canSuper message.group
+    becomeSuper: canSuper message.group, false
   , [message._id]
   ref = useRef()
   messageBodyRef = useRef()
+  addTagRef = useRef()
 
-  ## Support dragging rendered attachment like dragging message itself
-  messageFileRef = useRef()
-  useEffect ->
-    return if folded or history? or not messageFileRef.current?
-    listener = messageOnDragStart message
-    elts = messageFileRef.current.querySelectorAll 'img, video, a, canvas'
-    elt.addEventListener 'dragstart', listener for elt in elts
-    -> elt.removeEventListener 'dragstart', listener for elt in elts
-  , [folded, history?, message]
-
-  unless read  # should not change
+  if read  # should not change
+    editing = raw = folded = false
+    history = historyAll = null
+    preview = messagePreviewDefault
+  else
     ## Editing toggle
     [editTitle, setEditTitle] = useState ''
-    [editBody, setEditBody] = useState ''
+    [editBody, setEditBody] = useState null
+      # special value null indicates meaning not editing so safe
     [editStopping, setEditStopping] = useState()
-    safeToStopEditing =
-      message.title == editTitle and message.body == editBody
+    safeToStopEditing = not editBody? or
+      (message.title == editTitle and message.body == editBody)
     useEffect ->
+      setMigrateSafe message._id, safeToStopEditing
       if editStopping and safeToStopEditing
         Meteor.call 'messageEditStop', message._id, (error, result) ->
           if error?
             console.error error
           else
             setEditStopping false
-      undefined
+    , [editStopping, safeToStopEditing]
+    ## When component unmounts, editor closes, so mark migration as safe.
+    useEffect ->
+      -> setMigrateSafe message._id, true
+    , []
+
+    ## Are we editing?
+    editing = editingMessage message, user
+    editing or= not safeToStopEditing  # Keep editing if unsaved changes
+    raw = useTracker ->
+      not editing and messageRaw.get message._id
+    , [message._id, editing]
+    folded = useTracker ->
+      (messageFolded.get message._id) and
+      not here and                         # never fold if top-level message
+      not editing                          # never fold if editing
+    , [message._id, here, editing]
+    {history, historyAll} = useTracker ->
+      history: messageHistory.get message._id
+      historyAll: messageHistoryAll.get message._id
+    , [message._id]
+    history = null if editing
+    preview = useTracker ->
+      if history? or not editing  # Always show message in these views
+        on: true
+        sideBySide: false
+      else
+        messagePreviewGet message._id
+    , [history?, editing, message._id]
 
     ## Title editing
     timer = useRef null
@@ -1844,6 +1989,7 @@ WrappedSubmessage = React.memo ({message, read}) ->
       else
         lastTitle.current = null
         savedTitles.current = []
+        setEditBody null
       undefined
     , [editing, editTitle, message.title]
 
@@ -1883,6 +2029,14 @@ WrappedSubmessage = React.memo ({message, read}) ->
         checkImage message._id
     , [message._id]
 
+    ## Give focus to Title input if this is the only message (e.g., we just
+    ## started a new thread) and we start editing.
+    useEffect ->
+      if here and editing and not message.children?.length
+        ref.current?.firstChild?.querySelector('input.title')?.focus()
+      undefined
+    , [editing]
+
     ## Image reference counting:
     ## List images referenced by this message.
     ## If message is naturally folded, don't count images it references.
@@ -1904,13 +2058,17 @@ WrappedSubmessage = React.memo ({message, read}) ->
           video source[src^="#{fileUrlPrefix}"],
           video source[src^="#{fileAbsoluteUrlPrefix}"],
           video source[src^="#{internalFileUrlPrefix}"],
-          video source[src^="#{internalFileAbsoluteUrlPrefix}"]
+          video source[src^="#{internalFileAbsoluteUrlPrefix}"],
+          div[data-messagepdf]
         """
-          src = elt.getAttribute 'src'
-          if 0 <= src.indexOf 'gridfs'
-            messageImagesInternal[url2internalFile src] = true
+          if elt.dataset.messagepdf
+            messageImagesInternal[elt.dataset.messagepdf] = true
           else
-            messageImages[url2file src] = true
+            src = elt.getAttribute 'src'
+            if 0 <= src.indexOf 'gridfs'
+              messageImagesInternal[url2internalFile src] = true
+            else
+              messageImages[url2file src] = true
         setImageRefs (_.sortBy _.keys messageImages).join ','
         setImageInternalRefs (_.sortBy _.keys messageImagesInternal).join ','
     # too many dependencies to list
@@ -1947,9 +2105,67 @@ WrappedSubmessage = React.memo ({message, read}) ->
         messageFolded.set message._id, newDefault
     , [message._id, message.file, natural, not message.children?.length, not imageRefs and not imageInternalRefs]
 
+    absentTags = useTracker ->
+      Tags.find
+        group: message.group
+        key: $nin: _.keys message.tags ? {}
+        deleted: false
+      ,
+        sort: ['key']
+      .fetch()
+    , [message.group, _.keys(message.tags ? {}).join '\n']
+
+  editors = useTracker ->
+    (displayUser editor for editor in message.editing ? []).join ', '
+  , [message.editing?.join ',']
+  historified = history ? message
+  messageFileType = useTracker ->
+    if historified.file
+      fileType historified.file
+  , [historified.file]
+  formattedTitle = useTracker ->
+    for bold in [true, false]
+      ## Only render unbold title if we have children (for back pointer)
+      continue unless bold or message.children.length > 0
+      if raw
+        "<CODE CLASS='raw'>#{_.escape historified.title}</CODE>"
+      else
+        formatTitleOrFilename historified,
+          orUntitled: false
+          bold: bold
+  , [historified.title, historified.file, historified.format, raw, message.children.length > 0]
+  formattedBody = useTracker ->
+    return historified.body unless historified.body
+    if raw
+      "<PRE CLASS='raw'>#{_.escape historified.body}</PRE>"
+    else
+      formatBody historified.format, historified.body
+  , [historified.body, historified.format, raw]
+  formattedFile = useTracker ->
+    file = findFile historified.file
+    return {} unless file?
+    formatted = formatFile historified, file
+    file:
+      if raw and formatted
+        "<PRE CLASS='raw'>#{_.escape formatted}</PRE>"
+      else
+        formatted
+    description: formatFileDescription historified, file
+  , [historified.file, historified._id, historified.diffId, raw]
+
+  ## Support dragging rendered attachment like dragging message itself
+  messageFileRef = useRef()
+  useEffect ->
+    return if folded or history? or not messageFileRef.current?
+    listener = messageOnDragStart message
+    elts = messageFileRef.current.querySelectorAll 'img, video, a, canvas'
+    elt.addEventListener 'dragstart', listener for elt in elts
+    -> elt.removeEventListener 'dragstart', listener for elt in elts
+  , [folded, history?, message]
+
   ## Transform images
   ## Retransform when window width changes
-  [windowWidth, setWindowWidth] = useState window.innerWidth
+  [windowWidth, setWindowWidth] = useState window.innerWidth # eslint-disable-line coffee/no-unused-vars
   useEventListener 'resize', (e) -> setWindowWidth window.innerWidth
   useEffect ->
     return unless messageBodyRef.current?
@@ -1970,6 +2186,17 @@ WrappedSubmessage = React.memo ({message, read}) ->
         imageTransform img, messageRotate historified
     -> tracker.stop() for tracker in trackers
   # too many dependencies to list
+
+  ## Render embedded PDF files
+  useEffect ->
+    return unless messageBodyRef.current?
+    elts =
+      for elt in messageBodyRef.current.querySelectorAll 'div[data-messagepdf]'
+        ReactDOM.render <MessagePDF file={elt.dataset.messagepdf}/>, elt
+        elt
+    ->
+      ReactDOM.unmountComponentAtNode elt for elt in elts
+  , [formattedBody]
 
   onFold = (e) ->
     e.preventDefault()
@@ -2013,7 +2240,6 @@ WrappedSubmessage = React.memo ({message, read}) ->
     , idle
   onTagRemove = (e) ->
     e.preventDefault()
-    e.stopPropagation()
     tag = e.currentTarget.getAttribute 'data-tag'
     if tag of message.tags
       Meteor.call 'messageUpdate', message._id,
@@ -2027,17 +2253,14 @@ WrappedSubmessage = React.memo ({message, read}) ->
       console.warn "Attempt to delete nonexistant tag '#{tag}' from message #{message._id}"
   onTagAdd = (e) ->
     e.preventDefault()
-    e.stopPropagation()
     tag = e.target.getAttribute 'data-tag'
     if tag of message.tags
       console.warn "Attempt to add duplicate tag '#{tag}' to message #{message._id}"
     else
       Meteor.call 'messageUpdate', message._id,
         tags: Object.assign {}, message.tags ? {}, {"#{escapeTag tag}": true}
-    dropdownToggle e
   onTagNew = (e) ->
     e.preventDefault()
-    e.stopPropagation()
     textTag = $(e.target).parents('form').first().find('.tagAddText')[0]
     tag = textTag.value.trim()
     textTag.value = ''  ## reset custom tag
@@ -2048,7 +2271,7 @@ WrappedSubmessage = React.memo ({message, read}) ->
         Meteor.call 'tagNew', message.group, tag, 'boolean'
         Meteor.call 'messageUpdate', message._id,
           tags: Object.assign {}, message.tags ? {}, {"#{escapeTag tag}": true}
-    dropdownToggle e
+    addTagRef.current.click()
     false  ## prevent form from submitting
 
   <div className="panel message #{messagePanelClass message, editing}" data-message={message._id} id={message._id} ref={ref}>
@@ -2121,34 +2344,37 @@ WrappedSubmessage = React.memo ({message, read}) ->
             }
           </span>
           <span className="btn-group">
-            <button className="btn btn-default label label-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <span className="fas fa-plus"/>
-              Tag
-            </button>
-            <ul className="dropdown-menu tagMenu" role="menu">
-              <li className="disabled">
-                <a>
-                  <form className="input-group input-group-sm">
-                    <input className="tagAddText form-control" type="text" placeholder="New Tag..."/>
-                    <div className="input-group-btn">
-                      <button className="btn btn-default tagAddNew" type="submit" onClick={onTagNew}>
-                        <span className="fas fa-plus"/>
-                      </button>
-                    </div>
-                  </form>
-                </a>
-              </li>
-              {if absentTags.length
-                <>
-                  <li className="divider" role="separator"/>
-                  {for tag in absentTags
-                    <li key={tag.key}>
-                      <a className="tagAdd" href="#" data-tag={tag.key} onClick={onTagAdd}>{tag.key}</a>
-                    </li>
-                  }
-                </>
-              }
-            </ul>
+            <Dropdown>
+              <Dropdown.Toggle variant="default"
+               className="label label-default" ref={addTagRef}>
+                <span className="fas fa-plus"/>
+                {' Tag'}
+              </Dropdown.Toggle>
+              <Dropdown.Menu className="tagMenu">
+                <li className="disabled">
+                  <a>
+                    <form className="input-group input-group-sm">
+                      <input className="tagAddText form-control" type="text" placeholder="New Tag..."/>
+                      <div className="input-group-btn">
+                        <button className="btn btn-default tagAddNew" type="submit" onClick={onTagNew}>
+                          <span className="fas fa-plus"/>
+                        </button>
+                      </div>
+                    </form>
+                  </a>
+                </li>
+                {if absentTags.length
+                  <>
+                    <li className="divider" role="separator"/>
+                    {for tag in absentTags
+                      <li key={tag.key}>
+                        <Dropdown.Item className="tagAdd" href="#" data-tag={tag.key} onClick={onTagAdd}>{tag.key}</Dropdown.Item>
+                      </li>
+                    }
+                  </>
+                }
+              </Dropdown.Menu>
+            </Dropdown>
           </span>
           <MessageLabels message={message}/>
           <span className="lower-strut"/>
@@ -2166,23 +2392,35 @@ WrappedSubmessage = React.memo ({message, read}) ->
           {unless folded or editing or read
             <>
               {if raw
-                <button className="btn btn-default rawButton" tabIndex={tabindex0+1} onClick={onRaw}>Formatted</button>
+                <TextTooltip title="Switch back to viewing the formatted message.">
+                  <button className="btn btn-default rawButton" tabIndex={tabindex0+1} onClick={onRaw}>Formatted</button>
+                </TextTooltip>
               else
-                <button className="btn btn-default rawButton" tabIndex={tabindex0+1} onClick={onRaw}>Raw</button>
+                <TextTooltip title="Switch to viewing raw source code. Useful for copy/pasting into another message, or to see how something was done.">
+                  <button className="btn btn-default rawButton" tabIndex={tabindex0+1} onClick={onRaw}>Raw</button>
+                </TextTooltip>
               }
               {unless history
-                <button className="btn btn-default historyButton" tabIndex={tabindex0+2} onClick={onHistory}>History</button>
+                <TextTooltip title="View past versions of this message, and who edited when">
+                  <button className="btn btn-default historyButton" tabIndex={tabindex0+2} onClick={onHistory}>History</button>
+                </TextTooltip>
               }
             </>
           }
           {if history?
             <>
               {if historyAll
-                <button className="btn btn-default historyAllButton" tabIndex={tabindex0+2} onClick={onHistoryAll}>Show Finished</button>
+                <TextTooltip title="Switch back to showing just the versions when this message stopped being edited.">
+                  <button className="btn btn-default historyAllButton" tabIndex={tabindex0+2} onClick={onHistoryAll}>Show Finished</button>
+                </TextTooltip>
               else
-                <button className="btn btn-default historyAllButton" tabIndex={tabindex0+2} onClick={onHistoryAll}>Show All</button>
+                <TextTooltip title="Show every version of this message (recorded roughly every two seconds), instead of just the versions when the message stopped being edited. Useful if the version you need is missing.">
+                  <button className="btn btn-default historyAllButton" tabIndex={tabindex0+2} onClick={onHistoryAll}>Show All</button>
+                </TextTooltip>
               }
-              <button className="btn btn-default historyButton" tabIndex={tabindex0+3} onClick={onHistory}>Exit History</button>
+              <TextTooltip title="Return to viewing the present version of this message">
+                <button className="btn btn-default historyButton" tabIndex={tabindex0+3} onClick={onHistory}>Exit History</button>
+              </TextTooltip>
             </>
           }
           {if editing
@@ -2198,18 +2436,72 @@ WrappedSubmessage = React.memo ({message, read}) ->
             <>
               <MessageActions message={message} can={can} editing={editing} tabindex0={tabindex0}/>
               {if editing
-                if editStopping
-                  <button className="btn btn-info editButton disabled" tabIndex={tabindex0+8} title="Waiting for save to complete before stopping editing...">Stop Editing</button>
-                else
-                  <button className="btn btn-info editButton" tabIndex={tabindex0+8} onClick={onEdit}>Stop Editing</button>
-              else
-                if can.edit and not folded
-                  <>
-                    {if message.file
-                      <MessageReplace _id={message._id} group={message.group} tabindex={tabindex0+7}/>
+                <OverlayTrigger flip overlay={(props) ->
+                  <Tooltip {...props}>
+                    {if editStopping
+                      <>Waiting for message to save before stopping editing...</>
+                    else
+                      <>
+                        <p>Close editor and mark this version as &quot;finished&quot;. (Your edits are already saved, and users with access to this message can already see your edits.)</p>
+                        {unless message.published
+                          <p>Don't forget to <b>publish</b> your message when you're ready for others to see it!</p>
+                        }
+                        {if message.deleted
+                          <p><b>Undelete</b> your message if you want others to see it.</p>
+                        }
+                      </>
                     }
-                    <button className="btn btn-info editButton" tabIndex={tabindex0+8} onClick={onEdit}>Edit</button>
-                  </>
+                  </Tooltip>
+                }>
+                  <span className="wrapper #{if editStopping then 'disabled' else ''}">
+                    <button className="btn btn-info editButton" onClick={onEdit}
+                     disabled={editStopping} tabIndex={tabindex0+8}>
+                      Stop Editing
+                    </button>
+                  </span>
+                </OverlayTrigger>
+              else unless folded
+                <>
+                  {if message.file and can.edit
+                    <MessageReplace _id={message._id} group={message.group} tabindex={tabindex0+7}/>
+                  }
+                  <OverlayTrigger flip overlay={(props) ->
+                    <Tooltip {...props}>
+                      {if can.edit
+                        <p>
+                          Start editing this message (possibly with other users).
+                          {unless amCoauthor message, user
+                            <><br/>Changes will automatically make you a coauthor.</>
+                          }
+                        </p>
+                      else unless messageRoleCheck message.group, message, 'edit', user
+                        <p>
+                          You do not have edit permissions in this group/thread.
+                        </p>
+                      }
+                      {if message.protected
+                        <p>Message is <b>protected</b>, so edits are restricted to coauthors and superusers.</p>
+                      }
+                      {if can.becomeSuper and not can.edit
+                        <p>Become Superuser (or type <kbd>s</kbd>) to edit this message.</p>
+                      }
+                    </Tooltip>
+                  }>
+                    <span className="wrapper #{if can.edit then '' else 'disabled'}">
+                      <button className="btn btn-info editButton"
+                       tabIndex={tabindex0+8} onClick={onEdit}
+                       disabled={not can.edit}>
+                        Edit
+                        {if message.protected
+                          <>
+                            {' '}
+                            <span className="fas fa-lock"/>
+                          </>
+                        }
+                      </button>
+                    </span>
+                  </OverlayTrigger>
+                </>
               }
             </>
           }
@@ -2217,14 +2509,14 @@ WrappedSubmessage = React.memo ({message, read}) ->
       </div>
     </div>
     {unless folded
-      previewSideBySide = editing and preview.on and preview.sideBySide
+      previewSideBySide = preview.on and preview.sideBySide
       <>
         {if history?
           <MessageHistory message={message}/>
         }
         <div className="editorAndBody clearfix #{if previewSideBySide then 'sideBySide' else ''}">
           <div className="editorContainer">
-            {if editing and not history
+            {if editing
               <>
                 <MessageEditor message={message} setEditBody={setEditBody} tabindex={tabindex0+19}/>
                 {unless previewSideBySide
@@ -2257,19 +2549,26 @@ WrappedSubmessage = React.memo ({message, read}) ->
                   <MessagePDF file={message.file}/>
                 }
                 {if historified.file
-                  <p className="message-file" ref={messageFileRef}
-                  dangerouslySetInnerHTML={__html: formattedFile.file}/>
+                  <>
+                    <p className="message-file" ref={messageFileRef}
+                     dangerouslySetInnerHTML={__html: formattedFile.file}/>
+                    <p className="message-file-description"
+                     dangerouslySetInnerHTML={__html: formattedFile.description}/>
+                  </>
                 }
               </div>
             </div>
           }
         </div>
-        {if editing and previewSideBySide
+        {if previewSideBySide
           <BelowEditor message={message} preview={preview} safeToStopEditing={safeToStopEditing} editStopping={editStopping}/>
         }
         <div className="message-footer">
           <MessageAuthor message={historified} also={history?}/>
           <div className="message-response-buttons clearfix hidden-print">
+            {unless read
+              <EmojiButtons message={message} can={can}/>
+            }
             {if editing
               <div className="btn-group pull-right">
                 {if editStopping
@@ -2285,11 +2584,9 @@ WrappedSubmessage = React.memo ({message, read}) ->
                   <ReplyButtons message={message} prefix="Another "/>
                 }
               </div>
-            else unless read
-              <>
-                <EmojiButtons message={message} can={can}/>
+            else
+              if can.reply and not read
                 <ReplyButtons message={message}/>
-              </>
             }
           </div>
         </div>
@@ -2323,7 +2620,7 @@ WrappedSubmessage = React.memo ({message, read}) ->
   </div>
 WrappedSubmessage.displayName = 'WrappedSubmessage'
 
-MessageActions = React.memo ({message, can, editing, tabindex0}) ->
+export MessageActions = React.memo ({message, can, editing, tabindex0}) ->
   myUsername = useTracker ->
     Meteor.user()?.username
   , []
@@ -2357,6 +2654,11 @@ MessageActions = React.memo ({message, can, editing, tabindex0}) ->
     Meteor.call 'messageUpdate', message._id,
       minimized: not message.minimized
       finished: true
+  onProtect = (e) ->
+    e.preventDefault()
+    Meteor.call 'messageUpdate', message._id,
+      protected: not message.protected
+      finished: true
   onParent = (e) ->
     e.preventDefault()
     oldParent = findMessageParent message
@@ -2378,13 +2680,13 @@ MessageActions = React.memo ({message, can, editing, tabindex0}) ->
       coauthors: $addToSet: [myUsername]
       finished: true
 
-  return null unless can.minimize or can.unminimize or can.delete or can.undelete or can.publish or can.unpublish or can.superdelete or can.private
+  return null unless can.minimize or can.unminimize or can.delete or can.undelete or can.publish or can.unpublish or can.superdelete or can.private or can.protect
   <Dropdown className="btn-group">
     <Dropdown.Toggle variant="info" tabIndex={tabindex0+4}>
       {"Action "}
       <span className="caret"/>
     </Dropdown.Toggle>
-    <Dropdown.Menu align="right" className="actionMenu">
+    <Dropdown.Menu align="right" className="actionMenu buttonMenu">
       {if message.minimized
         if can.unminimize
           <li>
@@ -2406,54 +2708,81 @@ MessageActions = React.memo ({message, can, editing, tabindex0}) ->
       }
       {if message.deleted and can.undelete
         <li>
-          <Dropdown.Item className="deleteButton" href="#">
-            <button className="btn btn-success btn-block" onClick={onDelete}>Undelete</button>
-          </Dropdown.Item>
+          <TextTooltip placement="left" title="Undelete this message, restoring its visibility to everyone. Use Delete when you've made a practical mistake (e.g. didn't mean to click Reply). But if you had a content misunderstanding or question that since got resolved, consider using Minimize to preserve that discussion for others to look at if desired.">
+            <Dropdown.Item className="deleteButton" href="#">
+              <button className="btn btn-success btn-block" onClick={onDelete}>Undelete</button>
+            </Dropdown.Item>
+          </TextTooltip>
         </li>
       }
       {if message.deleted and can.superdelete
         <li>
-          <Dropdown.Item className="superdeleteButton" href="#">
-            <button className="btn btn-danger btn-block" onClick={onSuperdelete}>Superdelete</button>
-          </Dropdown.Item>
+          <TextTooltip placement="left" title="Permanently deletes this message and all of its history, as if it never happened. Dangerous and non-undoable operation, so has a confirmation dialog.">
+            <Dropdown.Item className="superdeleteButton" href="#">
+              <button className="btn btn-danger btn-block" onClick={onSuperdelete}>Superdelete</button>
+            </Dropdown.Item>
+          </TextTooltip>
         </li>
       }
       {if not message.published and can.publish
         <li>
-          <Dropdown.Item className="publishButton" href="#">
-            <button className="btn btn-success btn-block" onClick={onPublish}>Publish</button>
-          </Dropdown.Item>
+          <TextTooltip placement="left" title="Use Publish when your message is ready to be shared with the group. Even if it's a partly formed idea, it may inspire more!">
+            <Dropdown.Item className="publishButton" href="#">
+              <button className="btn btn-success btn-block" onClick={onPublish}>Publish</button>
+            </Dropdown.Item>
+          </TextTooltip>
         </li>
       }
       {if not message.deleted and can.delete
         <li>
-          <Dropdown.Item className="deleteButton" href="#">
-            <button className="btn btn-danger btn-block" onClick={onDelete}>Delete</button>
-          </Dropdown.Item>
+          <TextTooltip placement="left" title="Delete this message, making it invisible to everyone except coauthors and superusers. Use Delete when you've made a practical mistake (e.g. didn't mean to click Reply). But if you had a content misunderstanding or question that since got resolved, consider using Minimize to preserve that discussion for others to look at if desired.">
+            <Dropdown.Item className="deleteButton" href="#">
+              <button className="btn btn-danger btn-block" onClick={onDelete}>Delete</button>
+            </Dropdown.Item>
+          </TextTooltip>
         </li>
       }
       {if message.published and can.unpublish
         <li>
-          <Dropdown.Item className="publishButton" href="#">
-            <button className="btn btn-danger btn-block" onClick={onPublish}>Unpublish</button>
-          </Dropdown.Item>
+          <TextTooltip placement="left" title="Unpublish this message, making it invisible to everyone except coauthors and superusers. Use Unpublish (ideally when starting a message) if you still want to work on this message, but it isn't yet ready to share with the group.">
+            <Dropdown.Item className="publishButton" href="#">
+              <button className="btn btn-danger btn-block" onClick={onPublish}>Unpublish</button>
+            </Dropdown.Item>
+          </TextTooltip>
         </li>
       }
       {if can.private
         <li>
-          <Dropdown.Item className="privateButton" href="#">
-            {if message.private
-              <button className="btn btn-success btn-block" onClick={onPrivate}>Make Public</button>
-            else
-              <button className="btn btn-danger btn-block" onClick={onPrivate}>Make Private</button>
-            }
-          </Dropdown.Item>
+          <TextTooltip placement="left" title="Change the privacy of this message. Private messages can be seen only by coauthors you list, those you add to the access list, and superusers.">
+            <Dropdown.Item className="privateButton" href="#">
+              {if message.private
+                <button className="btn btn-success btn-block" onClick={onPrivate}>Make Public</button>
+              else
+                <button className="btn btn-danger btn-block" onClick={onPrivate}>Make Private</button>
+              }
+            </Dropdown.Item>
+          </TextTooltip>
+        </li>
+      }
+      {if can.protect
+        <li>
+          <TextTooltip placement="left" title="Toggle whether this message is protected, meaning that it can be edited only by coauthors and superusers (but can still be seen normally and get emoji responses).">
+            <Dropdown.Item className="protectButton" href="#">
+              {if message.protected
+                <button className="btn btn-success btn-block" onClick={onProtect}>Unprotect</button>
+              else
+                <button className="btn btn-danger btn-block" onClick={onProtect}>Protect</button>
+              }
+            </Dropdown.Item>
+          </TextTooltip>
         </li>
       }
       {if can.parent
         <li>
           <Dropdown.Item className="parentButton" href="#">
-            <button className="btn btn-warning btn-block" onClick={onParent}>Move</button>
+            <TextTooltip placement="left" title='Re-organize messages by making this message a reply (child) of a different message (parent), or split it off into a new thread (by choosing the group itself as the new "parent").'>
+              <button className="btn btn-warning btn-block" onClick={onParent}>Move</button>
+            </TextTooltip>
           </Dropdown.Item>
         </li>
       }
@@ -2476,9 +2805,10 @@ MessageActions = React.memo ({message, can, editing, tabindex0}) ->
       ###}
     </Dropdown.Menu>
   </Dropdown>
+MessageActions.displayName = 'MessageActions'
 
 messageAuthorSubtitle = (message, author) -> ->
-  if updated = message.authors[escapeUser author]
+  if (updated = message.authors[escapeUser author])?
     (if message.creator == author
       "Created this message and last edited "
     else
@@ -2487,10 +2817,10 @@ messageAuthorSubtitle = (message, author) -> ->
   else
     "No explicit edit to this message"
 
-MessageAuthor = React.memo ({message, also}) ->
+export MessageAuthor = React.memo ({message, also}) ->
   if also
     also = {}
-    also[unescapeUser author] for author of message.authors
+    also[unescapeUser author] = updated for author, updated of message.authors
   count = 0
   <div className="author text-right">
     {'(by '}

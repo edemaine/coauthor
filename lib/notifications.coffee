@@ -1,5 +1,11 @@
-import { profiling, isProfiling } from './profiling.coffee'
-import { messageContentFields, messageFilterExtraFields } from './messages.coffee'
+import {Accounts} from 'meteor/accounts-base'
+import {Email} from 'meteor/email'
+import {Mongo} from 'meteor/mongo'
+
+#import {dateMin, dateMax} from './dates'
+import {formatBody, formatTitleOrFilename} from './formats'
+import {angle180, messageContentFields, messageEmpty, messageFilterExtraFields} from './messages'
+import {profiling, isProfiling} from './profiling'
 
 @Notifications = new Mongo.Collection 'notifications'
 
@@ -9,7 +15,7 @@ autoHeaders =
   #'X-Auto-Response-Suppress': 'OOF'
 
 if Meteor.isServer
-  Notifications._ensureIndex [['to', 1], ['seen', 1], ['message', 1]]
+  Notifications._ensureIndex [['seen', 1], ['to', 1], ['message', 1]]
 
 @notificationLevels = [
   'batched'
@@ -19,7 +25,7 @@ if Meteor.isServer
 
 @units = ['second', 'minute', 'hour', 'day']
 
-@defaultNotificationDelays =
+export defaultNotificationDelays =
   after:
     after: 1
     unit: 'hour'
@@ -38,28 +44,28 @@ if Meteor.isServer
     unit: 'second'
   #OR: 'instant' has no delays, but 'settled' also applies
 
-@defaultNotificationsOn = true
+export defaultNotificationsOn = true
 
-@notificationsDefault = ->
+export notificationsDefault = ->
   not Meteor.user().profile.notifications?.on?
 
-@notificationsOn = ->
+export notificationsOn = ->
   if notificationsDefault()
     defaultNotificationsOn
   else
     Meteor.user().profile.notifications.on
 
-@notificationsSeparate = (user = Meteor.user()) ->
+export notificationsSeparate = (user = Meteor.user()) ->
   user.profile.notifications?.separate
 
-@notifySelf = (user = Meteor.user()) ->
+export notifySelf = (user = Meteor.user()) ->
   #user = findUser user if _.isString user
   user.profile.notifications?.self
 
-#@autosubscribeGroup = (group, user = Meteor.user()) ->
+#export autosubscribeGroup = (group, user = Meteor.user()) ->
 #  user.profile?.notifications?.autosubscribe?[escapeGroup group] != false
 
-@autosubscribe = (group, user = Meteor.user()) ->
+export autosubscribe = (group, user = Meteor.user()) ->
   ###
   Return whether the user is autosubscribed to the specified group.
   If the user hasn't specified whether they are autosubscribed to that group,
@@ -87,9 +93,9 @@ if Meteor.isServer
   #canSee(message, false, user) and \
   #memberOfGroup(message.group, user) and \
   if autosubscribe message.group, user
-    root not in (user.profile.notifications?.unsubscribed ? [])
+    root not in (user?.profile?.notifications?.unsubscribed ? [])
   else
-    root in (user.profile.notifications?.subscribed ? [])
+    root in (user?.profile?.notifications?.subscribed ? [])
 
 ## Mimicks logic of subscribedToMessage above, plus requires group membership,
 ## verified email, and canSee (everything required for notifications).
@@ -122,21 +128,21 @@ if Meteor.isServer
 @messageSubscribers =
   profiling @messageSubscribers, 'notifications.messageSubscribers'
 
-@sortedMessageSubscribers = (msg, options = {}) ->
+export sortedMessageSubscribers = (msg, options = {}) ->
   if options.fields?
     options.fields.username = true
     options.fields['profile.fullname'] = true  ## for sorting by fullname
   users = messageSubscribers msg, options
   _.sortBy users, userSortKey
 
-@notificationTime = (base, user) ->
+export notificationTime = (base, user) ->
   ## base = notification.dateMin
   user = findUsername user
   delays = user.profile?.notifications?.after ?
            defaultNotificationDelays.after
   try
     moment(base).add(delays.after, delays.unit).toDate()
-  catch e
+  catch
     ## Handle buggy specification of user.profile.notifications.after
     delays = defaultNotificationDelays.after
     moment(base).add(delays.after, delays.unit).toDate()
@@ -144,6 +150,9 @@ if Meteor.isServer
   #settleTime = moment(dateMax(notification.dates...)).add(delays.settle, delays.unit).toDate()
   #maximumTime = moment(dateMin(notification.dates...)).add(delays.maximum, delays.unit).toDate()
   #dateMin settleTime, maximumTime
+
+indentLines = (text, indent) ->
+  text.replace /^/gm, indent
 
 ## Notification consists of
 ##   - to: username to notify
@@ -171,14 +180,17 @@ if Meteor.isServer
           seen: false
       else
         @ready()
+  ###
   Meteor.publish 'notifications.all', () ->
     @autorun ->
       user = findUser @userId
       if user?
         Notifications.find
           to: user.username
+          seen: $in: [false, true]  # help use index
       else
         @ready()
+  ###
 
   notifiers = {}
 
@@ -367,17 +379,20 @@ if Meteor.isServer
     else
       "#{group} [#{url}]"
 
-  linkToMessage = (msg, html, quote = false) ->
+  linkToMessage = (msg, user, html, quote = false) ->
     #url = Meteor.absoluteUrl "#{msg.group}/m/#{msg._id}"
     url = urlFor 'message',
       group: msg.group
       message: msg._id
     if html
+      options =
+        leaveTeX: true  # KaTeX CSS not in email
+        me: user.username
       if quote
-        """&ldquo;<a href=\"#{url}\">#{formatTitleOrFilename msg, true, true}</a>&rdquo;"""
+        """&ldquo;<a href=\"#{url}\">#{formatTitleOrFilename msg, options}</a>&rdquo;"""
       else
         #"<a href=\"#{url}\">#{_.escape titleOrUntitled msg}</a>"
-        """<a href=\"#{url}\">#{formatTitleOrFilename msg, true, true}</a>"""
+        """<a href=\"#{url}\">#{formatTitleOrFilename msg, options}</a>"""
     else
       if quote
         """"#{titleOrUntitled msg}" [#{url}]"""
@@ -455,9 +470,9 @@ if Meteor.isServer
       bythread = _.sortBy bythread, (triple) -> titleSort triple[2].title  ## root msg title
       html += "<H1>#{linkToGroup group, true}: #{pluralize groupUpdates.length, 'update'} in #{pluralize bythread.length, 'thread'}</H1>\n\n"
       text += "=== #{group}: #{pluralize groupUpdates.length, 'update'} in #{pluralize bythread.length, 'thread'} ===\n\n"
-      for [root, rootUpdates, rootmsg] in bythread
-        html += "<H2>#{linkToMessage rootmsg, true}</H2>\n\n"
-        text += "--- #{linkToMessage rootmsg, false} ---\n\n"
+      for [, rootUpdates, rootmsg] in bythread
+        html += "<H2>#{linkToMessage rootmsg, user, true}</H2>\n\n"
+        text += "--- #{linkToMessage rootmsg, user, false} ---\n\n"
         rootUpdates = _.sortBy rootUpdates, (notification) ->
           if notification.new.root?
             notification.dateMin.getTime()
@@ -470,15 +485,24 @@ if Meteor.isServer
             verb = 'updated'
           else
             verb = 'created'
-          adjectives = ''
+          ## Colors for adjectives based on .contents styles
+          adjectivesText = []
+          adjectivesHTML = []
           unless msg.published
-            adjectives += 'unpublished '
+            adjectivesText.push 'UNPUBLISHED '
+            adjectivesHTML.push '<span style="color:#8a6d3b">UNPUBLISHED</span> '
           if msg.deleted
-            adjectives += 'deleted '
+            adjectivesText.push 'DELETED '
+            adjectivesHTML.push '<span style="color:#a94442">DELETED</span> '
           if msg.private
-            adjectives += 'private '
+            adjectivesText.push 'PRIVATE '
+            adjectivesHTML.push '<span style="color:#5bc0de">PRIVATE</span> '
           if msg.minimized
-            adjectives += 'minimized '
+            adjectivesText.push 'MINIMIZED '
+            adjectivesHTML.push '<span style="color:#449d44">MINIMIZED</span> '
+          if msg.protected
+            adjectivesText.push 'PROTECTED '
+            adjectivesHTML.push '<span style="color:#5bc0de">PROTECTED</span> '
           changed = notification.changed
           unless old?
             ## Ignore some initial values during creation of message.
@@ -491,8 +515,8 @@ if Meteor.isServer
             ## Don't notify about empty body on new file message
             delete changed.body if msg.file and not msg.body
             ## Ignore coauthors on creation if it's still just the creator
-            delete changed.coauthors if _.isEqual changed.coauthors, [msg.creator]
-            delete changed.access if changed.access?.length == 0
+            delete changed.coauthors if _.isEqual msg.coauthors, [msg.creator]
+            delete changed.access if msg.access?.length == 0
           authors = _.sortBy notification.authors, userSortKey
           authorsText = (displayUser author for author in authors).join ', '
           authorsHTML = (linkToAuthor msg.group, author for author in authors).join ', '
@@ -511,17 +535,19 @@ if Meteor.isServer
           updated = momentInUserTimezone msg.updated, user
           dates = "on #{updated.format 'ddd, MMM D, YYYY [at] H:mm z'}"
           if msg.root?
-            html += "<P><B>#{authorsHTML}</B> #{verb} #{adjectives}message #{linkToMessage msg, true, true} in the thread #{linkToMessage rootmsg, true, true} #{dates}:"
-            text += "#{authorsText} #{verb} #{adjectives}message #{linkToMessage msg, false, true} in the thread #{linkToMessage rootmsg, false, true} #{dates}:"
+            html += "<P><B>#{authorsHTML}</B> #{verb} #{adjectivesHTML.join ''}message #{linkToMessage msg, user, true, true} in the thread #{linkToMessage rootmsg, true, true} #{dates}:"
+            text += "#{authorsText} #{verb} #{adjectivesText.join ''}message #{linkToMessage msg, user, false, true} in the thread #{linkToMessage rootmsg, user, false, true} #{dates}:"
           else
-            html += "<P><B>#{authorsHTML}</B> #{verb} #{adjectives}root message in the thread #{linkToMessage msg, true, true} #{dates}:"
-            text += "#{authorsText} #{verb} #{adjectives}root message in the thread #{linkToMessage msg, false, true} #{dates}:"
+            html += "<P><B>#{authorsHTML}</B> #{verb} #{adjectivesHTML.join ''}root message in the thread #{linkToMessage msg, user, true, true} #{dates}:"
+            text += "#{authorsText} #{verb} #{adjectivesText.join ''}root message in the thread #{linkToMessage msg, user, false, true} #{dates}:"
           html += '\n\n'
           text += '\n\n'
           ## xxx also could use diff on body
           if changed.body
             if msg.body.trim().length > 0
-              bodyHtml = formatBody msg.format, msg.body, true
+              bodyHtml = formatBody msg.format, msg.body,
+                leaveTeX: true  # KaTeX CSS not in email
+                me: user.username
               bodyText = msg.body
             else
               bodyHtml = bodyText = '(empty body)'
@@ -536,7 +562,9 @@ if Meteor.isServer
           if changed.title
             if old?.title
               bullet "Title changed from \"#{titleOrUntitled old}\"",
-                     "Title changed from &ldquo;#{formatTitleOrFilename old, true, true}&rdquo;"
+                     "Title changed from &ldquo;#{formatTitleOrFilename old,
+                       leaveTeX: true
+                       me: user.username}&rdquo;"
             else
               bullet "Title added"
           for key in ['coauthors', 'access']
@@ -544,7 +572,7 @@ if Meteor.isServer
             authors =
               for author in msg[key]
                 author: author
-                diff: if old? and author not in old[key] then '+' else ''
+                diff: if old? and author not in (old[key] ? []) then '+' else ''
             for author in old?[key] ? []
               if author not in msg[key]
                 authors.push
@@ -584,6 +612,11 @@ if Meteor.isServer
               bullet "MINIMIZED"
             else
               bullet "UNMINIMIZED"
+          if changed.protected
+            if msg.protected
+              bullet "PROTECTED"
+            else
+              bullet "UNPROTECTED"
           if changed.format
             bullet "Format: #{msg.format}"
           if changed.tags
@@ -614,6 +647,11 @@ if Meteor.isServer
           text += '\n'
     if pastAuthors
       subject = authorsSubject
+
+    ## Expand some CSS classes
+    html = html
+    .replace /<span class="highlight">/g,
+             '<span style="background:yellow;color:black">'
 
     Email.send
       from: Accounts.emailTemplates.from

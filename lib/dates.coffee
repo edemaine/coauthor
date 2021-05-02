@@ -1,10 +1,10 @@
-@dateMin = (a, bs...) ->
+export dateMin = (a, bs...) ->
   for b in bs
     if b.getTime() < a.getTime()
       a = b
   a
 
-@dateMax = (a, bs...) ->
+export dateMax = (a, bs...) ->
   for b in bs
     if b.getTime() > a.getTime()
       a = b

@@ -1,4 +1,5 @@
-body { font-family: 'Merriweather', serif; }
+body, .nonmath { font-family: 'Merriweather', serif; }
+.nonmath { font-size: 0.82644628099em; }
 .slant { font-family: 'SlantMerriweather', serif; }
 
 .navbar-flex .searchForm { width: 100%; }
@@ -11,6 +12,7 @@ body { font-family: 'Merriweather', serif; }
 }
 
 .footer { position: fixed; bottom: 0px; right: 0px; width: 50%; margin: 1ex }
+.footer .alert { margin-bottom: 0 }
 .credits { font-style: italic; font-size: small; margin-top: 1.5ex; padding: 6px }
 
 /* For our half-link half-caret dropdown, we need to change <a> to render
@@ -30,3 +32,6 @@ li.dropdown.halflink > a.link:first-child { padding-right: 0px; }
  * display: block.
  */
 .modal { display: none; }
+
+/* Place navbar above sticky TableOfContents, so dropdowns don't get covered */
+nav.navbar { z-index: 1025; }

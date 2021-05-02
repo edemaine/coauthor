@@ -3,4 +3,4 @@
 /*
 a:hover .katex .base, a:focus .katex .base { text-decoration: underline; }
 */
-.message a:hover .katex-html, a:focus .katex-html { border-bottom: solid .07em; margin-bottom: -.07em; }
+.message a:hover .katex-html, .message a:focus .katex-html { border-bottom: solid .07em; margin-bottom: -.07em; }

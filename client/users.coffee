@@ -3,6 +3,8 @@ import {useTracker} from 'meteor/react-meteor-data'
 
 import {ErrorBoundary} from './ErrorBoundary'
 import {TextTooltip} from './lib/tooltip'
+import {formatDate} from './lib/date'
+import {allRoles} from '/lib/groups'
 
 Template.users.helpers
   Users: -> Users
@@ -53,7 +55,7 @@ export Users = React.memo ({group, messageID}) ->
           </a>
         }
         {if group != wildGroup and admin.wild
-          <a href={pathFor 'users', group: wildGroupRoute} className="btn btn-danger">
+          <a href={pathFor 'users', group: wildGroup} className="btn btn-danger">
             Edit Global Permissions
           </a>
         }
@@ -89,11 +91,12 @@ export Users = React.memo ({group, messageID}) ->
         <ErrorBoundary>
           <Anonymous group={group} messageID={messageID} admin={admin}/>
         </ErrorBoundary>
-        {if false # group != wildGroup and not messageID?
+        {###
+        if group != wildGroup and not messageID?
           <ErrorBoundary>
             <UserInvitations group={group}/>
           </ErrorBoundary>
-        }
+        ###}
       </tbody>
     </table>
   </ErrorBoundary>
@@ -132,12 +135,12 @@ User = React.memo ({group, messageID, user, admin}) ->
     <tr data-username={user.username}>
       <th>
         <div className="name">
-          {if fullname = user.profile?.fullname
+          {if (fullname = user.profile?.fullname)
             "#{fullname} ("
           }
           <a href={authorLink}>{user.username}</a>
           {', '}
-          {if email = user.emails?[0]
+          {if (email = user.emails?[0])?
             <>
               {email.address}
               {unless email.verified
@@ -215,7 +218,7 @@ User = React.memo ({group, messageID, user, admin}) ->
   </>
 User.displayName = 'User'
 
-Anonymous = React.memo ({group, messageID, admin}) ->
+export Anonymous = React.memo ({group, messageID, admin}) ->
   roles = useTracker ->
     groupAnonymousRoles group
   , [group]
@@ -233,7 +236,6 @@ Anonymous = React.memo ({group, messageID, admin}) ->
       <i>&lt;anonymous&gt;</i>
     </th>
     {for role in allRoles
-      levels = []
       if role in roles
         btnclass = 'btn-success'
         level = 'YES'

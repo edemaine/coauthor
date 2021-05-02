@@ -1,3 +1,6 @@
+import {check} from 'meteor/check'
+import {Mongo} from 'meteor/mongo'
+
 @Tags = new Mongo.Collection 'tags'
 
 if Meteor.isServer
@@ -109,6 +112,7 @@ Meteor.methods
     check Meteor.userId(), String  ## should be done by 'canPost'
     check group, String
     check key, String
+    check maybe, Boolean
     unless canPost group, null
       throw new Meteor.Error 'tagDelete.unauthorized',
         "Insufficient permissions to untag message in group '#{group}'"
@@ -140,7 +144,7 @@ if Meteor.isServer
     return unless message.tags
     seeking = _.keys message.tags
     missing = listToTags seeking
-    tags = Tags.find
+    Tags.find
       group: message.group
       key: $in: seeking
     .forEach (tag) ->

@@ -1,5 +1,10 @@
-import { defaultFormat } from './settings.coffee'
-import { ShareJS } from 'meteor/edemaine:sharejs'
+import {check, Match} from 'meteor/check'
+import {Mongo} from 'meteor/mongo'
+import {ShareJS} from 'meteor/edemaine:sharejs'
+
+import {dateMax} from './dates'
+import {groupDefaultSort} from './groups'
+import {autopublish, defaultFormat} from './settings'
 
 idleUpdate = 1000      ## one second of idle time before edits update message
 export idleStop = 60*60*1000  ## one hour of idle time before auto stop editing
@@ -7,7 +12,7 @@ export idleStop = 60*60*1000  ## one hour of idle time before auto stop editing
 ## Thanks to https://github.com/aldeed/meteor-simple-schema/blob/4ead24bcc92e9963dd994c07d275eac144733c3e/simple-schema.js#L548-L551
 @idRegex = "[23456789ABCDEFGHJKLMNPQRSTWXYZabcdefghijkmnopqrstuvwxyz]{17}"
 
-@untitledMessage = '(untitled)'
+export untitledMessage = '(untitled)'
 
 @titleOrUntitled = (msg) ->
   unless msg?
@@ -20,7 +25,7 @@ export idleStop = 60*60*1000  ## one hour of idle time before auto stop editing
   else
     msg.title
 
-@angle180 = (a) ->
+export angle180 = (a) ->
   while a > 180
     a -= 360
   while a <= -180
@@ -59,7 +64,7 @@ if Meteor.isServer
     ['updated', 1]
   ]
 
-@rootMessages = (group) ->
+export rootMessages = (group) ->
   query =
     root: null
   if group?
@@ -67,7 +72,7 @@ if Meteor.isServer
   Messages.find query
 
 ## Works from nonroot messages via recursion.  Doesn't include message itself.
-@descendantMessageIds = (message) ->
+export descendantMessageIds = (message) ->
   descendants = []
   recurse = (m) ->
     m = findMessage m
@@ -77,7 +82,7 @@ if Meteor.isServer
   recurse message
   descendants
 
-@ancestorMessages = (message, self = false) ->
+export ancestorMessages = (message, self = false) ->
   start = message._id ? message
   if self and message?
     yield findMessage message
@@ -113,7 +118,7 @@ explicitAccessQuery = (user) ->
   ]
 readableCanSeeQuery = (user) ->
   ## Users with read permission can see the union of above two queries.
-  if query = explicitAccessQuery user
+  if (query = explicitAccessQuery user)?
     # ASSERT: query consists solely of an $or node
     query.$or.unshift naturallyVisibleQuery()
     query
@@ -220,7 +225,7 @@ readableCanSeeQuery = (user) ->
     continue unless fullMemberOfGroup(group, user) or memberOfThread(msg, user)
     user
 
-@sortedMessageReaders = (msg, options = {}) ->
+export sortedMessageReaders = (msg, options = {}) ->
   if options.fields?
     options.fields.username = true
     options.fields['profile.fullname'] = true  ## for sorting by fullname
@@ -272,7 +277,7 @@ if Meteor.isServer
   ## with options) along with their roots.  The query gets $and'ed together
   ## with the specified `accessibleQuery` to guarantee that any matched
   ## messages and roots are accessible to the user.
-  @addRootsToQuery = (accessibleQuery, query, options) ->
+  addRootsToQuery = (accessibleQuery, query, options) ->
     if options?
       options = _.clone options  ## avoid modifying caller's options
     else
@@ -394,7 +399,7 @@ if Meteor.isServer
     delete query.group
   query
 
-@liveMessagesLimit = (limit) ->
+export liveMessagesLimit = (limit) ->
   sort: [['updated', 'desc']]
   limit: parseInt limit
 
@@ -412,7 +417,7 @@ if Meteor.isServer
       query = maybeAddRootsToQuery group, accessibleQuery, liveQuery, options
       Messages.find query#, options
 
-@parseSince = (since) ->
+export parseSince = (since) ->
   try
     match = /^\s*[+-]?\s*([\d.]+)\s*(\w+)\s*$/.exec since
     if match?
@@ -516,28 +521,43 @@ if Meteor.isServer
 @canReply = (message) ->
   canPost message.group, message._id
 
-@canEdit = (message, user = Meteor.user()) ->
-  ## Can edit message if a coauthor (explicit read/write access),
+@canEdit = (message, client = Meteor.isClient, user = Meteor.user()) ->
+  ## Can edit message if a coauthor (explicit read/write access);
   ## or if we have global edit privileges in this group or thread,
   ## in addition to being able to see the message itself
-  ## (a slight variation to the logic of `canSee` which needs `read` access).
+  ## (a slight variation to the logic of `canSee` which needs `read` access)
+  ## and message not being protected; or a superuser.
   message = findMessage message
   return false unless message?
   user? and (
+    canSuper(message.group, client, user) or
     amCoauthor(message, user) or
-    (messageRoleCheck(message.group, message, 'edit', user) and
+    (not message.protected and
+     messageRoleCheck(message.group, message, 'edit', user) and
      ((message.published and not message.deleted and not message.private) or
       haveExplicitAccess(message, user))))
 
-@canDelete = canEdit
 @canUndelete = canEdit
 @canPublish = canEdit
-@canUnpublish = canEdit
 @canMinimize = canEdit
 @canUnminimize = canEdit
 ## Older behavior: only superusers can unpublish once published
 #@canUnpublish = (message) ->
 #  canSuper message2group message
+
+@canDelete = (message, client = Meteor.isClient, user = Meteor.user()) ->
+  ## Can delete or unpublish a message if coauthor or superuser.
+  ## This avoids the confusing scenario where you make a message invisible
+  ## to yourself, now that such edits don't count as coauthorship.
+  ## If you have edit ability, you can always become a coauthor
+  ## and then delete/unpublish.
+  message = findMessage message
+  return false unless message?
+  user? and (
+    canSuper(message.group, client, user) or
+    amCoauthor(message, user)
+  )
+@canUnpublish = canDelete
 
 @canSuper = (group, client = Meteor.isClient, user = Meteor.user()) ->
   ## If client is true, we use the session variable 'super' to fake whether
@@ -549,6 +569,7 @@ if Meteor.isServer
 @canImport = (group) -> canSuper group
 @canSuperdelete = (message) ->
   canSuper message2group message
+@canProtect = canSuperdelete  ## same logic as checkProtected
 
 ## A user has explicit [read] access to a message if they are a coauthor or
 ## they are listed in the 'access' list and the message is published and
@@ -575,12 +596,17 @@ if Meteor.isServer
     true
   else
     ## Regular user can change private flag for their coauthored messages,
-    ## and only if thread privacy allows for both public and private.
+    ## and only if thread privacy allows for both public and private,
+    ## and not for the root message of the thread.
     unless amCoauthor message
       false
     else
       root = findMessageRoot message
-      root?.threadPrivacy? and 'public' in root.threadPrivacy and 'private' in root.threadPrivacy
+      root? and
+      root._id != message._id and
+      root.threadPrivacy? and
+      'public' in root.threadPrivacy and
+      'private' in root.threadPrivacy
 
 @canAdmin = (group, message = null) ->
   messageRoleCheck group, message, 'admin'
@@ -632,7 +658,7 @@ if Meteor.isServer
   else
     message
 
-@findLastDiff = (id) ->
+export findLastDiff = (id) ->
   MessagesDiff.find
     id: id
   ,
@@ -640,7 +666,7 @@ if Meteor.isServer
     limit: 1
   .fetch()?[0]
 
-@finishLastDiff = (id, editing) ->
+export finishLastDiff = (id, editing) ->
   lastDiff = findLastDiff id
   return unless lastDiff?
   relevant = (editor for editor in editing when editor in (lastDiff.updators ? []))
@@ -648,7 +674,7 @@ if Meteor.isServer
     MessagesDiff.update lastDiff._id,
       $addToSet: finished: $each: relevant
 
-@messageEmpty = (message) ->
+export messageEmpty = (message) ->
   message = findMessage message
   message.title.trim().length == 0 and
   message.body.trim().length == 0 and
@@ -745,6 +771,12 @@ checkPrivacy = (privacy, root, user = Meteor.user()) ->
             "Cannot make message public in thread '#{root._id}'"
   null
 
+## Same logic as canProtect
+checkProtected = (protect, group, user = Meteor.user()) ->
+  if protect? and not canSuper group, false, user
+    throw new Meteor.Error 'checkProtected.forbidden',
+      "Insufficient permissions to (un)protect message in group '#{group}'"
+
 @canCoauthorsMod = (message, coauthorsMod, client = Meteor.isClient, user = Meteor.user()) ->
   ## Adding coauthors requires no additional permission.
   ## Removing coauthors can be done in the following situations:
@@ -771,6 +803,7 @@ export messageContentFields = [
   'deleted'
   'private'
   'minimized'
+  'protected'
   'rotate'
   'coauthors'
   'access'
@@ -809,7 +842,7 @@ doStringSetMod = (message, old, key, mod) ->
     message[key] = _.without old[key], ...mod.$pull
   else
     throw new Meteor.Error 'doStringSetModifier.invalidMod',
-      "Unknown modifier type '#{_keys mod}'"
+      "Unknown modifier type '#{_.keys mod}'"
 
 ## The following should be called directly only on the server;
 ## clients should use the corresponding method.
@@ -820,6 +853,9 @@ _messageUpdate = (id, message, authors = null, old = null) ->
   ## Compare with 'old' if provided (in cases when it's already been
   ## fetched by the server); otherwise, load id from Messages.
   old = Messages.findOne id unless old?
+  unless old?  # attempt to update nonexisting message
+    throw new Meteor.Error 'messageUpdate.unauthorized',
+      "Insufficient permissions to edit message '#{id}'"
 
   ## authors is set only when internal to server, in which case we bypass
   ## authorization checks, which already happened in messageEditStart.
@@ -832,10 +868,11 @@ _messageUpdate = (id, message, authors = null, old = null) ->
         "Need to be logged in to edit messages (so we can track coauthors!)"
     check Meteor.userId(), String
     authors = [user.username]
-    unless canEdit old, user
+    unless canEdit old, false, user
       throw new Meteor.Error 'messageUpdate.unauthorized',
         "Insufficient permissions to edit message '#{id}' in group '#{old.group}'"
     checkPrivacy message.private, old, user
+    checkProtected message.protected, old.group, user
   check message,
     #url: Match.Optional String
     title: Match.Optional String
@@ -849,6 +886,7 @@ _messageUpdate = (id, message, authors = null, old = null) ->
     deleted: Match.Optional Boolean
     private: Match.Optional Boolean
     minimized: Match.Optional Boolean
+    protected: Match.Optional Boolean
     rotate: Match.Optional Match.Where (r) ->
       typeof r == "number" and -180 < r <= 180
     finished: Match.Optional Boolean
@@ -924,7 +962,7 @@ _messageUpdate = (id, message, authors = null, old = null) ->
     ## (Let them stay as editors if they made the change and can still edit.)0
     for other in (coauthorsMod?.$pull ? []).concat (accessMod?.$pull ? [])
       if other in (old.editing ? []) and
-         (other != user?.username or not canEdit id, findUsername user)
+         (other != user?.username or not canEdit id, false, findUsername user)
         _messageEditStop id, other
   diffid
 
@@ -1116,7 +1154,7 @@ _messageEditStop = (id, username = Meteor.user()?.username) ->
   return unless Meteor.isServer
   Messages.update id,
     $pull: editing: username
-  unless Messages.findOne(id).editing?.length  ## removed last editor
+  unless findMessage(id)?.editing?.length  ## removed last editor
     Meteor.clearTimeout stopTimers[id]
     editor2messageUpdate id, [username]
     ShareJS.model.delete id
@@ -1131,14 +1169,18 @@ if Meteor.isServer
   ## Remove all editors on server start, so that we can restart listeners.
   ## Update finished field accordingly, but don't prevent finished bootstrap.
   needBootstrap = not MessagesDiff.findOne finished: $exists: true
-  Messages.find().forEach (message) ->
-    if message.editing?.length
-      finishLastDiff message._id, message.editing unless needBootstrap
-      Messages.update message._id,
-        $unset: editing: ''
+  Messages.find
+    editing:
+      $exists: true
+      $ne: []
+  .forEach (message) ->
+    return unless message.editing?.length
+    finishLastDiff message._id, message.editing unless needBootstrap
+    Messages.update message._id,
+      $unset: editing: ''
 
-  onExit ->
-    console.log 'EXITING'
+  #onExit ->
+  #  console.log 'EXITING'
 
   ## If we're using a persistent store for sharejs, we need to cleanup
   ## leftover documents from last time.  This should only be for local
@@ -1153,6 +1195,7 @@ if Meteor.isServer
     doc = Meteor.wrapAsync(ShareJS.model.getSnapshot) id
     #console.log id, 'changed to', doc.snapshot
     msg = findMessage id
+    return unless msg?
     unless msg.body == doc.snapshot
       _messageUpdate id,
         body: doc.snapshot
@@ -1170,7 +1213,9 @@ if Meteor.isServer
     Meteor.clearTimeout stopTimers[id]
     stopTimers[id] = Meteor.setTimeout ->
       ## This code is like an extreme form of `messageEditStop` below:
-      editing = Messages.findOne(id).editing ? []
+      msg = findMessage id
+      return unless msg?  # maybe superdeleted
+      editing = msg.editing ? []
       editor2messageUpdate id, editing
       Messages.update id,
         $unset: editing: ''
@@ -1179,7 +1224,10 @@ if Meteor.isServer
     , idleStop
 
 Meteor.methods
-  messageUpdate: (id, message) -> _messageUpdate id, message
+  messageUpdate: (id, message) ->
+    check id, String
+    check message, Object  # further checking within _messageUpdate
+    _messageUpdate id, message
 
   messageNew: (group, parent = null, position = null, message = {}) ->
     #check Meteor.userId(), String  ## should be done by 'canPost'
@@ -1198,6 +1246,7 @@ Meteor.methods
       deleted: Match.Optional Boolean
       private: Match.Optional Boolean
       minimized: Match.Optional Boolean
+      protected: Match.Optional Boolean
       rotate: Match.Optional Match.Where (r) ->
         typeof r == "number" and -180 < r <= 180
       finished: Match.Optional Boolean
@@ -1224,6 +1273,7 @@ Meteor.methods
       ## Old default: public if available, private otherwise
       #if root?.threadPrivacy? and 'public' not in root.threadPrivacy
       #  message.private = true
+    checkProtected message.protected, group, user
     ## "Reply All" behavior: Initial access for a private message
     ## includes all coauthors and access of parent message,
     ## except for the actual author of this message which isn't needed.
@@ -1303,18 +1353,21 @@ Meteor.methods
     ## Notably, disabling `oldParent` setting and `importing` options of
     ## `_messageParent` are not allowed from client, only internal to server.
     check Meteor.userId(), String
+    check child, String
     check parent, Match.OneOf String, null
-    if parent?
-      check position, Match.Maybe Number
-    else
-      check position, Match.Maybe String
+    check position,
+      if parent?
+        Match.Maybe Number
+      else
+        Match.Maybe String
     return if @isSimulation  # don't show change until server updated
     _messageParent child, parent, position
 
   messageEditStart: (id) ->
     check Meteor.userId(), String
+    check id, String
     return if @isSimulation
-    unless canEdit id
+    unless canEdit id, false
       throw new Meteor.Error 'messageEditStart.unauthorized',
         "Insufficient permissions to edit message '#{id}'"
     old = Messages.findOne id
@@ -1331,6 +1384,7 @@ Meteor.methods
       $addToSet: editing: Meteor.user().username
 
   messageEditStop: (id) ->
+    check id, String
     _messageEditStop id
 
   messageImport: (group, parent, message, diffs) ->
@@ -1349,6 +1403,7 @@ Meteor.methods
       deleted: Match.Optional Boolean
       #private: Match.Optional Boolean
       #minimized: Match.Optional Boolean
+      #protected: Match.Optional Boolean
       creator: Match.Optional String
       created: Match.Optional Date
       #updated and updators added automatically from last diff
@@ -1367,6 +1422,7 @@ Meteor.methods
       deleted: Match.Optional Boolean
       #private: Match.Optional Boolean
       #minimized: Match.Optional Boolean
+      #protected: Match.Optional Boolean
       updated: Match.Optional Date
       updators: Match.Optional [String]
       coauthors: Match.Optional [String]
@@ -1417,7 +1473,8 @@ Meteor.methods
     check message, String
     unless canSuperdelete message
       throw new Meteor.Error 'messageSuperdelete.unauthorized',
-        "Insufficient permissions to superdelete in group '#{group}'"
+        "Insufficient permissions to superdelete message '#{message}'"
+    return if @isSimulation
     user = Meteor.user().username
     now = new Date
     msg = Messages.findOne message
@@ -1549,16 +1606,19 @@ Meteor.methods
           multi: true
 
 ## On client, requires messages.root subscription
-@messageNeighbors = (root) ->
-  return unless root._id?
+export messageNeighbors = (root) ->
+  return {} unless root._id?
+  return {} if root.root?  # doesn't work on nonroot messages
   messages = groupSortedBy root.group, groupDefaultSort(root.group),
     fields:
       title: 1
       group: 1
+      format: 1
+      file: 1
   messages = messages.fetch() if messages.fetch?
   ids = (message._id for message in messages)
   index = ids.indexOf root._id
-  return unless index >= 0
+  return {} unless index >= 0
   neighbors = {}
   neighbors.prev = messages[index-1] if index > 0
   neighbors.next = messages[index+1] if index < messages.length - 1
@@ -1572,7 +1632,7 @@ Meteor.methods
 ## (despite that not being stored explicitly in diffs).
 ## Each new message object has `_id` equal to the message's `_id`,
 ## and an extra `diffId` key for the diff's `_id` field.
-@messageDiffsExpanded = (message) ->
+export messageDiffsExpanded = (message) ->
   message = findMessage message
   diffs = MessagesDiff.find
     id: message._id

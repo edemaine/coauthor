@@ -1,3 +1,5 @@
+import {liveMessagesLimit} from '/lib/messages'
+
 Template.live.onCreated ->
   setTitle 'Live Feed'
 

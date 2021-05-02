@@ -1,15 +1,18 @@
-# Coauthor #
+# Coauthor
 
 **Coauthor** is a tool for group collaboration, discussion, keeping track of
 notes/results of meetings, etc., in particular to enable
-**[supercollaboration](http://erikdemaine.org/supercollaboration/)**.
+**[supercollaboration](https://supercollaboration.org/)**.
 Coauthor's primary goal is to ease multiauthor collaboration on unsolved
 problems in theoretical computer science, so e.g. you'll find LaTeX math
 support, but it has proved useful in other fields too.
 
 ![Coauthor screenshot](http://erikdemaine.org/software/coauthor_large.png)
 
-## Features So Far ##
+To see what's changed in Coauthor recently, check out the
+[Changelog](CHANGELOG.md).
+
+## Features
 
 * **Live updates**/redraw of everything, thanks to
   [Meteor](https://www.meteor.com/).
@@ -31,20 +34,20 @@ support, but it has proved useful in other fields too.
 
 * Three **formats** for writing messages (and easy to add additional formats).
   All formats support LaTeX math (via `$...$`, `$$...$$`, `\(...\)`, `\[...\]`,
-  or `\begin{align/equation/eqnarray}...\end{align/equation/eqnarray}`)
+  or `\begin{align/alignat/equation/eqnarray/gather/CD}...\end{align/alignat/equation/eqnarray/gather/CD}`)
   via [KaTeX](https://katex.org/), so math mode supports
   [this list of supported functions](https://katex.org/docs/supported.html)
   (see also [this support table](https://katex.org/docs/support_table.html)).
   Macros defined with `\gdef` can be used throughout one message.
 
-  * [Github-style Markdown](https://guides.github.com/features/mastering-markdown/)
+  * [GitHub-flavored Markdown](https://guides.github.com/features/mastering-markdown/)
     (default), e.g., `*italic*`, `**bold**`, `~~strikethrough~~`,
     `# Heading`, `## Subheading`, \`code\`, `> Block quote`,
     <code>\`\`\`multiple lines of code\`\`\`</code>
     (including [language-based highlighting](https://highlightjs.org/)
      if you start with <code>\`\`\`language</code>),
     links via `[text](url)`, images via `![caption](url)`,
-    lists via `*` or `1.`,
+    lists via `*` or `1.`, to-do lists via `* [ ]` and `* [x]`,
     [tables](http://www.tablesgenerator.com/markdown_tables), etc.
     Also supports all LaTeX commands listed below that start with a letter
     (notably, not accents) and math mode, and all HTML commands listed below.
@@ -92,7 +95,7 @@ support, but it has proved useful in other fields too.
     `enumerate` (including [enumerate.sty's optional argument](http://ctan.mirrors.hoobly.com/macros/latex/required/tools/enumerate.pdf))
     `quote`, `center`,
     `tabular` (basic but including `\multicolumn` and `\multirow`),
-    `equation`, `eqnarray`, `align`,
+    `equation`, `eqnarray`, `align`, `alignat`, `gather`, `CD`,
     `problem`, `question`, `idea`, `theorem`, `conjecture`, `lemma`,
     `corollary`, `fact`, `observation`, `proposition`, `claim`, `proof`.
     Also supports all HTML commands listed below.
@@ -124,7 +127,7 @@ support, but it has proved useful in other fields too.
     paste mode via Ctrl-Shift-H.
   * @mentioning has automatic completion of all users in group. You can type
     any substring of the real name or username (but skipping spaces, like
-    Github), and select by pressing enter, or ignore by pressing space.
+    GitHub), and select by pressing enter, or ignore by pressing space.
 
 * Messages are organized by **groups** (intended to correspond to groups of
   people who meet), so it's easy to share material with everyone in the group.
@@ -170,7 +173,7 @@ support, but it has proved useful in other fields too.
   messages with the same tag by clicking on a tag.
 
 * **Emoji** for super-short responses that show appreciation but don't cause
-  email notifications or take up much space.  (Like Github and Slack.)
+  email notifications or take up much space.  (Like GitHub and Slack.)
   Hover over an emoji to see a list of people who added the emoji; click to
   toggle your own status.  Emoji are positive (purple) or negative (red).
   Positive emoji on root messages are counted on the group page, enabling
@@ -178,25 +181,36 @@ support, but it has proved useful in other fields too.
 
 * **Search** across an entire group, or across all groups,
   for posts by keywords using the search bar at the top.
-  Search for a word as a (whole) `word`, `prefix*`, `*suffix`,
-  `*substring*`, or `prefix*suffix`.
-  Lower-case letters are case insensitive,
-  while upper-case letters are case sensitive.
-  Restrict search to title or body via `title:...` or `body:...`
-  (default is to search both).
-  Negative match with minus sign
-  (e.g., `-word` excludes documents with whole `word`).
-  Search for a regular expression via `regex:...`.
-  Use quotes (`'...'` or `"..."`) to search for phrases or `regex:"..."`
-  to search for regular expressions with spaces in them; normally,
-  spaces act as an AND query.
-  Connect words/phrases with `|` to get an OR query instead.
-  `tag:...` does an exact match for a specified tag; it can be negated.
-  `is:root` matches root messages (tops of threads).
-  `is:file` matches file messages (made via Attach).
-  `is:deleted`, `is:published`, `is:private`, `is:minimized` match various
-  states of messages.
-  `is:empty` matches empty messages (no title, body, or file).
+  * Search for a word as a whole `word` (default behavior), or specify
+    asterisks to search for partial word matches: `prefix*`, `*suffix`,
+    `*substring*`, or `prefix*suffix`.
+  * Lower-case letters are case insensitive,
+    while upper-case letters are case sensitive.
+  * Restrict search to title or body via `title:...` or `body:...`
+    (default is to search both).
+  * Negative match with minus sign
+    (e.g., `-word` excludes documents with whole `word`).
+  * Search for a regular expression via `regex:...`.
+  * Use quotes (`'...'` or `"..."`) to search for phrases or `regex:"..."`
+    to search for regular expressions with spaces in them; normally,
+    spaces act as an AND query.
+  * Connect words/phrases with `|` to get an OR query instead.
+  * `by:username` searches for messages coauthored by a specified username
+    (which can include `*`s or use regular expressions via `regex:`);
+    `by:me` is shorthand for searching for your own username.
+  * `tag:...` does an exact match for a specified tag; it can be negated.
+  * `emoji:heart`, `emoji:thumbs-up`, `emoji:thumbs*`, `emoji:*` etc. search
+    for messages with (certain) emoji symbol responses;
+    `emoji:@username` searches for messages with emoji response by
+    a specific user (`emoji:@me` finds your own emoji responses);
+    or you can combine the two with e.g. `emoji:thumbs*@username`.
+  * `is:root` matches root messages (tops of threads).
+  * `is:file` matches file messages (made via Attach).
+  * `is:deleted`, `is:published`, `is:private`, `is:minimized`, `is:protected`
+    match various states of messages.
+  * `is:empty` matches empty messages (no title, body, or file).
+  * `not:...` or `isnt:...` are negated forms of the above `is:...` operators,
+    equivalent to `-is:...`.
 
 * **User search**:
   find posts by a particular user by clicking on their username.
@@ -250,6 +264,11 @@ support, but it has proved useful in other fields too.
   * Replies to replies inherit the public/private state of their parent.
   * Superusers can see all the messages and change them between public and
     private.
+  * Superusers can also mark messages as **protected**, meaning they can be
+    edited only by coauthors and superusers.  This is useful to prevent someone
+    from accidentally becoming a coauthor on the root message of a
+    private-replies thread, thereby gaining access to all subsequent replies.
+    Protected messages can still be seen normally and gain emoji responses.
 
 * **Email notifications** for subscribed threads, clustering together all
   updates since the last email, with a maximum lag of a specified number of
@@ -301,7 +320,7 @@ support, but it has proved useful in other fields too.
   * Setting the default sort for a group
   * Setting message threads as allowing public and/or private messages
 
-## User Tips ##
+## User Tips
 
 * On Android, the
   [Chrome browser](https://play.google.com/store/apps/details?id=com.android.chrome&hl=en)
@@ -323,6 +342,6 @@ support, but it has proved useful in other fields too.
   (specifically, both capture the Escape key), so be sure to disable Vimium if
   you want to use Vim keybindings in the message editor.
 
-## [Installation](INSTALL.md) ##
+## [Installation](INSTALL.md)
 
 See [detailed installation instructions](INSTALL.md).

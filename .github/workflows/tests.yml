@@ -1,0 +1,24 @@
+name: Lint Test
+on:
+  - push
+  - pull_request
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+      - name: Install Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: '14'
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+            node_modules
+          key: deps-${{ hashFiles('package.json') }}
+      - name: Install dependencies
+        run: npm install
+      - name: Run lint
+        run: npm run lint

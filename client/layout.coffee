@@ -1,8 +1,5 @@
 import React from 'react'
 
-Template.registerHelper 'uploading', ->
-  value for own key, value of Session.get 'uploading'
-
 linkToRoutes =
   since: true
   live: true
@@ -41,7 +38,6 @@ Template.layout.onRendered ->
 
 Template.layout.helpers
   activeGroup: ->
-    data = Template.parentData()
     if routeGroup() == @name
       'active'
     else
@@ -49,14 +45,14 @@ Template.layout.helpers
   inUsers: ->
     (Router.current().route?.getName() ? '')[...5] == 'users'
   linkToUsers: ->
-    if message = routeMessage()
+    if (message = routeMessage())
       pathFor 'users.message',
         group: routeGroupOrWild()
         message: message2root message
     else
       pathFor 'users', group: routeGroupOrWild()
   linkToUsersExit: ->
-    if message = routeMessage()
+    if (message = routeMessage())
       pathFor 'message',
         group: routeGroupOrWild()
         message: message
@@ -83,8 +79,9 @@ export Credits = React.memo ->
     <span className="space"/>
     <span className="btn-group btn-group-sm pull-right">
       <a className="btn btn-default" href="https://github.com/edemaine/coauthor/#coauthor">Documentation</a>
+      <a className="btn btn-default" href="https://github.com/edemaine/coauthor/blob/main/CHANGELOG.md">Changelog</a>
       <a className="btn btn-default" href="https://github.com/edemaine/coauthor/issues/">Suggestions/Issues</a>
-      <a className="btn btn-default" href="https://github.com/edemaine/coauthor/">Download Source</a>
+      <a className="btn btn-default" href="https://github.com/edemaine/coauthor/">Source Code</a>
     </span>
   </p>
 Credits.displayName = 'Credits'
@@ -142,3 +139,15 @@ Template.layout.events
   'dragover a.author': (e) ->
     e.preventDefault()
     e.stopPropagation()
+
+Template.footer.helpers
+  showFooter: ->
+    return true for own key of Session.get 'uploading' # eslint-disable-line coffee/no-unused-vars
+    return true if Session.get 'migrate'
+
+Template.migrate.helpers
+  migrate: -> Session.get 'migrate'
+
+Template.uploadProgress.helpers
+  uploading: ->
+    value for own key, value of Session.get 'uploading'

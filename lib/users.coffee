@@ -1,4 +1,5 @@
-import React from 'react'
+import {Accounts} from 'meteor/accounts-base'
+import {check} from 'meteor/check'
 
 @findUser = (userId) ->
   if userId?
@@ -15,16 +16,21 @@ import React from 'react'
   user = findUsername username
   user?.profile?.fullname?.trim?() or user?.username or username
 
-@linkToAuthor = (group, user, title, prefix) ->
+@linkToAuthor = (group, user, options) ->
+  {title, prefix, me} = options if options?
   username = user.username ? user
   title = "User '#{username}'" unless title?
   link = urlFor 'author',
     group: group
     author: username
-  link = """<a class="author" data-username="#{username}" href="#{link}" title="#{title.replace /"/g, '&#34;'}" data-toggle="tooltip">#{prefix or ''}#{displayUser user}</a>"""
+  link = """<a class="author" data-username="#{username}" href="#{link}" title="#{title.replace /"/g, '&#34;'}">#{prefix or ''}#{_.escape displayUser user}</a>"""
   if Meteor.isClient and
-     Router.current()?.route?.getName() == 'author' and
-     Router.current()?.params?.author == username
+     Router.current()?.route?.getName() == 'author'
+    highlight = (Router.current()?.params?.author == username)
+  else
+    me ?= Meteor.user()?.username if Meteor.isClient
+    highlight = (username == me)
+  if highlight
     link = """<span class="highlight">#{link}</span>"""
   link
 
@@ -38,7 +44,9 @@ import React from 'react'
     display
 
 @validUsername = (username) ->
-  validKey(username) and not username.match /[\s@]/
+  validKey(username) and
+  not /[\s@`&<>{}\\]/.test(username) and  # bad characters for at-mentions
+  username.toLowerCase() != 'me'  # used in search as shorthand for self
 
 ## Need to escape dots in usernames.
 @escapeUser = escapeKey
@@ -46,6 +54,7 @@ import React from 'react'
 
 if Meteor.isServer
   Meteor.publish 'users', (group) ->
+    check group, String
     @autorun ->
       user = findUser @userId
       ## User can see the list of all users of the Coauthor instance
@@ -77,6 +86,7 @@ else  ## client
 Meteor.methods
   userEditEmail: (email) ->
     check Meteor.userId(), String
+    check email, String
     if Meteor.isServer  ## no Accounts on client
       if Meteor.user().emails?[0]?.address?
         Accounts.removeEmail Meteor.userId(), Meteor.user().emails[0].address

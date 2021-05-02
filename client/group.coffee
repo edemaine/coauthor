@@ -1,4 +1,5 @@
-import React, {useEffect, useMemo, useRef} from 'react'
+import React, {useEffect, useMemo, useRef, useState} from 'react'
+import Dropdown from 'react-bootstrap/Dropdown'
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger'
 import Tooltip from 'react-bootstrap/Tooltip'
 import {useTracker} from 'meteor/react-meteor-data'
@@ -10,16 +11,13 @@ import {MessageLabels, MessageTags, messageClass, uploaderProps} from './message
 import {TagList} from './TagList'
 import {TextTooltip} from './lib/tooltip'
 import {UserLink} from './UserLink'
-
-@routeGroupRoute = ->
-  Router.current()?.params?.group
+import {emojiReplies} from '/lib/emoji'
+import {formatTitleOrFilename} from '/lib/formats'
+import {groupDefaultSort, sortKeys} from '/lib/groups'
+import {autopublish} from '/lib/settings'
 
 @routeGroup = ->
-  group = routeGroupRoute()
-  if group == wildGroupRoute
-    wildGroup
-  else
-    group
+  Router.current()?.params?.group
 
 @routeGroupOrWild = ->
   routeGroup() ? wildGroup
@@ -33,9 +31,9 @@ Template.registerHelper 'routeGroupOrWildData', ->
 Template.registerHelper 'wildGroup', ->
   routeGroup() == wildGroup
 
-@groupData = ->
+@groupData = (group) ->
   Groups.findOne
-    name: routeGroup()
+    name: group ? routeGroup()
 
 Template.registerHelper 'groupData', groupData
 
@@ -87,7 +85,7 @@ export MaybeGroup = React.memo ({group}) ->
     <Blaze template="badGroup" group={group}/>
 MaybeGroup.displayName = 'MaybeGroup'
 
-Group = React.memo ({group, groupData}) ->
+export Group = React.memo ({group, groupData}) ->
   sortBy = useTracker ->
     routeSortBy()
   , []
@@ -131,7 +129,7 @@ Group = React.memo ({group, groupData}) ->
   </div>
 Group.displayName = 'Group'
 
-GroupButtons = React.memo ({group, can, sortBy}) ->
+export GroupButtons = React.memo ({group, can, sortBy}) ->
   superuser = useTracker ->
     Session.get 'super'
   , []
@@ -140,12 +138,16 @@ GroupButtons = React.memo ({group, can, sortBy}) ->
   , []
   postTitle = useMemo ->
     if can.post
-      'Start a new thread with a new top-level message.'
+      'Start a new thread / problem / discussion with a new top-level message.'
     else if user?
       'You do not have permission to post a message in this group.'
     else
       'You need to be logged in to post a message in this group.'
   , [can.post, user?]
+  defaultPublished = useTracker ->
+    autopublish()
+  , []
+  [dropdown, setDropdown] = useState false
 
   onSortSetDefault = (e) ->
     e.stopPropagation()
@@ -156,18 +158,33 @@ GroupButtons = React.memo ({group, can, sortBy}) ->
   onPost = (e) ->
     e.preventDefault()
     e.stopPropagation()
-    type = e.target.id
+    newTab = (e.button != 0) or e.ctrlKey or e.metaKey or e.shiftKey
     #e.target.addClass 'disabled'
+    setDropdown false  # not automatic for auxclick
     return unless canPost group
-    Meteor.call 'messageNew', group, (error, result) ->
+    message = {}
+    switch e.currentTarget.getAttribute 'data-published'
+      when 'false'
+        message.published = false
+      when 'true'
+        message.published = true
+      else
+        message.published = defaultPublished
+    Meteor.call 'messageNew', group, null, null, message, (error, result) ->
       #e.target.removeClass 'disabled'
       if error
         console.error error
       else if result
         Meteor.call 'messageEditStart', result
-        Router.go 'message',
-          group: group
-          message: result
+        if newTab
+          url = urlFor 'message',
+            group: group
+            message: result
+          window.open url, '_blank'
+        else
+          Router.go 'message',
+            group: group
+            message: result
       else
         console.error "messageNew did not return problem -- not authorized?"
 
@@ -184,12 +201,47 @@ GroupButtons = React.memo ({group, can, sortBy}) ->
         }
       </div>
     }
-    <TextTooltip title={postTitle}>
-      <button onClick={onPost}
-       className="btn btn-info postButton #{unless can.post then 'disabled' else ''}">
-        Pose New Problem / Discussion
-      </button>
-    </TextTooltip>
+    
+    <Dropdown className="btn-group" show={dropdown}
+     onToggle={(open) -> setDropdown open}>
+      <TextTooltip title={postTitle}>
+        <span className="wrapper #{if can.post then '' else 'disabled'}">
+          <Dropdown.Toggle variant="info" disabled={not can.post}>
+            {'New Thread '}
+            <span className="caret"/>
+          </Dropdown.Toggle>
+        </span>
+      </TextTooltip>
+      <Dropdown.Menu className="buttonMenu postMenu">
+        <li>
+          <Dropdown.Item href="#" onClick={onPost} onAuxClick={onPost}>
+            <TextTooltip placement="left" title="Start a new root message, #{if defaultPublished then 'immediately ' else ''}visible to everyone in this group#{if defaultPublished then '' else ' (once published)'}.">
+              <button className="btn btn-#{if defaultPublished then 'default' else 'warning'} btn-block postButton">
+                New Root Message
+              </button>
+            </TextTooltip>
+          </Dropdown.Item>
+        </li>
+        <li>
+          <Dropdown.Item href="#" data-published={not defaultPublished}
+           onClick={onPost} onAuxClick={onPost}>
+            {if defaultPublished
+              <TextTooltip placement="left" title="Start a new root message that starts in the unpublished state, so it will become generally visible only when you select Action / Publish.">
+                <button className="btn btn-warning btn-block postButton">
+                  New Unpublished Root Message
+                </button>
+              </TextTooltip>
+            else
+              <TextTooltip placement="left" title="Start a new root message that starts in the published state, so everyone in this group can see it immediately.">
+                <button className="btn btn-success btn-block postButton">
+                  New Published Root Message
+                </button>
+              </TextTooltip>
+            }
+          </Dropdown.Item>
+        </li>
+      </Dropdown.Menu>
+    </Dropdown>
     <div className="btn-group">
       <TextTooltip title="Show all messages you have authored or been @mentioned in">
         <a className="btn btn-default myPostsButton #{unless user? then 'disabled'}"
@@ -232,7 +284,7 @@ columnReverse =
   emoji: true
   subscribe: true
 
-MessageList = React.memo ({topMessages, sortBy}) ->
+export MessageList = React.memo ({topMessages, sortBy}) ->
   sortLink = (key) ->
     if key == sortBy.key
       linkToSort
@@ -297,7 +349,7 @@ MessageList = React.memo ({topMessages, sortBy}) ->
   </table>
 MessageList.displayName = 'MessageList'
 
-ImportExportButtons = React.memo ({group, can}) ->
+export ImportExportButtons = React.memo ({group, can}) ->
   onImport = (files, e) ->
     import('/imports/import.coffee').then (i) ->
       i.importFiles e.target.getAttribute('data-format'), group, files
@@ -337,7 +389,7 @@ ImportExportButtons = React.memo ({group, can}) ->
   </div>
 ImportExportButtons.displayName = 'ImportExportButtons'
 
-GroupTags = React.memo ({group}) ->
+export GroupTags = React.memo ({group}) ->
   tags = useTracker ->
     groupTags group
   , [group]
@@ -351,21 +403,20 @@ memberLinks = (group, sortedMembers) ->
   count = 0
   for member in sortedMembers
     partial = member.rolesPartial?[escapedGroup]
+    subtitle = null
     if partial?
       msgs = Messages.find _id: $in: (id for id of partial)
       .fetch()
       subtitle = "Access to: " + (
         for msg in msgs
           "“#{titleOrUntitled msg}”"
-      ).join '; '
-    else
-      subtitle = null
+      ).join '; ' if msgs.length
     <React.Fragment key={member.username}>
       {', ' if count++}
       <UserLink user={member} group={group} subtitle={subtitle}/>
     </React.Fragment>
 
-GroupMembers = React.memo ({group}) ->
+export GroupMembers = React.memo ({group}) ->
   members = useTracker ->
     full: memberLinks group, sortedGroupFullMembers group
     partial: memberLinks group, sortedGroupPartialMembers group
@@ -394,14 +445,14 @@ GroupMembers = React.memo ({group}) ->
   </div>
 GroupMembers.displayName = 'GroupMembers'
 
-MessageShort = React.memo ({message}) ->
+export MessageShort = React.memo ({message}) ->
   messageLink = useMemo ->
     pathFor 'message',
       group: message.group
       message: message._id
   , [message]
   formattedTitle = useTracker ->
-    formatTitleOrFilename message, true, false, true
+    formatTitleOrFilename message, bold: true
   , [message]
   creator = useTracker ->
     displayUser message.creator
