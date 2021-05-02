@@ -9,6 +9,10 @@ instead of version numbers.
 
 ## 2021-05-02
 
+* When clicking on a link to a message within the currently visible
+  (sub)thread, scroll to the message instead of zooming in to its subthread.
+  If you'd like to zoom in, you can click on the Zoom In/Focus button.
+  [[#553](https://github.com/edemaine/coauthor/issues/553)]
 * Fix scrolling to message specified by hash in URL.
   [[#553](https://github.com/edemaine/coauthor/issues/553)]
 * Automatically focus on title of message when we start editing it,

@@ -210,9 +210,10 @@ Message = React.memo ({message}) ->
   useEventListener 'hashchange', hashchange = ->
     scrollToMessage window.location.hash if window.location.hash.length > 1
   useEffect ->
-    hashchange()
+    ## If we just followed a link, window.location will be stale; wait a tick.
+    Meteor.defer hashchange
     undefined
-  , []
+  , [message._id]
 
   ## Display table of contents according to whether screen is at least
   ## Bootstrap 3's "sm" size, but allow user to override.

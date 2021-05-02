@@ -11,7 +11,8 @@ import {scrollToMessage} from './message.coffee'
 lastURL = null
 pastTops = {}
 transitioning = false
-internalPath = /^\/(gridfs|file)\//
+internalPath = /// ^ /(gridfs|file)/ ///
+messagePath = /// ^ /([^/#])*/m/([^/#]*) $ ///
 
 saveTops = _.debounce ->
   sessionStorage?.setItem? 'pastTops', JSON.stringify pastTops
@@ -50,6 +51,25 @@ $(document).on 'click', 'a[href]', (e) ->
     e.preventDefault()
     e.stopImmediatePropagation?()
     window.location = e.target.href
+  ## If we follow a link to a message within the current thread/subthread,
+  ## treat the link like a hash link instead.
+  if e.target?.hostname == window.location.hostname and
+     not e.target.hash and
+     (targetMatch = messagePath.exec e.target.pathname)? and
+     (hereMatch = messagePath.exec window.location.pathname)?
+    hereMsg = Messages.findOne hereMatch[2]
+    targetMsg = Messages.findOne targetMatch[2]
+    if hereMsg? and targetMsg? and
+       (hereMsg.root ? hereMsg._id) == (targetMsg.root ? targetMsg._id)
+      ancestor = targetMsg
+      while ancestor? and ancestor._id != hereMsg._id
+        ancestor = findMessageParent ancestor
+      if ancestor?
+        e.preventDefault()
+        e.stopImmediatePropagation?()
+        window.history.pushState null, 'scroll to message',
+          "#{window.location.pathname}##{targetMsg._id}"
+        scrollToMessage targetMsg._id
 
 Router.onBeforeAction ->
   transitioning = true
