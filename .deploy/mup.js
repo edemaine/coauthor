@@ -63,6 +63,9 @@ module.exports = {
 
   // Mongo server
   mongo: {
+    // Mongo 4 has the advantage of free cloud monitoring
+    // [https://docs.mongodb.com/manual/administration/monitoring/].
+    // But you can also run an old version such as the default '3.4.1'.
     version: '4.4.4',
     oplog: true,
     port: 27017,
