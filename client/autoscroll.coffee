@@ -34,28 +34,29 @@ $(document).on 'click', 'a[href]', (e) ->
   return if e.metaKey or e.ctrlKey or e.shiftKey
   ## If we click on a link with a hash mark in it, forget and therefore
   ## don't scroll to remembered position.
-  if e.target?.href?.endsWith? '#'
-    delete pastTops[e.target.href[...e.target.href.length-1]]
-  else if e.target?.hash
-    delete pastTops[e.target.href]
+  if e.currentTarget?.href?.endsWith? '#'
+    delete pastTops[e.currentTarget.href[...e.currentTarget.href.length-1]]
+  else if e.currentTarget?.hash
+    delete pastTops[e.currentTarget.href]
     ## If we click on a hash link to the same message again, scroll there.
-    #if e.target.href == window.location.toString()
+    #if e.currentTarget.href == window.location.toString()
     ## More generally, if we click on a hash link within the current page,
     ## scroll there smoothly.
-    if e.target.hostname == window.location.hostname and
-       e.target.pathname == window.location.pathname
-      scrollToMessage e.target.hash
+    if e.currentTarget.host == window.location.host and
+       e.currentTarget.pathname == window.location.pathname
+      scrollToMessage e.currentTarget.hash
   ## Instantly go to internal paths, bypassing Iron Router
-  if e.target?.hostname == window.location.hostname and
-     internalPath.test e.target?.pathname
+  if e.currentTarget?.host == window.location.host and
+     internalPath.test e.currentTarget?.pathname
     e.preventDefault()
     e.stopImmediatePropagation?()
-    window.location = e.target.href
+    window.location = e.currentTarget.href
   ## If we follow a link to a message within the current thread/subthread,
   ## treat the link like a hash link instead.
-  if e.target?.hostname == window.location.hostname and
-     not e.target.hash and
-     (targetMatch = messagePath.exec e.target.pathname)? and
+  if e.currentTarget?.host == window.location.host and
+     not e.currentTarget.hash and
+     not e.currentTarget.classList.contains('btn') and
+     (targetMatch = messagePath.exec e.currentTarget.pathname)? and
      (hereMatch = messagePath.exec window.location.pathname)?
     hereMsg = Messages.findOne hereMatch[2]
     targetMsg = Messages.findOne targetMatch[2]
