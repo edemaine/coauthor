@@ -7,6 +7,11 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2021-05-02
+
+* Fix scrolling to message specified by hash in URL
+  [[#553](https://github.com/edemaine/coauthor/issues/553)]
+
 ## 2021-04-28
 
 * Improve table of contents layout

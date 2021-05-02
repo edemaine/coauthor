@@ -206,6 +206,14 @@ Message = React.memo ({message}) ->
     undefined
   , [message.title]
 
+  ## Scroll to message ID given in URL's hash, initially and when edited.
+  useEventListener 'hashchange', hashchange = ->
+    scrollToMessage window.location.hash if window.location.hash.length > 1
+  useEffect ->
+    hashchange()
+    undefined
+  , []
+
   ## Display table of contents according to whether screen is at least
   ## Bootstrap 3's "sm" size, but allow user to override.
   isScreenSm = useMediaQuery query: '(min-width: 768px)'
