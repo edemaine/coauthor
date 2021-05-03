@@ -391,8 +391,8 @@ export messageClass = ->
   else
     'published'
 
-messageRaw = new ReactiveDict
-export messageFolded = new ReactiveDict
+messageRaw = new ReactiveDict 'messageRaw'
+export messageFolded = new ReactiveDict 'messageFolded'
 defaultFolded = new ReactiveDict
 messageHistory = new ReactiveDict
 messageHistoryAll = new ReactiveDict

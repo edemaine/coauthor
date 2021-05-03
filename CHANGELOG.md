@@ -7,6 +7,10 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2021-05-04
+
+* Preserve which messages were folded or in Raw view across server restarts.
+
 ## 2021-05-02
 
 * When clicking on a link to a message within the currently visible
