@@ -35,3 +35,6 @@ li.dropdown.halflink > a.link:first-child { padding-right: 0px; }
 
 /* Place navbar above sticky TableOfContents, so dropdowns don't get covered */
 nav.navbar { z-index: 1025; }
+
+/* Remove double space between messages and TableOfContents */
+.col-xs-9 + .col-xs-3 { padding-left: 0; }
