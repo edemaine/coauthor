@@ -55,6 +55,7 @@ $(document).on 'click', 'a[href]', (e) ->
   ## treat the link like a hash link instead.
   if e.currentTarget?.host == window.location.host and
      not e.currentTarget.hash and
+     not e.currentTarget.href.endsWith('#') and  # used by lots of buttons
      not e.currentTarget.classList.contains('btn') and
      (targetMatch = messagePath.exec e.currentTarget.pathname)? and
      (hereMatch = messagePath.exec window.location.pathname)?

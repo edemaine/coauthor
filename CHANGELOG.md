@@ -10,6 +10,7 @@ instead of version numbers.
 ## 2021-05-04
 
 * Preserve which messages were folded or in Raw view across server restarts.
+* Fix accidental scrolling when adding emoji responses
 
 ## 2021-05-02
 
