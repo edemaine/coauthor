@@ -9,6 +9,7 @@ instead of version numbers.
 
 ## 2021-05-04
 
+* Small visual improvement: navbar extends the full page width
 * Preserve which messages were folded or in Raw view across server restarts.
 * Fix accidental scrolling when adding emoji responses
 
