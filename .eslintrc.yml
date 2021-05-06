@@ -184,6 +184,8 @@ rules:
     - error
     - args: none  # allow callbacks of the form (e) -> ...not using e...
   coffee/no-useless-escape: off
+  import/default: off
+  import/no-named-as-default-member: off
   react/no-unescaped-entities:
     - warn
     - forbid: ['>', '"', '}']

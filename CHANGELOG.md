@@ -7,6 +7,11 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2021-05-06
+
+* Improve scrolling behavior when using browser back and forward
+  [[#557](https://github.com/edemaine/coauthor/issues/557)]
+
 ## 2021-05-04
 
 * Small visual improvements: navbar extends the full page width,

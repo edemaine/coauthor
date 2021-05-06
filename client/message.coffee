@@ -206,12 +206,12 @@ Message = React.memo ({message}) ->
     undefined
   , [message.title]
 
-  ## Scroll to message ID given in URL's hash, initially and when edited.
-  useEventListener 'hashchange', hashchange = ->
-    scrollToMessage window.location.hash if window.location.hash.length > 1
+  ## Scroll to message ID given in URL's initial hash.
+  ## hashchange/popstate events are handled by autoscroll.coffee
   useEffect ->
     ## If we just followed a link, window.location will be stale; wait a tick.
-    Meteor.defer hashchange
+    Meteor.defer ->
+      scrollToMessage window.location.hash if window.location.hash.length > 1
     undefined
   , [message._id]
 
