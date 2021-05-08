@@ -43,7 +43,7 @@ webapp@1.9.1
 sergeyt:typeahead
 dynamic-import@0.5.2
 browser-policy@1.1.0
-edemaine:sharejs@0.11.0
+edemaine:sharejs@0.11.1
 edemaine:sharejs-codemirror@5.40.0
 deanius:promise
 edemaine:accounts-ui-bootstrap-3

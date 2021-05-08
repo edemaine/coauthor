@@ -7,6 +7,12 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2021-05-08
+
+* Fix an old bug where the message body editor sometimes shows
+  `loading...` forever
+  [[#559](https://github.com/edemaine/coauthor/issues/559)]
+
 ## 2021-05-06
 
 * Improve scrolling behavior when using browser back and forward
