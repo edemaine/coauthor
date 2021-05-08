@@ -9,6 +9,9 @@ instead of version numbers.
 
 ## 2021-05-08
 
+* Table of contents links are now direct links to messages (instead of hash
+  links), so you can copy them to clipboard and paste them into a message, or
+  control/shift/middle-click to open them in a new window
 * Fix an old bug where the message body editor sometimes shows
   `loading...` forever
   [[#559](https://github.com/edemaine/coauthor/issues/559)]

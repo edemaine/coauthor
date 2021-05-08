@@ -1627,7 +1627,8 @@ export WrappedTableOfContents = React.memo ({message, parent, index}) ->
          onDragEnter={addDragOver} onDragLeave={removeDragOver}
          onDragOver={dragOver} onDrop={dropOn}/>
       }
-      <a href="##{message._id}" data-id={message._id}
+      <a href={pathFor 'message', {group: message.group, message: message._id}}
+       data-id={message._id}
        className="onMessageDrop #{if isRoot then 'title' else ''} #{messageClass.call message}"
        onDragStart={messageOnDragStart message}
        onDragEnter={addDragOver} onDragLeave={removeDragOver}
