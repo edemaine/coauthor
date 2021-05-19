@@ -1850,6 +1850,7 @@ Template.messageParentDialog.events
     e.stopPropagation()
     Modal.hide()
     parent = t.parent.get()
+    return unless parent?
     if t.data.index? and t.data.parent == parent # unchanged from drag
       console.assert not parent.isGroup
       Meteor.call 'messageParent', t.data.child._id, t.data.parent._id, t.data.index
