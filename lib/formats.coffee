@@ -122,7 +122,7 @@ latexSymbols =
   '}': ''
 latexSymbolsRe = ///#{_.keys(latexSymbols).join '|'}///g
 latexEscape = (x) ->
-  x.replace /[-`'~\\$%&<>]/g, (char) -> "&##{char.charCodeAt 0};"
+  x.replace /[-`'~\\$%&<>@]/g, (char) -> "&##{char.charCodeAt 0};"
 latexURL = (x) ->
   x.replace /\\([_#@$%&])/g, '$1'
 ## Commands with letter names and no arguments, and a universal expansion.
@@ -488,17 +488,19 @@ latex2htmlCommandsAlpha = (tex, math) ->
 
 ## "Light" LaTeX support, using only commands that start with a letter a-z,
 ## so are safe to process in Markdown.  No accent support.
-latex2htmlLight = (tex) ->
+latex2htmlLight = (tex, me) ->
   tex = latex2htmlVerb tex
   tex = latex2htmlDef tex
   ## After \def expansion and verbatim processing, protect math
   [tex, math] = preprocessKaTeX tex
+  ## After math extraction, process @mentions
+  tex = processAtMentions tex, me
   tex = latex2htmlCommandsAlpha tex, math
   [tex, math]
 
 ## Full LaTeX support, including all supported commands and symbols
 ## (% make comments, ~ makes nonbreaking space, etc.).
-latex2html = (tex) ->
+latex2html = (tex, me) ->
   tex = latex2htmlVerb tex
   tex = latexStripComments tex
   ## Paragraph detection must go before any macro expansion (which eat \n's)
@@ -506,6 +508,8 @@ latex2html = (tex) ->
   tex = latex2htmlDef tex
   ## After \def expansion and verbatim processing, protect math
   [tex, math] = preprocessKaTeX tex
+  ## After math extraction, process @mentions
+  tex = processAtMentions tex, me
   ## Start initial paragraph
   tex = '<p>' + tex
   ## Commands
@@ -556,7 +560,7 @@ latex2html = (tex) ->
   [tex, math]
 
 formats =
-  markdown: (text, title) ->
+  markdown: (text, title, me) ->
     ## Escape all characters that can be (in particular, _s) that appear
     ## inside math mode, to prevent Marked from processing them.
     ## The Regex is exactly marked.js's inline.escape.
@@ -567,7 +571,7 @@ formats =
     ## LaTeX processing on them (especially math mode, so $ is inert in code).
     [text, ticks] = preprocessMarkdownTicks text
     ## Support what we can of LaTeX before doing Markdown conversion.
-    [text, math] = latex2htmlLight text
+    [text, math] = latex2htmlLight text, me
     ## Put Markdown verbatims back in.
     text = putTicksBack text, ticks
     if title  ## use "single-line" version of Markdown
@@ -600,8 +604,8 @@ formats =
           match
     #.replace /(<label\b[^<>]*>)\s*/ig, '$1'
     [text, math]
-  latex: (text, title) ->
-    latex2html text
+  latex: (text, title, me) ->
+    latex2html text, me
   html: (text, title) ->
     linkify text
 
@@ -699,7 +703,9 @@ postprocessLinks = (text) ->
   Meteor.users.find {}, fields: username: 1
   .map (user) -> user.username
 
+## U+FF20 is FULLWIDTH COMMERCIAL AT common in Asian scripts.
 atRePrefix = '[@\uff20]'
+
 @atRe = (users = allUsernames()) ->
   users = [users] unless _.isArray users
   ## Reverse-sort by length to ensure maximum-length match
@@ -708,15 +714,15 @@ atRePrefix = '[@\uff20]'
   users = for user in users
     user = user.username if user.username?
     escapeRegExp user
-  ## FF20 is FULLWIDTH COMMERCIAL AT common in Asian scripts
   ///#{atRePrefix}(#{users.join '|'})(?!\w)///g
 
-postprocessAtMentions = (text, me) ->
+processAtMentions = (text, me) ->
   return text unless ///#{atRePrefix}///.test text
   users = allUsernames()
   return text unless 0 < users.length
   text.replace (atRe users), (match, user, offset, string) ->
-    unless inTag string, offset
+    ## Allow escaping of @ by preceding backslash.
+    unless string[offset-1] == '\\' or inTag string, offset
       "@#{linkToAuthor (routeGroup?() ? wildGroup), user, {me}}"
     else # e.g. in <a title="..."> caused by postprocessCoauthorLinks
       match
@@ -860,13 +866,18 @@ formatEither = (isTitle, format, text, options) ->
   return text unless text?
   {leaveTeX, bold, me} = options if options?
 
+  ## Markdown format is special because it processes @mentions
+  ## at a specific time (after verbatim extraction).
+
   ## LaTeX and Markdown formats are special because they do their own math
-  ## preprocessing at a specific time during its formatting.  Other formats
-  ## (currently just HTML) don't touch math, so we need to preprocess here.
+  ## and @mention preprocessing at a specific time during its formatting.
+  ## Other formats (currently just HTML) don't touch math,
+  ## so we need to preprocess here.
   if format in ['latex', 'markdown']
-    [text, math] = formats[format] text, isTitle
+    [text, math] = formats[format] text, isTitle, me
   else
     [text, math] = preprocessKaTeX text
+    text = processAtMentions text, me
     if format of formats
       text = formats[format] text, isTitle
     else
@@ -895,7 +906,6 @@ formatEither = (isTitle, format, text, options) ->
   text = linkify text  ## Extra support for links, unliked LaTeX
   text = postprocessCoauthorLinks text
   text = postprocessLinks text
-  text = postprocessAtMentions text, me
   text = formatSearchHighlight isTitle, text
   sanitize text
 

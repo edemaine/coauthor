@@ -9,6 +9,10 @@ instead of version numbers.
 
 ## 2021-05-19
 
+* At-mentions no longer expand in verbatim contexts
+  [[#533](https://github.com/edemaine/coauthor/issues/533)],
+  and can be escaped via `\@`.
+  [[#563](https://github.com/edemaine/coauthor/issues/563)]
 * Table of contents won't be completely folded when zooming into/focusing on
   a minimized message.
   [[#564](https://github.com/edemaine/coauthor/issues/564)]
