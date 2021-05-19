@@ -9,6 +9,8 @@ instead of version numbers.
 
 ## 2021-05-19
 
+* Support for `\begin{example} ... \end{example}` theorem-like environment.
+  [[#563](https://github.com/edemaine/coauthor/issues/566)]
 * At-mentions no longer expand in verbatim contexts
   [[#533](https://github.com/edemaine/coauthor/issues/533)],
   and can be escaped via `\@`.
