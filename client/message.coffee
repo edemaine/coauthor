@@ -1660,7 +1660,7 @@ export WrappedTableOfContents = React.memo ({message, parent, index}) ->
       <TableOfContents key={child._id} message={child} parent={message._id} index={index}/>
   , [children]
   [hover, setHover] = useState false
-  [tocFolded, setTocFolded] = useState Boolean message.minimized
+  [tocFolded, setTocFolded] = useState Boolean message.minimized and not isRoot
 
   children =
     if renderedChildren?

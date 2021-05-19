@@ -7,26 +7,32 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2021-05-19
+
+* Table of contents won't be completely folded when zooming into/focusing on
+  a minimized message.
+  [[#564](https://github.com/edemaine/coauthor/issues/564)]
+
 ## 2021-05-08
 
 * Table of contents links are now direct links to messages (instead of hash
   links), so you can copy them to clipboard and paste them into a message, or
-  control/shift/middle-click to open them in a new window
+  control/shift/middle-click to open them in a new window.
 * Fix an old bug where the message body editor sometimes shows
-  `loading...` forever
+  `loading...` forever.
   [[#559](https://github.com/edemaine/coauthor/issues/559)]
 
 ## 2021-05-06
 
-* Improve scrolling behavior when using browser back and forward
+* Improve scrolling behavior when using browser back and forward.
   [[#557](https://github.com/edemaine/coauthor/issues/557)]
 
 ## 2021-05-04
 
 * Small visual improvements: navbar extends the full page width,
-  reduced space between messages and table of contents
+  reduced space between messages and table of contents.
 * Preserve which messages were folded or in Raw view across server restarts.
-* Fix accidental scrolling when adding emoji responses
+* Fix accidental scrolling when adding emoji responses.
 
 ## 2021-05-02
 
