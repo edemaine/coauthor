@@ -7,6 +7,12 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2021-06-12
+
+* Email notifications include message body when message becomes visible for
+  the first time to a user (e.g. Actions / Publish).
+  [[#438](https://github.com/edemaine/coauthor/issues/438)]
+
 ## 2021-06-01
 
 * Fix `\colorbox` which allows specifying background colors in LaTeX and

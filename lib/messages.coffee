@@ -919,7 +919,7 @@ _messageUpdate = (id, message, authors = null, old = null) ->
 
   message.updators = authors
   ## Updating a message's title, body, or file give you authorship on the
-  ## message.  Updates that modify authorship or access; otherwise, you
+  ## message.  Not updates that modify authorship or access; otherwise, you
   ## couldn't e.g. remove your own authorship.  Also, maintaining others'
   ## authorship or access is administrative, so doesn't feel worthy of your
   ## own authorship.  In that spirit, neither do tags and labels.

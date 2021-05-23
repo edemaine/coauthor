@@ -163,6 +163,7 @@ indentLines = (text, indent) ->
 ##   - type: 'messageUpdate'
 ##     - message: ID of relevant message
 ##     - old: Copy of message before this batch of updates
+##     - oldCanSee: Whether old message was visible to user before updates
 ##     - new: Copy of message after this batch of updates
 ##            (set only when seen becomes true)
 ##     [- diffs: list of IDs of MessagesDiff (in bijection with dates list)]
@@ -195,20 +196,27 @@ if Meteor.isServer
   notifiers = {}
 
   @notifyMessageUpdate = (updates, old) ->
-    ## Compute current state of message from old + msg, to find subscribers.
-    ## Updates in msg might look like "authors.USERNAME": ..., so handle dots.
+    ## Compute current state of message from old + updates, to find subscribers.
+    ## Updates might look like "authors.USERNAME": ..., so handle dots.
     if old?
       msg = _.clone old
       for key, value of updates
         where = msg
+        whereOld = old
         while (dot = key.indexOf '.') >= 0
           subkey = key[...dot]
-          where[subkey] = {} unless subkey of where
-          where = msg[subkey]
+          if subkey of where
+            if where[subkey] == whereOld?[subkey]
+              where[subkey] = _.clone where[subkey]
+          else
+            where[subkey] = {}
+          where = where[subkey]
+          whereOld = whereOld?[subkey]
           key = key[dot+1..]
         where[key] = value
     else
       msg = updates
+    ## Compute who to notify.
     subscribers = messageSubscribers msg
     ## Don't send notifications to myself, if so requested.
     subscribers = (to for to in subscribers when not
@@ -221,7 +229,7 @@ if Meteor.isServer
     #subscribers = (to for to in subscribers when canSee msg, false, to)
     ## Check if filters have completely emptied subscriber list.
     return unless subscribers.length > 0
-    ## Coallesce past notification (if it exists) into this notification,
+    ## Coalesce past notification (if it exists) into this notification,
     ## if they regard the same message and haven't yet been seen by user.
     before = new Date
     notifications = Notifications.find
@@ -258,6 +266,7 @@ if Meteor.isServer
       subscribers = (to for to in subscribers when to.username not of byUsername)
     if subscribers.length > 0
       before = new Date
+      old = messageFilterExtraFields old
       notifications =
         for to in subscribers
           notification =
@@ -268,7 +277,8 @@ if Meteor.isServer
             dateMin: msg.updated
             #diffs: [diff._id]
             seen: false
-            old: messageFilterExtraFields old
+            old: old
+            oldCanSee: canSee old, false, to
           notification
       ids = Notifications.insertMany notifications
       after = new Date
@@ -362,13 +372,11 @@ if Meteor.isServer
     ## In the meantime, new notifications may have appeared; schedule them.
     ## Or, if we just notified about one group, other groups' notifications
     ## might remain.
-    notifications = Notifications.find
+    Notifications.find
       to: to
       seen: false
-    .fetch()
-    if notifications.length > 0
-      for notification in notifications
-        notificationSchedule notification, user
+    .forEach (notification) ->
+      notificationSchedule notification, user
 
   linkToGroup = (group, html) ->
     #url = Meteor.absoluteUrl "#{group}"
@@ -422,7 +430,7 @@ if Meteor.isServer
     ## read.  (Otherwise, upon verifying, you'd get a ton of email.)
     return unless emails.length > 0
 
-    messageUpdates = (notification for notification in notifications when notification.type =='messageUpdate')
+    messageUpdates = (notification for notification in notifications when notification.type == 'messageUpdate')
     for notification in messageUpdates
       notification.new =
         messageFilterExtraFields Messages.findOne notification.message
@@ -442,9 +450,15 @@ if Meteor.isServer
         oldUpdated = notification.old.updated.getTime()
         notification.authors = (author for author in notification.authors \
           when notification.new.authors[author].getTime() > oldUpdated)
+        ## Detect which fields have changed between old and new
         for key in messageContentFields
           unless _.isEqual notification.new[key], notification.old[key]
             notification.changed[key] = true
+        ## Force certain fields to be viewed as changed if this is the first
+        ## time this user can see this message.
+        unless notification.oldCanSee ? true
+          for key in ['body']
+            notification.changed[key] = true if key of notification.new
       else
         for key in messageContentFields
           notification.changed[key] = true if key of notification.new
