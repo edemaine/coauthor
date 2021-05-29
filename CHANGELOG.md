@@ -7,6 +7,10 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2021-05-29
+
+* Fix bug when following links between different Coauthor groups
+
 ## 2021-05-19
 
 * Support for `\begin{example} ... \end{example}` theorem-like environment.

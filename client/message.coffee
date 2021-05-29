@@ -182,18 +182,19 @@ Template.message.helpers
   MessageID: -> MessageID
 
 export MessageID = React.memo ({messageID}) ->
-  message = useTracker ->
-    Messages.findOne messageID
+  {group, message} = useTracker ->
+    group: routeGroup()
+    message: Messages.findOne messageID
   , [messageID]
   <ErrorBoundary>
     {if message?.group
-      if message.group == routeGroup()
+      if message.group == group
         <Message message={message}/>
-      else if routeGroup() == wildGroup
+      else if group == wildGroup
         Router.go 'message', {group: message.group, message: message._id}
         null
       else
-        <Blaze template="mismatchedGroupMesage" _id={message._id} group={message.group}/>
+        <Blaze template="mismatchedGroupMessage" _id={message._id} group={message.group}/>
     else
       <Blaze template="messageBad"/>
     }
