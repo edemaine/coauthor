@@ -20,6 +20,7 @@ import {UserLink} from './UserLink'
 import {resolveTheme} from './theme'
 import {defaultHeight, emailless, messagePreviewDefault} from './settings.coffee'
 import {forceImgReload} from './lib/forceImgReload'
+import {useElementWidth} from './lib/resize'
 import {setMigrateSafe, migrateWant} from './lib/migrate'
 import {allEmoji} from '/lib/emoji'
 import {availableFormats, formatBody, formatFile, formatFileDescription, formatTitleOrFilename, parseCoauthorAuthorUrl, parseCoauthorMessageUrl} from '/lib/formats'
@@ -2173,8 +2174,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
 
   ## Transform images
   ## Retransform when window width changes
-  [windowWidth, setWindowWidth] = useState window.innerWidth # eslint-disable-line coffee/no-unused-vars
-  useEventListener 'resize', (e) -> setWindowWidth window.innerWidth
+  useElementWidth messageBodyRef
   useEffect ->
     return unless messageBodyRef.current?
     ## Transform any images embedded within message body

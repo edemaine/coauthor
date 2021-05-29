@@ -24,6 +24,7 @@
   "dependencies": {
     "@babel/runtime": "^7.12.5",
     "@edemaine/codemirror-spell-checker": "^0.0.1",
+    "@react-hook/resize-observer": "^1.2.0",
     "@use-it/event-listener": "^0.1.6",
     "babel-runtime": "^6.26.0",
     "bootstrap": "^3.4.1",

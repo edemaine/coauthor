@@ -4,6 +4,7 @@ import useEventListener from '@use-it/event-listener'
 import {useInView} from 'react-intersection-observer'
 
 import {ErrorBoundary} from './ErrorBoundary'
+import {useElementWidth} from './lib/resize'
 import {TextTooltip} from './lib/tooltip'
 
 #pdf2svg = false  # controls pdf.js rendering mode
@@ -74,13 +75,12 @@ WrappedMessagePDF = React.memo ({file}) ->
     undefined
   , [pdf, pageNum]
   ## Compute page dimensions, and render page if it's in view
-  [windowWidth, setWindowWidth] = useState window.innerWidth
-  useEventListener 'resize', (e) -> setWindowWidth window.innerWidth
+  elementWidth = useElementWidth ref
   useEffect ->
-    return unless page?
+    return unless page? and elementWidth
     viewport = page.getViewport scale: 1
     ## Simulate width: 100%
-    width = ref.current.clientWidth
+    width = elementWidth
     height = width * viewport.height / viewport.width
     ## Simulate max-height: 100vh
     if fit == 'page'
@@ -139,7 +139,7 @@ WrappedMessagePDF = React.memo ({file}) ->
       ## Ignore pdfjs's error when rendering gets canceled from page flipping
       throw error unless error.name == 'RenderingCancelledException'
     -> renderTask.cancel()
-  , [page, windowWidth, fit, inView]
+  , [page, elementWidth, fit, inView]
 
   onChangePage = (delta) -> (e) ->
     e.currentTarget.blur()

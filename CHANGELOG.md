@@ -10,11 +10,13 @@ instead of version numbers.
 ## 2021-05-29
 
 * Fix bug when following links between different Coauthor groups
+* Fix PDF/image resizing when toggling TOC
+  [[#568](https://github.com/edemaine/coauthor/issues/568)]
 
 ## 2021-05-19
 
 * Support for `\begin{example} ... \end{example}` theorem-like environment.
-  [[#563](https://github.com/edemaine/coauthor/issues/566)]
+  [[#563](https://github.com/edemaine/coauthor/issues/563)]
 * At-mentions no longer expand in verbatim contexts
   [[#533](https://github.com/edemaine/coauthor/issues/533)],
   and can be escaped via `\@`.
