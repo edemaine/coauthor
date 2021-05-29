@@ -7,11 +7,12 @@
 input.title { width: calc(100% + 5px); margin: 0px -5px 0px 0px; }
 .author { font-style: italic; }
 .message-body { text-align: justify; }
-.bodyContainer, .message-title { position: relative; overflow: auto; overflow-wrap: break-word; contain: layout paint style; }
+.bodyContainer, .message-title { position: relative; overflow-x: auto; overflow-y: hidden; overflow-wrap: break-word; contain: layout paint style; }
   /* We set `position: relative` so any position: absolute's within have
-   * this as the containing block. We set `overflow: auto` to prevent hacks
-   * that render outside the rectangle of this message; also, it handles
-   * too-wide formulas in a nicer way.
+   * this as the containing block. We set `overflow-y: hidden` to prevent hacks
+   * that render outside the rectangle of this message (but also avoid a
+   * vertical scrollbar); and set `overflow-x: auto` to handle any content
+   * that's too wide.
    */
 .katex .katex-mathml { left: 0; }
   /* avoid pushing into right margin, given `position: absolute` layout */
