@@ -14,7 +14,6 @@ pdfjs = null  # will become import of 'pdfjs-dist'
 export messageTheme = new ReactiveDict
 
 export getMessageTheme = (fileId) ->
-  console.log messageTheme.get(fileId), themeDocument(), resolveTheme messageTheme.get(fileId) ? themeDocument()
   resolveTheme messageTheme.get(fileId) ? themeDocument()
 export useMessageTheme = (fileId) ->
   useTracker ->
@@ -163,7 +162,6 @@ WrappedMessagePDF = React.memo ({file}) ->
     e.currentTarget.blur()
     setFit newFit
   onTheme = (e) ->
-    console.log theme, oppositeTheme theme
     messageTheme.set file, oppositeTheme theme
 
   <div ref={ref}>
