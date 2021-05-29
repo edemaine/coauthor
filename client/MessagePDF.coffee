@@ -1,6 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react'
 import {useTracker} from 'meteor/react-meteor-data'
-import useEventListener from '@use-it/event-listener'
 import {useInView} from 'react-intersection-observer'
 
 import {ErrorBoundary} from './ErrorBoundary'
