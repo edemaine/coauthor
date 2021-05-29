@@ -11,6 +11,12 @@ export resolveTheme = (theme) ->
   else
     theme
 
+export oppositeTheme = (theme) ->
+  if theme == 'dark'
+    'light'
+  else
+    'dark'
+
 lastTheme = null  ## initial value from link in layout.jade
 
 ## This used to be wrapped in Meteor.startup, but it seems unnecessary as

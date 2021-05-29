@@ -3,11 +3,23 @@ import {useTracker} from 'meteor/react-meteor-data'
 import {useInView} from 'react-intersection-observer'
 
 import {ErrorBoundary} from './ErrorBoundary'
+import {resolveTheme, oppositeTheme} from './theme'
 import {useElementWidth} from './lib/resize'
 import {TextTooltip} from './lib/tooltip'
+import {themeDocument} from '/lib/settings'
 
 #pdf2svg = false  # controls pdf.js rendering mode
 pdfjs = null  # will become import of 'pdfjs-dist'
+
+export messageTheme = new ReactiveDict
+
+export getMessageTheme = (fileId) ->
+  console.log messageTheme.get(fileId), themeDocument(), resolveTheme messageTheme.get(fileId) ? themeDocument()
+  resolveTheme messageTheme.get(fileId) ? themeDocument()
+export useMessageTheme = (fileId) ->
+  useTracker ->
+    getMessageTheme fileId
+  , [fileId]
 
 export MessagePDF = ({file}) ->
   <ErrorBoundary>
@@ -33,6 +45,7 @@ WrappedMessagePDF = React.memo ({file}) ->
   [pageNum, setPageNum] = useState()
   [numPages, setNumPages] = useState()
   [fit, setFit] = useState 'page'
+  theme = useMessageTheme file
   [dims, setDims] = useState {width: 0, height: 0}
   [pdf, setPdf] = useState()
   [page, setPage] = useState()
@@ -149,6 +162,9 @@ WrappedMessagePDF = React.memo ({file}) ->
   onFit = (newFit) -> (e) ->
     e.currentTarget.blur()
     setFit newFit
+  onTheme = (e) ->
+    console.log theme, oppositeTheme theme
+    messageTheme.set file, oppositeTheme theme
 
   <div ref={ref}>
     {if progress?
@@ -173,6 +189,11 @@ WrappedMessagePDF = React.memo ({file}) ->
               </button>
             </TextTooltip>
           }
+          <TextTooltip title="Toggle dark mode via inversion">
+            <button className="btn btn-default" aria-label="Toggle dark mode via inversion" onClick={onTheme}>
+              <span className="fas #{if theme == 'dark' then 'fa-sun' else 'fa-moon'}" aria-hidden="true"/>
+            </button>
+          </TextTooltip>
           <TextTooltip title="Previous page">
             <button className="btn btn-default prevPage #{if pageNum <= 1 then 'disabled'}" aria-label="Previous page" onClick={onChangePage -1}>
               <span className="fas fa-backward" aria-hidden="true"/>
@@ -194,7 +215,7 @@ WrappedMessagePDF = React.memo ({file}) ->
         </span>
       </>
     }
-    <div className="pdf" style={width: "#{dims.width}px", height: "#{dims.height}px"} ref={viewRef}>
+    <div className="pdf #{theme}" style={width: "#{dims.width}px", height: "#{dims.height}px"} ref={viewRef}>
       <canvas width="0" height="0" ref={canvasRef}/>
       <div className="annotations" style={
         transform: annotationsTransform

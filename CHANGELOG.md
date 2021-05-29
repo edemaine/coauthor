@@ -9,6 +9,10 @@ instead of version numbers.
 
 ## 2021-05-29
 
+* Add dark mode for PDF documents by inverting and hue-shifting 180 degrees.
+  Set your default preference in Settings, and/or toggle in individual
+  documents via new sun/moon icon.
+  [[#569](https://github.com/edemaine/coauthor/issues/569)]
 * Fix bug when following links between different Coauthor groups
 * Fix PDF/image resizing when toggling TOC
   [[#568](https://github.com/edemaine/coauthor/issues/568)]

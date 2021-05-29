@@ -22,7 +22,7 @@ template(name="settings")
           tr
             th
               label Global theme:
-              .description Throughout Coauthor (except editor): Black text on white background (Light) or white text on black background (Dark). Auto attempts to <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-color-scheme">detect</a> based on operating system theme.
+              .description Throughout Coauthor (except editor and documents): Black text on white background (Light) or white text on black background (Dark). Auto attempts to <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-color-scheme">detect</a> based on operating system theme.
             td
               button.btn.btn-default.themeGlobalButton(type="button", data-toggle="button", autocomplete="off")= themeGlobal
           tr
@@ -31,6 +31,12 @@ template(name="settings")
               .description When editing messages: Black text on white background (Light) or white text on black background (Dark). Auto attempts to <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-color-scheme">detect</a> based on operating system theme.
             td
               button.btn.btn-default.themeEditorButton(type="button", data-toggle="button", autocomplete="off")= themeEditor
+          tr
+            th
+              label Document theme:
+              .description Whether to invert PDF documents (Dark) or show original colors (Theme). Auto attempts to <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-color-scheme">detect</a> based on operating system theme.
+            td
+              button.btn.btn-default.themeDocumentButton(type="button", data-toggle="button", autocomplete="off")= themeDocument
           tr
             th
               label Default message format:

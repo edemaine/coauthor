@@ -1,5 +1,5 @@
 import {autosubscribe, defaultNotificationDelays, notificationsDefault, notificationsOn, notificationsSeparate, notifySelf} from '/lib/notifications'
-import {autopublish, defaultFormat, themeEditor, themeGlobal} from '/lib/settings'
+import {autopublish, defaultFormat, themeEditor, themeGlobal, themeDocument} from '/lib/settings'
 
 Template.registerHelper 'defaultFormat', ->
   defaultFormat
@@ -52,10 +52,15 @@ Template.settings.helpers
   notifySelf: notifySelf
   autosubscribeGroup: -> autosubscribe routeGroup()
   autosubscribeGlobal: -> autosubscribe wildGroup
-  themeGlobal: -> (if Session.get 'coop:themeGlobal' then 'Coop: ' else '') +
-                  capitalize themeGlobal()
-  themeEditor: -> (if Session.get 'coop:themeEditor' then 'Coop: ' else '') +
-                  capitalize themeEditor()
+  themeGlobal: ->
+    (if Session.get 'coop:themeGlobal' then 'Coop: ' else '') +
+    capitalize themeGlobal()
+  themeEditor: ->
+    (if Session.get 'coop:themeEditor' then 'Coop: ' else '') +
+    capitalize themeEditor()
+  themeDocument: ->
+    (if Session.get 'coop:themeDocument' then 'Coop: ' else '') +
+    capitalize themeDocument()
   previewOn: -> messagePreviewDefault().on
   previewSideBySide: -> messagePreviewDefault().sideBySide
   dropbox: ->
@@ -141,6 +146,14 @@ Template.settings.events
       return Session.set 'coop:themeEditor', null
     Meteor.users.update Meteor.userId(),
       $set: "profile.theme.editor": rotateTheme themeEditor()
+
+  'click .themeDocumentButton': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    if Session.get 'coop:themeDocument'
+      return Session.set 'coop:themeDocument', null
+    Meteor.users.update Meteor.userId(),
+      $set: "profile.theme.document": rotateTheme themeDocument()
 
   'click .previewButton': (e, t) ->
     e.preventDefault()
