@@ -2174,7 +2174,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
 
   ## Transform images
   ## Retransform when window width changes
-  useElementWidth messageBodyRef
+  useElementWidth ref
   useEffect ->
     return unless messageBodyRef.current?
     ## Transform any images embedded within message body
