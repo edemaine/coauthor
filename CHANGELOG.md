@@ -10,7 +10,7 @@ instead of version numbers.
 ## 2021-05-29
 
 * Add dark mode for PDF documents by inverting and hue-shifting 180 degrees.
-  Set your default preference in Settings, and/or toggle in individual
+  Set your default preference in Settings, and/or toggle individual
   documents via new sun/moon icon.
   [[#569](https://github.com/edemaine/coauthor/issues/569)]
 * Fix bug when following links between different Coauthor groups
@@ -264,6 +264,112 @@ instead of version numbers.
 
 * Clicking on a message in the table of contents scrolls to that message
   (as it used to).
+
+## 2021-02-16
+
+* Replace group-level "Pose New Problem / Discussion" button with
+  "New Thread" dropdown, making it easy to start an (un)published thread.
+  [[#524](https://github.com/edemaine/coauthor/issues/524)]
+* Replying to an unpublished or deleted message makes an unpublished or
+  deleted reply message.
+  [[#525](https://github.com/edemaine/coauthor/issues/525)]
+
+## 2021-02-15
+
+* Prevent deleting or unpublishing messages that you're not a coauthor on.
+  This prevents accidental loss of access to a message, where you accidentally
+  delete or unpublish a message and then can't see it anymore, so can't fix
+  your mistake.  (If you need to work around this, you can always become a
+  coauthor (or superuser) before deleting or unpublishing.)
+* `https://coauthor.../group/stats/me` is now a link to your own stats
+  (`me` expands to your own username).  Useful for sending the link to others.
+
+## 2021-02-12
+
+* Replace Reply and Attach buttons with a Reply/Attach menu,
+  making it harder to accidentally add a new reply and
+  easier to start an (un)published reply.
+  [[#523](https://github.com/edemaine/coauthor/issues/523)]
+* Add more tooltips to Reply options to clarify what they do.
+  [[#396](https://github.com/edemaine/coauthor/issues/396)]
+* Next/previous message buttons at top of a thread now show the target
+  message title, including Markdown/LaTeX formatting.
+
+## 2021-02-04
+
+* Keyboard shortcut <kbd>t</kbd> toggles whether to show the Table of Contents
+  (so that you don't have to scroll up to toggle)
+* Email notifications now color adjectives like deleted, unpublished,
+  and private so that they stand out more.
+
+## 2021-01-30
+
+* Support Coauthor files to be embedded into Cocreate boards
+  (e.g., via copy/paste)
+* Highlight at-mentions that refer to you within email notifications
+  [[#384](https://github.com/edemaine/coauthor/issues/384)]
+
+## 2021-01-29
+
+* Highlight at-mentions that refer to you, so that you can more easily
+  see people mentioning you while scrolling.
+* Prevent `$` from triggering math mode within Markdown code blocks,
+  so e.g. `` `$x$` `` doesn't italicize the `x`.
+  [[#387](https://github.com/edemaine/coauthor/issues/387)]
+* Security fix for HTML in user's real names; and
+  forbid Markdown special characters from usernames.
+  [[#516](https://github.com/edemaine/coauthor/issues/516)]
+
+## 2021-01-25
+
+* Allow manual toggling of Table of Contents (by clicking on the header at the
+  top of a thread), so you can show it on narrow displays or hide it on
+  wide displays.
+  [[#324](https://github.com/edemaine/coauthor/issues/324)]
+
+## 2021-01-24
+
+* Search supports notation `by:me` to find messages by yourself,
+  and `emoji:@me` to find messages that you responded to with emoji:
+  `me` automatically expands to your username.
+* Prevent a nonsuperuser from making private the root message of a thread that
+  has public and private replies allowed, because root message isn't a reply.
+* Add tooltips explaining all remaining Action buttons
+  [[#396](https://github.com/edemaine/coauthor/issues/396)]
+
+## 2021-01-23
+
+* Search supports `by:username` to find messages
+  coauthored by a particular username.
+  [[#29](https://github.com/edemaine/coauthor/issues/29)]
+* Search supports `emoji:heart` to find messages with heart emoji responses,
+  `emoji:@username` to find messages with emoji responses by a particular
+  username, and `emoji:heart@username` to find heart emoji responses by a
+  particular username.
+  [[#29](https://github.com/edemaine/coauthor/issues/29)]
+* Search supports `isnt:` and `not:` short forms for `-is:`.
+  For example, `isnt:file` matches messages that aren't file messages.
+  [[#29](https://github.com/edemaine/coauthor/issues/29)]
+* Fix highlighting of emoji responses that include yourself.
+  [[#511](https://github.com/edemaine/coauthor/issues/511)]
+* Prevent history slider tooltips from overlapping with content
+  or falling outside the window.
+* Fix History view not loading correctly on second try.
+
+## 2021-01-21
+
+* Authorship and Access list major revamp.
+  [[#503](https://github.com/edemaine/coauthor/issues/503)]
+  * Every message now has an explicit **coauthor list** which you can
+    manipulate: add to it to represent who you worked with in a live session,
+    or remove your own name if you're just fixing a typo.
+    (Only superusers can remove other people who did actual edits.)
+  * Private messages have an **access list** for who to share the message with,
+    which activates only when the message is published (so you can still draft
+    private messages, accessible only to the coauthors).
+  * At-mentions no longer have any effect on who can see a message (but they
+    will trigger automatic suggestions for people to add to the access list
+    in a private message).  Old at-mentions are converted to coauthorship.
 
 ## Older Changes
 
