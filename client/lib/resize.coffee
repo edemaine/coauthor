@@ -1,7 +1,7 @@
 import {useLayoutEffect, useState} from 'react'
 import useResizeObserver from '@react-hook/resize-observer'
 
-export useElementWidth = (ref, debounce) ->
+export useElementWidth = (ref) ->
   [width, setWidth] = useState()
   useLayoutEffect ->
     setWidth ref.current.clientWidth
