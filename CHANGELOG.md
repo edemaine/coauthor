@@ -7,6 +7,11 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2021-06-01
+
+* Fix `\colorbox` which allows specifying background colors in LaTeX and
+  Markdown formats: `\colorbox{color}{text}`
+
 ## 2021-05-29
 
 * Add dark mode for PDF documents by inverting and hue-shifting 180 degrees.
@@ -304,7 +309,7 @@ instead of version numbers.
 
 ## 2021-01-30
 
-* Support Coauthor files to be embedded into Cocreate boards
+* Support embedding Coauthor files into Cocreate boards
   (e.g., via copy/paste)
 * Highlight at-mentions that refer to you within email notifications
   [[#384](https://github.com/edemaine/coauthor/issues/384)]
