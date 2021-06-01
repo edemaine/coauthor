@@ -10,7 +10,9 @@ instead of version numbers.
 ## 2021-06-01
 
 * Fix `\colorbox` which allows specifying background colors in LaTeX and
-  Markdown formats: `\colorbox{color}{text}`
+  Markdown formats: `\colorbox{color}{text}`.
+* Allow `<sup>` and `<sub>` for HTML superscripts and subscripts in messages.
+  [[#572](https://github.com/edemaine/coauthor/issues/572)]
 
 ## 2021-05-29
 
