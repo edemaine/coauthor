@@ -5,7 +5,7 @@ import {Mongo} from 'meteor/mongo'
 #import {dateMin, dateMax} from './dates'
 import {formatBody, formatTitleOrFilename} from './formats'
 import {angle180, messageContentFields, messageEmpty, messageFilterExtraFields} from './messages'
-import {profiling, isProfiling} from './profiling'
+import {profiling, profilingStartup, isProfiling} from './profiling'
 
 @Notifications = new Mongo.Collection 'notifications'
 
@@ -126,7 +126,7 @@ export autosubscribe = (group, user = Meteor.user()) ->
     continue unless fullMemberOfGroup(group, user) or memberOfThread(msg, user)
     user
 @messageSubscribers =
-  profiling @messageSubscribers, 'notifications.messageSubscribers'
+  profiling 'notifications.messageSubscribers', @messageSubscribers
 
 export sortedMessageSubscribers = (msg, options = {}) ->
   if options.fields?
@@ -290,7 +290,7 @@ if Meteor.isServer
       after = new Date
       console.log 'scheduling', after.getTime()-before.getTime() if isProfiling
   @notifyMessageUpdate =
-    profiling @notifyMessageUpdate, 'notifications.notifyMessageUpdate'
+    profiling 'notifications.notifyMessageUpdate', @notifyMessageUpdate
 
   ## No longer used directly; instead use insertMany()
   #notificationInsert = (notification) ->
@@ -675,7 +675,7 @@ if Meteor.isServer
       text: text
       headers: autoHeaders
 
-  Meteor.startup ->
+  profilingStartup 'notifications.startup', ->
     ## Reschedule any leftover notifications from last server run.
     Notifications.find
       seen: false
@@ -694,3 +694,5 @@ if Meteor.isServer
     .observe
       changed: (user) ->
         notificationReschedule user
+
+    'Scheduled leftover notifications and loaded users'
