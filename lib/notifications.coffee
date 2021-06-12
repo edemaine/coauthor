@@ -241,7 +241,7 @@ if Meteor.isServer
       fields: to: true
     .fetch()
     after = new Date
-    console.log 'find old notifications', after.getTime()-before.getTime() if isProfiling
+    console.log "find old notifications [#{after.getTime()-before.getTime()} ms]" if isProfiling
     if notifications.length > 0
       ## No longer store entire list of dates and diffs, so don't need to
       ## update old notifications.
@@ -282,13 +282,13 @@ if Meteor.isServer
           notification
       ids = Notifications.insertMany notifications
       after = new Date
-      console.log 'add new notifications', after.getTime()-before.getTime() if isProfiling
+      console.log "add new notifications [#{after.getTime()-before.getTime()} ms]" if isProfiling
       before = new Date
       for notification, i in notifications
         notification._id = ids[i]
         notificationSchedule notification, subscribers[i]
       after = new Date
-      console.log 'scheduling', after.getTime()-before.getTime() if isProfiling
+      console.log "scheduling [#{after.getTime()-before.getTime()} ms]" if isProfiling
   @notifyMessageUpdate =
     profiling 'notifications.notifyMessageUpdate', @notifyMessageUpdate
 
@@ -431,6 +431,20 @@ if Meteor.isServer
     return unless emails.length > 0
 
     messageUpdates = (notification for notification in notifications when notification.type == 'messageUpdate')
+    ## Coalesce multiple updates about the same message, keeping just the
+    ## oldest old version.  This can happen because an unfortunate delay
+    ## during `messageNotifyUpdate` (between `find` and `insertMany`).
+    messageUpdates =
+      for msg, cluster of _.groupBy messageUpdates, 'message'
+        if cluster.length > 1
+          oldest = _.min [0...cluster.length],
+            (i) -> cluster[i].dateMin.getTime()
+          for notification, i in cluster when i != oldest
+            Notifications.remove notification._id
+          cluster[oldest]
+        else
+          cluster[0]
+    ## Load new version of updated messages.
     for notification in messageUpdates
       notification.new =
         messageFilterExtraFields Messages.findOne notification.message
@@ -677,9 +691,11 @@ if Meteor.isServer
 
   profilingStartup 'notifications.startup', ->
     ## Reschedule any leftover notifications from last server run.
+    count = 0
     Notifications.find
       seen: false
     .forEach (notification) ->
+      count++
       try
         #console.log 'Scheduling leftover notification', notification
         notificationSchedule notification
@@ -687,12 +703,12 @@ if Meteor.isServer
         console.warn 'Could not schedule', notification, ':', e
 
     ## Watch for change in notification frequency, and reschedule timeouts.
-    Meteor.users.find {},
+    users = Meteor.users.find {},
       fields:
         'username': true
         'profile.notifications.after': true  ## for @notificationTime
-    .observe
+    users.observe
       changed: (user) ->
         notificationReschedule user
 
-    'Scheduled leftover notifications and loaded users'
+    "Scheduled #{count} leftover notifications and loaded #{users.count()} users"

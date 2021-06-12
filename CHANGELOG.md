@@ -12,6 +12,8 @@ instead of version numbers.
 * Email notifications include message body when message becomes visible for
   the first time to a user (e.g. Actions / Publish).
   [[#438](https://github.com/edemaine/coauthor/issues/438)]
+* Avoid duplicate email notifications, even under heavy server load.
+  [[#562](https://github.com/edemaine/coauthor/issues/562)]
 
 ## 2021-06-01
 
