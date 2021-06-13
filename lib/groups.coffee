@@ -1,6 +1,8 @@
 import {check, Match} from 'meteor/check'
 import {Mongo} from 'meteor/mongo'
 
+import {profilingStartup} from './profiling'
+
 @wildGroup = '*'
 export anonymousUser = '*'
 export readAllUser = '[READ-ALL]'
@@ -138,27 +140,29 @@ if Meteor.isServer
       ,
         multi: true
 
-  Meteor.users.find
-    $or: [
-      roles: $exists: true
+  profilingStartup 'groups.startup', ->
+    Meteor.users.find
+      $or: [
+        roles: $exists: true
+      ,
+        rolesPartial: $exists: true
+      ]
     ,
-      rolesPartial: $exists: true
-    ]
-  ,
-    fields:
-      roles: true
-      rolesPartial: true
-      username: true
-  .observe
-    added: (user) ->
-      membersAddUsername user.username, memberOfGroups user
-    removed: (user) ->
-      membersRemoveUsername user.username, memberOfGroups user
-    changed: (userNew, userOld) ->
-      groupsNew = memberOfGroups userNew
-      groupsOld = memberOfGroups userOld
-      membersRemoveUsername userOld.username, _.difference groupsOld, groupsNew
-      membersAddUsername userNew.username, _.difference groupsNew, groupsOld
+      fields:
+        roles: true
+        rolesPartial: true
+        username: true
+    .observe
+      added: (user) ->
+        membersAddUsername user.username, memberOfGroups user
+      removed: (user) ->
+        membersRemoveUsername user.username, memberOfGroups user
+      changed: (userNew, userOld) ->
+        groupsNew = memberOfGroups userNew
+        groupsOld = memberOfGroups userOld
+        membersRemoveUsername userOld.username, _.difference groupsOld, groupsNew
+        membersAddUsername userNew.username, _.difference groupsNew, groupsOld
+    'Maintaining group membership list'
 
   Meteor.publish 'groups.members', (group) ->
     check group, String
