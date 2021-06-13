@@ -40,23 +40,6 @@ if Meteor.isServer
     tags[tag] = true
   tags
 
-## Transition tags format from old array to object mapping
-if Meteor.isServer
-  Messages.find
-    $where: "return Array.isArray(this.tags)"
-  .forEach (msg) ->
-    tags = listToTags msg.tags
-    #console.log msg._id, tags
-    Messages.update msg._id,
-      $set: tags: tags
-  MessagesDiff.find
-    $where: "return Array.isArray(this.tags)"
-  .forEach (msg) ->
-    tags = listToTags msg.tags
-    #console.log msg._id, tags
-    MessagesDiff.update msg._id,
-      $set: tags: tags
-
 if Meteor.isServer
   Meteor.publish 'tags', (group) ->
     check group, String
@@ -135,25 +118,3 @@ Meteor.methods
           deleted: true
           updator: Meteor.user().username
           updated: new Date
-
-## Find used but missing tags (for inheriting old databases).
-if Meteor.isServer
-  Messages.find
-    deleted: false
-  .forEach (message) ->
-    return unless message.tags
-    seeking = _.keys message.tags
-    missing = listToTags seeking
-    Tags.find
-      group: message.group
-      key: $in: seeking
-    .forEach (tag) ->
-      delete missing[tag.key]
-    for tag of missing
-      console.log 'Adding missing tag', tag, 'in group', message.group
-      Tags.insert
-        group: message.group
-        key: tag
-        type: 'boolean'
-        deleted: false
-        created: new Date

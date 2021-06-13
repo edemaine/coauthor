@@ -123,4 +123,48 @@ profilingStartup "bootstrap.startup", ->
     Messages.update message._id,
       $set: coauthors: coauthors
 
+  ## Transition tags format from old array to object mapping
+  Messages.find
+    tags: $gte: []
+  .forEach (msg) ->
+    tags = listToTags msg.tags
+    #console.log msg._id, tags
+    Messages.update msg._id,
+      $set: tags: tags
+  MessagesDiff.find
+    tags: $gte: []
+  .forEach (msg) ->
+    tags = listToTags msg.tags
+    #console.log msg._id, tags
+    MessagesDiff.update msg._id,
+      $set: tags: tags
+
+  ## Find used but missing tags (for inheriting old databases).
+  for group in Groups.find().map (g) -> g.name
+    seeking = {}
+    Messages.find
+      group: group
+      deleted: false
+      tags:
+        $exists: true
+        $ne: {}
+    .forEach (message) ->
+      return unless message.tags?
+      for tag of message.tags
+        seeking[tag] = true
+      undefined
+    Tags.find
+      group: group
+      key: $in: _.keys seeking
+    .forEach (tag) ->
+      delete seeking[tag.key]
+    for tag of seeking
+      console.log 'Adding missing tag', tag, 'in group', group
+      Tags.insert
+        group: group
+        key: tag
+        type: 'boolean'
+        deleted: false
+        created: new Date
+
   'Upgraded database as necessary'
