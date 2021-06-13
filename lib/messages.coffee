@@ -752,7 +752,7 @@ _submessagesChanged = (root) ->
       submessageCount: count #_submessageCount root
       submessageLastUpdate: updated #_submessageLastUpdate root
 
-if Meteor.isServer
+export recomputeSubmessageCounts = ->
   rootMessages().forEach _submessagesChanged
 
 checkPrivacy = (privacy, root, user = Meteor.user()) ->
@@ -1604,6 +1604,12 @@ Meteor.methods
           $set: root: root._id
         ,
           multi: true
+
+  recomputeSubmessageCounts: ->
+    unless canSuper wildGroup
+      throw new Meteor.Error 'recomputeSubmessageCounts.unauthorized',
+        "Insufficient permissions to recompute submessage counts in group '#{wildGroup}'"
+    recomputeSubmessageCounts()
 
 ## On client, requires messages.root subscription
 export messageNeighbors = (root) ->

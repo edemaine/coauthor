@@ -1,5 +1,5 @@
 import {dateMin, dateMax} from '/lib/dates'
-import {idleStop, messageDiffsExpanded} from '/lib/messages'
+import {idleStop, messageDiffsExpanded, recomputeSubmessageCounts} from '/lib/messages'
 import {profilingStartup} from '/lib/profiling'
 
 profilingStartup "bootstrap.startup", ->
@@ -122,6 +122,9 @@ profilingStartup "bootstrap.startup", ->
       lastCoauthors = coauthors
     Messages.update message._id,
       $set: coauthors: coauthors
+
+  ## Create/update submessageCount and submessageLastUpdate for root messages.
+  recomputeSubmessageCounts()
 
   ## Transition tags format from old array to object mapping
   Messages.find
