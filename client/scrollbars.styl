@@ -23,8 +23,10 @@
 *
   // Firefox supports CSS Scrollbars Module Level 1:
   // [https://drafts.csswg.org/css-scrollbars-1/}
+  // Hover/active colors are automatically computed by darkening, so we force
+  // light mode's --scrollbar-bar to distinguish the bar from the track.
   scrollbar-width: auto
-  scrollbar-color: var(--scrollbar-bar) var(--scrollbar-track)
+  scrollbar-color: #aaa var(--scrollbar-track)
 
   // Webkit/Blink browsers support more detailed customization:
   &::-webkit-scrollbar, &::-webkit-scrollbar-button:single-button

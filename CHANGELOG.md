@@ -7,6 +7,11 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2021-06-16
+
+* Tweak dark-mode scrollbar colors on Firefox mode so they don't disappear
+  when clicking on them.
+
 ## 2021-06-13
 
 * Further speed up Coauthor server restart.
