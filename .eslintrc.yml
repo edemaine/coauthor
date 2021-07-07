@@ -71,7 +71,6 @@ globals:
   deleteFile: readonly
   displayUser: readonly
   escapeGroup: readonly
-  escapeKey: readonly
   escapeRegExp: readonly
   escapeUser: readonly
   escapeTag: readonly
@@ -141,7 +140,6 @@ globals:
   titleSort: readonly
   undeletedMessagesQuery: readonly
   unescapeGroup: readonly
-  unescapeKey: readonly
   unescapeTag: readonly
   unescapeUser: readonly
   url2file: readonly

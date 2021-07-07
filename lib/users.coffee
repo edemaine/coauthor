@@ -1,6 +1,8 @@
 import {Accounts} from 'meteor/accounts-base'
 import {check} from 'meteor/check'
 
+import {escapeKey, unescapeKey} from './escape'
+
 @findUser = (userId) ->
   if userId?
     Meteor.users.findOne(userId) ? {}
