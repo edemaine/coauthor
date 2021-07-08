@@ -440,8 +440,7 @@ updateFileQuery = _.debounce ->
       #console.log "#{id} changed:", fields
       return unless fileQueries[id]?
       if fields.file? and fileQueries[id].file != fields.file
-        if fileType(fields.file) in ['image', 'video']
-          forceImgReload urlToFile id
+        forceImgReload urlToFile id
         fileQueries[id].file = fields.file
 , 100
 

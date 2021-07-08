@@ -10,7 +10,9 @@ fileRe = /^\/(\w+)$/
 defaultContentType = 'application/octet-stream'
 
 accessHeaders = (req) ->
-  'Cache-Control': 'stale-while-revalidate'
+  ## Revalidate all files in case of updates to the file pointer,
+  ## but allow serving stale file when disconnected.
+  'Cache-Control': 'max-age=0'
   ## Allow files to be embedded in other sites, e.g. Cocreate.
   ## Note that this still requires Coauthor authentication via cookies.
   'Access-Control-Allow-Origin': req.headers['origin'] ? '*'

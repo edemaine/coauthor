@@ -86,6 +86,7 @@ useImageTransform = (imgRef, rotate) ->
 export imageTransform = (image, rotate) ->
   unless image.width
     return image.addEventListener 'load', (e) -> imageTransform image, rotate
+  return unless image.parentNode?
   if rotate
     ## `rotate` is in clockwise degrees
     radians = -rotate * Math.PI / 180
