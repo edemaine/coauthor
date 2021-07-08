@@ -1,7 +1,7 @@
 import {check, Match} from 'meteor/check'
 import {Mongo} from 'meteor/mongo'
 
-import {escapeKey, unescapeKey} from './escape'
+import {escapeKey, unescapeKey, validKey} from './escape'
 import {profilingStartup} from './profiling'
 
 @wildGroup = '*'

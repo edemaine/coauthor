@@ -149,7 +149,6 @@ globals:
   urlToFile: readonly
   userSortKey: readonly
   validGroup: readonly
-  validKey: readonly
   validTag: readonly
   validTags: readonly
   validUsername: readonly

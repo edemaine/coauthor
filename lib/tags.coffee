@@ -1,7 +1,7 @@
 import {check} from 'meteor/check'
 import {Mongo} from 'meteor/mongo'
 
-import {escapeKey, unescapeKey} from './escape'
+import {escapeKey, unescapeKey, validKey} from './escape'
 
 @Tags = new Mongo.Collection 'tags'
 
