@@ -66,7 +66,6 @@ iron:middleware-stack@1.1.0
 iron:router@1.1.2
 iron:url@1.1.0
 jquery@3.0.0
-lamhieu:meteorx@2.1.1
 launch-screen@1.2.0
 livedata@1.0.18
 localstorage@1.2.0
@@ -87,7 +86,8 @@ mongo-decimal@0.1.2
 mongo-dev-server@1.1.0
 mongo-id@1.0.7
 mongo-livedata@1.0.12
-montiapm:agent@2.39.1
+montiapm:agent@2.44.2
+montiapm:meteorx@2.2.0
 mquandalle:jade@0.4.9
 mquandalle:jade-compiler@0.4.5
 npm-bcrypt@0.9.3
