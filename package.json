@@ -44,7 +44,7 @@
     "markdown-it-task-checkbox": "^1.0.6",
     "meteor-node-stubs": "^1.0.1",
     "moment-timezone": "^0.5.32",
-    "pdfjs-dist": "^2.5.207",
+    "pdfjs-dist": "2.5.207",
     "react": "^17.0.1",
     "react-bootstrap": "^1.4.3",
     "react-bootstrap-typeahead": "^5.1.4",
