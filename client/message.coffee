@@ -2606,7 +2606,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
               }
             </div>
             <div className="panel-body panel-secondbody hidden-print clearfix">
-              {if can.reply
+              {if can.reply and not read
                 <ReplyButtons message={message}/>
               }
               <span className="message-title">
