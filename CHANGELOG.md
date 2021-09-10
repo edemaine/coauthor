@@ -7,6 +7,17 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2021-09-10
+
+* Fix accidental Reply buttons when user has no Post permission
+  (at the bottom of message with children).
+  [[#585](https://github.com/edemaine/coauthor/pull/585)]
+
+## 2021-07-07
+
+* Improve automatic image reloading when file gets replaced.
+  [[#163](https://github.com/edemaine/coauthor/issues/163)]
+
 ## 2021-06-16
 
 * Tweak dark-mode scrollbar colors on Firefox mode so they don't disappear
