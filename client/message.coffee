@@ -2606,7 +2606,9 @@ export WrappedSubmessage = React.memo ({message, read}) ->
               }
             </div>
             <div className="panel-body panel-secondbody hidden-print clearfix">
-              <ReplyButtons message={message}/>
+              {if can.reply and not read
+                <ReplyButtons message={message}/>
+              }
               <span className="message-title">
                 <a className="btn btn-default btn-xs linkToTop" aria-label="Top" href="##{message._id}">
                   <span className="fas fa-caret-up"/>
