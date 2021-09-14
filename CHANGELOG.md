@@ -7,6 +7,11 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2021-09-14
+
+* Fix behavior of links to messages with correct group name
+  when message gets moved across groups.
+
 ## 2021-09-10
 
 * Fix accidental Reply buttons when user has no Post permission

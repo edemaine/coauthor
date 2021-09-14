@@ -60,7 +60,8 @@ $(document).on 'click', 'a[href]', (e) ->
      not e.currentTarget.href.endsWith('#') and  # used by lots of buttons
      not e.currentTarget.classList.contains('btn') and
      (targetMatch = messagePath.exec e.currentTarget.pathname)? and
-     (hereMatch = messagePath.exec window.location.pathname)?
+     (hereMatch = messagePath.exec window.location.pathname)? and
+     (targetMatch[1] in [hereMatch[1], '*']) # matching group names
     hereMsg = Messages.findOne hereMatch[2]
     targetMsg = Messages.findOne targetMatch[2]
     if hereMsg? and targetMsg? and
