@@ -4,10 +4,9 @@
 
 Here is how to get a **local test server** running:
 
-1. **[Install Meteor](https://www.meteor.com/install):**
-   `curl https://install.meteor.com/ | sh` on UNIX or MacOS.
-   (On Apple M1 chips, [use a Rosetta Terminal](https://www.linuxhowto.net/install-meteor-on-apple-m1/).)
-   `npm install -g meteor` on Windows (in administrator command prompt).
+1. **[Install Meteor](https://docs.meteor.com/install.html):**
+   `npm install -g meteor` or `sudo npm install -g meteor --unsafe-perm`.
+   Prefix with `arch -x86_64` on Apple M1.
 2. **Download Coauthor:** `git clone https://github.com/edemaine/coauthor.git`
 3. **Run meteor:**
    * `cd coauthor`
