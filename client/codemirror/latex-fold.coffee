@@ -9,7 +9,7 @@ get_latex_environ = (s) ->
     i = s.indexOf('{')
     j = s.indexOf('}')
     if i != -1 and j != -1
-        return s.slice(i+1,j).trim()
+        return escapeRegExp s.slice(i+1,j).trim()
     else
         return undefined
 
