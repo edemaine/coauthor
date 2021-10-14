@@ -7,6 +7,15 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2021-10-14
+
+* Clarify that `author` view lists posts by and @mentioning the user
+
+## 2021-09-29
+
+* Fix bug in finding editor folds when editing a message in LaTeX mode that
+  uses `\begin{foo}` where `foo` has weird characters in it.
+
 ## 2021-09-14
 
 * Fix behavior of links to messages with correct group name

@@ -3,9 +3,9 @@ template(name='author')
     .panel.panel-primary
       .panel-heading.clearfix
         if emailless
-          span.title.panel-title Author &ldquo;#{displayUser}&rdquo; (username &lsquo;#{author}&rsquo;)
+          span.title.panel-title Posts by and @mentioning &ldquo;#{displayUser}&rdquo; (username &lsquo;#{author}&rsquo;)
         else
-          span.title.panel-title Author &ldquo;#{displayUser}&rdquo; (username &lsquo;#{author}&rsquo;, email !{email})
+          span.title.panel-title Posts by and @mentioning &ldquo;#{displayUser}&rdquo; (username &lsquo;#{author}&rsquo;, email !{email})
         .pull-right
           span.badge= messageCountText
           if fullMember

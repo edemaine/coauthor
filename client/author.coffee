@@ -3,7 +3,7 @@ Template.author.onCreated ->
 
 Template.author.helpers
   messages: ->
-    messagesBy @group, @author
+    messagesBy @group, @author, true # include @mentions
   messageCountText: ->
     pluralize messagesBy(@group, @author).count(), 'message'
   wildLink: ->

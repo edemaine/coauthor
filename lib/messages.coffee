@@ -330,8 +330,8 @@ if Meteor.isServer
     query.$or.push body: atRe author
   query
 
-@messagesBy = (group, author) ->
-  Messages.find messagesByQuery(group, author),
+@messagesBy = (group, author, atMentions = true) ->
+  Messages.find messagesByQuery(group, author, atMentions),
     sort: [['updated', 'desc']]
     #limit: parseInt(@limit)
 
