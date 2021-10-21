@@ -7,6 +7,11 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2021-10-21
+
+* Fix bug when switching between the Users view of multiple groups
+  (partial access to messages didn't update)
+
 ## 2021-10-14
 
 * Clarify that `author` view lists posts by and @mentioning the user

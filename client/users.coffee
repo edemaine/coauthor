@@ -19,7 +19,7 @@ export Users = React.memo ({group, messageID}) ->
     wild: messageRoleCheck wildGroup, messageID, 'admin'
   , [group, messageID]
   message = useTracker ->
-    Messages.findOne messageID
+    Messages.findOne messageID if messageID?
   , [messageID]
   users = useTracker ->
     Meteor.users.find {},
@@ -119,14 +119,14 @@ onRole = (group, messageID) -> (e) ->
 
 User = React.memo ({group, messageID, user, admin}) ->
   escapedGroup = escapeGroup group
-  unless messageID?  # should not change
-    partialMember = useTracker ->
-      return if _.isEmpty user.rolesPartial?[escapedGroup]
-      for id of user.rolesPartial[escapedGroup]
-        Messages.findOne(id) ?
-          _id: id
-          title: '(loading)'
-    , [user]
+  partialMember = useTracker ->
+    return if messageID?
+    return if _.isEmpty user.rolesPartial?[escapedGroup]
+    for id of user.rolesPartial[escapedGroup]
+      Messages.findOne(id) ?
+        _id: id
+        title: '(loading)'
+  , [escapedGroup, user]
   authorLink = pathFor 'author',
     group: group
     author: user.username
