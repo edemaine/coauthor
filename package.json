@@ -58,7 +58,7 @@
     "coffeescript": "^2.5.1",
     "eslint": "^7.21.0",
     "eslint-import-resolver-meteor": "^0.4.0",
-    "eslint-plugin-coffee": "0.1.15",
+    "eslint-plugin-coffee": "github:helixbass/eslint-plugin-coffee#eslint-plugin-coffee-v0.1.16-dev.1-gitpkg",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-meteor": "^7.3.0",
     "eslint-plugin-react": "^7.22.0",
