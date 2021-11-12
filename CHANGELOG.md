@@ -7,6 +7,11 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2021-11-12
+
+* Fix page title when switching between groups
+  [[#587](https://github.com/edemaine/coauthor/issues/587)]
+
 ## 2021-10-21
 
 * Fix bug when switching between the Users view of multiple groups

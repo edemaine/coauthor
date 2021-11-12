@@ -1,7 +1,8 @@
 import {liveMessagesLimit} from '/lib/messages'
 
 Template.live.onCreated ->
-  setTitle 'Live Feed'
+  @autorun ->
+    setTitle 'Live Feed'
 
 Template.live.helpers
   messages: ->

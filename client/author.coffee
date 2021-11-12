@@ -1,5 +1,6 @@
 Template.author.onCreated ->
-  setTitle "Author #{Template.currentData()?.author}"
+  @autorun ->
+    setTitle "Author #{Template.currentData()?.author}"
 
 Template.author.helpers
   messages: ->
