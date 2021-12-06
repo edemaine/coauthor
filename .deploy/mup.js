@@ -70,10 +70,10 @@ module.exports = {
     ssl: {
       // The simple way to enable SSL on your server is Let's Encrypt.
       // Just specify your email address as follows:
-      //letsEncryptEmail: 'you@email.com',
+      letsEncryptEmail: 'edemaine@mit.edu',
       // Alternatively, specify a certificate manually as follows:
-      crt: '../../coauthor_csail_mit_edu.ssl/coauthor_csail_mit_edu.pem',
-      key: '../../coauthor_csail_mit_edu.ssl/coauthor_csail_mit_edu.key',
+      //crt: '../../coauthor_csail_mit_edu.ssl/coauthor_csail_mit_edu.pem',
+      //key: '../../coauthor_csail_mit_edu.ssl/coauthor_csail_mit_edu.key',
       // Redirect all http traffic to the https site:
       forceSSL: true,
     },
