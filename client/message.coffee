@@ -11,6 +11,7 @@ import useEventListener from '@use-it/event-listener'
 import {Credits} from './layout.coffee'
 import {ErrorBoundary} from './ErrorBoundary'
 import {FormatDate, formatDate} from './lib/date'
+import {ignoreKey} from './keyboard'
 import {MessageImage, imageTransform, messageRotate} from './MessageImage'
 import {MessagePDF} from './MessagePDF'
 import {TagList} from './TagList'
@@ -226,13 +227,12 @@ Message = React.memo ({message}) ->
   , [isScreenSm]
   onToc = (e) ->
     e.preventDefault()
+    e.stopPropagation()
     setToc not toc
-  useEventListener 'keypress', (e) ->
-    return if e.target.tagName in ['INPUT', 'TEXTAREA']
-    if e.key.toLowerCase() == 't' and not (e.ctrlKey or e.altKey or e.metaKey)
-      e.preventDefault()
-      e.stopPropagation()
-      setToc not toc
+  useEventListener 'keydown', (e) ->
+    return if ignoreKey e
+    if e.key.toLowerCase() == 't'
+      onToc e
 
   ## Set sticky column height to remaining height of screen:
   ## 100vh when stuck, and less when header is (partly) visible.

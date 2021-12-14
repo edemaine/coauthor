@@ -7,6 +7,10 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2021-11-13
+
+* Fix <kbd>s</kbd> key not working in message editor on iOS
+
 ## 2021-11-12
 
 * Fix page title when switching between groups
@@ -294,7 +298,7 @@ instead of version numbers.
 ## 2021-03-01
 
 * Superusers can now toggle superuser mode (the equivalent of the
-  Become/Leave Superuser button) via the keyboard shortcut `s`.
+  Become/Leave Superuser button) via the keyboard shortcut <kbd>s</kbd>.
 
 ## 2021-02-25
 
