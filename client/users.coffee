@@ -138,9 +138,7 @@ export User = (props) ->
     <tr data-username={props.user.username}>
       <th>
         <div className="name">
-          <Show when={props.user.profile?.fullname}>
-            {props.user.profile.fullname} (
-          </Show>
+          {"#{props.user.profile.fullname} (" if props.user.profile?.fullname}
           <a href={authorLink()}>{props.user.username}</a>
           {', '}
           <Show when={props.user.emails?[0]?} fallback="no email">
@@ -149,15 +147,13 @@ export User = (props) ->
               {" unverified"}
             </Show>
           </Show>
-          <Show when={props.user.profile?.fullname}>
-            )
-          </Show>
+          {')' if props.user.profile?.fullname}
         </div>
         <div className="createdAt">
           joined {formatDate props.user.createdAt}
         </div>
       </th>
-      <For each={roles()}>{({role, levels}) ->
+      {for {role, levels} in roles()
         showLevel = (i) ->
           return if i >= levels.length
           level = if levels[i] then 'YES' else 'NO'
@@ -171,16 +167,18 @@ export User = (props) ->
           else
             <del className={space}>{level}</del>
         <td data-role={role}>
-          <Show when={props.admin.group} fallback={showLevel 0}>
+          {if props.admin.group
             <button className="roleButton btn #{if levels[0] then 'btn-success' else 'btn-danger'}"
             onClick={[onRole, props]}>
               {showLevel 0}
             </button>
-          </Show>
+          else
+            showLevel 0
+          }
           {showLevel 1}
           {showLevel 2}
         </td>
-      }</For>
+      }
     </tr>
     <Show when={partialMember()?.length}>
       {### Extra row to get parity right ###}
@@ -221,14 +219,14 @@ export Anonymous = (props) ->
       level = -> if role in roles() then 'YES' else 'NO'
       button = ->
         <td data-role={role}>
-          <Show when={props.admin.group} fallback={level()}>
+          <Show when={props.admin.group} fallback={-> level()}>
             <button className="roleButton btn #{btnclass()}#{if disabled() then ' disabled' else ''}"
             disabled={Boolean disabled()} onClick={[onRole, props]}>
               {level()}
             </button>
           </Show>
         </td>
-      <Show when={props.admin.group and disabled()} fallback={button()}>
+      <Show when={props.admin.group and disabled()} fallback={-> button()}>
         <TextTooltip title={disabled()}>
           <td data-role={role}>
             {button()}
