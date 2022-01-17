@@ -1,6 +1,5 @@
-import {createEffect, createMemo, Show} from 'solid-js'
-import {autoTracker, createFind, createFindOne, createTracker} from 'solid-meteor-data'
-autoTracker()
+import {createMemo, Show, For} from 'solid-js'
+import {createFind, createFindOne, createTracker} from 'solid-meteor-data'
 
 #import {ErrorBoundary} from './ErrorBoundary'
 #import {TextTooltip} from './lib/tooltip'
@@ -123,16 +122,6 @@ export User = (props) ->
   authorLink = -> pathFor 'author',
     group: props.group
     author: props.user.username
-  roles = createMemo ->
-    for role in allRoles
-      levels = []
-      if props.messageID?
-        levels.push role in (props.user.rolesPartial?[escapedGroup()]?[props.messageID] ? [])
-      levels.push role in (props.user.roles?[escapedGroup()] ? [])
-      if props.group != wildGroup
-        levels.push role in (props.user.roles?[wildGroup] ? [])
-      levels.pop() until levels[levels.length-1] or levels.length == 1
-      {role, levels}
 
   <>
     <tr data-username={props.user.username}>
@@ -153,7 +142,17 @@ export User = (props) ->
           joined {formatDate props.user.createdAt}
         </div>
       </th>
-      {for {role, levels} in roles()
+      <For each={allRoles}>{(role) ->
+        levels = []
+        if props.messageID?
+          levels.push role in (props.user.rolesPartial?[escapedGroup()]?[props.messageID] ? [])
+        levels.push role in (props.user.roles?[escapedGroup()] ? [])
+        #role in (props.user.roles?[escapedGroup()] ? [])
+        #props.group != wildGroup
+        if props.group != wildGroup
+          levels.push role in (props.user.roles?[wildGroup] ? [])
+        #role in (props.user.roles?[wildGroup] ? [])
+        levels.pop() until levels[levels.length-1] or levels.length == 1
         showLevel = (i) ->
           return if i >= levels.length
           level = if levels[i] then 'YES' else 'NO'
@@ -178,7 +177,7 @@ export User = (props) ->
           {showLevel 1}
           {showLevel 2}
         </td>
-      }
+      }</For>
     </tr>
     <Show when={partialMember()?.length}>
       {### Extra row to get parity right ###}
@@ -205,7 +204,7 @@ export Anonymous = (props) ->
   disabled = createMemo ->
     if props.group == wildGroup
       'Cannot give anonymous access to all groups globally'
-    else if messageID?
+    else if props.messageID?
       'Cannot give anonymous access to individual threads'
     else if not props.admin.wild
       'Need global administrator privileges to change anonymous access'

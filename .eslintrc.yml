@@ -182,6 +182,7 @@ rules:
     - warn
     - forbid: ['>', '"', '}']
   react/prop-types: off
+  react/react-in-jsx-scope: off
   meteor/eventmap-params:
     - error
     - eventParamName: e
