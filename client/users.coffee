@@ -127,15 +127,15 @@ export User = (props) ->
     <tr data-username={props.user.username}>
       <th>
         <div className="name">
-          {"#{props.user.profile.fullname} (" if props.user.profile?.fullname}
+          {"#{fullname} (" if fullname = props.user.profile?.fullname}
           <a href={authorLink()}>{props.user.username}</a>
           {', '}
-          <Show when={props.user.emails?[0]?} fallback="no email">
-            {props.user.emails[0].address}
-            <Show when={not props.user.emails[0].verified}>
-              {" unverified"}
-            </Show>
-          </Show>
+          {if (email = props.user.emails?[0])?
+            email.address +
+            if email.verified then '' else ' (unverified)'
+          else
+            'no email'
+          }
           {')' if props.user.profile?.fullname}
         </div>
         <div className="createdAt">
