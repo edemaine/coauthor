@@ -1,6 +1,8 @@
 import React from 'react'
 import {useTracker} from 'meteor/react-meteor-data'
 
+dateTimeFormat = new Intl.DateTimeFormat 'en-US'
+
 export formatDateOnly = (date, prefix = '', absolute) ->
   return '???' unless date?
   return "?#{date}?" unless date instanceof Date  ## have seen this briefly, not sure when
@@ -19,10 +21,10 @@ export formatDateOnly = (date, prefix = '', absolute) ->
         Session.get 'today'  # depend on the current date; see below
         "yesterday"
       else
-        "#{prefix}#{date.toLocaleDateString 'en-US', options}"
+        "#{prefix}#{dateTimeFormat.format date, options}"
   else
     options.year = 'numeric'
-    "#{prefix}#{date.toLocaleDateString 'en-US', options}"
+    "#{prefix}#{dateTimeFormat.format date, options}"
 
 export formatDate = (date, prefix, absolute) ->
   dateOnly = formatDateOnly date, prefix, absolute

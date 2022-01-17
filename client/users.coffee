@@ -127,7 +127,9 @@ export User = (props) ->
     <tr data-username={props.user.username}>
       <th>
         <div className="name">
-          {"#{fullname} (" if fullname = props.user.profile?.fullname}
+          {if (fullname = props.user.profile?.fullname)
+            "#{fullname} ("
+          }
           <a href={authorLink()}>{props.user.username}</a>
           {', '}
           {if (email = props.user.emails?[0])?
@@ -147,11 +149,8 @@ export User = (props) ->
         if props.messageID?
           levels.push role in (props.user.rolesPartial?[escapedGroup()]?[props.messageID] ? [])
         levels.push role in (props.user.roles?[escapedGroup()] ? [])
-        #role in (props.user.roles?[escapedGroup()] ? [])
-        #props.group != wildGroup
         if props.group != wildGroup
           levels.push role in (props.user.roles?[wildGroup] ? [])
-        #role in (props.user.roles?[wildGroup] ? [])
         levels.pop() until levels[levels.length-1] or levels.length == 1
         showLevel = (i) ->
           return if i >= levels.length
