@@ -145,19 +145,21 @@ export User = (props) ->
         </div>
       </th>
       <For each={allRoles}>{(role) ->
-        levels = []
-        if props.messageID?
-          levels.push role in (props.user.rolesPartial?[escapedGroup()]?[props.messageID] ? [])
-        levels.push role in (props.user.roles?[escapedGroup()] ? [])
-        if props.group != wildGroup
-          levels.push role in (props.user.roles?[wildGroup] ? [])
-        levels.pop() until levels[levels.length-1] or levels.length == 1
+        levels = createMemo ->
+          l = []
+          if props.messageID?
+            l.push role in (props.user.rolesPartial?[escapedGroup()]?[props.messageID] ? [])
+          l.push role in (props.user.roles?[escapedGroup()] ? [])
+          if props.group != wildGroup
+            l.push role in (props.user.roles?[wildGroup] ? [])
+          l.pop() until l[l.length-1] or l.length == 1
+          l
         showLevel = (i) ->
-          return if i >= levels.length
-          level = if levels[i] then 'YES' else 'NO'
+          return if i >= levels().length
+          level = if levels()[i] then 'YES' else 'NO'
           level += '*' if i == 1 + props.messageID?  # global override
           space = if i == 0 then '' else 'space'
-          if i == levels.length - 1  # last level
+          if i == levels().length - 1  # last level
             if i == 0
               level
             else
@@ -166,7 +168,7 @@ export User = (props) ->
             <del className={space}>{level}</del>
         <td data-role={role}>
           {if props.admin.group
-            <button className="roleButton btn #{if levels[0] then 'btn-success' else 'btn-danger'}"
+            <button className="roleButton btn #{if levels()[0] then 'btn-success' else 'btn-danger'}"
             onClick={[onRole, props]}>
               {showLevel 0}
             </button>
