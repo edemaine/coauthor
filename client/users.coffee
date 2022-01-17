@@ -119,6 +119,13 @@ export User = (props) ->
       Messages.findOne(id) ?
         _id: id
         title: '(loading)'
+  roles = createMemo ->
+    message = props.user.rolesPartial?[escapedGroup()]?[props.messageID] ? [] \
+      if props.messageID?
+    group = props.user.roles?[escapedGroup()] ? []
+    global = props.user.roles?[wildGroup] ? [] if props.group != wildGroup
+    first = message ? group
+    {message, group, global, first}
   authorLink = -> pathFor 'author',
     group: props.group
     author: props.user.username
@@ -144,22 +151,20 @@ export User = (props) ->
           joined {formatDate props.user.createdAt}
         </div>
       </th>
-      <For each={allRoles}>{(role) ->
-        levels = createMemo ->
-          l = []
-          if props.messageID?
-            l.push role in (props.user.rolesPartial?[escapedGroup()]?[props.messageID] ? [])
-          l.push role in (props.user.roles?[escapedGroup()] ? [])
-          if props.group != wildGroup
-            l.push role in (props.user.roles?[wildGroup] ? [])
-          l.pop() until l[l.length-1] or l.length == 1
-          l
+      {
+      r = roles()
+      for role in allRoles
+        levels = []
+        levels.push role in r.message if r.message?
+        levels.push role in r.group if r.group?
+        levels.push role in r.global if r.global?
+        levels.pop() until levels.length == 1 or levels[levels.length-1]
         showLevel = (i) ->
-          return if i >= levels().length
-          level = if levels()[i] then 'YES' else 'NO'
+          return if i >= levels.length
+          level = if levels[i] then 'YES' else 'NO'
           level += '*' if i == 1 + props.messageID?  # global override
           space = if i == 0 then '' else 'space'
-          if i == levels().length - 1  # last level
+          if i == levels.length - 1  # last level
             if i == 0
               level
             else
@@ -168,8 +173,8 @@ export User = (props) ->
             <del className={space}>{level}</del>
         <td data-role={role}>
           {if props.admin.group
-            <button className="roleButton btn #{if levels()[0] then 'btn-success' else 'btn-danger'}"
-            onClick={[onRole, props]}>
+            <button className="roleButton btn #{if levels[0] then 'btn-success' else 'btn-danger'}"
+             onClick={[onRole, props]}>
               {showLevel 0}
             </button>
           else
@@ -178,7 +183,7 @@ export User = (props) ->
           {showLevel 1}
           {showLevel 2}
         </td>
-      }</For>
+      }
     </tr>
     <Show when={partialMember()?.length}>
       {### Extra row to get parity right ###}
