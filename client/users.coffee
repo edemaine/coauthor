@@ -1,16 +1,14 @@
 import {createMemo, Show, For} from 'solid-js'
+import {render} from 'solid-js/web'
 import {createFind, createFindOne, createTracker} from 'solid-meteor-data'
 
-#import {ErrorBoundary} from './ErrorBoundary'
-#import {TextTooltip} from './lib/tooltip'
+import {ErrorBoundary} from './solid/ErrorBoundary'
+import {TextTooltip} from './solid/TextTooltip'
 import {formatDate} from './lib/date'
 import {allRoles} from '/lib/groups'
 
 Template.users.helpers
   Users: -> Users
-
-ErrorBoundary = (props) -> <>{props.children}</>
-TextTooltip = (props) -> <>{props.children}</>
 
 export Users = (props) ->
   createTracker -> setTitle 'Users'
@@ -269,3 +267,36 @@ UserInvitations = React.memo ({group}) ->
     }
   </>
 ###
+
+window.benchmark = ->
+  times =
+    for i in [1..51]
+      before = new Date
+      dispose = render(<Users group={'bb29'}/>, document.body)
+      after = new Date
+      dispose()
+      after - before
+  total = 0
+  total += time for time in times
+  median = times[..].sort((x, y) -> x-y)[(times.length - 1)// 2]
+  console.log "min=#{Math.min(...times)} mean=#{total / times.length} median=#{median} #{times.join ','}"
+
+# full        min=449 mean=891 median=840 1062,1112,606,623,1050,1140,1136,874,858,449
+# no left col min=186 mean=364 median=225 465,722,699,469,271,186,225,190,213,201
+# no date     min=353 mean=551 median=475 985,494,353,967,539,408,475,493,392,405
+# no name     min=445 mean=643 median=634 765,652,634,1216,752,536,671,493,445,449,461
+# no link     min=388 mean=986 median=901 949,1036,1390,1956,1305,876,852,901,668,388,522
+
+# full        min=373 mean=671 median=538 611,435,391,381,373,1330,939,1218,532,538,633
+# no left col min=98 mean=271.8181818181818 median=120 145,116,120,110,98,106,115,293,815,732,340
+# no date     min=158 mean=402.90909090909093 median=212 212,178,169,226,178,158,197,1051,782,617,664
+# no name     min=298 mean=341.72727272727275 median=319 534,337,316,319,364,304,301,317,298,336,333
+# no link     min=329 mean=389.1818181818182 median=373 401,373,353,431,501,347,455,342,329,386,363
+# full        min=369 mean=423.1818181818182 median=389 571,389,389,379,369,380,435,369,591,399,384
+
+# fix date    min=182 mean=197.36363636363637 median=193 226,213,211,193,187,186,183,208,183,182,199
+
+# reactiveFix min=242 mean=359.47058823529414 median=309 439,372,450,1224,319,313,299,353,334,395,330,292,761,1043,386,272,260,242,284,301,346,343,360,301,296,283,371,396,292,309,306,305,333,380,306,264,335,298,278,257,269,252,274,307,340,326,293,311,343,298,292
+# optimize    min=196 mean=297.45098039215685 median=256 274,245,273,217,295,1169,1002,733,268,222,230,218,263,275,216,241,354,268,211,207,227,196,208,299,312,278,359,312,265,251,272,377,357,311,372,220,256,205,208,221,197,211,215,212,216,210,208,222,258,263,271
+# clean       min=171 mean=219.33333333333334 median=188 313,206,369,184,175,195,182,191,180,184,188,182,247,198,510,306,305,418,350,183,185,303,199,186,189,183,175,176,208,177,180,209,171,180,188,174,185,193,187,183,191,348,246,195,184,191,196,183,195,177,183
+# min=188 mean=239 median=210 295,333,215,369,204,202,193,204,206,195,196,212,207,203,298,374,241,238,224,192,609,406,218,209,233,200,191,210,188,215,207,190,254,249,440,234,206,231,189,213,208,188,215,195,194,212,192,194,213,206,279
