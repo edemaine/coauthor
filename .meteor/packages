@@ -51,7 +51,8 @@ edemaine:sharejs-codemirror@5.40.0
 deanius:promise
 edemaine:accounts-ui-bootstrap-3
 montiapm:agent
-zodern:standard-minifier-js@4.0.0
+standard-minifier-js
+#zodern:standard-minifier-js@4.1.1
 react-template-helper@0.2.14
 react-meteor-data@2.4.0
 coagmano:stylus@1.1.0

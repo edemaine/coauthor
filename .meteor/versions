@@ -1,4 +1,4 @@
-accounts-base@2.2.0
+accounts-base@2.2.1
 accounts-oauth@1.4.0
 accounts-password@2.2.0
 allow-deny@1.1.0
@@ -73,6 +73,7 @@ meteor@1.10.0
 meteor-base@1.5.1
 meteorhacks:subs-manager@1.6.4
 minifier-css@1.6.0
+minifier-js@2.7.3
 minifiers@1.1.7
 minimongo@1.7.0
 mobile-experience@1.1.0
@@ -96,7 +97,7 @@ ordered-dict@1.1.0
 peerlibrary:assert@0.3.0
 peerlibrary:extend-publish@0.6.0
 peerlibrary:fiber-utils@0.10.0
-peerlibrary:reactive-mongo@0.4.0
+peerlibrary:reactive-mongo@0.4.1
 peerlibrary:reactive-publish@0.10.0
 peerlibrary:server-autorun@0.8.0
 peppelg:bootstrap-3-modal@1.0.4
@@ -121,6 +122,7 @@ socket-stream-client@0.4.0
 spacebars@1.2.0
 spacebars-compiler@1.3.0
 standard-minifier-css@1.7.4
+standard-minifier-js@2.8.0
 templating@1.4.1
 templating-compiler@1.4.1
 templating-runtime@1.5.0
@@ -134,7 +136,4 @@ underscorestring:underscore.string@3.3.4
 url@1.3.2
 webapp@1.13.0
 webapp-hashing@1.1.0
-zodern:caching-minifier@0.4.0
 zodern:meteor-package-versions@0.2.1
-zodern:minifier-js@4.1.0
-zodern:standard-minifier-js@4.1.1
