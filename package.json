@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "lint": "eslint --ext .coffee .",
-    "postinstall": "grunt --gruntfile .Gruntfile.coffee"
+    "postinstall": "grunt --gruntfile .Gruntfile.coffee",
+    "visualize": "meteor --production --extra-packages bundle-visualizer"
   },
   "repository": {
     "type": "git",
