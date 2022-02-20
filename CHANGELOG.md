@@ -7,6 +7,12 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2022-02-20
+
+* Users view should be faster, especially reacting to button presses,
+  thanks to SolidJS.
+  [[#595](https://github.com/edemaine/coauthor/issues/595)]
+
 ## 2021-11-13
 
 * Fix <kbd>s</kbd> key not working in message editor on iOS
