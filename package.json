@@ -76,10 +76,18 @@
     "grunt-contrib-less": "^2.0.0",
     "grunt-replace-regex": "^1.0.3"
   },
+  "meteor": {
+    "nodeModules": {
+      "recompile": {
+        "solid-bootstrap": true
+      }
+    }
+  },
   "solid": {
     "match": [
       "client/users.coffee",
-      "client/solid/*"
+      "client/solid/*",
+      "node_modules/solid*/**/*.jsx"
     ]
   }
 }
