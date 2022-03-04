@@ -1367,9 +1367,8 @@ export uploaderProps = (callback, inputRef) ->
       e.stopPropagation()
       callback e.dataTransfer.files, e
   inputProps:
-    onChange: (e) ->
+    onInput: (e) ->
       callback e.target.files, e
-      e.target.value = ''
 
 export ReplyButtons = React.memo ({message, prefix}) ->
   attachInput = useRef()

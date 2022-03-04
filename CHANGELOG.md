@@ -11,6 +11,7 @@ instead of version numbers.
 
 * More improvements to automatic image reloading when file gets replaced.
   [[#163](https://github.com/edemaine/coauthor/issues/163)]
+* Fix import functionality
 
 ## 2022-02-20
 
