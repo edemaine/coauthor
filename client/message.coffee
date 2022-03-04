@@ -440,7 +440,8 @@ updateFileQuery = _.debounce ->
       #console.log "#{id} changed:", fields
       return unless fileQueries[id]?
       if fields.file? and fileQueries[id].file != fields.file
-        forceImgReload urlToFile id
+        ## setTimeout to wait for React to finish rendering
+        setTimeout (-> forceImgReload urlToFile id), 1000
         fileQueries[id].file = fields.file
 , 100
 

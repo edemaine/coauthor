@@ -7,6 +7,11 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2022-03-04
+
+* More improvements to automatic image reloading when file gets replaced.
+  [[#163](https://github.com/edemaine/coauthor/issues/163)]
+
 ## 2022-02-20
 
 * Users view should be faster, especially reacting to button presses,

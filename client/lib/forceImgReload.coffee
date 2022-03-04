@@ -9,13 +9,14 @@ export forceImgReload = (src) ->
   ## Wait for all <img> tags to switch to blank image.
   await Promise.all (
     for tag in tags
-      new Promise (done) ->
-        tag.setAttribute 'src', blankImg
-        tag.onload = done
-        tag.onerror = done
-      .finally ->
-        tag.onload = undefined
-        tag.onerror = undefined
+      do (tag) ->
+        new Promise (done) ->
+          tag.setAttribute 'src', blankImg
+          tag.onload = done
+          tag.onerror = done
+        .finally ->
+          tag.onload = undefined
+          tag.onerror = undefined
   )
 
   ## fetch method seems to work on all browsers but Firefox
