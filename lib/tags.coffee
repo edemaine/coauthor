@@ -6,7 +6,7 @@ import {escapeKey, unescapeKey, validKey} from './escape'
 @Tags = new Mongo.Collection 'tags'
 
 if Meteor.isServer
-  Tags._ensureIndex [['group', 1], ['deleted', 1]]
+  Tags.createIndex [['group', 1], ['deleted', 1]]
 
 @escapeTag = escapeKey
 @unescapeTag = unescapeKey

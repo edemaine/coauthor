@@ -15,7 +15,7 @@ autoHeaders =
   #'X-Auto-Response-Suppress': 'OOF'
 
 if Meteor.isServer
-  Notifications._ensureIndex [['seen', 1], ['to', 1], ['message', 1]]
+  Notifications.createIndex [['seen', 1], ['to', 1], ['message', 1]]
 
 @notificationLevels = [
   'batched'

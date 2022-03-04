@@ -37,29 +37,29 @@ export angle180 = (a) ->
 @MessagesParent = new Mongo.Collection 'messages.parents'
 
 if Meteor.isServer
-  #Messages._ensureIndex group: 'hashed'
+  #Messages.createIndex group: 'hashed'
   ## This index makes it easy to find all messages in a specified group,
   ## and to find all root (root = null) messages in a specified group.
-  Messages._ensureIndex [
+  Messages.createIndex [
     ['group', 1]
     ['root', 1]
   ]
   ## This index makes it easy to find all submessages within a given root.
-  Messages._ensureIndex [
+  Messages.createIndex [
     ['root', 1]
   ]
   ## This index is for the 'live' and 'since' query:
   ## most recent messages in a group.
-  Messages._ensureIndex [
+  Messages.createIndex [
     ['group', 1]
     ['updated', -1]
   ]
   ## This index makes findMessageParent fast.
-  Messages._ensureIndex [
+  Messages.createIndex [
     ['children', 1]
   ]
   ## Diffs are accessed by message ID, and then sorted by updated date.
-  MessagesDiff._ensureIndex [
+  MessagesDiff.createIndex [
     ['id', 1]
     ['updated', 1]
   ]
@@ -1451,7 +1451,7 @@ Meteor.methods
     diff?.finished = diff.updators  ## last diff gets "finished" flag
     ## If caller doesn't bother setting coauthors, extrapolate from authors:
     message.coauthors ?= _.keys message.authors
-    diff[0].coauthors ?= message.coauthors
+    diffs[0].coauthors ?= message.coauthors
     #if parent?
     #  pmsg = Messages.findOne parent
     #  message.root = pmsg.root ? parent

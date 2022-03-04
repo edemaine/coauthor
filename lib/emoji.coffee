@@ -11,7 +11,7 @@ import {Mongo} from 'meteor/mongo'
 if Meteor.isServer
   ## This index makes it fast to find all undeleted emoji
   ## attached to a given message.
-  EmojiMessages._ensureIndex [
+  EmojiMessages.createIndex [
     ['message', 1]
     ['deleted', 1]
   ]

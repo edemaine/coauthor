@@ -106,7 +106,7 @@ WebApp.rawConnectHandlers.use '/file',
         ,
           range:
             start: start
-            end: end
+            end: end+1 # exclusive
         )
     else
       statusCode = 200
@@ -127,7 +127,7 @@ WebApp.rawConnectHandlers.use '/file',
     if stream
       res.writeHead statusCode, headers
       stream.pipe res
-      .on 'close', -> res.end()
+      .on 'finish', -> res.end()
       .on 'error', (err) ->
         res.writeHead 500
         res.end err

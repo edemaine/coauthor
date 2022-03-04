@@ -1450,7 +1450,9 @@ export ReplyButtons = React.memo ({message, prefix}) ->
           while callbacks[called]?
             callbacks[called]()
             called += 1
-      file.group = message.group
+      file.metadata =
+        group: message.group
+        root: message2root message
       Files.resumable.addFile file, e
   {buttonProps, dropProps, inputProps} = uploaderProps attachFiles, attachInput
 
@@ -1554,12 +1556,12 @@ export ReplyButtons = React.memo ({message, prefix}) ->
   </Dropdown>
 ReplyButtons.displayName = 'ReplyButtons'
 
-export MessageReplace = React.memo ({_id, group, tabindex}) ->
+export MessageReplace = React.memo ({message, tabindex}) ->
   replaceInput = useRef()
 
   replaceFiles = (files, e, t) ->
     if files.length != 1
-      console.error "Attempt to replace #{_id} with #{files.length} files -- expected 1"
+      console.error "Attempt to replace #{message._id} with #{files.length} files -- expected 1"
     else
       file = files[0]
       file.callback = (file2, done) ->
@@ -1567,11 +1569,13 @@ export MessageReplace = React.memo ({_id, group, tabindex}) ->
           file: file2.uniqueIdentifier
           finished: true
         ## Reset rotation angle on replace
-        data = findMessage _id
+        data = findMessage message._id
         if data.rotate
           diff.rotate = 0
-        Meteor.call 'messageUpdate', _id, diff, done
-      file.group = group
+        Meteor.call 'messageUpdate', message._id, diff, done
+      file.metadata =
+        group: message.group
+        root: message2root message
       Files.resumable.addFile file, e
   {buttonProps, dropProps, inputProps} = uploaderProps replaceFiles, replaceInput
 
@@ -2471,7 +2475,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
               else unless folded
                 <>
                   {if message.file and can.edit
-                    <MessageReplace _id={message._id} group={message.group} tabindex={tabindex0+7}/>
+                    <MessageReplace message={message} tabindex={tabindex0+7}/>
                   }
                   <OverlayTrigger flip overlay={(props) ->
                     <Tooltip {...props}>
@@ -2546,7 +2550,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
                     {if messageFileType == 'image'
                       <MessageImage message={message}/>
                     }
-                    <MessageReplace _id={message._id} group={message.group} tabindex={tabindex0+9}/>
+                    <MessageReplace message={message} tabindex={tabindex0+9}/>
                   </div>
                 </div>
               }

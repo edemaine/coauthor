@@ -9,6 +9,18 @@ instead of version numbers.
 
 ## 2022-03-04
 
+* Rewrote the
+  [file uploading system](https://github.com/edemaine/meteor-file-collection)
+  (which was necessary for modern Meteor, MongoDB, etc.).
+  If you're running your own server, you may need to execute some of the
+  following MongoDB commands to let Coauthor rebuild indexes:
+
+  ```js
+  db.users.dropIndexes()
+  db.fs.files.dropIndexes()
+  db.fs.chunks.dropIndexes()
+  db.fs.locks.drop()  // no longer needed
+  ```
 * More improvements to automatic image reloading when file gets replaced.
   [[#163](https://github.com/edemaine/coauthor/issues/163)]
 * Fix import functionality

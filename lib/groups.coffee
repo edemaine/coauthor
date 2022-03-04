@@ -28,7 +28,7 @@ titleDigits = 10
 @Groups = new Mongo.Collection 'groups'
 
 if Meteor.isServer
-  Groups._ensureIndex [['name', 1]]
+  Groups.createIndex [['name', 1]]
 
 @findGroup = (group) ->
   return group unless group?
@@ -58,6 +58,13 @@ export groupDefaultSort = (group) ->
   groupRoleCheck(group, role, user) or
   (message and
    (role in (user?.rolesPartial?[escapeGroup(group?.name ? group)]?[message2root message] ? [])))
+
+# Like messageRoleCheck, but where second argument is guaranteed to be root
+# (string ID or null).
+@rootRoleCheck = (group, root, role, user = Meteor.user()) ->
+  groupRoleCheck(group, role, user) or
+  (message and
+   (role in (user?.rolesPartial?[escapeGroup(group?.name ? group)]?[root] ? [])))
 
 @groupPartialMessagesWithRole = (group, role, user = Meteor.user()) ->
   group = group.name if group.name?

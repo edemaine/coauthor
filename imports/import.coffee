@@ -151,7 +151,7 @@ importOSQA = (group, zip) ->
         ## keep any record of files, so that's the best we can do.
         file.creator = revision.updators[0]
         file.created = revision.updated
-        file.group = group
+        file.metadata = {group}
         do (filename) ->
           new Promise (resolve, reject) ->
             file.callback = (file2) ->
@@ -463,7 +463,7 @@ importLaTeX = (group, zip) ->
                    lastModified: now
           file.creator = me
           file.created = now
-          file.group = group
+          file.metadata = {group}
           file.graphic = graphic
           figure.files.push file
           file.file2id = await new Promise (resolve, reject) ->

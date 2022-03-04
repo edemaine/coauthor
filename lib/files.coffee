@@ -43,7 +43,7 @@ corsHandler = (req, res, next) ->
   ]
 
 if Meteor.isServer
-  Files._ensureIndex [
+  Files.createIndex [
     ['metadata.group', 1]
     ['metadata._Resumable', 1]
   ]
@@ -102,11 +102,7 @@ if Meteor.isServer
   @readableFiles = (userId) ->
     Files.find
       'metadata._Resumable': $exists: false
-      $or: [
-        'metadata.uploader': userId
-      ,
-        'metadata.group': $in: accessibleGroupNames userId
-      ]
+      'metadata.group': $in: accessibleGroupNames userId
 
   Meteor.publish 'files', (group) ->
     check group, String
@@ -128,25 +124,23 @@ if Meteor.isServer
   ## User can read or upload a file if they have read or post permission
   ## respectively, either in the group or for any thread within the group.
   fileRoleCheck = (file, role, userId) ->
-    group = file.metadata.group ? wildGroup
+    group = file.metadata?.group ? wildGroup
     user = findUser userId
-    groupRoleCheck(group, role, user) or
-    groupPartialMessagesWithRole(group, role, user).length
+    rootRoleCheck group, file.metadata?.root, role, user
 
   Files.allow
     insert: (userId, file) ->
-      file.metadata = {} unless file.metadata?
-      check file.metadata,
+      check file?.metadata,
         group: Match.Optional String
+        root: Match.Optional String
       file.metadata.uploader = userId
       fileRoleCheck file, 'post', userId
     read: (userId, file) ->
-      file.metadata?.uploader == userId or
+      #file.metadata?.uploader == userId or
       fileRoleCheck file, 'read', userId
     remove: (userId, file) ->
-      file.metadata?.uploader == userId
-    write: (userId, file, fields) ->
-      file.metadata?.uploader == userId
+      #file.metadata?.uploader == userId
+      fileRoleCheck file, 'super', userId
 else
   Cookies = require 'js-cookie'
 
@@ -169,21 +163,11 @@ else
     Session.set 'uploading', uploading
 
   Files.resumable.on 'fileAdded', (file) =>
+    file.metadata = file.file.metadata
     updateUploading -> @[file.uniqueIdentifier] =
       filename: file.fileName
       progress: 0
-    Files.insert
-      _id: file.uniqueIdentifier    ## This is the ID resumable will use.
-      filename: file.fileName
-      contentType: file.file.type
-      metadata:
-        group: file.file.group
-    , (err, _id) =>
-      if err
-        console.error "File creation failed:", err
-      else
-        ## Once the file exists on the server, start uploading.
-        Files.resumable.upload()  ## xxx couldn't this upload the wrong file(s)?
+    Files.resumable.upload()
 
   Files.resumable.on 'fileProgress', (file) =>
     updateUploading -> @[file.uniqueIdentifier].progress = Math.floor 100*file.progress()
