@@ -21,6 +21,9 @@ instead of version numbers.
   db.fs.chunks.dropIndexes()
   db.fs.locks.drop()  // no longer needed
   ```
+
+  This also adds support for MongoDB Atlas.
+  [[#472](https://github.com/edemaine/coauthor/issues/472)]
 * More improvements to automatic image reloading when file gets replaced.
   [[#163](https://github.com/edemaine/coauthor/issues/163)]
 * Fix import functionality
