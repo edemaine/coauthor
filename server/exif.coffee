@@ -25,7 +25,7 @@ profilingStartup 'exif.startup', ->
         _id: file._id
       , range:
           start: 0
-          end: readSize
+          end: Math.min file.length, readSize
       chunks = []
       stream.on 'data', (chunk) -> chunks.push chunk
       stream.on 'end', Meteor.bindEnvironment ->
