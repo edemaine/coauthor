@@ -63,7 +63,7 @@ export groupDefaultSort = (group) ->
 # (string ID or null).
 @rootRoleCheck = (group, root, role, user = Meteor.user()) ->
   groupRoleCheck(group, role, user) or
-  (message and
+  (root and
    (role in (user?.rolesPartial?[escapeGroup(group?.name ? group)]?[root] ? [])))
 
 @groupPartialMessagesWithRole = (group, role, user = Meteor.user()) ->

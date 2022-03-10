@@ -126,6 +126,7 @@ globals:
   pathFor: readonly
   pluralize: readonly
   readableFiles: readonly
+  rootRoleCheck: readonly
   routeGroup: readonly
   routeGroupOrWild: readonly
   routeMessage: readonly
