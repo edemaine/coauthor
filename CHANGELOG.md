@@ -7,6 +7,11 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2022-03-10
+
+* Restore human-readable date formatting
+* Fix file uploads for partial members
+
 ## 2022-03-04
 
 * Rewrote the
