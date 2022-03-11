@@ -30,11 +30,17 @@ export WrappedUserInput = React.memo ({group, omit, placeholder, onSelect}) ->
       omitted = users
     _.sortBy omitted, userSortKey
   , [users, omit]
+  amSuper = useTracker ->
+    canSuper()
+  , []
   ref = useRef()
 
   onChange = (selected) ->
     if selected.length
-      onSelect selected[0]
+      if selected[0].customOption
+        onSelect username: selected[0].label.trim()
+      else
+        onSelect selected[0]
       ref.current.clear()
 
   <Suspense fallback={
@@ -43,6 +49,7 @@ export WrappedUserInput = React.memo ({group, omit, placeholder, onSelect}) ->
   }>
     <Typeahead ref={ref} placeholder={placeholder} id="userInput#{count}"
      options={sorted} labelKey={labelKey} align="left" flip
+     allowNew={allowNew if amSuper}
      onChange={onChange}/>
   </Suspense>
 WrappedUserInput.displayName = 'WrappedUserInput'
@@ -53,3 +60,7 @@ labelKey = (user) ->
     #key += " #{user.profile.fullname}"
     key = "#{user.profile.fullname} #{key}"
   key
+
+allowNew = (results, {text}) ->
+  text = text.trim()
+  text and not results.some (user) -> user.username == text

@@ -7,6 +7,13 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2022-03-11
+
+* Allow superusers to add arbitrary users (not necessarily group members)
+  as coauthors or private-message visibility.
+  This is useful when prewriting group content before releasing it to users.
+  [[#503](https://github.com/edemaine/coauthor/issues/503)]
+
 ## 2022-03-10
 
 * Restore human-readable date formatting
