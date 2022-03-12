@@ -1,3 +1,5 @@
+import {formatSearch, parseSearch} from '/lib/search'
+
 Template.search.onCreated ->
   @autorun ->
     setTitle "Search #{Template.currentData()?.search}"

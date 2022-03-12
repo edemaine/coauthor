@@ -1,5 +1,14 @@
 .importInput[type="file"]
   display: none
 
+// Wrapper for disabled buttons to have tooltips
+// See https://react-bootstrap.github.io/components/overlays/#overlays-disabled
+span.wrapper
+  display: inline-block
+span.disabled
+  cursor: not-allowed
+  button
+    pointer-events: none
+
 .gatherBtn
   float: right

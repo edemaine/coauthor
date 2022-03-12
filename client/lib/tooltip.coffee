@@ -1,9 +1,9 @@
-import React, {useEffect, useRef} from 'react'
+import React from 'react'
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger'
 import Tooltip from 'react-bootstrap/Tooltip'
 
-export TextTooltip = React.memo ({title, placement, children}) ->
-  <OverlayTrigger placement={placement} flip
+export TextTooltip = React.memo ({title, children, ...config}) ->
+  <OverlayTrigger flip {...config}
    overlay={(props) -> <Tooltip {...props}>{title}</Tooltip>}>
     {children}
   </OverlayTrigger>

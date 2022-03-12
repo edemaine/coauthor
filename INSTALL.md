@@ -4,10 +4,9 @@
 
 Here is how to get a **local test server** running:
 
-1. **[Install Meteor](https://www.meteor.com/install):**
-   `curl https://install.meteor.com/ | sh` on UNIX,
-   `choco install meteor` on Windows (in administrator command prompt
-   after [installing Chocolatey](https://chocolatey.org/install))
+1. **[Install Meteor](https://docs.meteor.com/install.html):**
+   `npm install -g meteor` or `sudo npm install -g meteor --unsafe-perm`.
+   Prefix with `arch -x86_64` on Apple M1.
 2. **Download Coauthor:** `git clone https://github.com/edemaine/coauthor.git`
 3. **Run meteor:**
    * `cd coauthor`
@@ -40,14 +39,33 @@ Installation instructions:
 1. Install Meteor and download Coauthor as above.
 2. Install `mup` via `npm install -g mup`
    (after installing [Node](https://nodejs.org/en/) and thus NPM).
-3. Edit `.deploy/mup.js` to point to your SSH key (for accessing the server),
-   your SSL certificate (for an https server), and your SMTP server in the
-   [`MAIL_URL` environment variable](https://docs.meteor.com/api/email.html)
-   (for sending email notifications &mdash; to run a local SMTP server,
-   see below, and use e.g. `smtp://yourhostname.org:25/`).
-   [`smtp://localhost:25/` may not work because of mup's use of docker.]
-   If you want the "From" address in email notifications to be something
-   other than coauthor@*deployed-host-name*, set the `MAIL_FROM` variable.
+3. Edit `.deploy/mup.js` to match your configuration:
+   * `servers.one` holds the information for accessing the server:
+     * `host` is the hostname or IP address of the server.
+     * `username` is the username of a root-level account on the server
+       that will be used to install software and run Coauthor.
+     * `pem` is the path on the local machine to an SSH private key
+       that enables access to the server host and username.
+   * `meteor.path` should point to the base directory on the local machine
+     that contains Coauthor (the directory containing `.deploy`).
+   * `meteor.proxy.ssl` specifies how to enable SSL encryption (https).
+     The easy way is to use [Let's Encrypt](https://letsencrypt.org/)
+     by specifying your email address in `letsEncryptEmail`.  Alternatively,
+     if you have your own SSL certificate, specify that in `crt` and `key`.
+     Or disable SSL altogether by removing `forceSSL: true` or the entire
+     `meteor.proxy.ssl` block.
+   * `meteor.env` sets environment variables:
+     * `ROOT_URL` must be the root URL for your public web server.
+     * For Coauthor to send email notifications, `MAIL_URL` needs to specify
+       an SMTP server.  See
+       [`MAIL_URL` configuration](https://docs.meteor.com/api/email.html).
+       To run a local SMTP server, [see below](#email), and use e.g.
+       `smtp://yourhostname.org:25/`.
+       [`smtp://localhost:25/` may not work because of mup's use of docker.]
+     * If you want the "From" address in email notifications to be something
+       other than coauthor@*deployed-host-name*, set the `MAIL_FROM` variable.
+     * If you're upgrading from an older Coauthor, don't set the
+       `COAUTHOR_SKIP_UPGRADE_DB` variable for the first deploy.
 4. Edit `settings.json` to set the server's
    [timezone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
    (used as the default email notification timezone for all users).

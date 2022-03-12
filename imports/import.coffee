@@ -1,6 +1,8 @@
 parseXML = (xml) ->
-  xml = xml.replace /\x0C/g, 'fi'  ## must be from some LaTeX copy/paste...
-  xml = xml.replace /â€™/g, '’'    ## CP-1253 encoding
+  ## Must be from some LaTeX copy/paste...:
+  xml = xml.replace /\x0C/g, 'fi' # eslint-disable-line no-control-regex
+  ## CP-1253 encoding:
+  xml = xml.replace /â€™/g, '’'
   xml = $($.parseXML xml)
 
 bodymap = (body) ->
@@ -95,7 +97,6 @@ importOSQA = (group, zip) ->
   nodes = await zip.file('nodes.xml').async('string')
   nodes = parseXML nodes
   idmap = {}
-  count = 0
   for node in nodes.find('node')
     node = $(node)
     id = node.children('id').text()
@@ -150,7 +151,7 @@ importOSQA = (group, zip) ->
         ## keep any record of files, so that's the best we can do.
         file.creator = revision.updators[0]
         file.created = revision.updated
-        file.group = group
+        file.metadata = {group}
         do (filename) ->
           new Promise (resolve, reject) ->
             file.callback = (file2) ->
@@ -182,8 +183,6 @@ importOSQA = (group, zip) ->
       Meteor.callPromise 'messageImport', group, parent, message, revisions
       .catch (error) -> throw error
     )
-    count += 1
-    #return if count == 5
 
     await Promise.all(
       for file2 in attachFiles
@@ -409,7 +408,6 @@ importLaTeX = (group, zip) ->
     labels = {}
     links = {}
     messages = []
-    figurecount = 0
     r = /\\(sub)*section\s*{((?:[^{}]|{[^{}]*})*)}|\\bibliography/g
     while (match = r.exec tex)?
       if start?
@@ -439,7 +437,7 @@ importLaTeX = (group, zip) ->
       title = "#{depths.join('.')} #{match[2]}"
       start = match.index + match[0].length
 
-    for message, i in messages
+    for message in messages
       ## First, find which figures are used in this message.
       ## We upload the figures before the message so that the message
       ## can easily hyperlink directly to the messages.
@@ -465,7 +463,7 @@ importLaTeX = (group, zip) ->
                    lastModified: now
           file.creator = me
           file.created = now
-          file.group = group
+          file.metadata = {group}
           file.graphic = graphic
           figure.files.push file
           file.file2id = await new Promise (resolve, reject) ->
@@ -562,14 +560,12 @@ export importFiles = (format, group, files) ->
   unless importer?
     console.warn "Unrecognized import format '#{format}'"
     return
-  sub = Meteor.subscribe 'messages.imported', group, ->
-  done = 0
+  sub = Meteor.subscribe 'messages.imported', group
   for file in files
-    reader = new FileReader
-    reader.onload = (e) ->
-      importer group, e.target.result
-      done += 1
-      if done == files.length
-        sub.stop()
-        console.log 'Import complete'
-    reader["readAs#{importer.readAs}"] file
+    data = await new Promise (resolve) ->
+      reader = new FileReader
+      reader.onload = (e) -> resolve e.target.result
+      reader["readAs#{importer.readAs}"] file
+    await importer group, data
+  sub.stop()
+  console.log 'Import complete'

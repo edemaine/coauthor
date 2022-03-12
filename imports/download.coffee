@@ -1,5 +1,7 @@
-import { messageFolded } from '../client/message.coffee'
-import { updateUploading } from '../lib/files.coffee'
+import {formatDate} from '/client/lib/date'
+import {messageFolded} from '/client/message.coffee'
+import {updateUploading} from '/lib/files'
+import {rootMessages} from '/lib/messages'
 
 title = 'Downloading ZIP archive...'
 
@@ -18,7 +20,7 @@ urlBasename = (url) ->
   file
 
 files = {}
-internalFiles = {}
+#internalFiles = {}
 subthreads = false
 
 downloadAux = (zip, group) ->
@@ -89,9 +91,9 @@ savePage = (zip, group, filename) ->
       # Remove integrity hashes, as we modify CSS to use relative paths.
       left = left.replace /\b(crossorigin|integrity)\s*=\s*['"].*?['"]/g, ''
       right = right.replace /\b(crossorigin|integrity)\s*=\s*['"].*?['"]/g, ''
-      if google = ///family=(\w+)///.exec url
+      if (google = ///family=(\w+)///.exec url)?
         file = "#{google[1]}.css"
-      else if fontAwesome = ///(fontawesome).*?(v\d+\.\d+\.\d+).*?(\w+.css)///.exec url
+      else if (fontAwesome = ///(fontawesome).*?(v\d+\.\d+\.\d+).*?(\w+.css)///.exec url)?
         file = fontAwesome[1..3].join '-'
       else
         url = Meteor.absoluteUrl() + url[1..] if url.startsWith '/'
@@ -101,7 +103,7 @@ savePage = (zip, group, filename) ->
       get.push {url, file, css}
       "#{left}#{file}#{right}"
   ## Download (possibly recursively) linked files
-  while job = get.pop()
+  while (job = get.pop())?
     {url, file, css} = job
     ## Skip files already in the zip file (e.g. repeated CSS)
     continue if zip.file "#{group}/#{file}"
@@ -161,7 +163,7 @@ export downloadGroup = (group) ->
   unless group?
     return console.error 'No group specified for download'
   files = {}
-  internalFiles = {}
+  #internalFiles = {}
   JSZip = (await import('jszip')).default
   zip = new JSZip
   downloadAux zip, group

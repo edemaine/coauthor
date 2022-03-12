@@ -13,98 +13,108 @@ head
   meta(name="viewport", content="width=device-width, initial-scale=1")
 
 template(name="layout")
-  .container-fluid
-    nav.navbar.navbar-default.navbar-flex(role="navigation")#top
-      .navbar-header
-        button.navbar-toggle.collapsed(type="button", data-toggle="collapse", data-target="#navbar")
-          span.sr-only Toggle navigation
-          span.icon-bar
-          span.icon-bar
-          span.icon-bar
-        a.navbar-brand(href="{{pathFor 'frontpage'}}") Coauthor
-        //- Old Coauthor link was to current group, if any:
-          if routeGroup
-            if wildGroup
-              a.navbar-brand(href="{{pathFor 'frontpage'}}") Coauthor
-            else
-              a.navbar-brand(href="{{pathFor 'group' group=routeGroup}}") Coauthor
-          else
+  nav.navbar.navbar-default.navbar-flex(role="navigation")#top
+    .navbar-header
+      button.navbar-toggle.collapsed(type="button", data-toggle="collapse", data-target="#navbar")
+        span.sr-only Toggle navigation
+        span.icon-bar
+        span.icon-bar
+        span.icon-bar
+      a.navbar-brand(href="{{pathFor 'frontpage'}}") Coauthor
+      //- Old Coauthor link was to current group, if any:
+        if routeGroup
+          if wildGroup
             a.navbar-brand(href="{{pathFor 'frontpage'}}") Coauthor
-        ul.nav.navbar-nav
-          li.dropdown.halflink
-            //- Repetition is necessary to avoid space between links
-            if groupData
-              a.link(href="{{pathFor 'group' group=routeGroup}}") #{routeGroup}
-              a.dropdown-toggle(href="#", data-toggle="dropdown", role="button", aria-expanded="false")
-                span.caret
-            else if routeGroup
-              a.link(href="{{pathFor 'group' group=routeGroup}}") #{routeGroup}?
-              a.dropdown-toggle(href="#", data-toggle="dropdown", role="button", aria-expanded="false")
-                span.caret
+          else
+            a.navbar-brand(href="{{pathFor 'group' group=routeGroup}}") Coauthor
+        else
+          a.navbar-brand(href="{{pathFor 'frontpage'}}") Coauthor
+      ul.nav.navbar-nav
+        li.dropdown.halflink
+          //- Repetition is necessary to avoid space between links
+          if groupData
+            a.link(href="{{pathFor 'group' group=routeGroup}}") #{routeGroup}
+            a.dropdown-toggle(href="#", data-toggle="dropdown", role="button", aria-expanded="false")
+              span.caret
+          else if routeGroup
+            a.link(href="{{pathFor 'group' group=routeGroup}}") #{routeGroup}?
+            a.dropdown-toggle(href="#", data-toggle="dropdown", role="button", aria-expanded="false")
+              span.caret
+          else
+            a.dropdown-toggle(href="#", data-toggle="dropdown", role="button", aria-expanded="false")
+              i Select Group
+              span.caret
+          ul.dropdown-menu(role="menu")
+            if groups.count
+              each groups
+                li(class="{{activeGroup}}")
+                  a(href=linkToGroup) {{name}}
+            else if currentUser
+              li
+                a
+                  i No groups available to you...
             else
-              a.dropdown-toggle(href="#", data-toggle="dropdown", role="button", aria-expanded="false")
-                i Select Group
-                span.caret
-            ul.dropdown-menu(role="menu")
-              if groups.count
-                each groups
-                  li(class="{{activeGroup}}")
-                    a(href=linkToGroup) {{name}}
-              else if currentUser
-                li
-                  a
-                    i No groups available to you...
-              else
-                li
-                  a
-                    i No groups available &mdash; should you sign in?
-              //-
-                li.divider
-                li
-                  a(href="#") Request Access
-          li
-            a#archive
-      .collapse.navbar-collapse#navbar
-        form.navbar-form.input-group.searchForm
-          input.form-control.searchText(type="text", placeholder="Search", value=search)
-        .navbar-btn.btn-group
-          if couldSuper
-            if super
-              button.superButton.btn.btn-success Leave Superuser
-            else
-              button.superButton.btn.btn-danger Become Superuser
-          if admin
-            if inUsers
-              a.btn.btn-success.usersButton(href="{{linkToUsersExit}}") Exit Users
-            else
-              a.btn.btn-warning.usersButton(href="{{linkToUsers}}") Users
-          if currentUser
-            a.btn.btn-default.settingsButton(href="{{pathFor 'settings' data=routeGroupOrWildData}}") Settings
-        ul.nav.navbar-nav.navbar-right
-          +loginButtons
+              li
+                a
+                  i No groups available &mdash; should you sign in?
+            //-
+              li.divider
+              li
+                a(href="#") Request Access
+        li
+          a#archive
+    .collapse.navbar-collapse#navbar
+      form.navbar-form.input-group.searchForm
+        input.form-control.searchText(type="text", placeholder="Search", value=search)
+      .navbar-btn.btn-group
+        if couldSuper
+          if super
+            button.superButton.btn.btn-success Leave Superuser
+          else
+            button.superButton.btn.btn-danger Become Superuser
+        if admin
+          if inUsers
+            a.btn.btn-success.usersButton(href="{{linkToUsersExit}}") Exit Users
+          else
+            a.btn.btn-warning.usersButton(href="{{linkToUsers}}") Users
+        if currentUser
+          a.btn.btn-default.settingsButton(href="{{pathFor 'settings' data=routeGroupOrWildData}}") Settings
+      ul.nav.navbar-nav.navbar-right
+        +loginButtons
+  .container-fluid
     #main.row-fluid
       +yield
     if creditsWide
       +credits
   +loading
-  if uploading
-    .alert.alert-success.footer
-      +uploadProgress
+  +footer
 
 template(name="credits")
   p.credits.clearfix
-    img(src=favicon)
+    img(src=favicon, alt="Coauthor logo")
     | <b>Coauthor</b> written by <a href="http://erikdemaine.org">Erik Demaine</a>, with help from many others.
     span.space
     span.btn-group.btn-group-sm.pull-right
       //-
         a.btn.btn-default(href="mailto:edemaine@mit.edu") Contact Erik
       a.btn.btn-default(href="https://github.com/edemaine/coauthor/#coauthor") Documentation
+      a.btn.btn-default(href="https://github.com/edemaine/coauthor/blob/main/CHANGELOG.md") Recent Changes
       a.btn.btn-default(href="https://github.com/edemaine/coauthor/issues/") Suggestions/Issues
-      a.btn.btn-default(href="https://github.com/edemaine/coauthor/") Download Source
+      a.btn.btn-default(href="https://github.com/edemaine/coauthor/") Source Code
+
+template(name="footer")
+  if showFooter
+    .footer
+      +uploadProgress
+      +migrate
 
 template(name="uploadProgress")
   each uploading
-    label= filename
-    .progress
-      .progress-bar.progress-bar-striped.active(role="progressbar", aria-valuenow=progress, aria-valuemin="0", aria-valuemax="100", style="width: #{progress}%") #{progress}%
+    .alert.alert-success
+      label= filename
+      .progress
+        .progress-bar.progress-bar-striped.active(role="progressbar", aria-valuenow=progress, aria-valuemin="0", aria-valuemax="100", style="width: #{progress}%") #{progress}%
+
+template(name="migrate")
+  if migrate
+    .alert.alert-danger !{migrate}

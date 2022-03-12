@@ -1,3 +1,6 @@
+import {check} from 'meteor/check'
+import {Mongo} from 'meteor/mongo'
+
 ## Database of available emoji
 @Emoji = new Mongo.Collection 'emoji'
 
@@ -8,7 +11,7 @@
 if Meteor.isServer
   ## This index makes it fast to find all undeleted emoji
   ## attached to a given message.
-  EmojiMessages._ensureIndex [
+  EmojiMessages.createIndex [
     ['message', 1]
     ['deleted', 1]
   ]
@@ -69,7 +72,7 @@ if Meteor.isServer
         @ready()
 ###
 
-@allEmoji = (group) ->
+export allEmoji = (group) ->
   Emoji.find
     group:
       if group == wildGroup
@@ -146,7 +149,7 @@ Meteor.methods
         $set: emoji: emoji
 
 ## Emoji lookup tool.  Note that emojiFilter is modified by the function.
-@emojiReplies = (message, emojiFilter = {}) ->
+export emojiReplies = (message, emojiFilter = {}) ->
   message = findMessage message
   return [] unless message.emoji
   #for key, value of message.emoji
@@ -185,50 +188,51 @@ Meteor.methods
   ###
 
 ## Default set of group-global emoji
-if Meteor.isServer and Emoji.find().count() == 0
-
-  Meteor.startup ->
-    Emoji.insert
-      symbol: 'thumbs-up'
-      class: 'positive'
-      description: '+1/agree'
-      group: wildGroup
-    Emoji.insert
-      symbol: 'heart'
-      class: 'neutral'
-      description: 'heart'
-      group: wildGroup
-    Emoji.insert
-      symbol: 'grin-beam'
-      class: 'neutral'
-      description: 'happy/funny'
-      group: wildGroup
-    Emoji.insert
-      symbol: 'surprise'
-      class: 'neutral'
-      description: 'surprise'
-      group: wildGroup
-    Emoji.insert
-      symbol: 'sad-tear'
-      class: 'neutral'
-      description: 'sad'
-      group: wildGroup
-    Emoji.insert
-      symbol: 'check'
-      class: 'neutral'
-      description: 'checked'
-      group: wildGroup
-    Emoji.insert
-      symbol: 'question'
-      class: 'neutral'
-      description: 'question/confusion'
-      group: wildGroup
-    Emoji.insert
-      symbol: 'thumbs-down'
-      class: 'negative'
-      description: '-1/disagree'
-      group: wildGroup
-    #Emoji.insert
-    #  symbol: 'birthday-cake'
-    #  description: 'celebrate'
-    #  group: wildGroup
+Meteor.startup ->
+  return unless Meteor.isServer
+  return if Emoji.findOne()
+  console.log "emoji: Adding default set of emoji."
+  Emoji.insert
+    symbol: 'thumbs-up'
+    class: 'positive'
+    description: '+1/agree'
+    group: wildGroup
+  Emoji.insert
+    symbol: 'heart'
+    class: 'neutral'
+    description: 'heart'
+    group: wildGroup
+  Emoji.insert
+    symbol: 'grin-beam'
+    class: 'neutral'
+    description: 'happy/funny'
+    group: wildGroup
+  Emoji.insert
+    symbol: 'surprise'
+    class: 'neutral'
+    description: 'surprise'
+    group: wildGroup
+  Emoji.insert
+    symbol: 'sad-tear'
+    class: 'neutral'
+    description: 'sad'
+    group: wildGroup
+  Emoji.insert
+    symbol: 'check'
+    class: 'neutral'
+    description: 'checked'
+    group: wildGroup
+  Emoji.insert
+    symbol: 'question'
+    class: 'neutral'
+    description: 'question/confusion'
+    group: wildGroup
+  Emoji.insert
+    symbol: 'thumbs-down'
+    class: 'negative'
+    description: '-1/disagree'
+    group: wildGroup
+  #Emoji.insert
+  #  symbol: 'birthday-cake'
+  #  description: 'celebrate'
+  #  group: wildGroup

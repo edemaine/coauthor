@@ -312,7 +312,10 @@ module.exports = (grunt) ->
       return '' unless lang
       if hljs.getLanguage lang
         try
-          return hljs.highlight(lang, text).value
+          return hljs.highlight text,
+            language: lang
+            ignoreIllegals: true
+          .value
       else
         lang = aliases[lang] if lang of aliases
         if lang of languages

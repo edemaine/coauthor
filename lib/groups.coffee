@@ -1,17 +1,22 @@
+import {check, Match} from 'meteor/check'
+import {Mongo} from 'meteor/mongo'
+
+import {escapeKey, unescapeKey, validKey} from './escape'
+import {profilingStartup} from './profiling'
+
 @wildGroup = '*'
-@anonymousUser = '*'
-@readAllUser = '[READ-ALL]'
-@allRoles = ['read', 'post', 'edit', 'super', 'admin']
+export anonymousUser = '*'
+export readAllUser = '[READ-ALL]'
+export allRoles = ['read', 'post', 'edit', 'super', 'admin']
 
 @escapeGroup = escapeKey
 @unescapeGroup = unescapeKey
 @validGroup = (group) ->
   validKey(group) and group.charAt(0) != '*' and group.trim().length > 0
 
-@sortKeys = ['title', 'creator', 'published', 'updated', 'posts', 'emoji',
-             'subscribe']
+export sortKeys = ['title', 'creator', 'published', 'updated', 'posts', 'emoji', 'subscribe']
 
-@defaultSort =
+export defaultSort =
   key: 'published'
   reverse: true
 
@@ -23,7 +28,7 @@ titleDigits = 10
 @Groups = new Mongo.Collection 'groups'
 
 if Meteor.isServer
-  Groups._ensureIndex [['name', 1]]
+  Groups.createIndex [['name', 1]]
 
 @findGroup = (group) ->
   return group unless group?
@@ -31,7 +36,7 @@ if Meteor.isServer
   Groups.findOne
     name: group
 
-@groupDefaultSort = (group) ->
+export groupDefaultSort = (group) ->
   findGroup(group)?.defaultSort ? defaultSort
 
 @groupAnonymousRoles = (group) ->
@@ -53,6 +58,13 @@ if Meteor.isServer
   groupRoleCheck(group, role, user) or
   (message and
    (role in (user?.rolesPartial?[escapeGroup(group?.name ? group)]?[message2root message] ? [])))
+
+# Like messageRoleCheck, but where second argument is guaranteed to be root
+# (string ID or null).
+@rootRoleCheck = (group, root, role, user = Meteor.user()) ->
+  groupRoleCheck(group, role, user) or
+  (root and
+   (role in (user?.rolesPartial?[escapeGroup(group?.name ? group)]?[root] ? [])))
 
 @groupPartialMessagesWithRole = (group, role, user = Meteor.user()) ->
   group = group.name if group.name?
@@ -136,27 +148,29 @@ if Meteor.isServer
       ,
         multi: true
 
-  Meteor.users.find
-    $or: [
-      roles: $exists: true
+  profilingStartup 'groups.startup', ->
+    Meteor.users.find
+      $or: [
+        roles: $exists: true
+      ,
+        rolesPartial: $exists: true
+      ]
     ,
-      rolesPartial: $exists: true
-    ]
-  ,
-    fields:
-      roles: true
-      rolesPartial: true
-      username: true
-  .observe
-    added: (user) ->
-      membersAddUsername user.username, memberOfGroups user
-    removed: (user) ->
-      membersRemoveUsername user.username, memberOfGroups user
-    changed: (userNew, userOld) ->
-      groupsNew = memberOfGroups userNew
-      groupsOld = memberOfGroups userOld
-      membersRemoveUsername userOld.username, _.difference groupsOld, groupsNew
-      membersAddUsername userNew.username, _.difference groupsNew, groupsOld
+      fields:
+        roles: true
+        rolesPartial: true
+        username: true
+    .observe
+      added: (user) ->
+        membersAddUsername user.username, memberOfGroups user
+      removed: (user) ->
+        membersRemoveUsername user.username, memberOfGroups user
+      changed: (userNew, userOld) ->
+        groupsNew = memberOfGroups userNew
+        groupsOld = memberOfGroups userOld
+        membersRemoveUsername userOld.username, _.difference groupsOld, groupsNew
+        membersAddUsername userNew.username, _.difference groupsNew, groupsOld
+    'Maintaining group membership list'
 
   Meteor.publish 'groups.members', (group) ->
     check group, String

@@ -7,5 +7,8 @@ import hljs from 'highlight.js'  # full library
   return '' unless lang
   if hljs.getLanguage lang
     try
-      return hljs.highlight(lang, text).value
+      return hljs.highlight text,
+        language: lang
+        ignoreIllegals: true
+      .value
   ''  ## markdown-it's default formatting

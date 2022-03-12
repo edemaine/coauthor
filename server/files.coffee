@@ -1,3 +1,4 @@
+import {Accounts} from 'meteor/accounts-base'
 cookie = require 'cookie'
 url = require 'url'
 
@@ -9,7 +10,9 @@ fileRe = /^\/(\w+)$/
 defaultContentType = 'application/octet-stream'
 
 accessHeaders = (req) ->
-  'Cache-Control': 'stale-while-revalidate'
+  ## Revalidate all files in case of updates to the file pointer,
+  ## but allow serving stale file when disconnected.
+  'Cache-Control': 'max-age=0'
   ## Allow files to be embedded in other sites, e.g. Cocreate.
   ## Note that this still requires Coauthor authentication via cookies.
   'Access-Control-Allow-Origin': req.headers['origin'] ? '*'
@@ -103,7 +106,7 @@ WebApp.rawConnectHandlers.use '/file',
         ,
           range:
             start: start
-            end: end
+            end: end+1 # exclusive
         )
     else
       statusCode = 200
@@ -119,12 +122,12 @@ WebApp.rawConnectHandlers.use '/file',
     if req.query.cache and not isNaN(parseInt(req.query.cache))
       headers['Cache-Control'] = "max-age=" + parseInt(req.query.cache)+", private"
     if req.method == 'HEAD'
-      res.writeHead 204, headers
+      res.writeHead statusCode, headers
       return res.end()
     if stream
       res.writeHead statusCode, headers
       stream.pipe res
-      .on 'close', -> res.end()
+      .on 'finish', -> res.end()
       .on 'error', (err) ->
         res.writeHead 500
         res.end err

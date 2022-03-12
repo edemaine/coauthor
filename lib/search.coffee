@@ -2,6 +2,10 @@
 Search language parsing and formatting, as documented in README.md.
 ###
 
+import {check} from 'meteor/check'
+
+import {allEmoji} from './emoji'
+
 @escapeRegExp = (regex) ->
   ## https://stackoverflow.com/questions/3446170/escape-string-for-use-in-javascript-regex
   regex.replace /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&"
@@ -27,7 +31,7 @@ realRegExp = (regex) ->
 unescapeRegExp = (regex) ->
   regex.replace /\\(.)/g, "$1"
 
-@parseSearch = (search, group) ->
+export parseSearch = (search, group) ->
   ## Quoted strings turn off separation by spaces.
   ## Last quoted strings doesn't have to be terminated.
   tokenRe = /(\s+)|((?:"[^"]*"|'[^']*'|[^'"\s|])+)('[^']*$|"[^"]*$)?|'([^']*)$|"([^"]*)$|([|])/g
@@ -178,7 +182,7 @@ unescapeRegExp = (regex) ->
               wants.push published: false
             else
               wants.push published: $ne: false
-          when 'deleted', 'minimized', 'private'
+          when 'deleted', 'minimized', 'private', 'protected'
             if negate
               wants.push "#{token}": $ne: true
             else
@@ -218,7 +222,7 @@ unescapeRegExp = (regex) ->
     else
       $or: options
 
-@formatSearch = (search, group) ->
+export formatSearch = (search, group) ->
   query = parseSearch search, group
   if query?
     formatted = formatParsedSearch query, group
@@ -356,6 +360,13 @@ formatParsedSearch = (query, group) ->
       'not minimized'
     else
       "minimized: #{query.minimized}"
+  else if _.isEqual keys, ['protected']
+    if _.isEqual query.protected, true
+      'protected'
+    else if _.isEqual query.protected, {$ne: true}
+      'not protected'
+    else
+      "protected: #{query.protected}"
   else if _.isEqual keys, ['private']
     if _.isEqual query.private, true
       'private'

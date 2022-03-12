@@ -1,14 +1,20 @@
 import React from 'react'
 import {useTracker} from 'meteor/react-meteor-data'
 
-@formatDateOnly = (date, prefix = '', absolute) ->
+monthDayFormat = new Intl.DateTimeFormat 'en-US',
+  weekday: 'short'
+  month: 'short'
+  day: 'numeric'
+monthDayYearFormat = new Intl.DateTimeFormat 'en-US',
+  weekday: 'short'
+  month: 'short'
+  day: 'numeric'
+  year: 'numeric'
+
+export formatDateOnly = (date, prefix = '', absolute) ->
   return '???' unless date?
   return "?#{date}?" unless date instanceof Date  ## have seen this briefly, not sure when
   now = new Date
-  options =
-    weekday: 'short'
-    month: 'short'
-    day: 'numeric'
   if date.getFullYear() == now.getFullYear() and not absolute
     if date.getMonth() == now.getMonth() and date.getDate() == now.getDate()
       Session.get 'today'  # depend on the current date; see below
@@ -19,12 +25,11 @@ import {useTracker} from 'meteor/react-meteor-data'
         Session.get 'today'  # depend on the current date; see below
         "yesterday"
       else
-        "#{prefix}#{date.toLocaleDateString 'en-US', options}"
+        "#{prefix}#{monthDayFormat.format date}"
   else
-    options.year = 'numeric'
-    "#{prefix}#{date.toLocaleDateString 'en-US', options}"
+    "#{prefix}#{monthDayYearFormat.format date}"
 
-@formatDate = (date, prefix, absolute) ->
+export formatDate = (date, prefix, absolute) ->
   dateOnly = formatDateOnly date, prefix, absolute
   return dateOnly if dateOnly.startsWith '?'
   time = date.getHours() + ':'

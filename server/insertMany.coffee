@@ -1,3 +1,5 @@
+import {Mongo} from 'meteor/mongo'
+
 Mongo.Collection.prototype.insertMany = (docs) ->
   if @_isRemoteCollection()
     throw new Error "insertMany supported only on server"

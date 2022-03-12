@@ -2,6 +2,19 @@ import React, {useEffect, useRef, useState} from 'react'
 import {useTracker} from 'meteor/react-meteor-data'
 import useEventListener from '@use-it/event-listener'
 
+import {Orientation2rotate} from './lib/exif'
+import {angle180} from '/lib/messages'
+
+## Cache EXIF orientations, as files should be static
+image2orientation = {}
+export messageRotate = (message) ->
+  if message.file not of image2orientation
+    file = findFile message.file
+    if file
+      image2orientation[message.file] = file.metadata?.exif?.Orientation
+  exifRotate = Orientation2rotate[image2orientation[message.file]]
+  (message.rotate ? 0) + (exifRotate ? 0)
+
 rotations = [
   angle: -90
   text: '90°'
@@ -59,6 +72,7 @@ export MessageImage = React.memo ({message}) ->
       }
     </ul>
   </div>
+MessageImage.displayName = 'MessageImage'
 
 useImageTransform = (imgRef, rotate) ->
   [windowWidth, setWindowWidth] = useState window.innerWidth
@@ -72,6 +86,7 @@ useImageTransform = (imgRef, rotate) ->
 export imageTransform = (image, rotate) ->
   unless image.width
     return image.addEventListener 'load', (e) -> imageTransform image, rotate
+  return unless image.parentNode?
   if rotate
     ## `rotate` is in clockwise degrees
     radians = -rotate * Math.PI / 180

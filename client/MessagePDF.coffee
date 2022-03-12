@@ -1,13 +1,24 @@
 import React, {useEffect, useRef, useState} from 'react'
 import {useTracker} from 'meteor/react-meteor-data'
-import useEventListener from '@use-it/event-listener'
 import {useInView} from 'react-intersection-observer'
 
 import {ErrorBoundary} from './ErrorBoundary'
+import {resolveTheme, oppositeTheme} from './theme'
+import {useElementWidth} from './lib/resize'
 import {TextTooltip} from './lib/tooltip'
+import {themeDocument} from '/lib/settings'
 
 #pdf2svg = false  # controls pdf.js rendering mode
 pdfjs = null  # will become import of 'pdfjs-dist'
+
+export messageTheme = new ReactiveDict
+
+export getMessageTheme = (fileId) ->
+  resolveTheme messageTheme.get(fileId) ? themeDocument()
+export useMessageTheme = (fileId) ->
+  useTracker ->
+    getMessageTheme fileId
+  , [fileId]
 
 export MessagePDF = ({file}) ->
   <ErrorBoundary>
@@ -33,6 +44,7 @@ WrappedMessagePDF = React.memo ({file}) ->
   [pageNum, setPageNum] = useState()
   [numPages, setNumPages] = useState()
   [fit, setFit] = useState 'page'
+  theme = useMessageTheme file
   [dims, setDims] = useState {width: 0, height: 0}
   [pdf, setPdf] = useState()
   [page, setPage] = useState()
@@ -74,13 +86,12 @@ WrappedMessagePDF = React.memo ({file}) ->
     undefined
   , [pdf, pageNum]
   ## Compute page dimensions, and render page if it's in view
-  [windowWidth, setWindowWidth] = useState window.innerWidth
-  useEventListener 'resize', (e) -> setWindowWidth window.innerWidth
+  elementWidth = useElementWidth ref
   useEffect ->
-    return unless page?
+    return unless page? and elementWidth
     viewport = page.getViewport scale: 1
     ## Simulate width: 100%
-    width = ref.current.clientWidth
+    width = elementWidth
     height = width * viewport.height / viewport.width
     ## Simulate max-height: 100vh
     if fit == 'page'
@@ -112,7 +123,8 @@ WrappedMessagePDF = React.memo ({file}) ->
     renderTask = page.render
       canvasContext: context
       viewport: scaledViewport
-    renderTask.promise.then ->
+    Promise.all [renderTask.promise, page.getAnnotations()]
+    .then ([rendered, annotationsLoaded]) ->
       replaceCanvas canvasRef, canvas
       setRendering false
       ## Clear existing annotations, and load this page's annotations
@@ -120,7 +132,7 @@ WrappedMessagePDF = React.memo ({file}) ->
       setAnnotationsTransform "scale(#{1/dpiScale},#{1/dpiScale}) matrix(#{scaledViewport.transform.join ','})"
       ## Annotation links, based loosely on
       ## https://stackoverflow.com/a/20141227/7797661
-      page.getAnnotations().then (annotationsLoaded) -> setAnnotations(
+      setAnnotations(
         for annotation in annotationsLoaded
           if annotation.dest  # local link
             ## Refer to https://github.com/mozilla/pdf.js/blob/master/web/pdf_link_service.js goToDestination & _goToDestinationHelper
@@ -134,8 +146,11 @@ WrappedMessagePDF = React.memo ({file}) ->
               annotation.explicitPage = 1 + await pdf.getPageIndex annotation.explicit[0]
           annotation
       )
+    .catch (error) ->
+      ## Ignore pdfjs's error when rendering gets canceled from page flipping
+      throw error unless error.name == 'RenderingCancelledException'
     -> renderTask.cancel()
-  , [page, windowWidth, fit, inView]
+  , [page, elementWidth, fit, inView]
 
   onChangePage = (delta) -> (e) ->
     e.currentTarget.blur()
@@ -146,6 +161,8 @@ WrappedMessagePDF = React.memo ({file}) ->
   onFit = (newFit) -> (e) ->
     e.currentTarget.blur()
     setFit newFit
+  onTheme = (e) ->
+    messageTheme.set file, oppositeTheme theme
 
   <div ref={ref}>
     {if progress?
@@ -170,6 +187,11 @@ WrappedMessagePDF = React.memo ({file}) ->
               </button>
             </TextTooltip>
           }
+          <TextTooltip title="Toggle dark mode via inversion">
+            <button className="btn btn-default" aria-label="Toggle dark mode via inversion" onClick={onTheme}>
+              <span className="fas #{if theme == 'dark' then 'fa-sun' else 'fa-moon'}" aria-hidden="true"/>
+            </button>
+          </TextTooltip>
           <TextTooltip title="Previous page">
             <button className="btn btn-default prevPage #{if pageNum <= 1 then 'disabled'}" aria-label="Previous page" onClick={onChangePage -1}>
               <span className="fas fa-backward" aria-hidden="true"/>
@@ -191,7 +213,7 @@ WrappedMessagePDF = React.memo ({file}) ->
         </span>
       </>
     }
-    <div className="pdf" style={width: "#{dims.width}px", height: "#{dims.height}px"} ref={viewRef}>
+    <div className="pdf #{theme}" style={width: "#{dims.width}px", height: "#{dims.height}px"} ref={viewRef}>
       <canvas width="0" height="0" ref={canvasRef}/>
       <div className="annotations" style={
         transform: annotationsTransform
@@ -215,6 +237,7 @@ WrappedMessagePDF = React.memo ({file}) ->
             onClick = do (annotation) -> (e) ->
               e.preventDefault()
               setPageNum annotation.explicitPage
+          ### eslint-disable coffee/jsx-no-target-blank ###
           <TextTooltip key={annotation.id} title={title}>
             <a style={
               left: "#{annotation.rect[0]}px"
@@ -223,9 +246,10 @@ WrappedMessagePDF = React.memo ({file}) ->
               height: "#{annotation.rect[3] - annotation.rect[1]}px"
             } href={annotation.url or '#'}
             target={if annotation.url then '_blank'}
-            rel={if annotation.url then 'noopener noreferrer'}
+            rel={if annotation.url then 'noreferrer'}
             onClick={onClick}/>
           </TextTooltip>
+          ### eslint-enable coffee/jsx-no-target-blank ###
         }
       </div>
     </div>

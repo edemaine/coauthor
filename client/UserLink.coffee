@@ -3,6 +3,8 @@ import OverlayTrigger from 'react-bootstrap/OverlayTrigger'
 import Tooltip from 'react-bootstrap/Tooltip'
 import {useTracker} from 'meteor/react-meteor-data'
 
+import {formatDateOnly} from './lib/date'
+
 ## Written as a React replacement for lib/users.coffee's `linkToAuthor`
 export UserLink = React.memo ({user, username, group, title, subtitle, prefix, placement}) ->
   username ?= user.username
@@ -16,14 +18,14 @@ export UserLink = React.memo ({user, username, group, title, subtitle, prefix, p
   highlight = #useTracker ->
     Router.current()?.route?.getName() == 'author' and
     Router.current()?.params?.author == username
-  tooltip = (props) ->
+  tooltip = (props) -> # eslint-disable-line react/display-name
     <Tooltip {...props}>{title}
       {if title?
         {title}
       else if user?
         <>
           <b>Username:</b> {username}
-          {if email = user.emails?[0]
+          {if (email = user.emails?[0])?
             <>
               <br/>
               <b>Email:</b> {email.address}

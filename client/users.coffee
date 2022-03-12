@@ -1,62 +1,53 @@
-import React, {useEffect} from 'react'
-import {useTracker} from 'meteor/react-meteor-data'
+import {createMemo, Show, For} from 'solid-js'
+import {createFind, createFindOne, createTracker} from 'solid-meteor-data'
 
-import {ErrorBoundary} from './ErrorBoundary'
-import {TextTooltip} from './lib/tooltip'
+import {ErrorBoundary} from './solid/ErrorBoundary'
+import {TextTooltip} from './solid/TextTooltip'
+import {formatDate} from './lib/date'
+import {allRoles} from '/lib/groups'
 
 Template.users.helpers
   Users: -> Users
 
-export Users = React.memo ({group, messageID}) ->
-  useEffect ->
-    setTitle 'Users'
-    undefined
-  , []
-  admin = useTracker ->
-    group: messageRoleCheck group, messageID, 'admin'
-    wild: messageRoleCheck wildGroup, messageID, 'admin'
-  , [group, messageID]
-  message = useTracker ->
-    Messages.findOne messageID
-  , [messageID]
-  users = useTracker ->
+export Users = (props) ->
+  createTracker -> setTitle 'Users'
+  admin = createTracker ->
+    group: messageRoleCheck props.group, props.messageID, 'admin'
+    wild: messageRoleCheck wildGroup, props.messageID, 'admin'
+  [hasMessage, message] = createFindOne -> findMessage props.messageID
+  users = createFind ->
     Meteor.users.find {},
       sort: [['createdAt', 'asc']]
-    .fetch()
-  , []
 
   <ErrorBoundary>
     <h3>
-      {if messageID?
-        <>
-          Permissions for thread &ldquo;
-          <a href={pathFor 'message', {group: group, message: messageID}}>
-            {titleOrUntitled message ? title: '(loading)'}
+      <Show when={props.messageID? or props.group != wildGroup}
+            fallback="Global permissions for all groups">
+        {'Permissions for '}
+        <Show when={props.messageID?}>
+          thread &ldquo;
+          <a href={pathFor 'message', {group: props.group, message: props.messageID}}>
+            {titleOrUntitled if hasMessage() then message else title: '(loading)'}
           </a>
-          &rdquo; in group &ldquo;
-          <a href={pathFor 'group', group: group}>{group}</a>
+          &rdquo;{' in '}
+        </Show>
+        <Show when={props.group != wildGroup} fallback="all groups">
+          group &ldquo;
+          <a href={pathFor 'group', group: props.group}>{props.group}</a>
           &rdquo;
-        </>
-      else if group == wildGroup
-        "Global permissions for all groups"
-      else
-        <>
-          Permissions for group &ldquo;
-          <a href={pathFor 'group', group: group}>{group}</a>
-          &rdquo;
-        </>
-      }
+        </Show>
+      </Show>
       <div className="links btn-group pull-right">
-        {if messageID? and admin.group
-          <a href={pathFor 'users', group: group} className="btn btn-warning">
+        <Show when={props.messageID? and admin().group}>
+          <a href={pathFor 'users', group: props.group} className="btn btn-warning">
             Edit Group Permissions
           </a>
-        }
-        {if group != wildGroup and admin.wild
-          <a href={pathFor 'users', group: wildGroupRoute} className="btn btn-danger">
+        </Show>
+        <Show when={props.group != wildGroup and admin().wild}>
+          <a href={pathFor 'users', group: wildGroup} className="btn btn-danger">
             Edit Global Permissions
           </a>
-        }
+        </Show>
       </div>
     </h3>
     <table className="table table-striped table-hover users clearfix">
@@ -81,25 +72,26 @@ export Users = React.memo ({group, messageID}) ->
         </tr>
       </thead>
       <tbody>
-        {for user in users
-          <ErrorBoundary key={user.username}>
-            <User group={group} messageID={messageID} user={user} admin={admin}/>
-          </ErrorBoundary>
-        }
-        <ErrorBoundary>
-          <Anonymous group={group} messageID={messageID} admin={admin}/>
-        </ErrorBoundary>
-        {if false # group != wildGroup and not messageID?
+        <For each={users()}>{(user) ->
           <ErrorBoundary>
-            <UserInvitations group={group}/>
+            <User group={props.group} messageID={props.messageID} user={user} admin={admin()}/>
           </ErrorBoundary>
-        }
+        }</For>
+        <ErrorBoundary>
+          <Anonymous group={props.group} messageID={props.messageID} admin={admin()}/>
+        </ErrorBoundary>
+        {###
+        <Show when={props.group != wildGroup and not props.messageID?}>
+          <ErrorBoundary>
+            <UserInvitations group={props.group}/>
+          </ErrorBoundary>
+        </Show>
+        ###}
       </tbody>
     </table>
   </ErrorBoundary>
-Users.displayName = 'Users'
 
-onRole = (group, messageID) -> (e) ->
+onRole = (props, e) ->
   td = e.currentTarget.parentNode
   console.assert td.nodeName == 'TD'
   tr = td.parentNode
@@ -108,159 +100,143 @@ onRole = (group, messageID) -> (e) ->
   role = td.getAttribute 'data-role'
   old = e.currentTarget.innerText
   if 0 <= old.indexOf 'YES'
-    Meteor.call 'setRole', group, messageID, username, role, false
+    Meteor.call 'setRole', props.group, props.messageID, username, role, false
   else if 0 <= old.indexOf 'NO'
-    Meteor.call 'setRole', group, messageID, username, role, true
+    Meteor.call 'setRole', props.group, props.messageID, username, role, true
   else
     console.error "Unrecognized state: #{old}"
 
-User = React.memo ({group, messageID, user, admin}) ->
-  escapedGroup = escapeGroup group
-  unless messageID?  # should not change
-    partialMember = useTracker ->
-      return if _.isEmpty user.rolesPartial?[escapedGroup]
-      for id of user.rolesPartial[escapedGroup]
-        Messages.findOne(id) ?
-          _id: id
-          title: '(loading)'
-    , [user]
-  authorLink = pathFor 'author',
-    group: group
-    author: user.username
+export User = (props) ->
+  escapedGroup = createMemo -> escapeGroup props.group
+  partialMember = createTracker ->
+    return if props.messageID?
+    ids = (id for id of props.user.rolesPartial?[escapedGroup()])
+    return unless ids.length
+    for id in ids
+      Messages.findOne(id) ?
+        _id: id
+        title: '(loading)'
+  roles = createMemo ->
+    message = props.user.rolesPartial?[escapedGroup()]?[props.messageID] ? [] \
+      if props.messageID?
+    group = props.user.roles?[escapedGroup()] ? []
+    global = props.user.roles?[wildGroup] ? [] if props.group != wildGroup
+    first = message ? group
+    {message, group, global, first}
+  authorLink = -> pathFor 'author',
+    group: props.group
+    author: props.user.username
 
   <>
-    <tr data-username={user.username}>
+    <tr data-username={props.user.username}>
       <th>
         <div className="name">
-          {if fullname = user.profile?.fullname
+          {if (fullname = props.user.profile?.fullname)
             "#{fullname} ("
           }
-          <a href={authorLink}>{user.username}</a>
+          <a href={authorLink()}>{props.user.username}</a>
           {', '}
-          {if email = user.emails?[0]
-            <>
-              {email.address}
-              {unless email.verified
-                " unverified"
-              }
-            </>
+          {if (email = props.user.emails?[0])?
+            email.address +
+            if email.verified then '' else ' (unverified)'
           else
-            "no email"
+            'no email'
           }
-          {if fullname
-            ")"
-          }
+          {')' if props.user.profile?.fullname}
         </div>
         <div className="createdAt">
-          joined {formatDate user.createdAt}
+          joined {formatDate props.user.createdAt}
         </div>
       </th>
-      {for role in allRoles
+      {
+      r = roles()
+      for role in allRoles
         levels = []
-        if messageID?
-          have = role in (user.rolesPartial?[escapedGroup]?[messageID] ? [])
-        else
-          have = role in (user.roles?[escapedGroup] ? [])
-        if have
-          btnclass = 'btn-success'
-          levels.push 'YES'
-        else
-          btnclass = 'btn-danger'
-          levels.push 'NO'
-        if messageID? and role in (user.roles?[escapedGroup] ? [])
-          levels.push 'YES'
-        if group != wildGroup and role in (user.roles?[wildGroup] ? [])
-          levels.push 'YES*'
-        if levels.length > 1
-          levels[0] = <del>{levels[0]}</del>
-          if levels.length > 2
-            levels[1] = <del className="text-success space">{levels[1]}</del>
-          levels[levels.length-1] = <b className="text-success space">{levels[levels.length-1]}</b>
-        for i in [0...levels.length-1]
-          levels[i] = <del>{levels[i]}</del>
-        <td key={role} data-role={role}>
-          {if admin.group
-            <button className="roleButton btn #{btnclass}"
-             onClick={onRole group, messageID}>
-              {levels[0]}
+        levels.push role in r.message if r.message?
+        levels.push role in r.group if r.group?
+        levels.push role in r.global if r.global?
+        levels.pop() until levels.length == 1 or levels[levels.length-1]
+        showLevel = (i) ->
+          return if i >= levels.length
+          level = if levels[i] then 'YES' else 'NO'
+          level += '*' if i == 1 + props.messageID?  # global override
+          space = if i == 0 then '' else 'space'
+          if i == levels.length - 1  # last level
+            if i == 0
+              level
+            else
+              <b className={space}>{level}</b>
+          else
+            <del className={space}>{level}</del>
+        <td data-role={role}>
+          {if props.admin.group
+            <button className="roleButton btn #{if levels[0] then 'btn-success' else 'btn-danger'}"
+             onClick={[onRole, props]}>
+              {showLevel 0}
             </button>
           else
-            levels[0]
+            showLevel 0
           }
-          {levels[1]}
-          {levels[2]}
+          {showLevel 1}
+          {showLevel 2}
         </td>
       }
     </tr>
-    {if partialMember?.length
-      ## Extra row to get parity right
-      <>
-        <tr className="partialMemberSep"/>
-        <tr className="partialMember">
-          <td colSpan="6">
-            <span className="fa fa-id-card" aria-hidden="true"/>
-            {" Partial access to messages:"}
-            {for message in partialMember
-              <React.Fragment key={message._id}>
-                {" • "}
-                <a href={pathFor 'users.message', {group: group, message: message._id}}>
-                  {titleOrUntitled message}
-                </a>
-              </React.Fragment>
-            }
-          </td>
-        </tr>
-      </>
-    }
+    <Show when={partialMember()?.length}>
+      {### Extra row to get parity right ###}
+      <tr className="partialMemberSep"/>
+      <tr className="partialMember">
+        <td colSpan="6">
+          <span className="fa fa-id-card" aria-hidden="true"/>
+          {" Partial access to messages:"}
+          <For each={partialMember()}>{(message) ->
+            <>
+              {" • "}
+              <a href={pathFor 'users.message', {group: props.group, message: message._id}}>
+                {titleOrUntitled message}
+              </a>
+            </>
+          }</For>
+        </td>
+      </tr>
+    </Show>
   </>
-User.displayName = 'User'
 
-Anonymous = React.memo ({group, messageID, admin}) ->
-  roles = useTracker ->
-    groupAnonymousRoles group
-  , [group]
-  if group == wildGroup or messageID? or not admin.wild
-    disabled = 'disabled'
-    if group == wildGroup
-      title = 'Cannot give anonymous access to all groups globally'
-    else if messageID?
-      title = 'Cannot give anonymous access to individual threads'
-    else if not admin.wild
-      title = 'Need global administrator privileges to change anonymous access'
+export Anonymous = (props) ->
+  roles = createTracker -> groupAnonymousRoles props.group
+  disabled = createMemo ->
+    if props.group == wildGroup
+      'Cannot give anonymous access to all groups globally'
+    else if props.messageID?
+      'Cannot give anonymous access to individual threads'
+    else if not props.admin.wild
+      'Need global administrator privileges to change anonymous access'
 
   <tr data-username="*">
     <th>
       <i>&lt;anonymous&gt;</i>
     </th>
-    {for role in allRoles
-      levels = []
-      if role in roles
-        btnclass = 'btn-success'
-        level = 'YES'
-      else
-        btnclass = 'btn-danger'
-        level = 'NO'
-      button =
-        if admin.group
-          <button className="roleButton btn #{btnclass} #{disabled ? ''}"
-           disabled={disabled} onClick={onRole group, messageID}>
-            {level}
-          </button>
-        else
-          level
-      if admin.group and title?
-        <TextTooltip key={role} title={title}>
+    <For each={allRoles}>{(role) ->
+      btnclass = -> if role in roles() then 'btn-success' else 'btn-danger'
+      level = -> if role in roles() then 'YES' else 'NO'
+      button = ->
+        <td data-role={role}>
+          <Show when={props.admin.group} fallback={-> level()}>
+            <button className="roleButton btn #{btnclass()}#{if disabled() then ' disabled' else ''}"
+            disabled={Boolean disabled()} onClick={[onRole, props]}>
+              {level()}
+            </button>
+          </Show>
+        </td>
+      <Show when={props.admin.group and disabled()} fallback={-> button()}>
+        <TextTooltip title={disabled()}>
           <td data-role={role}>
-            {button}
+            {button()}
           </td>
         </TextTooltip>
-      else
-        <td key={role} data-role={role}>
-          {button}
-        </td>
-    }
+      </Show>
+    }</For>
   </tr>
-Anonymous.displayName = 'Anonymous'
 
 ###
 UserInvitations = React.memo ({group}) ->
@@ -289,5 +265,4 @@ UserInvitations = React.memo ({group}) ->
       </tr>
     }
   </>
-UserInvitations.displayName = 'UserInvitations'
 ###

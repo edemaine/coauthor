@@ -1,7 +1,12 @@
+import {check} from 'meteor/check'
+import {Mongo} from 'meteor/mongo'
+
+import {escapeKey, unescapeKey, validKey} from './escape'
+
 @Tags = new Mongo.Collection 'tags'
 
 if Meteor.isServer
-  Tags._ensureIndex [['group', 1], ['deleted', 1]]
+  Tags.createIndex [['group', 1], ['deleted', 1]]
 
 @escapeTag = escapeKey
 @unescapeTag = unescapeKey
@@ -36,23 +41,6 @@ if Meteor.isServer
   for tag in tagsList
     tags[tag] = true
   tags
-
-## Transition tags format from old array to object mapping
-if Meteor.isServer
-  Messages.find
-    $where: "return Array.isArray(this.tags)"
-  .forEach (msg) ->
-    tags = listToTags msg.tags
-    #console.log msg._id, tags
-    Messages.update msg._id,
-      $set: tags: tags
-  MessagesDiff.find
-    $where: "return Array.isArray(this.tags)"
-  .forEach (msg) ->
-    tags = listToTags msg.tags
-    #console.log msg._id, tags
-    MessagesDiff.update msg._id,
-      $set: tags: tags
 
 if Meteor.isServer
   Meteor.publish 'tags', (group) ->
@@ -109,6 +97,7 @@ Meteor.methods
     check Meteor.userId(), String  ## should be done by 'canPost'
     check group, String
     check key, String
+    check maybe, Boolean
     unless canPost group, null
       throw new Meteor.Error 'tagDelete.unauthorized',
         "Insufficient permissions to untag message in group '#{group}'"
@@ -131,25 +120,3 @@ Meteor.methods
           deleted: true
           updator: Meteor.user().username
           updated: new Date
-
-## Find used but missing tags (for inheriting old databases).
-if Meteor.isServer
-  Messages.find
-    deleted: false
-  .forEach (message) ->
-    return unless message.tags
-    seeking = _.keys message.tags
-    missing = listToTags seeking
-    tags = Tags.find
-      group: message.group
-      key: $in: seeking
-    .forEach (tag) ->
-      delete missing[tag.key]
-    for tag of missing
-      console.log 'Adding missing tag', tag, 'in group', message.group
-      Tags.insert
-        group: message.group
-        key: tag
-        type: 'boolean'
-        deleted: false
-        created: new Date

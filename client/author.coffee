@@ -1,15 +1,16 @@
 Template.author.onCreated ->
-  setTitle "Author #{Template.currentData()?.author}"
+  @autorun ->
+    setTitle "Author #{Template.currentData()?.author}"
 
 Template.author.helpers
   messages: ->
-    messagesBy @group, @author
+    messagesBy @group, @author, true # include @mentions
   messageCountText: ->
     pluralize messagesBy(@group, @author).count(), 'message'
   wildLink: ->
     if @group != wildGroup
       pathFor 'author',
-        group: wildGroupRoute
+        group: wildGroup
         author: @author
   displayUser: ->
     displayUser @author

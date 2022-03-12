@@ -1,11 +1,20 @@
-import { defaultFormat } from '../lib/settings.coffee'
+import {autosubscribe, defaultNotificationDelays, notificationsDefault, notificationsOn, notificationsSeparate, notifySelf} from '/lib/notifications'
+import {autopublish, defaultFormat, themeEditor, themeGlobal, themeDocument} from '/lib/settings'
 
 Template.registerHelper 'defaultFormat', ->
   defaultFormat
 
-Template.registerHelper 'emailless', @emailless = ->
+export defaultHeight = 300
+export messagePreviewDefault = ->
+  profile = Meteor.user()?.profile?.preview
+  on: profile?.on ? true
+  sideBySide: profile?.sideBySide ? false
+  height: profile?.height ? defaultHeight
+
+export emailless = ->
   Meteor.settings.public.coauthor?.emailless and
   not canSuper wildGroup
+Template.registerHelper 'emailless', emailless
 
 Template.settings.onCreated ->
   @autorun ->
@@ -43,14 +52,24 @@ Template.settings.helpers
   notifySelf: notifySelf
   autosubscribeGroup: -> autosubscribe routeGroup()
   autosubscribeGlobal: -> autosubscribe wildGroup
-  themeGlobal: -> (if Session.get 'coop:themeGlobal' then 'Coop: ' else '') +
-                  capitalize themeGlobal()
-  themeEditor: -> (if Session.get 'coop:themeEditor' then 'Coop: ' else '') +
-                  capitalize themeEditor()
+  themeGlobal: ->
+    (if Session.get 'coop:themeGlobal' then 'Coop: ' else '') +
+    capitalize themeGlobal()
+  themeEditor: ->
+    (if Session.get 'coop:themeEditor' then 'Coop: ' else '') +
+    capitalize themeEditor()
+  themeDocument: ->
+    (if Session.get 'coop:themeDocument' then 'Coop: ' else '') +
+    capitalize themeDocument()
   previewOn: -> messagePreviewDefault().on
   previewSideBySide: -> messagePreviewDefault().sideBySide
   dropbox: ->
     'dropbox' of (Meteor.user().services ? {})
+
+dropdownToggle = (e) ->
+  #$(e.target).parent().dropdown 'toggle'
+  $(e.target).parents('.dropdown-menu').first().parent().find('.dropdown-toggle').dropdown 'toggle'
+  $(e.target).tooltip 'hide'
 
 Template.settings.events
   'click .editorKeyboard': (e, t) ->
@@ -127,6 +146,14 @@ Template.settings.events
       return Session.set 'coop:themeEditor', null
     Meteor.users.update Meteor.userId(),
       $set: "profile.theme.editor": rotateTheme themeEditor()
+
+  'click .themeDocumentButton': (e, t) ->
+    e.preventDefault()
+    e.stopPropagation()
+    if Session.get 'coop:themeDocument'
+      return Session.set 'coop:themeDocument', null
+    Meteor.users.update Meteor.userId(),
+      $set: "profile.theme.document": rotateTheme themeDocument()
 
   'click .previewButton': (e, t) ->
     e.preventDefault()
@@ -209,9 +236,14 @@ timezoneSource = (q, callback) ->
   callback(timezone for timezone in timezones when timezone.match re)
 
 Template.timezoneSelector.onCreated ->
-  HTTP.get '/timezones.json', (error, result) ->
-    return console.error "Failed to load timezones: #{error}" if error
-    timezones = JSON.parse result.content
+  fetch '/timezones.json'
+  .catch (error) ->
+    console.error "Failed to load timezones: #{error}" if error
+  .then (result) -> result.json()
+  .catch (error) ->
+    console.error "Failed to parse timezones: #{error}" if error
+  .then (result) ->
+    timezones = result
     console.log "Loaded #{timezones.length} timezones."
 
 Template.timezoneSelector.onRendered ->
