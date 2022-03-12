@@ -74,11 +74,11 @@ if Meteor.isServer
         group: group
 
 Meteor.methods
-  tagNew: (group, key, type) ->
+  tagNew: (group, key) ->
     check Meteor.userId(), String  ## should be done by 'canPost'
     check group, String
     check key, String
-    check type, "boolean"  ## only type supported for now
+    #check type, "boolean"  ## only type supported for now
     unless canPost group, null
       throw new Meteor.Error 'tagNew.unauthorized',
         "Insufficient permissions to tag message in group '#{group}'"
@@ -101,7 +101,7 @@ Meteor.methods
       Tags.insert
         group: group
         key: key
-        type: type
+        #type: type
         deleted: false
         creator: Meteor.user().username
         created: new Date
