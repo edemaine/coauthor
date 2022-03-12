@@ -1,44 +1,74 @@
-import React from 'react'
+import React, {useLayoutEffect, useState} from 'react'
 import Dropdown from 'react-bootstrap/Dropdown'
 
-export TagEdit = React.memo ({addTagRef, onTagNew, onTagAdd, absentTags, tag, children}) ->
-  <span className="btn-group">
-    <Dropdown>
-      <Dropdown.Toggle variant="default"
-       className="label label-default" ref={addTagRef}>
-         {children}
+## Given a `tag`, component is a big editor for that tag (and its value).
+## Given `absentTags`, component offers to add a tag from that list
+## (intended to include tags currently absent from the message).
+## Either way, `children` gives the contents of the dropdown button
+## that brings up the editor.
+export TagEdit = React.memo ({tag, absentTags, onTagEdit, onTagSelect, onTagRemove, children}) ->
+  [show, setShow] = useState false
+  [tagKey, setTagKey] = useState ''
+  [tagVal, setTagVal] = useState ''
+  useLayoutEffect resetTag = ->
+    setTagKey tag?.key ? ''
+    setTagVal if tag?.value == true then '' else tag?.value ? ''
+    undefined
+  , [tag]
+  onClose = (e) ->
+    e.preventDefault()
+    setShow false
+    resetTag()
+
+  big = tag?
+  <span className="#{if tag? then 'tagEdit' else 'tagNew'} btn-group"
+   data-tag={tag?.key}>
+    <Dropdown show={show} onToggle={(newShow) -> setShow newShow}>
+      <Dropdown.Toggle variant="default" className="label label-default outer-label">
+        {children}
       </Dropdown.Toggle>
       <Dropdown.Menu className="tagMenu">
-        {if onTagNew?
+        {if onTagEdit?
           <li className="disabled">
             <a>
-              <form className="input-group input-group-sm">
-                <input className="tagAddText form-control" id="tagKey" type="text" 
-                  placeholder="New Tag..." 
-                  defaultValue={tag?.key ? ""} />
-                <input className="tagAddText form-control" id="tagVal" type="text" 
-                  placeholder="Value (opt.)" 
-                  defaultValue={if not tag?.value or tag?.value == true then "" else tag.value } />
-                <div className="input-group-btn">
-                  <button className="btn btn-default tagAddNew" type="submit" onClick={onTagNew}>
-                    <span className="fas fa-plus"/>
+              <form className="input-group-sm">
+                <input className="tagKey form-control" type="text"
+                 placeholder="New Tag..." value={tagKey}
+                 onChange={(e) -> setTagKey e.currentTarget.value}/>
+                <input className="tagVal form-control" type="text"
+                 placeholder="Value" value={tagVal}
+                 onChange={(e) -> setTagVal e.currentTarget.value}/>
+                <div className={if big then "btn-group" else "input-group-btn"}>
+                  <button className="btn btn-success" type="submit" onClick={(e) -> onTagEdit e, tagKey, tagVal, tag?; onClose e}>
+                    {if tag?
+                      'Update'
+                    else
+                      <span className="fas fa-plus"/>
+                    }
                   </button>
+                  {if onTagRemove?
+                    <button className="btn btn-danger" onClick={onTagRemove}>
+                      Delete
+                    </button>
+                  }
+                  {if big
+                    <button className="btn btn-warning" onClick={onClose}>
+                      Cancel
+                    </button>
+                  }
                 </div>
               </form>
             </a>
           </li>
         }
-        {if onTagNew? and absentTags.length and not tag?
+        {if onTagEdit? and absentTags?.length
           <li className="divider" role="separator"/>
         }
-        {if absentTags.length and not tag?
-          <>
-            {for tag in absentTags
-              <li key={tag.key}>
-                <Dropdown.Item className="tagAdd" href="#" data-tag={tag.key} onClick={onTagAdd}>{tag.key}</Dropdown.Item>
-              </li>
-            }
-          </>
+        {if absentTags?.length
+          for absentTag in absentTags
+            <li key={absentTag.key}>
+              <Dropdown.Item className="tagSelect" href="#" data-tag={absentTag.key} onClick={onTagSelect}>{absentTag.key}</Dropdown.Item>
+            </li>
         }
       </Dropdown.Menu>
     </Dropdown>

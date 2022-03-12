@@ -1901,7 +1901,6 @@ export WrappedSubmessage = React.memo ({message, read}) ->
   , [message._id]
   ref = useRef()
   messageBodyRef = useRef()
-  addTagRef = useRef()
 
   if read  # should not change
     editing = raw = folded = false
@@ -2236,18 +2235,19 @@ export WrappedSubmessage = React.memo ({message, read}) ->
     , idle
   onTagRemove = (e) ->
     e.preventDefault()
-    tag = e.currentTarget.getAttribute 'data-tag'
-    if tag of message.tags
+    tag = e.currentTarget.closest('.tagEdit')?.dataset.tag
+    escaped = escapeTag tag
+    if escaped of message.tags
       Meteor.call 'messageUpdate', message._id,
-        tags: _.omit message.tags, escapeTag tag
+        tags: _.omit message.tags, escaped
       , (error) ->
         if error
           console.error error
         else
           Meteor.call 'tagDelete', message.group, tag, true
     else
-      console.warn "Attempt to delete nonexistant tag '#{tag}' from message #{message._id}"
-  onTagAdd = (e) ->
+      console.warn "Attempt to delete nonexistent tag '#{tag}' from message #{message._id}"
+  onTagSelect = (e) ->
     e.preventDefault()
     tag = e.target.getAttribute 'data-tag'
     if tag of message.tags
@@ -2255,22 +2255,22 @@ export WrappedSubmessage = React.memo ({message, read}) ->
     else
       Meteor.call 'messageUpdate', message._id,
         tags: Object.assign {}, message.tags ? {}, {"#{escapeTag tag}": true}
-  onTagNew = (e) ->
+  onTagEdit = (e, tag, tagVal, directEdit) ->
     e.preventDefault()
-    textTag = $(e.target).parents('form').first().find('#tagKey')[0]
-    textTagVal = $(e.target).parents('form').first().find('#tagVal')[0]
-    tag = textTag.value.trim()
-    tagval = textTagVal.value.trim()
-    textTag.value = ''  ## reset custom tag
-    textTagVal.value = ''  ## reset custom tag
     if tag
-      if tag of message.tags
-        console.warn "Updating duplicate tag '#{tag}' of message #{message._id}"
-      value = if tagval then escapeTag tagval else true
-      Meteor.call 'tagNew', message.group, tag, 'boolean'
-      Meteor.call 'messageUpdate', message._id,
-        tags: Object.assign {}, message.tags ? {}, {"#{escapeTag tag}": value}
-    addTagRef.current.click()
+      escaped = escapeTag tag
+      exists = escaped of message.tags
+      unless exists
+        Meteor.call 'tagNew', message.group, tag
+      tagVal or= true  # use special 'true' value instead of empty string
+      if not directEdit and tagVal == true and
+         message.tags?[escaped] not in [undefined, true]
+        console.warn "Not blanking tag '#{tag}' on message #{message._id} which already has value '#{message.tags[escaped]}'"
+      else if tagVal != message.tags?[escaped]
+        Meteor.call 'messageUpdate', message._id,
+          tags: {...message.tags, "#{escapeTag tag}": tagVal}
+      #else
+      #  console.warn "No-op update tag '#{tag}' = '#{tagVal}' in message #{message._id}"
     false  ## prevent form from submitting
 
   <div className="panel message #{messagePanelClass message, editing}" data-message={message._id} id={message._id} ref={ref}>
@@ -2327,26 +2327,29 @@ export WrappedSubmessage = React.memo ({message, read}) ->
           <MessageLabels message={historified}/>
         </span>
       }
-      {###http://stackoverflow.com/questions/22390272/how-to-create-a-label-with-close-icon-in-bootstrap###}
       {if editing
         <span className="message-subtitle">
           <span className="upper-strut"/>
           <span className="tags">
             {for tag in sortTags message.tags
-              <TagEdit addTagRef={addTagRef} onTagNew={onTagNew} onTagAdd={onTagAdd} absentTags={absentTags} tag={tag}>
-                <React.Fragment key={tag.key}>
-                  {tag.key + (if tag.value == true then "" else ":"+tag.value) + ' '}
+              <React.Fragment key={tag.key}>
+                <TagEdit tag={tag} onTagEdit={onTagEdit}
+                 onTagSelect={onTagSelect} onTagRemove={onTagRemove}>
+                  <TagList tag={tag} noLink/>
+                  {### Old direct removal button
                   <span className="tagRemove fas fa-times-circle" aria-label="Remove" data-tag={tag.key} onClick={onTagRemove}/>
-                  {' '}
-                </React.Fragment>
-              </TagEdit>
+                  ###}
+                </TagEdit>
+                {' '}
+              </React.Fragment>
             }
           </span>
-          <TagEdit addTagRef={addTagRef} onTagNew={onTagNew} onTagAdd={onTagAdd} absentTags={absentTags}>
-            <React.Fragment key="addTag">
-              <span className="fas fa-plus"/>
+          <TagEdit absentTags={absentTags}
+           onTagEdit={onTagEdit} onTagSelect={onTagSelect}>
+            <span className="label label-default">
+              <span className="fas fa-plus" aria-label="Add"/>
               {' Tag'}
-            </React.Fragment>
+            </span>
           </TagEdit>
           <MessageLabels message={message}/>
           <span className="lower-strut"/>

@@ -2,15 +2,20 @@ import React from 'react'
 
 import {linkToTag} from '/lib/tags'
 
-export TagList = React.memo ({group, tags, noLink}) ->
+export TagList = React.memo ({group, tag, tags, noLink}) ->
   if noLink
     link = (tag, dom) -> dom
   else
     link = (tag, dom) ->
       <a href={linkToTag tag, group} className="tagLink">{dom}</a>
-  for tag in tags
+  if tag?
+    tags = [tag]
+    space = ''  # no leading space for tag
+  else
+    space = ' ' # space before first and every tag
+  for tag in tags ? [tag]
     <React.Fragment key={tag.key}>
-      {' '}
+      {space}
       {if tag.value and tag.value != true
         <span className="tag">
           {link {key: tag.key},
