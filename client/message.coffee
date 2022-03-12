@@ -2333,8 +2333,9 @@ export WrappedSubmessage = React.memo ({message, read}) ->
           <span className="tags">
             {for tag in sortTags message.tags
               <React.Fragment key={tag.key}>
-                <TagEdit tag={tag} onTagEdit={onTagEdit}
-                 onTagSelect={onTagSelect} onTagRemove={onTagRemove}>
+                <TagEdit tag={tag} className="label label-default outer-label"
+                 onTagEdit={onTagEdit} onTagSelect={onTagSelect}
+                 onTagRemove={onTagRemove}>
                   <TagList tag={tag} noLink/>
                   {### Old direct removal button
                   <span className="tagRemove fas fa-times-circle" aria-label="Remove" data-tag={tag.key} onClick={onTagRemove}/>
@@ -2344,7 +2345,8 @@ export WrappedSubmessage = React.memo ({message, read}) ->
               </React.Fragment>
             }
           </span>
-          <TagEdit absentTags={absentTags}
+          <TagEdit tags={absentTags}
+           className="label label-default outer-label"
            onTagEdit={onTagEdit} onTagSelect={onTagSelect}>
             <span className="label label-default">
               <span className="fas fa-plus" aria-label="Add"/>

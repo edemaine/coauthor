@@ -1,12 +1,11 @@
 import React, {useLayoutEffect, useState} from 'react'
 import Dropdown from 'react-bootstrap/Dropdown'
 
-## Given a `tag`, component is a big editor for that tag (and its value).
-## Given `absentTags`, component offers to add a tag from that list
-## (intended to include tags currently absent from the message).
+## Given `tag`, component is a big editor for that tag (and its value).
+## Given `tags`, component offers to select a tag from that list.
 ## Either way, `children` gives the contents of the dropdown button
 ## that brings up the editor.
-export TagEdit = React.memo ({tag, absentTags, onTagEdit, onTagSelect, onTagRemove, children}) ->
+export TagEdit = React.memo ({tag, tags, onTagEdit, onTagSelect, onTagRemove, className, children}) ->
   [show, setShow] = useState false
   [tagKey, setTagKey] = useState ''
   [tagVal, setTagVal] = useState ''
@@ -24,7 +23,7 @@ export TagEdit = React.memo ({tag, absentTags, onTagEdit, onTagSelect, onTagRemo
   <span className="#{if tag? then 'tagEdit' else 'tagNew'} btn-group"
    data-tag={tag?.key}>
     <Dropdown show={show} onToggle={(newShow) -> setShow newShow}>
-      <Dropdown.Toggle variant="default" className="label label-default outer-label">
+      <Dropdown.Toggle variant="default" className={className}>
         {children}
       </Dropdown.Toggle>
       <Dropdown.Menu className="tagMenu">
@@ -61,13 +60,13 @@ export TagEdit = React.memo ({tag, absentTags, onTagEdit, onTagSelect, onTagRemo
             </a>
           </li>
         }
-        {if onTagEdit? and absentTags?.length
+        {if onTagEdit? and tags?.length
           <li className="divider" role="separator"/>
         }
-        {if absentTags?.length
-          for absentTag in absentTags
-            <li key={absentTag.key}>
-              <Dropdown.Item className="tagSelect" href="#" data-tag={absentTag.key} onClick={onTagSelect}>{absentTag.key}</Dropdown.Item>
+        {if tags?.length
+          for subtag in tags
+            <li key={subtag.key}>
+              <Dropdown.Item className="tagSelect" href="#" data-tag={subtag.key} onClick={onTagSelect}>{subtag.key}</Dropdown.Item>
             </li>
         }
       </Dropdown.Menu>

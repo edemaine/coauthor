@@ -345,8 +345,8 @@ export MessageList = React.memo ({group, topMessages, sortBy}) ->
             </TextTooltip>
             {if column == 'title'
               <span className="gatherBtn">
-                <TagEdit absentTags={tags}>
-                  {'Gather by...'}
+                <TagEdit tags={tags} className="label label-default">
+                  Gather by...
                 </TagEdit>
               </span>
             }
