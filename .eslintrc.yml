@@ -101,7 +101,6 @@ globals:
   internalFileUrlPrefix: readonly
   linkToAuthor: readonly
   linkToSort: readonly
-  linkToTag: readonly
   linkify: readonly
   listToTags: readonly
   markdown: readonly

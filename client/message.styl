@@ -45,6 +45,38 @@
       &:hover
         background: white
 
+// Tags
+
+.label-left
+  border-top-right-radius: 0px !important
+  border-bottom-right-radius: 0px !important
+.label-right
+  border-top-left-radius: 0px !important
+  border-bottom-left-radius: 0px !important
+  &.label-default
+    background-color: #555  // darker than #777
+
+// Magic to get the entire tag to highlight when hovering over child:
+// http://stackoverflow.com/questions/8114657/how-to-style-the-parent-element-when-hovering-a-child-element#30104683
+.tagWithRemove
+  pointer-events: none
+.tagRemove
+  opacity: 0.7
+.tagRemove, .tagWithValue .label
+  pointer-events: auto
+.tagWithRemove:hover, .tagLink span.label:hover
+  cursor: pointer
+  color: #333
+  background: #e6e6e6  // matching .btn-default:hover
+
+.dropdown-menu.tagMenu
+  width: 250px
+  > li.disabled > a
+    cursor: auto
+    padding: 0px 5px  // normally 3px 20px
+  > li > a
+    font-size: 75%  // matches label
+
 // Emoji dropdown menu
 
 .emojiMenu

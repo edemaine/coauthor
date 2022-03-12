@@ -120,7 +120,20 @@ export parseSearch = (search, group) ->
         else
           wants.push body: regex
       when 'tag:'
-        wants.push "tags.#{escapeTag token}": $exists: not negate
+        if 0 <= equalIndex = token.indexOf '='
+          key = token[...equalIndex]
+          value = token[equalIndex+1..]
+          if negate
+            if value
+              value = $ne: value
+            else
+              value = $nin: [true, value]
+          else
+            unless value
+              value = $in: [true, value]
+          wants.push "tags.#{escapeTag key}": value
+        else
+          wants.push "tags.#{escapeTag token}": $exists: not negate
       when 'emoji:'
         if 0 <= atIndex = token.indexOf '@'
           username = token[atIndex+1..]
@@ -298,13 +311,28 @@ formatParsedSearch = (query, group) ->
     key = keys[0]
     tag = key[5..]
     value = query[key]
-    if _.isEqual _.keys(value), ['$exists']
+    subkeys = _.keys value
+    if _.isEqual subkeys, ['$exists']
       if value.$exists
         "tagged '#{unescapeTag tag}'"
       else
         "not tagged '#{unescapeTag tag}'"
     else
-      "tag #{tag}: #{JSON.stringify value}"
+      if subkeys.length == 1 and subkeys[0] in ['$in', '$nin', '$ne']
+        value = value[subkeys[0]]
+      (if subkeys.length == 1 and subkeys[0] in ['$nin', '$ne']
+        'not '
+      else
+        ''
+      ) +
+      (if subkeys.length == 1 and subkeys[0] in ['$in', '$nin'] and
+          _.isEqual value, [true, '']
+        "empty tagged '#{unescapeTag tag}'"
+      else if typeof value == 'string'
+        "tagged '#{unescapeTag tag}' = '#{value}'"
+      else
+        "tagged '#{unescapeTag tag}' = #{JSON.stringify value}"
+      )
   else if keys.length == 1 and keys[0].startsWith 'emoji.'
     key = keys[0]
     emoji = key[6..]
@@ -418,6 +446,18 @@ checkAllEmoji = (parts, group) ->
      _.isEqual emoji, (e.symbol for e in allEmoji group)
     prefix: match[1]
     suffix: match[3]
+
+export maybeQuoteSearch = (search) ->
+  if 0 <= search.indexOf ' '
+    if 0 <= search.indexOf '"'
+      if 0 <= search.indexOf "'"
+        search = "\"#{search.replace /"/g, '"\'"\'"'}\""
+        .replace /^""|""$/g, ''
+      else
+        search = "'#{search}'"
+    else
+      search = "\"#{search}\""
+  search
 
 ## Pure regex searching
 #@searchQuery = (search) ->

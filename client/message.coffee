@@ -14,8 +14,8 @@ import {FormatDate, formatDate} from './lib/date'
 import {ignoreKey} from './keyboard'
 import {MessageImage, imageTransform, messageRotate} from './MessageImage'
 import {MessagePDF} from './MessagePDF'
-import {TagList} from './TagList'
 import {TagEdit} from './TagEdit'
+import {TagList} from './TagList'
 import {TextTooltip} from './lib/tooltip'
 import {UserInput} from './UserInput'
 import {UserLink} from './UserLink'
@@ -68,24 +68,6 @@ switch sharejsEditor
 
 @routeMessage = ->
   Router.current()?.params?.message
-
-@linkToTag = (tag, group) ->
-  #pathFor 'tag',
-  #  group: group
-  #  tag: tag.key
-  search = tag.key
-  if 0 <= search.indexOf ' '
-    if 0 <= search.indexOf '"'
-      if 0 <= search.indexOf "'"
-        search = "\"#{search.replace /"/g, '"\'"\'"'}\""
-        .replace /^""|""$/g, ''
-      else
-        search = "'#{search}'"
-    else
-      search = "\"#{search}\""
-  pathFor 'search',
-    group: group
-    search: "tag:#{search}"
 
 export SubmessageHeader = React.memo ({message}) ->
   <>

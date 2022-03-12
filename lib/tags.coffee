@@ -2,6 +2,7 @@ import {check} from 'meteor/check'
 import {Mongo} from 'meteor/mongo'
 
 import {escapeKey, unescapeKey, validKey} from './escape'
+import {maybeQuoteSearch} from './search'
 
 @Tags = new Mongo.Collection 'tags'
 
@@ -28,11 +29,11 @@ export groupTags = (group) ->
   .fetch()
   _.sortBy tags, 'key'
 
-## Currently, tags just map keys to "true".
-## In the future, there will be other values, checked here.  (See #86.)
+## Originally, tags just map keys to "true".  Now we allow string values.
+## In the future, there may be other values, checked here.  (See #86.)
 export validTags = (tags) ->
   for key, value of tags
-    unless validTag(key)
+    unless validTag(key) and (value == true or typeof value == 'string')
       return false
   true
 
@@ -41,6 +42,18 @@ export listToTags = (tagsList) ->
   for tag in tagsList
     tags[tag] = true
   tags
+
+export linkToTag = (tag, group) ->
+  #pathFor 'tag',
+  #  group: group
+  #  tag: tag.key
+  pathFor 'search',
+    group: group
+    search:
+      if tag.value and tag.value != true
+        "tag:#{maybeQuoteSearch tag.key}=#{maybeQuoteSearch tag.value}"
+      else
+        "tag:#{maybeQuoteSearch tag.key}"
 
 if Meteor.isServer
   Meteor.publish 'tags', (group) ->
