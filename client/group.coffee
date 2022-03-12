@@ -16,6 +16,7 @@ import {emojiReplies} from '/lib/emoji'
 import {formatTitleOrFilename} from '/lib/formats'
 import {groupDefaultSort, sortKeys} from '/lib/groups'
 import {autopublish} from '/lib/settings'
+import {groupTags} from '/lib/tags'
 
 @routeGroup = ->
   Router.current()?.params?.group

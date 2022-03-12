@@ -29,6 +29,7 @@ import {availableFormats, formatBody, formatFile, formatFileDescription, formatT
 import {ancestorMessages, messageDiffsExpanded, messageNeighbors, sortedMessageReaders} from '/lib/messages'
 import {autosubscribe, defaultNotificationsOn} from '/lib/notifications'
 import {autopublish, defaultKeyboard, userKeyboard, themeEditor} from '/lib/settings'
+import {escapeTag, sortTags} from '/lib/tags'
 
 sharejsEditor = 'cm'  ## 'ace' or 'cm'; also change template used in message.jade
 

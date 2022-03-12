@@ -5,6 +5,7 @@ Search language parsing and formatting, as documented in README.md.
 import {check} from 'meteor/check'
 
 import {allEmoji} from './emoji'
+import {escapeTag, unescapeTag} from './tags'
 
 @escapeRegExp = (regex) ->
   ## https://stackoverflow.com/questions/3446170/escape-string-for-use-in-javascript-regex

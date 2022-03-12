@@ -6,6 +6,7 @@ import {Mongo} from 'meteor/mongo'
 import {formatBody, formatTitleOrFilename} from './formats'
 import {angle180, messageContentFields, messageEmpty, messageFilterExtraFields} from './messages'
 import {profiling, profilingStartup, isProfiling} from './profiling'
+import {sortTags} from './tags'
 
 @Notifications = new Mongo.Collection 'notifications'
 

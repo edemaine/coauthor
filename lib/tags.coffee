@@ -8,12 +8,12 @@ import {escapeKey, unescapeKey, validKey} from './escape'
 if Meteor.isServer
   Tags.createIndex [['group', 1], ['deleted', 1]]
 
-@escapeTag = escapeKey
-@unescapeTag = unescapeKey
-@validTag = (tag) ->
+export escapeTag = escapeKey
+export unescapeTag = unescapeKey
+export validTag = (tag) ->
   validKey(tag) and tag.trim().length > 0
 
-@sortTags = (tags) ->
+export sortTags = (tags) ->
   return [] unless tags
   keys = _.keys tags
   keys.sort()
@@ -21,7 +21,7 @@ if Meteor.isServer
     key: unescapeTag key
     value: tags[key]
 
-@groupTags = (group) ->
+export groupTags = (group) ->
   tags = Tags.find
     group: group
     deleted: false
@@ -30,13 +30,13 @@ if Meteor.isServer
 
 ## Currently, tags just map keys to "true".
 ## In the future, there will be other values, checked here.  (See #86.)
-@validTags = (tags) ->
+export validTags = (tags) ->
   for key, value of tags
     unless validTag(key)
       return false
   true
 
-@listToTags = (tagsList) ->
+export listToTags = (tagsList) ->
   tags = {}
   for tag in tagsList
     tags[tag] = true

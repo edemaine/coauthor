@@ -1,5 +1,6 @@
 import {dateMin, dateMax} from '/lib/dates'
 import {idleStop, messageDiffsExpanded, recomputeSubmessageCounts} from '/lib/messages'
+import {listToTags} from '/lib/tags'
 import {profilingStartup} from '/lib/profiling'
 
 profilingStartup "bootstrap.startup", ->
