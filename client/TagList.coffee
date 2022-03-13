@@ -6,7 +6,7 @@ export TagList = React.memo ({group, tag, tags, noLink}) ->
   if noLink
     link = (tag, dom) -> dom
   else
-    link = (tag, dom) ->
+    link = (tag, dom) -> # eslint-disable-line react/display-name
       <a href={linkToTag tag, group} className="tagLink">{dom}</a>
   if tag?
     tags = [tag]

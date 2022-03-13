@@ -5,7 +5,7 @@ import Dropdown from 'react-bootstrap/Dropdown'
 ## Given `tags`, component offers to select a tag from that list.
 ## Either way, `children` gives the contents of the dropdown button
 ## that brings up the editor.
-export TagEdit = React.memo ({tag, tags, onTagEdit, onTagSelect, onTagRemove, className, children}) ->
+export TagEdit = React.memo ({tag, tags, onTagEdit, onTagSelect, onTagRemove, className, href, children}) ->
   [show, setShow] = useState false
   [tagKey, setTagKey] = useState ''
   [tagVal, setTagVal] = useState ''
@@ -66,7 +66,11 @@ export TagEdit = React.memo ({tag, tags, onTagEdit, onTagSelect, onTagRemove, cl
         {if tags?.length
           for subtag in tags
             <li key={subtag.key}>
-              <Dropdown.Item className="tagSelect" href="#" data-tag={subtag.key} onClick={onTagSelect}>{subtag.key}</Dropdown.Item>
+              <Dropdown.Item className="tagSelect"
+               href={href? subtag ? '#'}
+               data-tag={subtag.key} onClick={onTagSelect}>
+                {subtag.key}
+              </Dropdown.Item>
             </li>
         }
       </Dropdown.Menu>

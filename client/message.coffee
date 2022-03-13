@@ -2249,7 +2249,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
       console.warn "Attempt to delete nonexistent tag '#{tag}' from message #{message._id}"
   onTagSelect = (e) ->
     e.preventDefault()
-    tag = e.target.getAttribute 'data-tag'
+    tag = e.target.dataset.tag
     if tag of message.tags
       console.warn "Attempt to add duplicate tag '#{tag}' to message #{message._id}"
     else

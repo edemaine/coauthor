@@ -14,7 +14,7 @@ import {TextTooltip} from './lib/tooltip'
 import {UserLink} from './UserLink'
 import {emojiReplies} from '/lib/emoji'
 import {formatTitleOrFilename} from '/lib/formats'
-import {groupDefaultSort, sortKeys} from '/lib/groups'
+import {groupDefaultSort, defaultSort, parseSort, unparseSort} from '/lib/groups'
 import {autopublish} from '/lib/settings'
 import {groupTags} from '/lib/tags'
 
@@ -43,20 +43,18 @@ Template.registerHelper 'groupDataOrWild', ->
   routeGroup() == wildGroup or groupData()
 
 @routeSortBy = ->
-  if Router.current().params.sortBy in sortKeys
-    key: Router.current().params.sortBy
-    reverse: Router.current().route.getName()[-7..] == 'reverse'
-  else
-    groupDefaultSort routeGroup()
+  try
+    sortBy = parseSort Router.current().params.sortBy
+  catch
+    console.warn "Invalid sortBy parameter: #{sortBy}"
+  unless sortBy?.length
+    sortBy = groupDefaultSort routeGroup()
+  sortBy
 
-@linkToSort = (sort) ->
-  if sort.reverse
-    route = 'group.sorted.reverse'
-  else
-    route = 'group.sorted.forward'
-  pathFor route,
+@linkToSort = (sortBy) ->
+  pathFor 'group',
     group: routeGroup()
-    sortBy: sort.key
+    sortBy: unparseSort sortBy
 
 Template.registerHelper 'groups', ->
   Groups.find {},
@@ -296,14 +294,19 @@ export MessageList = React.memo ({group, topMessages, sortBy}) ->
     .fetch()
   , [group]
   sortLink = (key) ->
-    if key == sortBy.key
-      linkToSort
-        key: key
-        reverse: not sortBy.reverse
-    else
-      linkToSort
-        key: key
-        reverse: key of columnReverse
+    reverse = key of columnReverse
+    ## Remove this sort if it exists, to move it to the beginning.
+    newSortBy =
+      for sort, i in sortBy
+        if sort.key == key
+          ## If this was already the first sort, reverse it.
+          reverse = not sort.reverse if i == 0
+          continue
+        else
+          sort
+    ## New sort at the beginning
+    newSortBy.splice 0, 0, {key, reverse}
+    linkToSort newSortBy
 
   <table className="table table-striped">
     <thead>
@@ -343,12 +346,12 @@ export MessageList = React.memo ({group, topMessages, sortBy}) ->
                 }
               </a>
             </TextTooltip>
-            {if column == 'title'
-              <span className="gatherBtn">
-                <TagEdit tags={tags} className="label label-default">
-                  Gather by...
-                </TagEdit>
-              </span>
+            {if column == 'title' and tags.length
+              <TagEdit tags={tags} className="label label-default gatherBtn"
+               href={(tag) -> sortLink "tag:#{tag.key}"}>
+                {'Gather by tag '}
+                <span className="caret"/>
+              </TagEdit>
             }
           </th>
         }
