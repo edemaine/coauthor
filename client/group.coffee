@@ -43,10 +43,16 @@ Template.registerHelper 'groupDataOrWild', ->
   routeGroup() == wildGroup or groupData()
 
 @routeSortBy = ->
+  sortBy = Router.current().params.sortBy
+  ## First character of sortBy is at the end of route's name;
+  ## see `sortChar` in /lib/routes.coffee
+  if sortBy
+    name = Router.current().route.getName()
+    sortBy = name[name.length-1] + sortBy
   try
-    sortBy = parseSort Router.current().params.sortBy
+    sortBy = parseSort sortBy
   catch
-    console.warn "Invalid sortBy parameter: #{Router.current().params.sortBy}"
+    console.warn "Invalid sortBy parameter: #{sortBy}"
   unless sortBy?.length
     sortBy = groupDefaultSort routeGroup()
   sortBy

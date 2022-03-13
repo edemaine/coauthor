@@ -65,18 +65,20 @@ Router.route '/:group/m/:message',
       @render()
   fastRender: true
 
-Router.route '/:group/:sortBy?',
-  name: 'group'
-  template: 'group'
-  subscriptions: -> [
-    Subscribe.subscribe 'messages.root', @params.group
-    #Subscribe.subscribe 'emoji.root', @params.group
-    Subscribe.subscribe 'groups.members', @params.group
-    Subscribe.subscribe 'tags', @params.group
-  ]
-  data: ->
-    group: @params.group
-  fastRender: true
+# Want to write /:group/:sortBy?, but this would match everything
+for sortChar in ['', '+', '-']
+  Router.route '/:group' + (sortChar and "/#{sortChar}:sortBy"),
+    name: 'group' + sortChar
+    template: 'group'
+    subscriptions: -> [
+      Subscribe.subscribe 'messages.root', @params.group
+      #Subscribe.subscribe 'emoji.root', @params.group
+      Subscribe.subscribe 'groups.members', @params.group
+      Subscribe.subscribe 'tags', @params.group
+    ]
+    data: ->
+      group: @params.group
+    fastRender: true
 
 defaultSince = '1 hour'
 
