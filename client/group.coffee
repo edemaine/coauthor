@@ -57,6 +57,21 @@ Template.registerHelper 'groupDataOrWild', ->
     sortBy: unparseSort sortBy
   .replace /%2B/g, '+'  # converts to space later
 
+changeSortLink = (sortBy, key) ->
+  reverse = key of columnReverse
+  ## Remove this sort if it exists, to move it to the beginning.
+  newSortBy =
+    for sort, i in sortBy
+      if sort.key == key
+        ## If this was already the first sort, reverse it.
+        reverse = not sort.reverse if i == 0
+        continue
+      else
+        sort
+  ## New sort at the beginning
+  newSortBy.splice 0, 0, {key, reverse}
+  linkToSort newSortBy
+
 Template.registerHelper 'groups', ->
   Groups.find {},
     sort: [['name', 'asc']]
@@ -93,6 +108,9 @@ export Group = React.memo ({group, groupData}) ->
   topMessages = useTracker ->
     groupSortedBy group, sortBy
   , [group, sortBy]
+  tags = useTracker ->
+    groupTags group
+  , [group]
   can = useTracker ->
     post: canPost group
     import: canImport group
@@ -100,15 +118,12 @@ export Group = React.memo ({group, groupData}) ->
   , [group]
 
   <div className="panel panel-primary">
-    <div className="panel-heading clearfix">
-      <span className="push-down btn-group btn-group-xs">
-        <div className="fake-btn">&#8203;</div>
-      </span>
-      <span className="title panel-title">
+    <div className="panel-heading group-heading">
+      <span className="title panel-title push-down">
         {group}
       </span>
       <ErrorBoundary>
-        <GroupButtons group={group} can={can} sortBy={sortBy}/>
+        <GroupButtons group={group} can={can} sortBy={sortBy} tags={tags}/>
       </ErrorBoundary>
     </div>
     <ErrorBoundary>
@@ -120,7 +135,7 @@ export Group = React.memo ({group, groupData}) ->
       </ErrorBoundary>
       <i>{pluralize topMessages.length, 'message thread'}</i>
       <ErrorBoundary>
-        <GroupTags group={group}/>
+        <GroupTags tags={tags} group={group}/>
       </ErrorBoundary>
       <p className="clearfix"/>
       <ErrorBoundary>
@@ -130,7 +145,7 @@ export Group = React.memo ({group, groupData}) ->
   </div>
 Group.displayName = 'Group'
 
-export GroupButtons = React.memo ({group, can, sortBy}) ->
+export GroupButtons = React.memo ({group, can, sortBy, tags}) ->
   superuser = useTracker ->
     Session.get 'super'
   , []
@@ -190,7 +205,7 @@ export GroupButtons = React.memo ({group, can, sortBy}) ->
       else
         console.error "messageNew did not return problem -- not authorized?"
 
-  <div className="pull-right group-right-buttons">
+  <> {###<div className="group-right-buttons">###}
     {if superuser
       <div className="btn-group">
         <button className="btn btn-warning sortSetDefault" onClick={onSortSetDefault}>
@@ -203,7 +218,7 @@ export GroupButtons = React.memo ({group, can, sortBy}) ->
         }
       </div>
     }
-    
+
     <Dropdown className="btn-group" show={dropdown}
      onToggle={(open) -> setDropdown open}>
       <TextTooltip title={postTitle}>
@@ -244,6 +259,14 @@ export GroupButtons = React.memo ({group, can, sortBy}) ->
         </li>
       </Dropdown.Menu>
     </Dropdown>
+    {if tags.length
+      <TagEdit tags={tags} rootClassName="tagGather push-down"
+       className="label label-default"
+       href={(tag) -> changeSortLink sortBy, "tag.#{tag.key}"}>
+        {'Gather by tag '}
+        <span className="caret"/>
+      </TagEdit>
+    }
     <div className="btn-group">
       <TextTooltip title="Show all messages you have authored or been @mentioned in">
         <a className="btn btn-default myPostsButton #{unless user? then 'disabled'}"
@@ -270,7 +293,7 @@ export GroupButtons = React.memo ({group, can, sortBy}) ->
         </a>
       </TextTooltip>
     </div>
-  </div>
+  </>
 GroupButtons.displayName = 'GroupButtons'
 
 columnCenter =
@@ -287,28 +310,6 @@ columnReverse =
   subscribe: true
 
 export MessageList = React.memo ({group, topMessages, sortBy}) ->
-  tags = useTracker ->
-    Tags.find
-      group: group
-      deleted: false
-    ,
-      sort: ['key']
-    .fetch()
-  , [group]
-  sortLink = (key) ->
-    reverse = key of columnReverse
-    ## Remove this sort if it exists, to move it to the beginning.
-    newSortBy =
-      for sort, i in sortBy
-        if sort.key == key
-          ## If this was already the first sort, reverse it.
-          reverse = not sort.reverse if i == 0
-          continue
-        else
-          sort
-    ## New sort at the beginning
-    newSortBy.splice 0, 0, {key, reverse}
-    linkToSort newSortBy
   groupBy = []
   for sort in sortBy
     if sort.key.startsWith 'tag.'
@@ -331,7 +332,7 @@ export MessageList = React.memo ({group, topMessages, sortBy}) ->
           <th key={column}
            className={if column of columnCenter then 'text-center'}>
             <TextTooltip title={title}>
-              <a href={sortLink column}>
+              <a href={changeSortLink sortBy, column}>
                 {switch column
                   when 'subscribe'
                     'Sub'
@@ -353,15 +354,6 @@ export MessageList = React.memo ({group, topMessages, sortBy}) ->
                 }
               </a>
             </TextTooltip>
-            {if column == 'title' and tags.length
-              <span className="gatherBtn">
-                <TagEdit tags={tags} className="label label-default"
-                href={(tag) -> sortLink "tag.#{tag.key}"}>
-                  {'Gather by tag '}
-                  <span className="caret"/>
-                </TagEdit>
-              </span>
-            }
           </th>
         }
       </tr>
@@ -436,10 +428,7 @@ export ImportExportButtons = React.memo ({group, can}) ->
   </div>
 ImportExportButtons.displayName = 'ImportExportButtons'
 
-export GroupTags = React.memo ({group}) ->
-  tags = useTracker ->
-    groupTags group
-  , [group]
+export GroupTags = React.memo ({tags, group}) ->
   <div className="groupTags">
     <TagList tags={tags} group={group}/>
   </div>

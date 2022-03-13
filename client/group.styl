@@ -1,3 +1,12 @@
+.group-heading, .group-right-buttons
+  display: flex
+  flex-direction: row
+  flex-wrap: wrap
+  justify-content: flex-end
+  gap: 0.25em
+  .title
+    flex-grow: 1
+
 // Groupings by tags
 .table > tbody > tr.grouping
   background: #337ab7
@@ -17,7 +26,3 @@ span.disabled
   cursor: not-allowed
   button
     pointer-events: none
-
-.gatherBtn
-  float: right
-  margin-left: 0.5em
