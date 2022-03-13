@@ -14,9 +14,9 @@ import {TextTooltip} from './lib/tooltip'
 import {UserLink} from './UserLink'
 import {emojiReplies} from '/lib/emoji'
 import {formatTitleOrFilename} from '/lib/formats'
-import {groupDefaultSort, defaultSort, parseSort, unparseSort} from '/lib/groups'
+import {groupDefaultSort, parseSort, unparseSort} from '/lib/groups'
 import {autopublish} from '/lib/settings'
-import {groupTags} from '/lib/tags'
+import {groupTags, sortTags} from '/lib/tags'
 
 @routeGroup = ->
   Router.current()?.params?.group
@@ -151,8 +151,9 @@ export GroupButtons = React.memo ({group, can, sortBy}) ->
 
   onSortSetDefault = (e) ->
     e.stopPropagation()
-    console.log "Setting default sort for #{group} to #{if sortBy.reverse then '-' else '+'}#{sortBy.key}"
-    Meteor.call 'groupDefaultSort', group, sortBy
+    unparsed = unparseSort sortBy
+    console.log "Setting default sort for #{group} to #{unparsed}"
+    Meteor.call 'groupDefaultSort', group, unparsed
   onRename = (e) ->
     Modal.show 'groupRename'
   onPost = (e) ->
@@ -307,6 +308,11 @@ export MessageList = React.memo ({group, topMessages, sortBy}) ->
     ## New sort at the beginning
     newSortBy.splice 0, 0, {key, reverse}
     linkToSort newSortBy
+  groupBy = []
+  for sort in sortBy
+    if sort.key.startsWith 'tag:'
+      groupBy.push sort.key[4..]
+  groupBy = null unless groupBy.length
 
   <table className="table table-striped">
     <thead>
@@ -347,11 +353,13 @@ export MessageList = React.memo ({group, topMessages, sortBy}) ->
               </a>
             </TextTooltip>
             {if column == 'title' and tags.length
-              <TagEdit tags={tags} className="label label-default gatherBtn"
-               href={(tag) -> sortLink "tag:#{tag.key}"}>
-                {'Gather by tag '}
-                <span className="caret"/>
-              </TagEdit>
+              <span className="gatherBtn">
+                <TagEdit tags={tags} className="label label-default"
+                href={(tag) -> sortLink "tag:#{tag.key}"}>
+                  {'Gather by tag '}
+                  <span className="caret"/>
+                </TagEdit>
+              </span>
             }
           </th>
         }
@@ -359,9 +367,27 @@ export MessageList = React.memo ({group, topMessages, sortBy}) ->
     </thead>
     <tbody>
       {for message in topMessages
+        if groupBy
+          grouping = thisGrouping = sortTags message.tags, groupBy
+          grouping = null if _.isEqual grouping, lastGrouping
+          lastGrouping = thisGrouping
         #if canSee message
         #<a className="list-group-item" href={messageLink}>
         <ErrorBoundary key={message._id}>
+          {if grouping
+            <>
+              <tr className="grouping">
+                {if _.isEmpty grouping
+                  <td colSpan="7" className="empty"/>
+                else
+                  <td colSpan="7">
+                    <TagList tags={grouping}/>
+                  </td>
+                }
+              </tr>
+              <tr/>
+            </>
+          }
           <MessageShort message={message}/>
         </ErrorBoundary>
       }

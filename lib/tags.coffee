@@ -14,11 +14,12 @@ export unescapeTag = unescapeKey
 export validTag = (tag) ->
   validKey(tag) and tag.trim().length > 0
 
-export sortTags = (tags) ->
+export sortTags = (tags, keys) ->
   return [] unless tags
-  keys = _.keys tags
-  keys.sort()
-  for key in keys
+  unless keys?
+    keys = _.keys tags
+    keys.sort()
+  for key in keys when key of tags
     key: unescapeTag key
     value: tags[key]
 

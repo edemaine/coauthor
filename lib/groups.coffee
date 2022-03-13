@@ -437,7 +437,7 @@ Meteor.methods
       options.fields.published = true
   msgs = Messages.find query, options
   .fetch()
-  for key in sorts[..].reverse()
+  for sort in sorts[..].reverse()
     switch sort.key
       when 'title'
         key = (msg) -> titleSort msg.title
@@ -457,7 +457,16 @@ Meteor.methods
         #key = (msg) -> msg[mongosort]
       else
         if sort.key.startsWith 'tag:'
-          key = (msg) -> msg.tags?[sort.key[4..]]
+          tag = sort.key[4..]
+          key = (msg) ->
+            value = msg.tags?[tag]
+            switch value
+              when undefined
+                '\uffff'  # sort to end
+              when true
+                ''
+              else
+                titleSort value
         else
           throw new Error "Invalid sort key: '#{sort.key}'"
     msgs = _.sortBy msgs, key
