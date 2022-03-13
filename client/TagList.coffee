@@ -2,7 +2,8 @@ import React from 'react'
 
 import {linkToTag} from '/lib/tags'
 
-export TagList = React.memo ({group, tag, tags, noLink}) ->
+export TagList = React.memo ({group, tag, tags, variant, noLink}) ->
+  variant ?= 'default'
   if noLink
     link = (tag, dom) -> dom
   else
@@ -19,14 +20,14 @@ export TagList = React.memo ({group, tag, tags, noLink}) ->
       {if tag.value and tag.value != true
         <span className="tag">
           {link {key: tag.key},
-            <span className="label label-default label-left">{tag.key}</span>
+            <span className="label label-#{variant} label-left">{tag.key}</span>
           }
           {link tag,
-            <span className="label label-default label-right">{tag.value}</span>
+            <span className="label label-#{variant} label-right">{tag.value}</span>
           }
         </span>
       else
-        link tag, <span className="tag label label-default">{tag.key}</span>
+        link tag, <span className="tag label label-#{variant}">{tag.key}</span>
       }
     </React.Fragment>
 TagList.displayName = 'TagList'

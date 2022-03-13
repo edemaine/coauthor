@@ -395,7 +395,7 @@ export MessageList = React.memo ({group, topMessages, sortBy, clusterBy, primary
                   <td colSpan="7" className="empty"/>
                 else
                   <td colSpan="7">
-                    <TagList tags={clusters} group={group}/>
+                    <TagList tags={clusters} group={group} variant="info"/>
                   </td>
                 }
               </tr>

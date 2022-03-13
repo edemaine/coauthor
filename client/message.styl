@@ -48,13 +48,19 @@
 .label-left
   border-top-right-radius: 0px !important
   border-bottom-right-radius: 0px !important
-  border-right: #404040 1px solid
+  // Separator color matching btn-default and darker version of btn-info:
+  &.label-default
+    border-right: #404040 1px solid
+  &.label-info
+    border-right: #2a687a 1px solid
 .label-right
-  //border-left: #404040 1px solid
   border-top-left-radius: 0px !important
   border-bottom-left-radius: 0px !important
   &.label-default
     background-color: #555  // darker than #777
+  &.label-info
+    background-color: #72dfff
+    //background-color: #40aaca
 tr.messageShort:hover .label.label-default:hover
   color: inherit  // prevent highlighting tag in highlighted message of group
 
