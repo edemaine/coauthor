@@ -7,7 +7,7 @@ import Blaze from 'meteor/gadicc:blaze-react-component'
 
 import {ErrorBoundary} from './ErrorBoundary'
 import {FormatDate} from './lib/date'
-import {MessageLabels, MessageTags, messageClass, uploaderProps} from './message.coffee'
+import {MessageLabels, messageClass, uploaderProps} from './message.coffee'
 import {TagEdit} from './TagEdit'
 import {TagList} from './TagList'
 import {TextTooltip} from './lib/tooltip'

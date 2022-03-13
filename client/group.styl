@@ -1,4 +1,4 @@
-.group-heading, .group-right-buttons
+.panel-heading.group-heading
   display: flex
   flex-direction: row
   flex-wrap: wrap
@@ -6,6 +6,8 @@
   gap: 0.25em
   .title
     flex-grow: 1
+  // cf. panel-heading padding of 5px 10px 10px 10px
+  padding: 5px 5px 5px 10px
 
 // Clustering by tags
 .table > tbody > tr.cluster
