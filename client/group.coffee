@@ -60,16 +60,20 @@ Template.registerHelper 'groupDataOrWild', ->
 changeSortLink = (sortBy, key) ->
   reverse = key of columnReverse
   ## Remove this sort if it exists, to move it to the beginning.
+  seenNonTag = false
   newSortBy =
     for sort, i in sortBy
       if sort.key == key
         ## If this was already the first sort, reverse it.
-        reverse = not sort.reverse if i == 0
+        reverse = not sort.reverse unless seenNonTag
         continue
       else
+        seenNonTag = true unless sort.key.startsWith 'tag.'
         sort
   ## New sort at the beginning
   newSortBy.splice 0, 0, {key, reverse}
+  ## Put tags in front for clustering
+  newSortBy = _.sortBy newSortBy, (sort) -> not sort.key.startsWith 'tag.'
   linkToSort newSortBy
 
 Template.registerHelper 'groups', ->
@@ -206,6 +210,14 @@ export GroupButtons = React.memo ({group, can, sortBy, tags}) ->
         console.error "messageNew did not return problem -- not authorized?"
 
   <> {###<div className="group-right-buttons">###}
+    {if tags.length
+      <TagEdit tags={tags} rootClassName="tagGather push-down"
+       className="label label-default"
+       href={(tag) -> changeSortLink sortBy, "tag.#{tag.key}"}>
+        {'Gather by tag '}
+        <span className="caret"/>
+      </TagEdit>
+    }
     {if superuser
       <div className="btn-group">
         <button className="btn btn-warning sortSetDefault" onClick={onSortSetDefault}>
@@ -259,14 +271,6 @@ export GroupButtons = React.memo ({group, can, sortBy, tags}) ->
         </li>
       </Dropdown.Menu>
     </Dropdown>
-    {if tags.length
-      <TagEdit tags={tags} rootClassName="tagGather push-down"
-       className="label label-default"
-       href={(tag) -> changeSortLink sortBy, "tag.#{tag.key}"}>
-        {'Gather by tag '}
-        <span className="caret"/>
-      </TagEdit>
-    }
     <div className="btn-group">
       <TextTooltip title="Show all messages you have authored or been @mentioned in">
         <a className="btn btn-default myPostsButton #{unless user? then 'disabled'}"
@@ -314,6 +318,8 @@ export MessageList = React.memo ({group, topMessages, sortBy}) ->
   for sort in sortBy
     if sort.key.startsWith 'tag.'
       groupBy.push sort.key[4..]
+    else
+      break
   groupBy = null unless groupBy.length
 
   <table className="table table-striped">
