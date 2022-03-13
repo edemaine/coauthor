@@ -14,6 +14,13 @@ export unescapeTag = unescapeKey
 export validTag = (tag) ->
   validKey(tag) and tag.trim().length > 0
 
+export tagValueToString = (tagValue) ->
+  return tagValue unless tagValue?
+  if tagValue == true
+    ''
+  else
+    tagValue
+
 export sortTags = (tags, keys) ->
   return [] unless tags
   unless keys?
@@ -21,7 +28,7 @@ export sortTags = (tags, keys) ->
     keys.sort()
   for key in keys when key of tags
     key: unescapeTag key
-    value: tags[key]
+    value: tagValueToString tags[key]
 
 export groupTags = (group) ->
   tags = Tags.find
@@ -44,11 +51,11 @@ export listToTags = (tagsList) ->
     tags[tag] = true
   tags
 
-export linkToTag = (tag, group) ->
+export linkToTag = (tag, group, absolute) ->
   #pathFor 'tag',
   #  group: group
   #  tag: tag.key
-  pathFor 'search',
+  (if absolute then urlFor else pathFor) 'search',
     group: group
     search:
       if tag.value and tag.value != true

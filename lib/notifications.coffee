@@ -6,7 +6,7 @@ import {Mongo} from 'meteor/mongo'
 import {formatBody, formatTitleOrFilename} from './formats'
 import {angle180, messageContentFields, messageEmpty, messageFilterExtraFields} from './messages'
 import {profiling, profilingStartup, isProfiling} from './profiling'
-import {sortTags} from './tags'
+import {escapeTag, linkToTag, sortTags, tagValueToString} from './tags'
 
 @Notifications = new Mongo.Collection 'notifications'
 
@@ -408,17 +408,8 @@ if Meteor.isServer
       else
         """#{titleOrUntitled msg} [#{url}]"""
 
-  linkToTag = (group, tag, html) ->
-    if html
-      #url = urlFor 'tag',
-      #  group: group
-      #  tag: tag
-      url = urlFor 'search',
-        group: group
-        search: "tag:#{tag}"
-      """<a href="#{url}">#{tag}</a>"""
-    else
-      tag
+  linkTag = (text, tag, group) ->
+    "<a href=\"#{linkToTag tag, group, true}\">#{text}</a>"
 
   linkToTags = (group, tags, html) ->
     (linkToTag(group, tag.key, html) for tag in sortTags tags).join(', ') or '(none)'
@@ -649,9 +640,51 @@ if Meteor.isServer
           if changed.format
             bullet "Format: #{msg.format}"
           if changed.tags
-            ## xxx diff tags
-            bullet "Tags: #{linkToTags msg.group, msg.tags, false}",
-                   "Tags: #{linkToTags msg.group, msg.tags, true}"
+            tags =
+              for tag in sortTags msg.tags
+                escaped = escapeTag tag.key
+                tag.oldValue = tagValueToString old?.tags?[escaped]
+                tag.diff =
+                  if tag.oldValue?
+                    if tag.value == tag.oldValue
+                      ''
+                    else
+                      '*'
+                  else
+                    '+'
+                tag
+            for tag in sortTags old.tags
+              if escapeTag(tag.key) not of (msg.tags ? {})
+                tag.diff = '-'
+                tags.push tag
+            for tag in tags
+              tag.content = (html) ->
+                linker = if html then linkTag else (x) -> x
+                linker(tag.key, {key: tag.key}, msg.group) +
+                if tag.value
+                  " = #{linker tag.value, tag, msg.group}"
+                else
+                  ''
+            bullet "Tags: " + (
+              for tag in tags
+                if tag.diff == '*'
+                  "*#{tag.key} = #{tag.oldValue} -> #{tag.value}"
+                else
+                  tag.diff + tag.content false
+            ).join(', '), "Tags: " + (
+              for tag in tags
+                switch tag.diff
+                  when '+'
+                    "+<ins>#{tag.content true}</ins>"
+                  when '-'
+                    "&minus;<del>#{tag.content true}</del>"
+                  when '*'
+                    "*#{linkTag tag.key, {key: tag.key}, msg.group} = " +
+                    "<del>#{linkTag tag.oldValue, {key: tag.key, value: tag.oldValue}, msg.group}</del> " +
+                    "&rarr; <ins>#{linkTag tag.value, tag, msg.group}</ins>"
+                  else
+                    tag.content true
+            ).join(', ')
           if changed.file
             file = findFile msg.file
             if file?

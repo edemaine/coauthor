@@ -7,6 +7,13 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2022-03-13
+
+* Notifications now show which tags were added/removed/changed.
+  [[#520](https://github.com/edemaine/coauthor/issues/520)]
+* Many bug fixes and improvements around message tag values.
+  [[#520](https://github.com/edemaine/coauthor/issues/520)]
+
 ## 2022-03-12
 
 * Tags on messages can now have values.  For example, each thread root can have
