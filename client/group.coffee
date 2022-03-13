@@ -392,7 +392,7 @@ export MessageList = React.memo ({group, topMessages, sortBy, clusterBy}) ->
               <tr/>
             </>
           }
-          <MessageShort message={message}/>
+          <MessageShort message={message} clusterBy={clusterBy}/>
         </ErrorBoundary>
       }
     </tbody>
@@ -492,7 +492,7 @@ export GroupMembers = React.memo ({group}) ->
   </div>
 GroupMembers.displayName = 'GroupMembers'
 
-export MessageShort = React.memo ({message}) ->
+export MessageShort = React.memo ({message, clusterBy}) ->
   messageLink = useMemo ->
     pathFor 'message',
       group: message.group
@@ -514,6 +514,11 @@ export MessageShort = React.memo ({message}) ->
   subscribed = useTracker ->
     subscribedToMessage message
   , [message]
+  tags = useMemo ->
+    t = message.tags
+    if t? and clusterBy
+      t = _.omit t, clusterBy
+    sortTags t
 
   onSubscribe = (e) ->
     e.preventDefault()
@@ -531,7 +536,8 @@ export MessageShort = React.memo ({message}) ->
     <td className="title">
       <a href={messageLink}>
         <span dangerouslySetInnerHTML={__html: formattedTitle}/>
-        <MessageTags message={message} noLink/>
+        {###<MessageTags message={message} noLink/>###}
+        <TagList tags={tags} group={message.group} noLink/>
         <MessageLabels message={message}/>
       </a>
     </td>
