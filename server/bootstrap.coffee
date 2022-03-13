@@ -1,5 +1,7 @@
 import {dateMin, dateMax} from '/lib/dates'
+import {unparseSort} from '/lib/groups'
 import {idleStop, messageDiffsExpanded, recomputeSubmessageCounts} from '/lib/messages'
+import {listToTags} from '/lib/tags'
 import {profilingStartup} from '/lib/profiling'
 
 profilingStartup "bootstrap.startup", ->
@@ -169,5 +171,12 @@ profilingStartup "bootstrap.startup", ->
         type: 'boolean'
         deleted: false
         created: new Date
+
+  ## Change defaultSort from old singular parsed to new multiple unparsed
+  Groups.find
+    "defaultSort.key": $exists: true
+  .forEach (group) ->
+    Groups.update group._id,
+      $set: defaultSort: unparseSort [group.defaultSort]
 
   'Upgraded database as necessary'

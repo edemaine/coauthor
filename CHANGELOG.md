@@ -7,6 +7,19 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2022-03-12
+
+* Tags on messages can now have values.  For example, each thread root can have
+  a `category`, `week`, or `type` tag with a value.  The group view can then be
+  clustered by one or more of these values, using the new "By tag" dropdown.
+  [[#520](https://github.com/edemaine/coauthor/issues/520)]
+  [[#522](https://github.com/edemaine/coauthor/issues/522)]
+* The group view can now be sorted by multiple features at once, like a
+  spreadsheet. Click the least significant feature to sort by first,
+  then click each subsequent feature.
+  The URL now has a sequence of `+`s and `-`s to indicate the various sorts.
+  [[#349](https://github.com/edemaine/coauthor/issues/349)]
+
 ## 2022-03-11
 
 * Allow superusers to add arbitrary users (not necessarily group members)

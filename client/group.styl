@@ -1,3 +1,20 @@
+.group-heading, .group-right-buttons
+  display: flex
+  flex-direction: row
+  flex-wrap: wrap
+  justify-content: flex-end
+  gap: 0.25em
+  .title
+    flex-grow: 1
+
+// Clustering by tags
+.table > tbody > tr.cluster
+  background: #337ab7
+  > td
+    padding: 2px 16px 5px  // cf. standard 8px
+  > td.empty
+    padding: 6px
+
 .importInput[type="file"]
   display: none
 

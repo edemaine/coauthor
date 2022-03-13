@@ -1,3 +1,5 @@
+import {listToTags} from '/lib/tags'
+
 parseXML = (xml) ->
   ## Must be from some LaTeX copy/paste...:
   xml = xml.replace /\x0C/g, 'fi' # eslint-disable-line no-control-regex

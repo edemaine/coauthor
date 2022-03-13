@@ -2,45 +2,59 @@ import {check} from 'meteor/check'
 import {Mongo} from 'meteor/mongo'
 
 import {escapeKey, unescapeKey, validKey} from './escape'
+import {maybeQuoteSearch} from './search'
 
 @Tags = new Mongo.Collection 'tags'
 
 if Meteor.isServer
   Tags.createIndex [['group', 1], ['deleted', 1]]
 
-@escapeTag = escapeKey
-@unescapeTag = unescapeKey
-@validTag = (tag) ->
+export escapeTag = escapeKey
+export unescapeTag = unescapeKey
+export validTag = (tag) ->
   validKey(tag) and tag.trim().length > 0
 
-@sortTags = (tags) ->
+export sortTags = (tags, keys) ->
   return [] unless tags
-  keys = _.keys tags
-  keys.sort()
-  for key in keys
+  unless keys?
+    keys = _.keys tags
+    keys.sort()
+  for key in keys when key of tags
     key: unescapeTag key
     value: tags[key]
 
-@groupTags = (group) ->
+export groupTags = (group) ->
   tags = Tags.find
     group: group
     deleted: false
   .fetch()
   _.sortBy tags, 'key'
 
-## Currently, tags just map keys to "true".
-## In the future, there will be other values, checked here.  (See #86.)
-@validTags = (tags) ->
+## Originally, tags just map keys to "true".  Now we allow string values.
+## In the future, there may be other values, checked here.  (See #86.)
+export validTags = (tags) ->
   for key, value of tags
-    unless validTag(key) and value == true
+    unless validTag(key) and (value == true or typeof value == 'string')
       return false
   true
 
-@listToTags = (tagsList) ->
+export listToTags = (tagsList) ->
   tags = {}
   for tag in tagsList
     tags[tag] = true
   tags
+
+export linkToTag = (tag, group) ->
+  #pathFor 'tag',
+  #  group: group
+  #  tag: tag.key
+  pathFor 'search',
+    group: group
+    search:
+      if tag.value and tag.value != true
+        "tag:#{maybeQuoteSearch tag.key}=#{maybeQuoteSearch tag.value}"
+      else
+        "tag:#{maybeQuoteSearch tag.key}"
 
 if Meteor.isServer
   Meteor.publish 'tags', (group) ->
@@ -61,11 +75,11 @@ if Meteor.isServer
         group: group
 
 Meteor.methods
-  tagNew: (group, key, type) ->
+  tagNew: (group, key) ->
     check Meteor.userId(), String  ## should be done by 'canPost'
     check group, String
     check key, String
-    check type, "boolean"  ## only type supported for now
+    #check type, "boolean"  ## only type supported for now
     unless canPost group, null
       throw new Meteor.Error 'tagNew.unauthorized',
         "Insufficient permissions to tag message in group '#{group}'"
@@ -88,7 +102,7 @@ Meteor.methods
       Tags.insert
         group: group
         key: key
-        type: type
+        #type: type
         deleted: false
         creator: Meteor.user().username
         created: new Date

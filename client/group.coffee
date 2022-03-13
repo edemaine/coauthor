@@ -8,13 +8,15 @@ import Blaze from 'meteor/gadicc:blaze-react-component'
 import {ErrorBoundary} from './ErrorBoundary'
 import {FormatDate} from './lib/date'
 import {MessageLabels, MessageTags, messageClass, uploaderProps} from './message.coffee'
+import {TagEdit} from './TagEdit'
 import {TagList} from './TagList'
 import {TextTooltip} from './lib/tooltip'
 import {UserLink} from './UserLink'
 import {emojiReplies} from '/lib/emoji'
 import {formatTitleOrFilename} from '/lib/formats'
-import {groupDefaultSort, sortKeys} from '/lib/groups'
+import {groupDefaultSort, parseSort, unparseSort} from '/lib/groups'
 import {autopublish} from '/lib/settings'
+import {groupTags, sortTags} from '/lib/tags'
 
 @routeGroup = ->
   Router.current()?.params?.group
@@ -41,20 +43,39 @@ Template.registerHelper 'groupDataOrWild', ->
   routeGroup() == wildGroup or groupData()
 
 @routeSortBy = ->
-  if Router.current().params.sortBy in sortKeys
-    key: Router.current().params.sortBy
-    reverse: Router.current().route.getName()[-7..] == 'reverse'
-  else
-    groupDefaultSort routeGroup()
+  try
+    sortBy = parseSort Router.current().params.sortBy
+  catch
+    console.warn "Invalid sortBy parameter: #{Router.current().params.sortBy}"
+  unless sortBy?.length
+    sortBy = groupDefaultSort routeGroup()
+  sortBy
 
-@linkToSort = (sort) ->
-  if sort.reverse
-    route = 'group.sorted.reverse'
-  else
-    route = 'group.sorted.forward'
-  pathFor route,
+@linkToSort = (sortBy) ->
+  pathFor 'group',
     group: routeGroup()
-    sortBy: sort.key
+    sortBy: unparseSort sortBy
+  .replace /%2B/g, '+'  # converts to space later
+
+changeSortLink = (sortBy, key) ->
+  reverse = key of columnReverse
+  ## Remove this sort if it exists, to move it to the beginning.
+  seenNonTag = false
+  newSortBy =
+    for sort in sortBy
+      if sort.key == key
+        ## If this was already the first sort, reverse it.
+        reverse = not sort.reverse unless seenNonTag
+        continue
+      else
+        seenNonTag = true unless sort.key.startsWith 'tag.'
+        sort
+  ## New sort at the beginning, unless we're toggling a tag.
+  unless reverse and key.startsWith 'tag.'
+    newSortBy.splice 0, 0, {key, reverse}
+  ## Put tags in front for clustering
+  newSortBy = _.sortBy newSortBy, (sort) -> not sort.key.startsWith 'tag.'
+  linkToSort newSortBy
 
 Template.registerHelper 'groups', ->
   Groups.find {},
@@ -89,9 +110,21 @@ export Group = React.memo ({group, groupData}) ->
   sortBy = useTracker ->
     routeSortBy()
   , []
+  clusterBy = useMemo ->
+    clusters = []
+    for sort in sortBy
+      if sort.key.startsWith 'tag.'
+        clusters.push sort.key[4..]
+      else
+        break
+    clusters if clusters.length
+  , [sortBy]
   topMessages = useTracker ->
     groupSortedBy group, sortBy
   , [group, sortBy]
+  tags = useTracker ->
+    groupTags group
+  , [group]
   can = useTracker ->
     post: canPost group
     import: canImport group
@@ -99,19 +132,18 @@ export Group = React.memo ({group, groupData}) ->
   , [group]
 
   <div className="panel panel-primary">
-    <div className="panel-heading clearfix">
-      <span className="push-down btn-group btn-group-xs">
-        <div className="fake-btn">&#8203;</div>
-      </span>
-      <span className="title panel-title">
+    <div className="panel-heading group-heading">
+      <span className="title panel-title push-down">
         {group}
       </span>
       <ErrorBoundary>
-        <GroupButtons group={group} can={can} sortBy={sortBy}/>
+        <GroupButtons group={group} can={can} sortBy={sortBy}
+         clusterBy={clusterBy} tags={tags}/>
       </ErrorBoundary>
     </div>
     <ErrorBoundary>
-      <MessageList topMessages={topMessages} sortBy={sortBy}/>
+      <MessageList group={group} topMessages={topMessages}
+       sortBy={sortBy} clusterBy={clusterBy}/>
     </ErrorBoundary>
     <div className="panel-footer clearfix">
       <ErrorBoundary>
@@ -119,7 +151,7 @@ export Group = React.memo ({group, groupData}) ->
       </ErrorBoundary>
       <i>{pluralize topMessages.length, 'message thread'}</i>
       <ErrorBoundary>
-        <GroupTags group={group}/>
+        <GroupTags tags={tags} group={group}/>
       </ErrorBoundary>
       <p className="clearfix"/>
       <ErrorBoundary>
@@ -129,7 +161,7 @@ export Group = React.memo ({group, groupData}) ->
   </div>
 Group.displayName = 'Group'
 
-export GroupButtons = React.memo ({group, can, sortBy}) ->
+export GroupButtons = React.memo ({group, can, sortBy, clusterBy, tags}) ->
   superuser = useTracker ->
     Session.get 'super'
   , []
@@ -151,8 +183,9 @@ export GroupButtons = React.memo ({group, can, sortBy}) ->
 
   onSortSetDefault = (e) ->
     e.stopPropagation()
-    console.log "Setting default sort for #{group} to #{if sortBy.reverse then '-' else '+'}#{sortBy.key}"
-    Meteor.call 'groupDefaultSort', group, sortBy
+    unparsed = unparseSort sortBy
+    console.log "Setting default sort for #{group} to #{unparsed}"
+    Meteor.call 'groupDefaultSort', group, unparsed
   onRename = (e) ->
     Modal.show 'groupRename'
   onPost = (e) ->
@@ -188,7 +221,16 @@ export GroupButtons = React.memo ({group, can, sortBy}) ->
       else
         console.error "messageNew did not return problem -- not authorized?"
 
-  <div className="pull-right group-right-buttons">
+  <> {###<div className="group-right-buttons">###}
+    {if tags.length
+      <TagEdit tags={tags} rootClassName="tagGather push-down"
+       className="label label-default"
+       active={if clusterBy then (tag) -> tag.key in clusterBy}
+       href={(tag) -> changeSortLink sortBy, "tag.#{tag.key}"}>
+        {'By tag '}
+        <span className="caret"/>
+      </TagEdit>
+    }
     {if superuser
       <div className="btn-group">
         <button className="btn btn-warning sortSetDefault" onClick={onSortSetDefault}>
@@ -201,7 +243,7 @@ export GroupButtons = React.memo ({group, can, sortBy}) ->
         }
       </div>
     }
-    
+
     <Dropdown className="btn-group" show={dropdown}
      onToggle={(open) -> setDropdown open}>
       <TextTooltip title={postTitle}>
@@ -268,7 +310,7 @@ export GroupButtons = React.memo ({group, can, sortBy}) ->
         </a>
       </TextTooltip>
     </div>
-  </div>
+  </>
 GroupButtons.displayName = 'GroupButtons'
 
 columnCenter =
@@ -284,17 +326,7 @@ columnReverse =
   emoji: true
   subscribe: true
 
-export MessageList = React.memo ({topMessages, sortBy}) ->
-  sortLink = (key) ->
-    if key == sortBy.key
-      linkToSort
-        key: key
-        reverse: not sortBy.reverse
-    else
-      linkToSort
-        key: key
-        reverse: key of columnReverse
-
+export MessageList = React.memo ({group, topMessages, sortBy, clusterBy}) ->
   <table className="table table-striped">
     <thead>
       <tr>
@@ -311,7 +343,7 @@ export MessageList = React.memo ({topMessages, sortBy}) ->
           <th key={column}
            className={if column of columnCenter then 'text-center'}>
             <TextTooltip title={title}>
-              <a href={sortLink column}>
+              <a href={changeSortLink sortBy, column}>
                 {switch column
                   when 'subscribe'
                     'Sub'
@@ -339,9 +371,27 @@ export MessageList = React.memo ({topMessages, sortBy}) ->
     </thead>
     <tbody>
       {for message in topMessages
+        if clusterBy
+          clusters = thisClusters = sortTags message.tags, clusterBy
+          clusters = null if _.isEqual clusters, lastClusters
+          lastClusters = thisClusters
         #if canSee message
         #<a className="list-group-item" href={messageLink}>
         <ErrorBoundary key={message._id}>
+          {if clusters
+            <>
+              <tr className="cluster">
+                {if _.isEmpty clusters
+                  <td colSpan="7" className="empty"/>
+                else
+                  <td colSpan="7">
+                    <TagList tags={clusters} group={group}/>
+                  </td>
+                }
+              </tr>
+              <tr/>
+            </>
+          }
           <MessageShort message={message}/>
         </ErrorBoundary>
       }
@@ -389,10 +439,7 @@ export ImportExportButtons = React.memo ({group, can}) ->
   </div>
 ImportExportButtons.displayName = 'ImportExportButtons'
 
-export GroupTags = React.memo ({group}) ->
-  tags = useTracker ->
-    groupTags group
-  , [group]
+export GroupTags = React.memo ({tags, group}) ->
   <div className="groupTags">
     <TagList tags={tags} group={group}/>
   </div>

@@ -31,7 +31,7 @@ input.title { width: calc(100% + 5px); margin: 0px -5px 0px 0px; }
  */
 .push-down { margin-top: 5px; vertical-align: -5px; }
 .panel-heading form .push-down, .search > .panel-heading > .pull-right.push-down { margin-top: 8px; }
-.message-right-buttons, .group-right-buttons { margin: 0px -5px -5px 0px; } /* cf. panel-heading's padding of 10px */
+.message-right-buttons, .group-heading { margin: 0px -5px -5px 0px; } /* cf. panel-heading's padding of 10px */
 .panel-heading { padding: 5px 10px 10px 10px; } /* normally 10px 15px */
 .panel-heading.compact { padding: 0px 5px 5px 10px; }
 /* Fuse together root panel heading with following panel */
@@ -70,19 +70,6 @@ input.title { width: calc(100% + 5px); margin: 0px -5px 0px 0px; }
 .dark .resizer:hover, .dark .resizer.active { border-top-color: #c7ddef; }
 
 .children { margin-left: 1em; }
-
-/* Magic to get the entire tag to highlight when hovering over child:
- * http://stackoverflow.com/questions/8114657/how-to-style-the-parent-element-when-hovering-a-child-element#30104683
- */
-.tagWithRemove { pointer-events: none; }
-.tagRemove { opacity: 0.7; pointer-events: auto; }
-.tagWithRemove:hover, .tagLink span:hover { opacity: 1; cursor: pointer;
-  color: #333; background: #e6e6e6; } /* matching .btn-default:hover */
-
-.dropdown-menu.tagMenu { width: 250px; }
-.dropdown-menu.tagMenu > li.disabled > a {
-  cursor: auto; padding: 0px 5px; } /* normally 3px 20px */
-.dropdown-menu.tagMenu > li > a { font-size: 75%; } /* matches label */
 
 .center {
   display: flex; flex-direction: column; place-items: center;

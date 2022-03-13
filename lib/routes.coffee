@@ -65,39 +65,8 @@ Router.route '/:group/m/:message',
       @render()
   fastRender: true
 
-Router.route '/:group',
-  #Session.set 'group', Groups.findOne {name: @params.group}
-  #if Session.get 'group'
-  #  @render 'group'
-  #else
-  #  @render 'badGroup'
-  #,
+Router.route '/:group/:sortBy?',
   name: 'group'
-  subscriptions: -> [
-    Subscribe.subscribe 'messages.root', @params.group
-    #Subscribe.subscribe 'emoji.root', @params.group
-    Subscribe.subscribe 'groups.members', @params.group
-    Subscribe.subscribe 'tags', @params.group
-  ]
-  data: ->
-    group: @params.group
-  fastRender: true
-
-Router.route '/:group/+:sortBy?',
-  name: 'group.sorted.forward'
-  template: 'group'
-  subscriptions: -> [
-    Subscribe.subscribe 'messages.root', @params.group
-    #Subscribe.subscribe 'emoji.root', @params.group
-    Subscribe.subscribe 'groups.members', @params.group
-    Subscribe.subscribe 'tags', @params.group
-  ]
-  data: ->
-    group: @params.group
-  fastRender: true
-
-Router.route '/:group/-:sortBy?',
-  name: 'group.sorted.reverse'
   template: 'group'
   subscriptions: -> [
     Subscribe.subscribe 'messages.root', @params.group

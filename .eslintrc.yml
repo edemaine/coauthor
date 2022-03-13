@@ -73,7 +73,6 @@ globals:
   escapeGroup: readonly
   escapeRegExp: readonly
   escapeUser: readonly
-  escapeTag: readonly
   fileAbsoluteUrlPrefix: readonly
   fileType: readonly
   fileUrlPattern: readonly
@@ -94,7 +93,6 @@ globals:
   groupPartialMessagesWithRole: readonly
   groupRoleCheck: readonly
   groupSortedBy: readonly
-  groupTags: readonly
   groupVisible: readonly
   haveExplicitAccess: readonly
   highlight: readonly
@@ -103,7 +101,6 @@ globals:
   internalFileUrlPrefix: readonly
   linkToAuthor: readonly
   linkToSort: readonly
-  linkToTag: readonly
   linkify: readonly
   listToTags: readonly
   markdown: readonly
@@ -133,7 +130,6 @@ globals:
   routeSortBy: readonly
   sanitize: readonly
   setTitle: readonly
-  sortTags: readonly
   sortedGroupFullMembers: readonly
   sortedGroupPartialMembers: readonly
   subscribedToMessage: readonly
@@ -141,7 +137,6 @@ globals:
   titleSort: readonly
   undeletedMessagesQuery: readonly
   unescapeGroup: readonly
-  unescapeTag: readonly
   unescapeUser: readonly
   url2file: readonly
   url2internalFile: readonly
@@ -150,8 +145,6 @@ globals:
   urlToFile: readonly
   userSortKey: readonly
   validGroup: readonly
-  validTag: readonly
-  validTags: readonly
   validUsername: readonly
   wildGroup: readonly
 ignorePatterns:
