@@ -411,9 +411,6 @@ if Meteor.isServer
   linkTag = (text, tag, group) ->
     "<a href=\"#{linkToTag tag, group, true}\">#{text}</a>"
 
-  linkToTags = (group, tags, html) ->
-    (linkToTag(group, tag.key, html) for tag in sortTags tags).join(', ') or '(none)'
-
   notificationEmail = (notifications) ->
     return unless notifications.length > 0
     user = findUsername notifications[0].to
