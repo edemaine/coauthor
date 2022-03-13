@@ -650,7 +650,7 @@ if Meteor.isServer
                   else
                     '+'
                 tag
-            for tag in sortTags old.tags
+            for tag in sortTags old?.tags
               if escapeTag(tag.key) not of (msg.tags ? {})
                 tag.diff = '-'
                 tags.push tag
