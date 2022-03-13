@@ -58,9 +58,11 @@ Template.registerHelper 'groupDataOrWild', ->
   sortBy
 
 @linkToSort = (sortBy) ->
-  pathFor 'group',
+  unparsed = unparseSort sortBy
+  return pathFor 'group', group: routeGroup() unless unparsed
+  pathFor 'group' + unparsed[0],
     group: routeGroup()
-    sortBy: unparseSort sortBy
+    sortBy: unparsed[1..]
   .replace /%2B/g, '+'  # converts to space later
 
 changeSortLink = (sortBy, key) ->
@@ -116,14 +118,16 @@ export Group = React.memo ({group, groupData}) ->
   sortBy = useTracker ->
     routeSortBy()
   , []
-  clusterBy = useMemo ->
-    clusters = []
+  {clusterBy, primarySort} = useMemo ->
+    clusterBy = []
     for sort in sortBy
       if sort.key.startsWith 'tag.'
-        clusters.push sort.key[4..]
+        clusterBy.push sort.key[4..]
       else
+        primarySort = sort
         break
-    clusters if clusters.length
+    clusterBy = null unless clusterBy.length
+    {clusterBy, primarySort}
   , [sortBy]
   topMessages = useTracker ->
     groupSortedBy group, sortBy
@@ -149,7 +153,7 @@ export Group = React.memo ({group, groupData}) ->
     </div>
     <ErrorBoundary>
       <MessageList group={group} topMessages={topMessages}
-       sortBy={sortBy} clusterBy={clusterBy}/>
+       sortBy={sortBy} clusterBy={clusterBy} primarySort={primarySort}/>
     </ErrorBoundary>
     <div className="panel-footer clearfix">
       <ErrorBoundary>
@@ -332,7 +336,7 @@ columnReverse =
   emoji: true
   subscribe: true
 
-export MessageList = React.memo ({group, topMessages, sortBy, clusterBy}) ->
+export MessageList = React.memo ({group, topMessages, sortBy, clusterBy, primarySort}) ->
   <table className="table table-striped">
     <thead>
       <tr>
@@ -358,12 +362,12 @@ export MessageList = React.memo ({group, topMessages, sortBy, clusterBy}) ->
                   else
                     capitalize column
                 }
-                {if sortBy.key == column
-                  if sortBy.key in ['title', 'creator']
+                {if primarySort?.key == column
+                  if primarySort.key in ['title', 'creator']
                     type = 'alpha'
                   else
                     type = 'numeric'
-                  if sortBy.reverse
+                  if primarySort.reverse
                     order = 'up'
                   else
                     order = 'down'

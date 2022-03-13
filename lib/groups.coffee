@@ -411,26 +411,26 @@ Meteor.methods
         $unset: "roles.#{escapeGroup groupOld}": ''
         $set: "roles.#{escapeGroup groupNew}": roles
 
+mongosort = (key) ->
+  switch key
+    when 'posts'
+      'submessageCount'
+    when 'updated'
+      'submessageLastUpdate'
+    else
+      if key.startsWith 'tag.'
+        'tags'
+      else
+        key
 @groupSortedBy = (group, sorts, options, user = Meteor.user()) ->
   query = accessibleMessagesQuery group, user
   return [] unless query?
   query.root = null
   options = {} unless options?
   for sort in sorts
-    mongosort =
-      switch sort.key
-        when 'posts'
-          'submessageCount'
-        when 'updated'
-          'submessageLastUpdate'
-        else
-          if sort.key.startsWith 'tag.'
-            'tags'
-          else
-            sort.key
-    #options.sort = [[mongosort, if sort.reverse then 'desc' else 'asc']]
+    #options.sort = [[mongosort(sort.key), if sort.reverse then 'desc' else 'asc']]
     if options.fields
-      options.fields[mongosort] = true
+      options.fields[mongosort sort.key] = true
       if sort.key == 'subscribe'  ## fields needed for subscribedToMessage
         options.fields.group = true
         options.fields.root = true
@@ -455,8 +455,7 @@ Meteor.methods
               sum += users.length
           sum
       when 'published', 'updated', 'posts'
-        key = mongosort
-        #key = (msg) -> msg[mongosort]
+        key = mongosort sort.key
       else
         if sort.key.startsWith 'tag.'
           tag = sort.key[4..]
