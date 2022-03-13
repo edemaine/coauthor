@@ -2255,7 +2255,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
     else
       Meteor.call 'messageUpdate', message._id,
         tags: Object.assign {}, message.tags ? {}, {"#{escapeTag tag}": true}
-  onTagEdit = (e, tag, tagVal, directEdit) ->
+  onTagEdit = (e, tag, tagVal, oldTag) ->
     e.preventDefault()
     if tag
       escaped = escapeTag tag
@@ -2263,12 +2263,20 @@ export WrappedSubmessage = React.memo ({message, read}) ->
       unless exists
         Meteor.call 'tagNew', message.group, tag
       tagVal or= true  # use special 'true' value instead of empty string
-      if not directEdit and tagVal == true and
+      if not oldTag? and tagVal == true and
          message.tags?[escaped] not in [undefined, true]
         console.warn "Not blanking tag '#{tag}' on message #{message._id} which already has value '#{message.tags[escaped]}'"
       else if tagVal != message.tags?[escaped]
+        newTags = {...message.tags, "#{escapeTag tag}": tagVal}
+        if (rename = oldTag? and oldTag.key != tag)
+          delete newTags[escapeTag oldTag.key]
         Meteor.call 'messageUpdate', message._id,
-          tags: {...message.tags, "#{escapeTag tag}": tagVal}
+          tags: newTags
+        , (error) ->
+          if error
+            console.error error
+          else if rename
+            Meteor.call 'tagDelete', message.group, oldTag.key, true
       #else
       #  console.warn "No-op update tag '#{tag}' = '#{tagVal}' in message #{message._id}"
     false  ## prevent form from submitting

@@ -35,10 +35,10 @@ export TagEdit = React.memo ({tag, tags, onTagEdit, onTagSelect, onTagRemove, cl
                  placeholder="New Tag..." value={tagKey}
                  onChange={(e) -> setTagKey e.currentTarget.value}/>
                 <input className="tagVal form-control" type="text"
-                 placeholder="Value" value={tagVal}
+                 placeholder="Value (Optional)" value={tagVal}
                  onChange={(e) -> setTagVal e.currentTarget.value}/>
                 <div className={if big then "btn-group" else "input-group-btn"}>
-                  <button className="btn btn-success" type="submit" onClick={(e) -> onTagEdit e, tagKey, tagVal, tag?; onClose e}>
+                  <button className="btn btn-success" type="submit" onClick={(e) -> onTagEdit e, tagKey, tagVal, tag; onClose e}>
                     {if tag?
                       'Update'
                     else
