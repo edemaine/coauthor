@@ -62,7 +62,7 @@ changeSortLink = (sortBy, key) ->
   ## Remove this sort if it exists, to move it to the beginning.
   seenNonTag = false
   newSortBy =
-    for sort, i in sortBy
+    for sort in sortBy
       if sort.key == key
         ## If this was already the first sort, reverse it.
         reverse = not sort.reverse unless seenNonTag
