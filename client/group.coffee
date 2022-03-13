@@ -70,8 +70,9 @@ changeSortLink = (sortBy, key) ->
       else
         seenNonTag = true unless sort.key.startsWith 'tag.'
         sort
-  ## New sort at the beginning
-  newSortBy.splice 0, 0, {key, reverse}
+  ## New sort at the beginning, unless we're toggling a tag.
+  unless reverse and key.startsWith 'tag.'
+    newSortBy.splice 0, 0, {key, reverse}
   ## Put tags in front for clustering
   newSortBy = _.sortBy newSortBy, (sort) -> not sort.key.startsWith 'tag.'
   linkToSort newSortBy
@@ -109,6 +110,15 @@ export Group = React.memo ({group, groupData}) ->
   sortBy = useTracker ->
     routeSortBy()
   , []
+  clusterBy = useMemo ->
+    clusters = []
+    for sort in sortBy
+      if sort.key.startsWith 'tag.'
+        clusters.push sort.key[4..]
+      else
+        break
+    clusters if clusters.length
+  , [sortBy]
   topMessages = useTracker ->
     groupSortedBy group, sortBy
   , [group, sortBy]
@@ -127,11 +137,13 @@ export Group = React.memo ({group, groupData}) ->
         {group}
       </span>
       <ErrorBoundary>
-        <GroupButtons group={group} can={can} sortBy={sortBy} tags={tags}/>
+        <GroupButtons group={group} can={can} sortBy={sortBy}
+         clusterBy={clusterBy} tags={tags}/>
       </ErrorBoundary>
     </div>
     <ErrorBoundary>
-      <MessageList group={group} topMessages={topMessages} sortBy={sortBy}/>
+      <MessageList group={group} topMessages={topMessages}
+       sortBy={sortBy} clusterBy={clusterBy}/>
     </ErrorBoundary>
     <div className="panel-footer clearfix">
       <ErrorBoundary>
@@ -149,7 +161,7 @@ export Group = React.memo ({group, groupData}) ->
   </div>
 Group.displayName = 'Group'
 
-export GroupButtons = React.memo ({group, can, sortBy, tags}) ->
+export GroupButtons = React.memo ({group, can, sortBy, clusterBy, tags}) ->
   superuser = useTracker ->
     Session.get 'super'
   , []
@@ -213,8 +225,9 @@ export GroupButtons = React.memo ({group, can, sortBy, tags}) ->
     {if tags.length
       <TagEdit tags={tags} rootClassName="tagGather push-down"
        className="label label-default"
+       active={if clusterBy then (tag) -> tag.key in clusterBy}
        href={(tag) -> changeSortLink sortBy, "tag.#{tag.key}"}>
-        {'Gather by tag '}
+        {'By tag '}
         <span className="caret"/>
       </TagEdit>
     }
@@ -313,15 +326,7 @@ columnReverse =
   emoji: true
   subscribe: true
 
-export MessageList = React.memo ({group, topMessages, sortBy}) ->
-  groupBy = []
-  for sort in sortBy
-    if sort.key.startsWith 'tag.'
-      groupBy.push sort.key[4..]
-    else
-      break
-  groupBy = null unless groupBy.length
-
+export MessageList = React.memo ({group, topMessages, sortBy, clusterBy}) ->
   <table className="table table-striped">
     <thead>
       <tr>
@@ -366,21 +371,21 @@ export MessageList = React.memo ({group, topMessages, sortBy}) ->
     </thead>
     <tbody>
       {for message in topMessages
-        if groupBy
-          grouping = thisGrouping = sortTags message.tags, groupBy
-          grouping = null if _.isEqual grouping, lastGrouping
-          lastGrouping = thisGrouping
+        if clusterBy
+          clusters = thisClusters = sortTags message.tags, clusterBy
+          clusters = null if _.isEqual clusters, lastClusters
+          lastClusters = thisClusters
         #if canSee message
         #<a className="list-group-item" href={messageLink}>
         <ErrorBoundary key={message._id}>
-          {if grouping
+          {if clusters
             <>
-              <tr className="grouping">
-                {if _.isEmpty grouping
+              <tr className="cluster">
+                {if _.isEmpty clusters
                   <td colSpan="7" className="empty"/>
                 else
                   <td colSpan="7">
-                    <TagList tags={grouping} group={group}/>
+                    <TagList tags={clusters} group={group}/>
                   </td>
                 }
               </tr>
