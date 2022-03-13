@@ -41,17 +41,17 @@ export groupDefaultSort = (group) ->
     console.warn "Invalid default group sort: #{JSON.stringify findGroup(group)?.defaultSort}"
     parseSort defaultSort
 
-sortRegex = new RegExp "^([+-])(#{sortKeys.join '|'}|tag:[^+-]+)"
+sortRegex = new RegExp "^([+\\- ])(#{sortKeys.join '|'}|tag.(?:[^+\\- \\\\]|\\\\.)+)"
 export parseSort = (sort) ->
   return [] unless sort
   sorts =
     while (match = sort.match sortRegex)?
       sort = sort[match[0].length..]  # advance to next portion to parse
-      key: match[2]
-      reverse: match[1] == '-'
+      key: match[2].replace /\\(.)/g, '$1'
+      reverse: match[1] == '-'  # + turns into space which gets treated as +
       #reverse = match[1] == '-'
       #key = match[2]
-      #if key.startsWith 'tag:'
+      #if key.startsWith 'tag.'
       #  key: 'tag'
       #  tag: key[4..]
       #  reverse: reverse
@@ -72,9 +72,11 @@ export unparseSort = (parsed) ->
   (for sort in parsed
     (if sort.reverse then '-' else '+') +
     #if sort.key == 'tag'
-    #  "tag:#{sort.tag}"
+    #  "tag.#{sort.tag}"
     #else
       sort.key
+      .replace /\\/g, '\\\\'
+      .replace /[+-]/g, '\\$&'
   ).join ''
 
 @groupAnonymousRoles = (group) ->
@@ -422,7 +424,7 @@ Meteor.methods
         when 'updated'
           'submessageLastUpdate'
         else
-          if sort.key.startsWith 'tag:'
+          if sort.key.startsWith 'tag.'
             'tags'
           else
             sort.key
@@ -456,7 +458,7 @@ Meteor.methods
         key = mongosort
         #key = (msg) -> msg[mongosort]
       else
-        if sort.key.startsWith 'tag:'
+        if sort.key.startsWith 'tag.'
           tag = sort.key[4..]
           key = (msg) ->
             value = msg.tags?[tag]

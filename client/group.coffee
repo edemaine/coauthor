@@ -46,7 +46,7 @@ Template.registerHelper 'groupDataOrWild', ->
   try
     sortBy = parseSort Router.current().params.sortBy
   catch
-    console.warn "Invalid sortBy parameter: #{sortBy}"
+    console.warn "Invalid sortBy parameter: #{Router.current().params.sortBy}"
   unless sortBy?.length
     sortBy = groupDefaultSort routeGroup()
   sortBy
@@ -55,6 +55,7 @@ Template.registerHelper 'groupDataOrWild', ->
   pathFor 'group',
     group: routeGroup()
     sortBy: unparseSort sortBy
+  .replace /%2B/g, '+'  # converts to space later
 
 Template.registerHelper 'groups', ->
   Groups.find {},
@@ -310,7 +311,7 @@ export MessageList = React.memo ({group, topMessages, sortBy}) ->
     linkToSort newSortBy
   groupBy = []
   for sort in sortBy
-    if sort.key.startsWith 'tag:'
+    if sort.key.startsWith 'tag.'
       groupBy.push sort.key[4..]
   groupBy = null unless groupBy.length
 
@@ -355,7 +356,7 @@ export MessageList = React.memo ({group, topMessages, sortBy}) ->
             {if column == 'title' and tags.length
               <span className="gatherBtn">
                 <TagEdit tags={tags} className="label label-default"
-                href={(tag) -> sortLink "tag:#{tag.key}"}>
+                href={(tag) -> sortLink "tag.#{tag.key}"}>
                   {'Gather by tag '}
                   <span className="caret"/>
                 </TagEdit>
@@ -381,7 +382,7 @@ export MessageList = React.memo ({group, topMessages, sortBy}) ->
                   <td colSpan="7" className="empty"/>
                 else
                   <td colSpan="7">
-                    <TagList tags={grouping}/>
+                    <TagList tags={grouping} group={group}/>
                   </td>
                 }
               </tr>
