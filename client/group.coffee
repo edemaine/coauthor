@@ -343,14 +343,16 @@ export GroupSorts = React.memo ({group, can, sortBy, clusterBy, tags}) ->
 
   tweakSortBy = [...sortBy]
   <span className="sorts">
-    <span className="prefix">Sorted by:</span>
+    <TextTooltip title="Messages are sorted by these features, from most significant to least significant. Drag features to change priority, click features to reverse them, remove features via the buttons, or add features by clicking column names or the add-tag button. Tags cluster best when they have the highest priority.">
+      <span className="prefix text-help">Sorted by:</span>
+    </TextTooltip>
     {for sort, i in sortBy
       tweakSortBy[i] = {...sort, reverse: not sort.reverse}
       reversed = linkToSort tweakSortBy
       tweakSortBy[i] = sort
       <GroupSort key={sort.key} sort={sort} reversed={reversed}
        removed={linkToSort [...sortBy[...i], ...sortBy[i+1...]]}
-       group={group} dropSpec={dropSpec}/>
+       dropSpec={dropSpec}/>
     }
     <span className={classNames 'sort', dropping: dropData.dropping} ref={drop}>
       {if tags.length
@@ -364,10 +366,16 @@ export GroupSorts = React.memo ({group, can, sortBy, clusterBy, tags}) ->
         </TagEdit>
       }
     </span>
+    <TextTooltip title="Reset to group's default sort order">
+      <a href={pathFor 'group', group: routeGroup()}
+       className="btn btn-warning btn-xs pull-right">
+        Reset
+      </a>
+    </TextTooltip>
   </span>
 GroupSorts.displayName = 'GroupSorts'
 
-export GroupSort = React.memo ({sort, reversed, removed, group, dropSpec}) ->
+export GroupSort = React.memo ({sort, reversed, removed, dropSpec}) ->
   [dragData, drag] = useDrag ->
     type: 'group-sort'
     item: key: sort.key
@@ -383,7 +391,7 @@ export GroupSort = React.memo ({sort, reversed, removed, group, dropSpec}) ->
         <FontAwesomeIcon icon={faArrowDownShortWide}/>
       }
       {if sort.key.startsWith 'tag.'
-        <TagList tag={key: sort.key[4..]} group={group} noLink/>
+        <TagList tag={key: sort.key[4..]} noLink/>
       else if sort.key == 'emoji'
         <span className="fas fa-thumbs-up positive"/>
       else

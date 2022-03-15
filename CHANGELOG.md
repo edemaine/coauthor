@@ -7,6 +7,19 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2022-03-15
+
+* Group view's header restyled, with headings sticking to
+  the top of the page as you scroll.
+* Group view lists all features that messages are sorted by, so you can more
+  easily control this order.  You can drag features to re-order priority,
+  click on features to flip increasing vs. decreasing, remove features,
+  add features (as usual), and reset to default view.
+* Clicking on a header like Updated will now sort by that as primary.
+  When used with tag sorting, this will show more clusters than is optimum,
+  but is useful for seeing what threads were updated most recently.
+  Re-order the sorts to put tags in front if you want the fewest clusters.
+
 ## 2022-03-13
 
 * Notifications now show which tags were added/removed/changed.
