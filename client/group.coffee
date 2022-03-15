@@ -183,9 +183,9 @@ export Group = React.memo ({group, groupData}) ->
 Group.displayName = 'Group'
 
 export GroupButtons = React.memo ({group, can, sortBy, clusterBy, tags}) ->
-  superuser = useTracker ->
-    Session.get 'super'
-  , []
+  #superuser = useTracker ->
+  #  Session.get 'super'
+  #, []
   user = useTracker ->
     Meteor.user()
   , []
@@ -202,11 +202,6 @@ export GroupButtons = React.memo ({group, can, sortBy, clusterBy, tags}) ->
   , []
   [dropdown, setDropdown] = useState false
 
-  onSortSetDefault = (e) ->
-    e.stopPropagation()
-    unparsed = unparseSort sortBy
-    console.log "Setting default sort for #{group} to #{unparsed}"
-    Meteor.call 'groupDefaultSort', group, unparsed
   onRename = (e) ->
     Modal.show 'groupRename'
   onPost = (e) ->
@@ -243,16 +238,11 @@ export GroupButtons = React.memo ({group, can, sortBy, clusterBy, tags}) ->
         console.error "messageNew did not return problem -- not authorized?"
 
   <> {###<div className="group-right-buttons">###}
-    {if superuser
+    {if can.globalSuper ###superuser###
       <div className="btn-group">
-        <button className="btn btn-warning sortSetDefault" onClick={onSortSetDefault}>
-          Set Group Default Sort
+        <button className="btn btn-danger groupRenameButton" onClick={onRename}>
+          Rename Group
         </button>
-        {if can.globalSuper
-          <button className="btn btn-danger groupRenameButton" onClick={onRename}>
-            Rename Group
-          </button>
-        }
       </div>
     }
 
@@ -326,6 +316,14 @@ export GroupButtons = React.memo ({group, can, sortBy, clusterBy, tags}) ->
 GroupButtons.displayName = 'GroupButtons'
 
 export GroupSorts = React.memo ({group, can, sortBy, clusterBy, tags}) ->
+  superuser = useTracker ->
+    Session.get 'super'
+  , []
+  onSortSetDefault = (e) ->
+    e.stopPropagation()
+    unparsed = unparseSort sortBy
+    console.log "Setting default sort for #{group} to #{unparsed}"
+    Meteor.call 'groupDefaultSort', group, unparsed
   dropSpec = (key) ->
     accept: 'group-sort'
     drop: (item, monitor) ->
@@ -366,12 +364,21 @@ export GroupSorts = React.memo ({group, can, sortBy, clusterBy, tags}) ->
         </TagEdit>
       }
     </span>
-    <TextTooltip title="Reset to group's default sort order">
-      <a href={pathFor 'group', group: routeGroup()}
-       className="btn btn-warning btn-xs pull-right">
-        Reset
-      </a>
-    </TextTooltip>
+    <span className="pull-right btn-group">
+      {if superuser
+        <TextTooltip title="Change group's default sort order for all users">
+          <button className="btn btn-danger btn-xs sortSetDefault" onClick={onSortSetDefault}>
+            Set Group Default
+          </button>
+        </TextTooltip>
+      }
+      <TextTooltip title="Reset to group's default sort order">
+        <a href={pathFor 'group', group: routeGroup()}
+        className="btn btn-warning btn-xs">
+          Reset
+        </a>
+      </TextTooltip>
+    </span>
   </span>
 GroupSorts.displayName = 'GroupSorts'
 
