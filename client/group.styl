@@ -2,16 +2,53 @@
 .label
   vertical-align: 0.1em
 
+table.group
+  > thead
+    > tr
+      background-color: #163754
+      color: white
+      > th
+        padding-top: 4px  // half of normal 8px
+        padding-bottom: 4px  // half of normal 8px
+      &:first-child > th
+        border-bottom: 0
+      &:last-child > th
+        border-top: 1.5px solid #337ab7
+        border-bottom: 5px solid #337ab7
+      &:last-child
+        position: sticky
+        top: -1.5px // matches border-top above
+    a
+      color: #98c8f2
+      &:focus, &:hover
+        color: #c7ddef
+
 .panel-heading.group-heading
   display: flex
   flex-direction: row
   flex-wrap: wrap
   justify-content: flex-end
   gap: 0.25em
-  .title
+  > :first-child
     flex-grow: 1
   // cf. panel-heading padding of 5px 10px 10px 10px
   padding: 5px 5px 5px 10px
+
+.sorts
+  font-size: 90%
+  vertical-align: 5%
+  > .prefix
+    padding-right: 0.35rem
+  > .sort
+    // total space between items is 1rem = 0.35 + 0.3 + 0.35
+    padding: 0 0.35rem
+    border-left: 0.3rem solid transparent
+    &.dragging
+      opacity: 66%
+    &.dropping
+      border-left-color: red
+  .tagSort
+    font-size: 110%
 
 // Clustering by tags
 .table > tbody > tr.cluster
