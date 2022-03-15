@@ -11,6 +11,7 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {definition as faArrowDownShortWide} from '@fortawesome/free-solid-svg-icons/faArrowDownShortWide'
 import {definition as faArrowDownWideShort} from '@fortawesome/free-solid-svg-icons/faArrowDownWideShort'
 import {definition as faPlus} from '@fortawesome/free-solid-svg-icons/faPlus'
+import {definition as faCircleXmark} from '@fortawesome/free-solid-svg-icons/faCircleXmark'
 
 import {ErrorBoundary} from './ErrorBoundary'
 import {FormatDate} from './lib/date'
@@ -348,6 +349,7 @@ export GroupSorts = React.memo ({group, can, sortBy, clusterBy, tags}) ->
       reversed = linkToSort tweakSortBy
       tweakSortBy[i] = sort
       <GroupSort key={sort.key} sort={sort} reversed={reversed}
+       removed={linkToSort [...sortBy[...i], ...sortBy[i+1...]]}
        group={group} dropSpec={dropSpec}/>
     }
     <span className={classNames 'sort', dropping: dropData.dropping} ref={drop}>
@@ -365,29 +367,33 @@ export GroupSorts = React.memo ({group, can, sortBy, clusterBy, tags}) ->
   </span>
 GroupSorts.displayName = 'GroupSorts'
 
-export GroupSort = React.memo ({sort, reversed, group, dropSpec}) ->
+export GroupSort = React.memo ({sort, reversed, removed, group, dropSpec}) ->
   [dragData, drag] = useDrag ->
     type: 'group-sort'
     item: key: sort.key
     collect: (monitor) -> dragging: Boolean monitor.isDragging()
   [dropData, drop] = useDrop -> dropSpec sort.key
 
-  <a ref={(r) -> drag r; drop r} href={reversed}
-   className={classNames 'sort', dragging: dragData.dragging,
-                dropping: dropData.dropping}>
-    {if sort.reverse
-      <FontAwesomeIcon icon={faArrowDownWideShort}/>
-    else
-      <FontAwesomeIcon icon={faArrowDownShortWide}/>
-    }
-    {if sort.key.startsWith 'tag.'
-      <TagList tag={key: sort.key[4..]} group={group} noLink/>
-    else if sort.key == 'emoji'
-      <span className="fas fa-thumbs-up positive"/>
-    else
-      capitalize sort.key
-    }
-  </a>
+  <span className={classNames 'sort', dragging: dragData.dragging,
+                     dropping: dropData.dropping}>
+    <a ref={(r) -> drag r; drop r} href={reversed}>
+      {if sort.reverse
+        <FontAwesomeIcon icon={faArrowDownWideShort}/>
+      else
+        <FontAwesomeIcon icon={faArrowDownShortWide}/>
+      }
+      {if sort.key.startsWith 'tag.'
+        <TagList tag={key: sort.key[4..]} group={group} noLink/>
+      else if sort.key == 'emoji'
+        <span className="fas fa-thumbs-up positive"/>
+      else
+        capitalize sort.key
+      }
+    </a>
+    <a href={removed} className="sortRemove">
+      <FontAwesomeIcon icon={faCircleXmark}/>
+    </a>
+  </span>
 GroupSort.displayName = 'GroupSort'
 
 columnCenter =
