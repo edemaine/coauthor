@@ -83,7 +83,6 @@ changeSortLink = (sortBy, key) ->
         reverse = not sort.reverse if i == 0
         continue
       else
-        seenNonTag = true unless sort.key.startsWith 'tag.'
         sort
   ## New sort at the beginning.
   newSortBy.splice 0, 0, {key, reverse}
