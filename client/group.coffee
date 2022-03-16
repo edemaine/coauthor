@@ -314,13 +314,14 @@ export GroupButtons = React.memo ({group, can, sortBy, clusterBy, tags}) ->
   </>
 GroupButtons.displayName = 'GroupButtons'
 
-export GroupSorts = React.memo ({group, can, sortBy, clusterBy, tags}) ->
+export GroupSorts = React.memo ({sortBy, clusterBy, tags}) ->
   superuser = useTracker ->
     Session.get 'super'
   , []
   onSortSetDefault = (e) ->
     e.stopPropagation()
     unparsed = unparseSort sortBy
+    group = routeGroup()
     console.log "Setting default sort for #{group} to #{unparsed}"
     Meteor.call 'groupDefaultSort', group, unparsed
   dropSpec = (key) ->
