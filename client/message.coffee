@@ -4,6 +4,7 @@ import Dropdown from 'react-bootstrap/Dropdown'
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger'
 import Tooltip from 'react-bootstrap/Tooltip'
 import {useTracker} from 'meteor/react-meteor-data'
+import {useInView} from 'react-intersection-observer'
 import Blaze from 'meteor/gadicc:blaze-react-component'
 import {useMediaQuery} from 'react-responsive'
 import useEventListener from '@use-it/event-listener'
@@ -1608,6 +1609,9 @@ export WrappedTableOfContents = React.memo ({message, parent, index}) ->
     displayUser message.creator
   , [message.creator]
   children = useChildren message, true
+  inView = useTracker ->
+    messageInView.get message._id
+  , [message._id]
   inner =
     <>
       {unless isRoot
@@ -1618,7 +1622,7 @@ export WrappedTableOfContents = React.memo ({message, parent, index}) ->
       }
       <a href={pathFor 'message', {group: message.group, message: message._id}}
        data-id={message._id}
-       className="onMessageDrop #{if isRoot then 'title' else ''} #{messageClass.call message}"
+       className="onMessageDrop #{if isRoot then 'title' else ''} #{messageClass.call message} #{inView}"
        onDragStart={messageOnDragStart message}
        onDragEnter={addDragOver} onDragLeave={removeDragOver}
        onDragOver={dragOver} onDrop={dropOn}>
@@ -1666,16 +1670,7 @@ export WrappedTableOfContents = React.memo ({message, parent, index}) ->
         </ul>
 
   if isRoot
-    ref = useRef()
-    useEffect ->
-      return unless ref.current?
-      $('body').scrollspy
-        target: 'nav.contents'
-        offset: 100
-      undefined
-    , []
-
-    <nav className="contents" ref={ref}>
+    <nav className="contents">
       <ul className="nav contents">
         <li className="btn-group-xs #{if folded then 'folded' else ''}">
           {inner}
@@ -1870,6 +1865,8 @@ export Submessage = React.memo ({message, read}) ->
   </ErrorBoundary>
 Submessage.displayName = 'Submessage'
 
+messageInView = new ReactiveDict
+
 submessageCount = 0
 export WrappedSubmessage = React.memo ({message, read}) ->
   here = useTracker ->
@@ -1900,7 +1897,26 @@ export WrappedSubmessage = React.memo ({message, read}) ->
     becomeSuper: canSuper message.group, false
   , [message._id]
   ref = useRef()
+  [inViewRef, inView, intersection] = useInView
+    threshold: [0, 1]
+  fullIntersection = intersection?.intersectionRatio == 1
+  setRef = useCallback (node) ->
+    ref.current = node
+    inViewRef node
+  , [inViewRef]
   messageBodyRef = useRef()
+
+  useLayoutEffect ->
+    messageInView.set message._id,
+      if inView
+        if fullIntersection
+          'active'
+        else
+          'active partial'
+      else
+        ''
+    undefined
+  , [inView, fullIntersection]
 
   if read  # should not change
     editing = raw = folded = false
@@ -2281,7 +2297,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
       #  console.warn "No-op update tag '#{tag}' = '#{tagVal}' in message #{message._id}"
     false  ## prevent form from submitting
 
-  <div className="panel message #{messagePanelClass message, editing}" data-message={message._id} id={message._id} ref={ref}>
+  <div className="panel message #{messagePanelClass message, editing}" data-message={message._id} id={message._id} ref={setRef}>
     <div className="panel-heading clearfix">
       {if editing and not history?
         <input className="push-down form-control title" type="text" placeholder="Title" value={editTitle} onChange={onChangeTitle} tabIndex={tabindex0+18}/>

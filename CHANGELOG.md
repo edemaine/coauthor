@@ -7,6 +7,13 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2022-03-17
+
+* Table of contents highlights all messages that are visible in the main view,
+  so it's much easier to tell where you are.
+  The color is more intense for messages fully in view.
+  [[#597](https://github.com/edemaine/coauthor/issues/597)]
+
 ## 2022-03-15
 
 * Group view's header restyled, with headings sticking to

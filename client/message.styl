@@ -240,11 +240,16 @@ nav.contents
     li > a
       opacity: 0.7
 
+  // Highlight TOC entries for partially or fully visible messages.
   // Purples based on #563d7c from Bootstrap docs
-  li.active > a, .contents > li > a  // always highlight root
+  a.active
     background: #d1c5e2
     /.dark &
       background: #3c245e
+    &.partial
+      background: #ebe2f8
+      /.dark &
+        background: #241835
 
 .subcontents
   border-left: solid 2px #8465b3
