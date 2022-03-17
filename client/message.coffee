@@ -2296,9 +2296,27 @@ export WrappedSubmessage = React.memo ({message, read}) ->
       #else
       #  console.warn "No-op update tag '#{tag}' = '#{tagVal}' in message #{message._id}"
     false  ## prevent form from submitting
+  ## Scroll the table of contents (if visible) to align with this message.
+  showTOC = (e) ->
+    ## Ignore propagated events e.g. from Action dropdown button.
+    return unless e.target.className.startsWith 'panel-heading'
+    e.preventDefault()
+    toc = document.querySelector 'nav.contents'
+    return unless toc?
+    item = toc.querySelector "a[data-id='#{message._id}']"
+    return unless item?
+    msgTop = e.currentTarget.getBoundingClientRect().top
+    itemTop = 0
+    item = item.parentNode
+    while item? and not /sticky/.test item.className
+      itemTop += item.offsetTop
+      item = item.offsetParent
+    toc.scroll
+      top: itemTop - msgTop - 9  # fudge factor to align heading with toc item
+      behavior: 'smooth'
 
   <div className="panel message #{messagePanelClass message, editing}" data-message={message._id} id={message._id} ref={setRef}>
-    <div className="panel-heading clearfix">
+    <div className="panel-heading clearfix" onClick={showTOC}>
       {if editing and not history?
         <input className="push-down form-control title" type="text" placeholder="Title" value={editTitle} onChange={onChangeTitle} tabIndex={tabindex0+18}/>
       else

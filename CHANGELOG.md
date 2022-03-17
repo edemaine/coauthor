@@ -13,6 +13,9 @@ instead of version numbers.
   so it's much easier to tell where you are.
   The color is more intense for messages fully in view.
   [[#597](https://github.com/edemaine/coauthor/issues/597)]
+* Clicking on a message header scrolls the table of contents to align the
+  corresponding item, to the extent possible.
+  [[#598](https://github.com/edemaine/coauthor/issues/598)]
 
 ## 2022-03-15
 
