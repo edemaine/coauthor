@@ -25,7 +25,7 @@ import {defaultHeight, emailless, messagePreviewDefault} from './settings.coffee
 import {forceImgReload} from './lib/forceImgReload'
 import {useElementWidth} from './lib/resize'
 import {setMigrateSafe, migrateWant} from './lib/migrate'
-import {scrollBehavior} from './lib/scroll'
+import {prefersReducedMotion, scrollBehavior} from './lib/scroll'
 import {allEmoji} from '/lib/emoji'
 import {availableFormats, formatBody, formatFile, formatFileDescription, formatTitleOrFilename, parseCoauthorAuthorUrl, parseCoauthorMessageUrl} from '/lib/formats'
 import {ancestorMessages, messageDiffsExpanded, messageNeighbors, sortedMessageReaders} from '/lib/messages'
@@ -456,7 +456,8 @@ export scrollToMessage = (id) ->
     scrollToLater = null
     $('html, body').animate
       scrollTop: Math.max 0, $(dom).offset().top - 15
-    , 200, 'swing', ->
+    , (if prefersReducedMotion() then 0 else 200)
+    , 'swing', ->
       ## Focus on title edit box when scrolling to message being edited.
       ## We'd like to use `$(dom).find('input.title')`
       ## but want to exclude children.
