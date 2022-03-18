@@ -25,6 +25,7 @@ import {defaultHeight, emailless, messagePreviewDefault} from './settings.coffee
 import {forceImgReload} from './lib/forceImgReload'
 import {useElementWidth} from './lib/resize'
 import {setMigrateSafe, migrateWant} from './lib/migrate'
+import {scrollBehavior} from './lib/scroll'
 import {allEmoji} from '/lib/emoji'
 import {availableFormats, formatBody, formatFile, formatFileDescription, formatTitleOrFilename, parseCoauthorAuthorUrl, parseCoauthorMessageUrl} from '/lib/formats'
 import {ancestorMessages, messageDiffsExpanded, messageNeighbors, sortedMessageReaders} from '/lib/messages'
@@ -2313,7 +2314,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
       item = item.offsetParent
     toc.scroll
       top: itemTop - msgTop - 9  # fudge factor to align heading with toc item
-      behavior: 'smooth'
+      behavior: scrollBehavior()
 
   <div className="panel message #{messagePanelClass message, editing}" data-message={message._id} id={message._id} ref={setRef}>
     <div className="panel-heading clearfix" onClick={showTOC}>
