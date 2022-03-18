@@ -14,7 +14,7 @@ instead of version numbers.
   The color is more intense for messages fully in view.
   [[#597](https://github.com/edemaine/coauthor/issues/597)]
 * Clicking on a message header scrolls the table of contents to align the
-  corresponding item, to the extent possible.
+  corresponding item, to the extent possible, and pulses that item.
   [[#598](https://github.com/edemaine/coauthor/issues/598)]
 * Scrolling to messages or table-of-contents items now respects the browser's
   `prefers-reduced-motion` setting, avoiding smooth scrolling in that case

@@ -2298,7 +2298,8 @@ export WrappedSubmessage = React.memo ({message, read}) ->
       #else
       #  console.warn "No-op update tag '#{tag}' = '#{tagVal}' in message #{message._id}"
     false  ## prevent form from submitting
-  ## Scroll the table of contents (if visible) to align with this message.
+  ## Scroll the table of contents (if visible) to align with this message (if
+  ## possible), and pulse the table of contents item (for when not possible).
   showTOC = (e) ->
     ## Ignore propagated events e.g. from Action dropdown button.
     return unless e.target.className.startsWith 'panel-heading'
@@ -2309,13 +2310,24 @@ export WrappedSubmessage = React.memo ({message, read}) ->
     return unless item?
     msgTop = e.currentTarget.getBoundingClientRect().top
     itemTop = 0
-    item = item.parentNode
-    while item? and not /sticky/.test item.className
-      itemTop += item.offsetTop
-      item = item.offsetParent
+    ancestor = item.parentNode
+    while ancestor? and not /sticky/.test ancestor.className
+      itemTop += ancestor.offsetTop
+      ancestor = ancestor.offsetParent
     toc.scroll
       top: itemTop - msgTop - 9  # fudge factor to align heading with toc item
       behavior: scrollBehavior()
+    ## Pulse item
+    item.animate [
+      transform: 'scale(1)'
+    ,
+      transform: if prefersReducedMotion() then 'scale(1)' else 'scale(0.95)'
+      backgroundColor: '#888'
+    ,
+      transform: 'scale(1)'
+    ],
+      duration: 500
+      iterations: 3
 
   <div className="panel message #{messagePanelClass message, editing}" data-message={message._id} id={message._id} ref={setRef}>
     <div className="panel-heading clearfix" onClick={showTOC}>
