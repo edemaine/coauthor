@@ -31,6 +31,15 @@ switch markdownMode
     .use require('markdown-it-task-checkbox'),
       disabled: true
       liClass: 'task-list-item noitemlab'
+    .use require('markdown-it-anchor').default,
+      slugify: (heading) ->
+        # GitHub slugify algorithm, based on
+        # https://github.com/edemaine/markdownlint-rule-github-internal-links/blob/main/index.coffee
+        # Unique endings (-1, -2, etc.) are handled by markdown-it-anchor
+        heading.toLowerCase()
+        .replace /[^\w\- ]/g, ''
+        .replace /[ ]/g, '-'
+
     markdownIt.linkify
     .add 'coauthor:', validate: ///^#{coauthorLinkBodyHashRe}///
     @markdown = (text) -> markdownIt.render text

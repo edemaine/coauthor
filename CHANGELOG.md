@@ -9,10 +9,15 @@ instead of version numbers.
 
 ## 2022-03-20
 
-* Messages can now use internal hash links, e.g. via `<h1 id="here">` and
-  `<a href="#here">` or `[link](#here)`.  This internal `id` is mapped to
-  the message ID followed by `_here`, to avoid `id` conflicts between messages.
-  You can link to a different message's internal link via `#ID_here`.
+* Messages can now use internal hash links.
+  Markdown headings get automatic `id`s (like GitHub); for example,
+  `## Here` becomes `<h2 id="here">Here</h2>`.
+  Alternatively, you can add an `id` attribute to any HTML tag.
+  Then you can link to this `id` via `<a href="#here">` or `[link](#here)`
+  in Markdown.
+  The `id` gets prefixed by the message ID and an underscore,
+  to avoid `id` conflicts between messages.
+  You can link to a different message's internal link via `#OTHERID_here`.
   [[#586](https://github.com/edemaine/coauthor/issues/586)]
 
 ## 2022-03-17
