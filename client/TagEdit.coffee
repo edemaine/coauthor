@@ -13,7 +13,7 @@ export TagEdit = React.memo ({tag, tags, onTagEdit, onTagSelect, onTagRemove, cl
     setTagKey tag?.key ? ''
     setTagVal if tag?.value == true then '' else tag?.value ? ''
     undefined
-  , [tag]
+  , [tag?.key, tag?.value]
   onClose = (e) ->
     e.preventDefault()
     setShow false
