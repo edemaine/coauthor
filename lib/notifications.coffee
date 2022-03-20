@@ -565,6 +565,7 @@ if Meteor.isServer
               bodyHtml = formatBody msg.format, msg.body,
                 leaveTeX: true  # KaTeX CSS not in email
                 me: user.username
+                id: msg._id
               bodyText = msg.body
             else
               bodyHtml = bodyText = '(empty body)'

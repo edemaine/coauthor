@@ -102,7 +102,8 @@ export RootHeader = React.memo ({message}) ->
     formatTitleOrFilename root,
       orUntitled: false
       bold: true
-  , [root]
+      id: message._id
+  , [root, message._id]
 
   return null unless root?
   <div className="panel panel-default root" data-message={root._id}>
@@ -2152,8 +2153,8 @@ export WrappedSubmessage = React.memo ({message, read}) ->
     if raw
       "<PRE CLASS='raw'>#{_.escape historified.body}</PRE>"
     else
-      formatBody historified.format, historified.body
-  , [historified.body, historified.format, raw]
+      formatBody historified.format, historified.body, id: historified._id
+  , [historified.body, historified.format, historified._id, raw]
   formattedFile = useTracker ->
     file = findFile historified.file
     return {} unless file?

@@ -862,9 +862,11 @@ formatSearchHighlight = (isTitle, text) ->
     recurse parseSearch search
   text
 
+linkToSpecificMessageRegexp = new RegExp "^#{idRegex}(_|$)"
+
 formatEither = (isTitle, format, text, options) ->
   return text unless text?
-  {leaveTeX, bold, me} = options if options?
+  {leaveTeX, bold, me, id} = options if options?
 
   ## Markdown format is special because it processes @mentions
   ## at a specific time (after verbatim extraction).
@@ -907,7 +909,19 @@ formatEither = (isTitle, format, text, options) ->
   text = postprocessCoauthorLinks text
   text = postprocessLinks text
   text = formatSearchHighlight isTitle, text
-  sanitize text
+  text = sanitize text
+  # After sanitization, attribute keys should be lower case and
+  # attribute values should be surrounded by double quotes.
+  if id?
+    text = text
+    .replace /\bid="MESSAGE_([^"]*)"/g, (match, subId, offset, string) ->
+      return match unless inTag string, offset
+      "id=\"#{id}_#{subId}\""
+    .replace /\bhref="#([^"]*)"/g, (match, hash, offset, string) ->
+      return match unless inTag string, offset
+      return if linkToSpecificMessageRegexp.test hash
+      "href=\"##{id}_#{hash}\""
+  text
 
 formatEitherSafe = (isTitle, format, text, options) ->
   try
@@ -985,7 +999,7 @@ export formatFilename = (msg, options) ->
 
 export formatTitleOrFilename = (msg, options) ->
   if msg.format and msg.title?.trim().length
-    formatTitle msg.format, msg.title, options
+    formatTitle msg.format, msg.title, {...options, id: msg._id}
   else
     formatFilename msg, options
 

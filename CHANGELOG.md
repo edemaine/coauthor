@@ -7,6 +7,14 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2022-03-20
+
+* Messages can now use internal hash links, e.g. via `<h1 id="here">` and
+  `<a href="#here">` or `[link](#here)`.  This internal `id` is mapped to
+  the message ID followed by `_here`, to avoid `id` conflicts between messages.
+  You can link to a different message's internal link via `#ID_here`.
+  [[#586](https://github.com/edemaine/coauthor/issues/586)]
+
 ## 2022-03-17
 
 * Table of contents highlights all messages that are visible in the main view,
