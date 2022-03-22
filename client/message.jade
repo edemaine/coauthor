@@ -41,19 +41,6 @@ template(name="submessage")
   div
     +React component=Submessage message=message
 
-//- Used by group's messageShort template
-template(name="messageLabels")
-  span.messageLabels
-    if deleted
-      span.label.label-danger Deleted
-    //-else
-    unless published
-      span.label.label-warning Unpublished
-    if private
-      span.label.label-info Private
-    if minimized
-      span.label.label-success Minimized
-
 //- The following two templates have been ported to React
     but are still needed for Settings view
 template(name="keyboardSelector")
