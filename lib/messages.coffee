@@ -72,6 +72,12 @@ export rootMessages = (group) ->
     query.group = group
   Messages.find query
 
+export descendantMessagesQuery = (root) ->
+  $or: [
+    _id: root
+  , root: root
+  ]
+
 ## Works from nonroot messages via recursion.  Doesn't include message itself.
 export descendantMessageIds = (message) ->
   descendants = []
@@ -266,12 +272,7 @@ if Meteor.isServer
       return @ready() unless query?
       root = message.root ? msgId
       Messages.find
-        $and: [query,
-          $or: [
-            _id: root
-          , root: root
-          ]
-        ]
+        $and: [query, descendantMessagesQuery root]
 
 if Meteor.isServer
   ## Returns a query for the messages matching the given query (possibly

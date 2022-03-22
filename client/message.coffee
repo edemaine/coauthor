@@ -28,7 +28,7 @@ import {setMigrateSafe, migrateWant} from './lib/migrate'
 import {prefersReducedMotion, scrollBehavior} from './lib/scroll'
 import {allEmoji} from '/lib/emoji'
 import {availableFormats, formatBody, formatFile, formatFileDescription, formatTitleOrFilename, parseCoauthorAuthorUrl, parseCoauthorMessageUrl} from '/lib/formats'
-import {ancestorMessages, messageDiffsExpanded, messageNeighbors, sortedMessageReaders} from '/lib/messages'
+import {ancestorMessages, descendantMessagesQuery, messageDiffsExpanded, messageNeighbors, sortedMessageReaders} from '/lib/messages'
 import {autosubscribe, defaultNotificationsOn} from '/lib/notifications'
 import {autopublish, defaultKeyboard, userKeyboard, themeEditor} from '/lib/settings'
 import {escapeTag, sortTags} from '/lib/tags'
@@ -270,6 +270,8 @@ Message = React.memo ({message}) ->
   </>
 Message.displayName = 'Message'
 
+pinnedIndex = new ReactiveDict  # maps pinned message IDs to indices 1, 2, ...
+
 MessageInfoBoxes = React.memo ({message}) ->
   orphans = useTracker ->
     messageOrphans message._id
@@ -313,6 +315,28 @@ MessageInfoBoxes = React.memo ({message}) ->
       </React.Fragment>
     )
   , [message._id, message.group]
+  pinnedMessages = useTracker ->
+    pinnedIndex.clear()
+    index = 1
+    Messages.find $and: [
+      descendantMessagesQuery message2root message
+    ,
+      group: message.group
+      pinned: true
+    ],
+      sort: updated: 1
+      fields:
+        format: true
+        title: true
+        file: true
+        updated: true
+    .map (pinnedMessage) ->
+      pinnedIndex.set pinnedMessage._id, index
+      index: index++
+      _id: pinnedMessage._id
+      updated: formatDate pinnedMessage.updated
+      formattedTitle: formatTitleOrFilename pinnedMessage, bold: true
+  , [message._id, message.group, message.root]
 
   <>
     <div className="authors alert alert-info">
@@ -358,6 +382,29 @@ MessageInfoBoxes = React.memo ({message}) ->
             <Submessage key={orphan._id} message={orphan}/>
           }
         </p>
+      </div>
+    }
+    {if pinnedMessages.length
+      <div className="pinned alert alert-special">
+        <p><b>Pinned messages in this thread:</b></p>
+        <ul className="pinned">
+          {for pinnedMessage in pinnedMessages
+            <li key={pinnedMessage._id}>
+              <a href={pathFor 'message',
+                group: message.group
+                message: pinnedMessage._id
+              }>
+                <span className="fas fa-thumbtack"/>
+                {pinnedMessage.index}
+                {' '}
+                <span className="title"
+                 dangerouslySetInnerHTML={__html: pinnedMessage.formattedTitle}/>
+                {' '}
+                (last updated {pinnedMessage.updated})
+              </a>
+            </li>
+          }
+        </ul>
       </div>
     }
   </>
@@ -496,6 +543,9 @@ export MessageIcons = React.memo ({message, editors}) ->
   editors = useTracker ->
     (displayUser editor for editor in message.editing ? []).join ', '
   , [message.editing?.join ',']
+  pinIndex = useTracker ->
+    pinnedIndex.get message._id
+  , [message._id]
 
   <>
     {if editors
@@ -509,6 +559,7 @@ export MessageIcons = React.memo ({message, editors}) ->
     {if message.pinned
       <>
         <span className="fas fa-thumbtack"/>
+        {pinIndex}
         {' '}
       </>
     }
