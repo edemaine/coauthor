@@ -517,6 +517,9 @@ if Meteor.isServer
           if msg.minimized
             adjectivesText.push 'MINIMIZED '
             adjectivesHTML.push '<span style="color:#449d44">MINIMIZED</span> '
+          if msg.pinned
+            adjectivesText.push 'PINNED '
+            adjectivesHTML.push '<span style="color:#a8871f">PINNED</span> '
           if msg.protected
             adjectivesText.push 'PROTECTED '
             adjectivesHTML.push '<span style="color:#5bc0de">PROTECTED</span> '
@@ -630,6 +633,11 @@ if Meteor.isServer
               bullet "MINIMIZED"
             else
               bullet "UNMINIMIZED"
+          if changed.pinned
+            if msg.pinned
+              bullet "PINNED"
+            else
+              bullet "UNPINNED"
           if changed.protected
             if msg.protected
               bullet "PROTECTED"

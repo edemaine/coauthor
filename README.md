@@ -139,8 +139,9 @@ To see what's changed in Coauthor recently, check out the
   subscribed (by clicking on the corresponding column, once for default sort
   order and again for opposite sort order).  Intelligent handling of numbers
   while sorting, e.g. "9." comes before "10.".  Deleted messages always sort
-  to the very bottom; minimized messages always sort near the bottom; and
-  unpublished messages always sort near the top.
+  to the very bottom; minimized messages always sort near the bottom;
+  pinned messages always sort near the top; and
+  unpublished messages always sort near the very top.
 
 * "**Live Feed**" to watch messages as they get changed/posted.  Useful for
   projecting the latest activity onto a big screen while a group is gathered
@@ -206,8 +207,8 @@ To see what's changed in Coauthor recently, check out the
     or you can combine the two with e.g. `emoji:thumbs*@username`.
   * `is:root` matches root messages (tops of threads).
   * `is:file` matches file messages (made via Attach).
-  * `is:deleted`, `is:published`, `is:private`, `is:minimized`, `is:protected`
-    match various states of messages.
+  * `is:deleted`, `is:published`, `is:private`, `is:minimized`, `is:pinned`,
+    `is:protected` match various states of messages.
   * `is:empty` matches empty messages (no title, body, or file).
   * `not:...` or `isnt:...` are negated forms of the above `is:...` operators,
     equivalent to `-is:...`.

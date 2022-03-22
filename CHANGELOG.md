@@ -7,6 +7,16 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2022-03-22
+
+* Messages can now be pinned to highlight them as "important"
+  (like the opposite of "minimized").
+  Pinned messages get a pin icon and yellow color.
+  Pinned root messages get their threads sorted to the top in group view.
+  [[#599](https://github.com/edemaine/coauthor/issues/599)]
+* The icons for whether a message is being edited or is a file
+  now show up in the group view.
+
 ## 2022-03-20
 
 * Messages can now use internal hash links.

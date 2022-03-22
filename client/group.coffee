@@ -15,7 +15,7 @@ import {faCircleXmark} from '@fortawesome/free-solid-svg-icons/faCircleXmark'
 
 import {ErrorBoundary} from './ErrorBoundary'
 import {FormatDate} from './lib/date'
-import {MessageLabels, messageClass, uploaderProps} from './message.coffee'
+import {MessageIcons, MessageLabels, messageClass, uploaderProps} from './message.coffee'
 import {TagEdit} from './TagEdit'
 import {TagList} from './TagList'
 import {TextTooltip} from './lib/tooltip'
@@ -637,6 +637,7 @@ export MessageShort = React.memo ({message, clusterBy}) ->
   <tr className="messageShort #{messageClass.call message}">
     <td className="title">
       <a href={messageLink}>
+        <MessageIcons message={message}/>
         <span dangerouslySetInnerHTML={__html: formattedTitle}/>
         {###<MessageTags message={message} noLink/>###}
         <TagList tags={tags} group={message.group} noLink/>

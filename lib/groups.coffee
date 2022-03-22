@@ -436,6 +436,7 @@ mongosort = (key) ->
         options.fields.root = true
       options.fields.deleted = true
       options.fields.minimized = true
+      options.fields.pinned = true
       options.fields.published = true
   msgs = Messages.find query, options
   .fetch()
@@ -475,8 +476,9 @@ mongosort = (key) ->
   msgs = _.sortBy msgs,
     (msg) ->
       weight = 0
-      weight += 4 if msg.deleted  ## deleted messages go very bottom
-      weight += 2 if msg.minimized  ## minimized messages go bottom
-      weight -= 1 unless msg.published  ## unpublished messages go top
+      weight += 8 if msg.deleted  ## deleted messages go very bottom
+      weight += 4 if msg.minimized  ## minimized messages go bottom
+      weight -= 1 if msg.pinned  ## pinned messages go top
+      weight -= 2 unless msg.published  ## unpublished messages go very top
       weight
   msgs

@@ -542,6 +542,8 @@ if Meteor.isServer
 @canPublish = canEdit
 @canMinimize = canEdit
 @canUnminimize = canEdit
+@canPin = canEdit
+@canUnpin = canEdit
 ## Older behavior: only superusers can unpublish once published
 #@canUnpublish = (message) ->
 #  canSuper message2group message
@@ -804,6 +806,7 @@ export messageContentFields = [
   'deleted'
   'private'
   'minimized'
+  'pinned'
   'protected'
   'rotate'
   'coauthors'
@@ -887,6 +890,7 @@ _messageUpdate = (id, message, authors = null, old = null) ->
     deleted: Match.Optional Boolean
     private: Match.Optional Boolean
     minimized: Match.Optional Boolean
+    pinned: Match.Optional Boolean
     protected: Match.Optional Boolean
     rotate: Match.Optional Match.Where (r) ->
       typeof r == "number" and -180 < r <= 180
@@ -1247,6 +1251,7 @@ Meteor.methods
       deleted: Match.Optional Boolean
       private: Match.Optional Boolean
       minimized: Match.Optional Boolean
+      pinned: Match.Optional Boolean
       protected: Match.Optional Boolean
       rotate: Match.Optional Match.Where (r) ->
         typeof r == "number" and -180 < r <= 180
@@ -1404,6 +1409,7 @@ Meteor.methods
       deleted: Match.Optional Boolean
       #private: Match.Optional Boolean
       #minimized: Match.Optional Boolean
+      #pinned: Match.Optional Boolean
       #protected: Match.Optional Boolean
       creator: Match.Optional String
       created: Match.Optional Date
@@ -1423,6 +1429,7 @@ Meteor.methods
       deleted: Match.Optional Boolean
       #private: Match.Optional Boolean
       #minimized: Match.Optional Boolean
+      #pinned: Match.Optional Boolean
       #protected: Match.Optional Boolean
       updated: Match.Optional Date
       updators: Match.Optional [String]

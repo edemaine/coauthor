@@ -55,12 +55,14 @@ globals:
   canMaybeParent: readonly
   canMinimize: readonly
   canParent: readonly
+  canPin: readonly
   canPost: readonly
   canPrivate: readonly
   canProtect: readonly
   canPublish: readonly
   canReply: readonly
   canUndelete: readonly
+  canUnpin: readonly
   canUnpublish: readonly
   canUnminimize: readonly
   canSee: readonly

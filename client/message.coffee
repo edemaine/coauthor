@@ -377,6 +377,8 @@ export messageClass = ->
     'private'
   else if @minimized
     'minimized'
+  else if @pinned
+    'pinned'
   else
     'published'
 
@@ -489,6 +491,34 @@ ReadMessage.displayName = 'ReadMessage'
 Template.submessage.helpers
   Submessage: -> Submessage
   message: -> @
+
+export MessageIcons = React.memo ({message, editors}) ->
+  editors = useTracker ->
+    (displayUser editor for editor in message.editing ? []).join ', '
+  , [message.editing?.join ',']
+
+  <>
+    {if editors
+      <>
+        <TextTooltip title={"Being edited by #{editors}"}>
+          <span className="fas fa-edit"/>
+        </TextTooltip>
+        {' '}
+      </>
+    }
+    {if message.pinned
+      <>
+        <span className="fas fa-thumbtack"/>
+        {' '}
+      </>
+    }
+    {if message.file
+      <>
+        <span className="fas fa-paperclip"/>
+        {' '}
+      </>
+    }
+  </>
 
 export MessageTags = React.memo ({message, noLink}) ->
   <span className="messageTags">
@@ -1033,6 +1063,7 @@ panelClass =
   unpublished: 'panel-warning'
   private: 'panel-info'
   minimized: 'panel-success'
+  pinned: 'panel-special'
   published: 'panel-primary'
 messagePanelClass = (message, editing) ->
   classes = []
@@ -1600,9 +1631,6 @@ export WrappedTableOfContents = React.memo ({message, parent, index}) ->
     Meteor.user()
   , []
   editing = editingMessage message, user
-  editors = useTracker ->
-    (displayUser editor for editor in message.editing ? []).join ', '
-  , [message.editing?.join ',']
   folded = useTracker ->
     (messageFolded.get message._id) and
     not (routeHere message._id) and           # never fold if top-level message
@@ -1629,20 +1657,7 @@ export WrappedTableOfContents = React.memo ({message, parent, index}) ->
        onDragStart={messageOnDragStart message}
        onDragEnter={addDragOver} onDragLeave={removeDragOver}
        onDragOver={dragOver} onDrop={dropOn}>
-        {if editors
-          <>
-            <TextTooltip title={"Being edited by #{editors}"}>
-              <span className="fas fa-edit"/>
-            </TextTooltip>
-            {' '}
-          </>
-        }
-        {if message.file
-          <>
-            <span className="fas fa-paperclip"/>
-            {' '}
-          </>
-        }
+        <MessageIcons message={message}/>
         <span dangerouslySetInnerHTML={__html: formattedTitle}/>
         {' '}
         <span className="creator">
@@ -1890,6 +1905,8 @@ export WrappedSubmessage = React.memo ({message, read}) ->
     unpublish: canUnpublish message._id
     minimize: canMinimize message._id
     unminimize: canUnminimize message._id
+    pin: canPin message._id
+    unpin: canUnpin message._id
     protect: canProtect message._id
     superdelete: canSuperdelete message._id
     private: canPrivate message._id
@@ -2129,9 +2146,6 @@ export WrappedSubmessage = React.memo ({message, read}) ->
       .fetch()
     , [message.group, _.keys(message.tags ? {}).join '\n']
 
-  editors = useTracker ->
-    (displayUser editor for editor in message.editing ? []).join ', '
-  , [message.editing?.join ',']
   historified = history ? message
   messageFileType = useTracker ->
     if historified.file
@@ -2364,22 +2378,9 @@ export WrappedSubmessage = React.memo ({message, read}) ->
             }
           </span>
           <span className="space"/>
-          {if not history? and editors
-            <>
-              <TextTooltip title={"Being edited by #{editors}"}>
-                <span className="fas fa-edit"/>
-              </TextTooltip>
-              {' '}
-            </>
-          }
-          {if historified.file
-            <>
-              <span className="fas fa-paperclip"/>
-              {' '}
-            </>
-          }
+          <MessageIcons message={historified}/>
           <span className="title panel-title"
-          dangerouslySetInnerHTML={__html: formattedTitle[0]}/>
+           dangerouslySetInnerHTML={__html: formattedTitle[0]}/>
           <MessageTags message={historified}/>
           <MessageLabels message={historified}/>
         </span>
@@ -2640,9 +2641,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
                   <span className="fas fa-caret-up"/>
                 </a>
                 <span className="space"/>
-                {if historified.file
-                  <span className="fas fa-paperclip"/>
-                }
+                <MessageIcons message={historified}/>
                 <span className="panel-title"
                 dangerouslySetInnerHTML={__html: formattedTitle[1]}/>
                 <MessageTags message={message}/>
@@ -2690,6 +2689,11 @@ export MessageActions = React.memo ({message, can, editing, tabindex0}) ->
     Meteor.call 'messageUpdate', message._id,
       minimized: not message.minimized
       finished: true
+  onPin = (e) ->
+    e.preventDefault()
+    Meteor.call 'messageUpdate', message._id,
+      pinned: not message.pinned
+      finished: true
   onProtect = (e) ->
     e.preventDefault()
     Meteor.call 'messageUpdate', message._id,
@@ -2716,13 +2720,32 @@ export MessageActions = React.memo ({message, can, editing, tabindex0}) ->
       coauthors: $addToSet: [myUsername]
       finished: true
 
-  return null unless can.minimize or can.unminimize or can.delete or can.undelete or can.publish or can.unpublish or can.superdelete or can.private or can.protect
+  return null unless can.pin or can.unpin or can.minimize or can.unminimize or can.delete or can.undelete or can.publish or can.unpublish or can.superdelete or can.private or can.protect
   <Dropdown className="btn-group">
     <Dropdown.Toggle variant="info" tabIndex={tabindex0+4}>
       {"Action "}
       <span className="caret"/>
     </Dropdown.Toggle>
     <Dropdown.Menu align="right" className="actionMenu buttonMenu">
+      {if message.pinned
+        if can.unpin
+          <li>
+            <Dropdown.Item className="pinMsgButton" href="#">
+              <TextTooltip placement="left" title="Remove this message's pin, marking it as no longer important for everyone.">
+                <button className="btn btn-danger btn-block" onClick={onPin}>Unpin</button>
+              </TextTooltip>
+            </Dropdown.Item>
+          </li>
+      else
+        if can.pin
+          <li>
+            <Dropdown.Item className="pinMsgButton" href="#">
+              <TextTooltip placement="left" title="Pin this message, marking it as important for everyone. Pinned messages are listed at the bottom of the thread.">
+                <button className="btn btn-success btn-block" onClick={onPin}>Pin</button>
+              </TextTooltip>
+            </Dropdown.Item>
+          </li>
+      }
       {if message.minimized
         if can.unminimize
           <li>
