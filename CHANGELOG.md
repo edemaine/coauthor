@@ -7,6 +7,13 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2022-04-11
+
+* Hovering over a message highlights the corresponding item
+  of the table of contents, or if that item is out of visual range,
+  the relevant border.
+  [[#598](https://github.com/edemaine/coauthor/issues/598)]
+
 ## 2022-03-22
 
 * Messages can now be pinned to highlight them as "important"

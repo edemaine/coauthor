@@ -1671,6 +1671,28 @@ export TableOfContents = React.memo ({message, parent, index}) ->
   </ErrorBoundary>
 TableOfContents.displayName = 'TableOfContents'
 
+tocItemTop = (item) ->
+  itemTop = 0
+  ancestor = item.parentNode
+  while ancestor? and not /sticky/.test ancestor.className
+    itemTop += ancestor.offsetTop
+    ancestor = ancestor.offsetParent
+  itemTop
+
+tocHoverIndicator = _.debounce ->
+  toc = document.querySelector 'nav.contents'
+  return unless toc?  # not in a view with table of contents
+  toc.previousSibling?.classList.remove 'active'
+  toc.nextSibling?.classList.remove 'active'
+  item = toc.querySelector '.hover'
+  return unless item?  # no hovered item
+  top = tocItemTop item
+  if top < toc.scrollTop
+    toc.previousSibling?.classList.add 'active'
+  else if top > toc.scrollTop + toc.clientHeight
+    toc.nextSibling?.classList.add 'active'
+, 100
+
 export WrappedTableOfContents = React.memo ({message, parent, index}) ->
   isRoot = not parent?  # should not differ between calls (for hook properties)
   formattedTitle = useTracker ->
@@ -1739,14 +1761,18 @@ export WrappedTableOfContents = React.memo ({message, parent, index}) ->
         </ul>
 
   if isRoot
-    <nav className="contents">
-      <ul className="nav contents">
-        <li className="btn-group-xs #{if folded then 'folded' else ''}">
-          {inner}
-        </li>
-      </ul>
-      {children}
-    </nav>
+    <>
+      <div className="top indicator"/>
+      <nav className="contents" onScroll={tocHoverIndicator}>
+        <ul className="nav contents">
+          <li className="btn-group-xs #{if folded then 'folded' else ''}">
+            {inner}
+          </li>
+        </ul>
+        {children}
+      </nav>
+      <div className="bottom indicator"/>
+    </>
   else
     <li className="btn-group-xs #{if folded then 'folded' else ''}">
       {inner}
@@ -2367,36 +2393,44 @@ export WrappedSubmessage = React.memo ({message, read}) ->
   ## Scroll the table of contents (if visible) to align with this message (if
   ## possible), and pulse the table of contents item (for when not possible).
   showTOC = (e) ->
-    ## Ignore propagated events e.g. from Action dropdown button.
-    return unless e.target.className.startsWith 'panel-heading'
     e.preventDefault()
+    ## Find corresponding table of contents entry
     toc = document.querySelector 'nav.contents'
-    return unless toc?
+    return unless toc?  # not in a view with table of contents
     item = toc.querySelector "a[data-id='#{message._id}']"
-    return unless item?
+    return unless item?  # this message is hidden in table of contents
     msgTop = e.currentTarget.getBoundingClientRect().top
-    itemTop = 0
-    ancestor = item.parentNode
-    while ancestor? and not /sticky/.test ancestor.className
-      itemTop += ancestor.offsetTop
-      ancestor = ancestor.offsetParent
-    toc.scroll
-      top: itemTop - msgTop - 9  # fudge factor to align heading with toc item
-      behavior: scrollBehavior()
-    ## Pulse item
-    item.animate [
-      transform: 'scale(1)'
-    ,
-      transform: if prefersReducedMotion() then 'scale(1)' else 'scale(0.95)'
-      backgroundColor: '#888'
-    ,
-      transform: 'scale(1)'
-    ],
-      duration: 500
-      iterations: 3
+    itemTop = tocItemTop item
+    switch e.type
+      when 'mouseenter'
+        item.classList.add 'hover'
+        tocHoverIndicator()
+      when 'mouseleave'
+        item.classList.remove 'hover'
+        tocHoverIndicator()
+      when 'click'
+        ## Ignore propagated click events e.g. from Action dropdown button.
+        return unless e.target.className.startsWith 'panel-heading'
+        ## Scroll to align TOC item with message header
+        toc.scroll
+          top: itemTop - msgTop - 9  # fudge factor
+          behavior: scrollBehavior()
+        ## Pulse TOC item
+        item.animate [
+          transform: 'scale(1)'
+        ,
+          transform:
+            if prefersReducedMotion() then 'scale(1)' else 'scale(0.95)'
+          backgroundColor: '#888'
+        ,
+          transform: 'scale(1)'
+        ],
+          duration: 500
+          iterations: 3
 
   <div className="panel message #{messagePanelClass message, editing}" data-message={message._id} id={message._id} ref={setRef}>
-    <div className="panel-heading clearfix" onClick={showTOC}>
+    <div className="panel-heading clearfix" onClick={showTOC}
+     onMouseEnter={showTOC} onMouseLeave={showTOC}>
       {if editing and not history?
         <input className="push-down form-control title" type="text" placeholder="Title" value={editTitle} onChange={onChangeTitle} tabIndex={tabindex0+18}/>
       else

@@ -188,6 +188,22 @@ bootstrap-3-button(bg-color) // based on mixins/buttons.less
 .toc-toggle
   margin-top: -19.39px  // rendered height, putting exactly into margin
 
+.indicator
+  position: absolute
+  left: 0
+  width: calc(100% - 15px)  // 15px from right padding of .col-xs-3 parent
+  height: 8px
+  border: 4px solid transparent
+  z-index: 2000  // above 1020 from .sticky-top
+  &.top
+    top: 0
+    &.active
+      border-top-color: #f0f
+  &.bottom
+    bottom: 0
+    &.active
+      border-bottom-color: #f0f
+
 nav.contents
   padding-bottom: 5px
   height: 100%  // match parent height set in JavaScript
@@ -254,6 +270,12 @@ nav.contents
       background: #ebe2f8
       /.dark &
         background: #241835
+  // Hovering over corresponding message overrides color from visibility
+  // to a hue of 300
+  a.hover
+    background: #f8bff8 !important
+    /.dark &
+      background: #5c1d5c !important
 
 .subcontents
   border-left: solid 2px #8465b3
@@ -291,10 +313,6 @@ nav.contents
     height: 4px
 
 // Message heading
-
-.message
-  > .panel-heading:hover
-    border-color: red
 
 // Message body
 
