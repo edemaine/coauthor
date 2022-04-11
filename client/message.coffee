@@ -1693,6 +1693,12 @@ tocHoverIndicator = _.debounce ->
     toc.nextSibling?.classList.add 'active'
 , 100
 
+tocHoverItem = (e) ->
+  id = e.target.dataset.id
+  return unless id?
+  document.querySelector "[data-message='#{id}']"
+  ?.classList.toggle 'hover', e.type == 'mouseenter'
+
 export WrappedTableOfContents = React.memo ({message, parent, index}) ->
   isRoot = not parent?  # should not differ between calls (for hook properties)
   formattedTitle = useTracker ->
@@ -1729,7 +1735,8 @@ export WrappedTableOfContents = React.memo ({message, parent, index}) ->
        className="onMessageDrop #{if isRoot then 'title' else ''} #{messageClass.call message} #{inView}"
        onDragStart={messageOnDragStart message}
        onDragEnter={addDragOver} onDragLeave={removeDragOver}
-       onDragOver={dragOver} onDrop={dropOn}>
+       onDragOver={dragOver} onDrop={dropOn}
+       onMouseEnter={tocHoverItem} onMouseLeave={tocHoverItem}>
         <MessageIcons message={message}/>
         <span dangerouslySetInnerHTML={__html: formattedTitle}/>
         {' '}

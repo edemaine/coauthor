@@ -13,6 +13,8 @@ instead of version numbers.
   of the table of contents, or if that item is out of visual range,
   the relevant border.
   [[#598](https://github.com/edemaine/coauthor/issues/598)]
+* Hovering over a table-of-contents item highlights the corresponding message.
+  [[#552](https://github.com/edemaine/coauthor/issues/552)]
 
 ## 2022-03-22
 
