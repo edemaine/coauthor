@@ -1969,6 +1969,19 @@ Submessage.displayName = 'Submessage'
 
 messageInView = new ReactiveDict
 
+## Maintain whether selection changed nontrivially recently, which causes
+## the following click to be ignored by showTOC.
+skipClick = false
+document.addEventListener 'selectionchange', ->
+  selection = document.getSelection()
+  for i in [0...selection.rangeCount]
+    range = selection.getRangeAt i
+    unless range.startContainer == range.endContainer and
+           range.startOffset == range.endOffset
+      skipClick = true
+      return
+window.addEventListener 'click', -> skipClick = false
+
 submessageCount = 0
 export WrappedSubmessage = React.memo ({message, read}) ->
   here = useTracker ->
@@ -2400,7 +2413,6 @@ export WrappedSubmessage = React.memo ({message, read}) ->
   ## Scroll the table of contents (if visible) to align with this message (if
   ## possible), and pulse the table of contents item (for when not possible).
   showTOC = (e) ->
-    e.preventDefault()
     ## Find corresponding table of contents entry
     toc = document.querySelector 'nav.contents'
     return unless toc?  # not in a view with table of contents
@@ -2416,8 +2428,11 @@ export WrappedSubmessage = React.memo ({message, read}) ->
         item.classList.remove 'hover'
         tocHoverIndicator()
       when 'click'
-        ## Ignore propagated click events e.g. from Action dropdown button.
-        return unless e.target.className.startsWith 'panel-heading'
+        return if skipClick  # ignore selecting clicks
+        ## Ignore propagated click events e.g. from Action dropdown button
+        ## or from Replace File hidden <input>.
+        return unless /panel-heading|panel-title/.test e.target.className
+        e.preventDefault()
         ## Scroll to align TOC item with message header
         toc.scroll
           top: itemTop - msgTop - 9  # fudge factor

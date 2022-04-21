@@ -7,6 +7,12 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2022-04-21
+
+* Fix "Replace File" button and improve behavior of clicking on message header
+  to highlight corresponding item in Table of Contents.
+  [[#598](https://github.com/edemaine/coauthor/issues/598)]
+
 ## 2022-04-11
 
 * Hovering over a message highlights the corresponding item
