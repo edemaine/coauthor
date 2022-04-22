@@ -1,6 +1,7 @@
 import {check, Match} from 'meteor/check'
 import {Mongo} from 'meteor/mongo'
 import {ShareJS} from 'meteor/edemaine:sharejs'
+import dayjs from 'dayjs'
 
 import {dateMax} from './dates'
 import {groupDefaultSort} from './groups'
@@ -425,16 +426,16 @@ export parseSince = (since) ->
     if match?
       amount = parseFloat match[1]
       return null if isNaN amount
-      moment().subtract(amount, match[2]).toDate()
+      dayjs().subtract(amount, match[2]).toDate()
     else
       match = /^\s*(\d+)\s*:\s*(\d+)\s*$/.exec since
       if match?
-        d = moment().hour(match[1]).minute(match[2])
-        if moment().diff(d) < 0
+        d = dayjs().hour(match[1]).minute(match[2])
+        if dayjs().isBefore d
           d = d.subtract(1, 'day')
         d.toDate()
       else
-        d = moment(since)
+        d = dayjs(since)
         return null unless d.isValid()
         d.toDate()
   catch

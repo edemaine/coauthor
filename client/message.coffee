@@ -29,7 +29,7 @@ import {prefersReducedMotion, scrollBehavior} from './lib/scroll'
 import {allEmoji} from '/lib/emoji'
 import {availableFormats, formatBody, formatFile, formatFileDescription, formatTitleOrFilename, parseCoauthorAuthorUrl, parseCoauthorMessageUrl} from '/lib/formats'
 import {ancestorMessages, descendantMessagesQuery, messageDiffsExpanded, messageNeighbors, sortedMessageReaders} from '/lib/messages'
-import {autosubscribe, defaultNotificationsOn} from '/lib/notifications'
+import {autosubscribe, defaultNotificationsOn, messageSubscribers} from '/lib/notifications'
 import {autopublish, defaultKeyboard, userKeyboard, themeEditor} from '/lib/settings'
 import {escapeTag, sortTags} from '/lib/tags'
 

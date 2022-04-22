@@ -2,6 +2,7 @@ import {check, Match} from 'meteor/check'
 import {Mongo} from 'meteor/mongo'
 
 import {escapeKey, unescapeKey, validKey} from './escape'
+import {subscribedToMessage} from './notifications'
 import {profilingStartup} from './profiling'
 
 @wildGroup = '*'

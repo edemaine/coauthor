@@ -29,7 +29,6 @@ globals:
   Template: readonly
   Tracker: readonly
   WebApp: readonly
-  moment: readonly
   # Coauthor databases
   Emoji: readonly
   EmojiMessages: readonly
@@ -117,11 +116,9 @@ globals:
   message2root: readonly
   messageReaders: readonly
   messageRoleCheck: readonly
-  messageSubscribers: readonly
   messagesBy: readonly
   messagesByQuery: readonly
   messagesTaggedQuery: readonly
-  momentInUserTimezone: readonly
   notifyMessageUpdate: readonly
   pathFor: readonly
   pluralize: readonly
@@ -135,7 +132,6 @@ globals:
   setTitle: readonly
   sortedGroupFullMembers: readonly
   sortedGroupPartialMembers: readonly
-  subscribedToMessage: readonly
   titleOrUntitled: readonly
   titleSort: readonly
   undeletedMessagesQuery: readonly

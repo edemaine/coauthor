@@ -23,6 +23,7 @@ import {UserLink} from './UserLink'
 import {emojiReplies} from '/lib/emoji'
 import {formatTitleOrFilename} from '/lib/formats'
 import {groupDefaultSort, parseSort, unparseSort} from '/lib/groups'
+import {subscribedToMessage} from '/lib/notifications'
 import {autopublish} from '/lib/settings'
 import {groupTags, sortTags} from '/lib/tags'
 

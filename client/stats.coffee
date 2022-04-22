@@ -2,6 +2,7 @@ import React, {useEffect, useMemo, useRef} from 'react'
 import Dropdown from 'react-bootstrap/Dropdown'
 import {useTracker} from 'meteor/react-meteor-data'
 import Blaze from 'meteor/gadicc:blaze-react-component'
+import dayjs from 'dayjs'
 
 import {ErrorBoundary} from './ErrorBoundary'
 import {TextTooltip} from './lib/tooltip'
@@ -305,43 +306,45 @@ buildStats = (stats, unit, weekStart) ->
       coauthors: true
     sort: created: 1
   stats.msgCount = msgs.count()
-  console.log stats.msgCount
   switch unit
     when 'hour'
-      msgs = _.sortBy msgs.fetch(), (msg) -> moment(msg.created).format 'HH:mm'
+      msgs = _.sortBy msgs.fetch(), (msg) -> dayjs(msg.created).format 'HH:mm'
     when 'weekday'
-      msgs = _.sortBy msgs.fetch(), (msg) -> moment(msg.created).day()
+      msgs = _.sortBy msgs.fetch(), (msg) -> dayjs(msg.created).day()
   msgs.forEach (msg) ->
     increment = unit
     switch unit
       when 'week'
-        day = moment(msg.created).startOf 'day'
+        day = dayjs(msg.created).startOf 'day'
         if day.day() < weekStart
-          day.day -7 + weekStart  ## previous week
+          day = day.day -7 + weekStart  ## previous week
         else
-          day.day weekStart  ## same week
+          day = day.day weekStart  ## same week
       when 'hour'
-        day = moment(msg.created).startOf unit
+        day = dayjs msg.created
+        .startOf unit
         .year 2000
-        .dayOfYear 1
+        .month 0
+        .date 1
       when 'weekday'
-        day = moment(msg.created).startOf 'day'
-        day = day.date 1 + moment(msg.created).day()
+        day = dayjs msg.created
+        .startOf 'day'
+        .date 1 + dayjs(msg.created).day()
         .month 9
         .year 2000  ## 1st day of October 2000 is a Sunday
         increment = 'day'
       else
-        day = moment(msg.created).startOf unit
+        day = dayjs(msg.created).startOf unit
     if lastDate?
-      if lastDate.valueOf() > day.valueOf()
+      if lastDate.isAfter day
         console.warn "Backwards time travel from #{lastDate.format()} to #{day.format()}"
         lastDate = day
         makeDay()
       else
-        while lastDate.valueOf() != day.valueOf()
+        until lastDate.isSame day
           lastDate = lastDate.add 1, increment
           makeDay()
-          if lastDate.valueOf() > day.valueOf()
+          if lastDate.isAfter day
             console.warn "Bad day handling (Coauthor bug)"
             break
     else

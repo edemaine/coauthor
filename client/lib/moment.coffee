@@ -1,1 +1,0 @@
-@moment = require 'moment'

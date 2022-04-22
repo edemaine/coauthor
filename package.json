@@ -36,6 +36,7 @@
     "classnames": "^2.2.6",
     "codemirror": "^5.58.3",
     "cookie": "^0.4.1",
+    "dayjs": "^1.11.1",
     "dompurify": "^2.3.6",
     "exif-parser": "^0.1.12",
     "file-saver": "^2.0.5",
@@ -50,7 +51,6 @@
     "markdown-it-replacements": "^1.0.1",
     "markdown-it-task-checkbox": "^1.0.6",
     "meteor-node-stubs": "^1.0.1",
-    "moment-timezone": "^0.5.32",
     "pdfjs-dist": "2.5.207",
     "react": "^17.0.1",
     "react-bootstrap": "^1.4.3",
@@ -81,7 +81,8 @@
     "grunt-contrib-copy": "^1.0.0",
     "grunt-contrib-cssmin": "^3.0.0",
     "grunt-contrib-less": "^2.0.0",
-    "grunt-replace-regex": "^1.0.3"
+    "grunt-replace-regex": "^1.0.3",
+    "moment-timezone": "^0.5.32"
   },
   "meteor": {
     "nodeModules": {
