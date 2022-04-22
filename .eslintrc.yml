@@ -16,6 +16,7 @@ globals:
   Blaze: readonly
   BrowserPolicy: readonly
   FileCollection: readonly
+  JSDOM: readonly
   Kadira: readonly
   Meteor: readonly
   Modal: readonly

@@ -1696,7 +1696,7 @@ tocHoverIndicator = _.debounce ->
 tocHoverItem = (e) ->
   id = e.target.dataset.id
   return unless id?
-  document.querySelector "[data-message='#{id}']"
+  document.querySelector "[data-message='#{id}'].message"
   ?.classList.toggle 'hover', e.type == 'mouseenter'
 
 export WrappedTableOfContents = React.memo ({message, parent, index}) ->
