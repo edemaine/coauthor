@@ -7,6 +7,14 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2022-04-23
+
+* Switch to [DOMPurify](https://github.com/cure53/DOMPurify) HTML sanitizer,
+  which should make Coauthor faster overall and permit some more (safe)
+  HTML/SVG features than before.  One new restriction is that SVG `<use>`
+  can only use local hrefs, but this is necessary for security.
+* Further reduction in JavaScript bundle size, for faster loading of Coauthor.
+
 ## 2022-04-21
 
 * Fix "Replace File" button and improve behavior of clicking on message header
