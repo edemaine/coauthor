@@ -7,7 +7,7 @@ queueMicrotask -> # wait for JSDOM to load on server
 
   DOMPurify.setConfig
     ADD_TAGS: [
-      'annotation', 'semantics'  # from KaTeX
+      'annotation', 'semantics'  # from KaTeX; encoding sanitized below
       'use'  # href sanitized below
     ]
     FORBID_TAGS: [
@@ -46,12 +46,17 @@ queueMicrotask -> # wait for JSDOM to load on server
         ## Localize ids (more processing done in formats)
         event.attrValue = 'MESSAGE_' + event.attrValue
   ## Bulk attribute sanitization
-  DOMPurify.addHook 'afterSanitizeAttributes', (node, event) ->
+  DOMPurify.addHook 'afterSanitizeAttributes', (node) ->
     switch node.nodeName.toLowerCase()
       when 'input'
         ## Force all <input>s to have type="checkbox" and be disabled
         node.setAttribute 'type', 'checkbox'
         node.setAttribute 'disabled', ''
+      when 'annotation'
+        ## Force MathML <annotation> to have encoding set as KaTeX does,
+        ## to avoid potential exploits with encoding="text/html" and maybe SVG.
+        ## See https://github.com/cure53/DOMPurify/blob/81ae4bd8ebfefd5700dd3c7a908725efaae931e6/test/fixtures/expect.js#L1095
+        node.setAttribute 'encoding', 'application/x-tex'
 
 ## https://stackoverflow.com/questions/9329552/explain-regex-that-finds-css-comments
 cssCommentRegex = /\/\*[^*]*\*+(?:[^/*][^*]*\*+)*\//g
