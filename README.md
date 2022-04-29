@@ -205,6 +205,7 @@ To see what's changed in Coauthor recently, check out the
     `emoji:@username` searches for messages with emoji response by
     a specific user (`emoji:@me` finds your own emoji responses);
     or you can combine the two with e.g. `emoji:thumbs*@username`.
+  * `root:id` matches messages in thread with specified root message ID.
   * `is:root` matches root messages (tops of threads).
   * `is:file` matches file messages (made via Attach).
   * `is:deleted`, `is:published`, `is:private`, `is:minimized`, `is:pinned`,

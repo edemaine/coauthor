@@ -7,13 +7,22 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2022-04-29
+
+* New search operator `root:id` restricts to messages within the thread
+  rooted at message with specified `id`.
+  [[#29](https://github.com/edemaine/coauthor/issues/29)]
+  [[#282](https://github.com/edemaine/coauthor/issues/282)]
+
 ## 2022-04-23
 
 * Switch to [DOMPurify](https://github.com/cure53/DOMPurify) HTML sanitizer,
   which should make Coauthor faster overall and permit some more (safe)
   HTML/SVG features than before.  One new restriction is that SVG `<use>`
   can only use local hrefs, but this is necessary for security.
+  [[#508](https://github.com/edemaine/coauthor/issues/508)]
 * Further reduction in JavaScript bundle size, for faster loading of Coauthor.
+  [[#218](https://github.com/edemaine/coauthor/issues/218)]
 
 ## 2022-04-21
 
