@@ -178,9 +178,9 @@ To see what's changed in Coauthor recently, check out the
   Hover over an emoji to see a list of people who added the emoji; click to
   toggle your own status.  Emoji are positive (purple) or negative (red).
   Positive emoji on root messages are counted on the group page, enabling
-  a simple voting system for e.g. which problems to work on. 
+  a simple voting system for e.g. which problems to work on.
 
-* **Search** across an entire group, or across all groups,
+* **Search** across the current group, thread, or across all groups,
   for posts by keywords using the search bar at the top.
   * Search for a word as a whole `word` (default behavior), or specify
     asterisks to search for partial word matches: `prefix*`, `*suffix`,
