@@ -337,9 +337,9 @@ formatParsedSearch = (query, group) ->
     subkeys = _.keys value
     if _.isEqual subkeys, ['$exists']
       if value.$exists
-        "tagged '#{unescapeTag tag}'"
+        "tagged '#{_.escape unescapeTag tag}'"
       else
-        "not tagged '#{unescapeTag tag}'"
+        "not tagged '#{_.escape unescapeTag tag}'"
     else
       if subkeys.length == 1 and subkeys[0] in ['$in', '$nin', '$ne']
         value = value[subkeys[0]]
@@ -350,24 +350,24 @@ formatParsedSearch = (query, group) ->
       ) +
       (if subkeys.length == 1 and subkeys[0] in ['$in', '$nin'] and
           _.isEqual value, [true, '']
-        "empty tagged '#{unescapeTag tag}'"
+        "empty tagged '#{_.escape unescapeTag tag}'"
       else if typeof value == 'string'
-        "tagged '#{unescapeTag tag}' = '#{value}'"
+        "tagged '#{_.escape unescapeTag tag}' = '#{_.escape value}'"
       else
-        "tagged '#{unescapeTag tag}' = #{JSON.stringify value}"
+        "tagged '#{_.escape unescapeTag tag}' = #{_.escape JSON.stringify value}"
       )
   else if keys.length == 1 and keys[0].startsWith 'emoji.'
     key = keys[0]
     emoji = key[6..]
     value = query[key]
     if _.isEqual value, $elemMatch: $ne: ''
-      "#{emoji} emoji"
+      "#{_.escape emoji} emoji"
     else if _.isEqual value, $ne: ''
-      "no #{emoji} emoji"
+      "no #{_.escape emoji} emoji"
     else
       notted = _.isEqual ['$not'], _.keys value
       value = value.$not if notted
-      "#{if notted then 'no ' else ''}#{emoji} emoji by #{formatUserSearch value}"
+      "#{if notted then 'no ' else ''}#{_.escape emoji} emoji by #{formatUserSearch value}"
   else if _.isEqual keys, ['coauthors']
     value = query[keys[0]]
     notted = _.isEqual ['$not'], _.keys value
@@ -390,35 +390,35 @@ formatParsedSearch = (query, group) ->
     else if _.isEqual query.file, {$ne: null}
       'a file'
     else
-      "associated with file '#{query.file}'"
+      "associated with file '#{_.escape query.file}'"
   else if _.isEqual keys, ['published']
     if _.isEqual query.published, false
       'unpublished'
     else if _.isEqual query.published, {$ne: false}
       'published'
     else
-      "published: #{query.published}"
+      "published: #{_.escape query.published}"
   else if _.isEqual keys, ['deleted']
     if _.isEqual query.deleted, true
       'deleted'
     else if _.isEqual query.deleted, {$ne: true}
       'not deleted'
     else
-      "deleted: #{query.deleted}"
+      "deleted: #{_.escape query.deleted}"
   else if _.isEqual keys, ['minimized']
     if _.isEqual query.minimized, true
       'minimized'
     else if _.isEqual query.minimized, {$ne: true}
       'not minimized'
     else
-      "minimized: #{query.minimized}"
+      "minimized: #{_.escape query.minimized}"
   else if _.isEqual keys, ['pinned']
     if _.isEqual query.pinned, true
       'pinned'
     else if _.isEqual query.pinned, {$ne: true}
       'not pinned'
     else
-      "pinned: #{query.pinned}"
+      "pinned: #{_.escape query.pinned}"
   else if _.isEqual keys, ['protected']
     if _.isEqual query.protected, true
       'protected'
@@ -432,13 +432,13 @@ formatParsedSearch = (query, group) ->
     else if _.isEqual query.private, {$ne: true}
       'not private'
     else
-      "private: #{query.private}"
+      "private: #{_.escape query.private}"
   else if _.isRegExp query
     simplify = unbreakRegExp uncaseInsensitiveRegExp query.source
     if realRegExp simplify
-      query.toString()
+      _.escape query.toString()
     else
-      s = "“#{unescapeRegExp simplify}”"
+      s = _.escape "“#{unescapeRegExp simplify}”"
       if /[A-Z]/.test s
         s += ' case-sensitive'
       #else
@@ -453,9 +453,9 @@ formatParsedSearch = (query, group) ->
       #  s += ' substring'
       s
   else if _.isString query
-    "“#{query}”"
+    _.escape "“#{query}”"
   else
-    JSON.stringify query
+    _.escape JSON.stringify query
 
 formatUserSearch = (value) ->
   formatParsedSearch value
@@ -463,10 +463,15 @@ formatUserSearch = (value) ->
 
 formatMessageSearch = (messageId) ->
   message = findMessage messageId
-  if message?
-    "“#{titleOrUntitled message}” [#{messageId}]"
-  else
-    "#{messageId}"
+  title =
+    if message?
+      "“#{titleOrUntitled message}”"
+    else
+      "#{messageId}"
+  url = pathFor 'message',
+    group: message.group ? wildGroup
+    message: messageId
+  """<a href="#{url}">#{title}</a>"""
 
 emojiLike = /^(no )?([\-\w]+) emoji(.*)$/
 checkAllEmoji = (parts, group) ->

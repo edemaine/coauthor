@@ -5,9 +5,9 @@ template(name='search')
         span.push-down.btn-group.btn-group-xs
           .fake-btn &#8203;
         if wildGroup
-          span.title.panel-title GLOBAL search for #{formatSearch}
+          span.title.panel-title Global search for !{formatSearch}
         else
-          span.title.panel-title #{group} search for #{formatSearch}
+          span.title.panel-title Search in group #{group} for !{formatSearch}
         span.push-down.pull-right.badge= messageCountText
       .panel-body
         each messages
