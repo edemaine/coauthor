@@ -9,10 +9,12 @@ instead of version numbers.
 
 ## 2022-04-29
 
+* When filling in the search box in a thread view,
+  the search is automatically restricted to that thread.
+  [[#282](https://github.com/edemaine/coauthor/issues/282)]
 * New search operator `root:id` restricts to messages within the thread
   rooted at message with specified `id`.
   [[#29](https://github.com/edemaine/coauthor/issues/29)]
-  [[#282](https://github.com/edemaine/coauthor/issues/282)]
 
 ## 2022-04-23
 

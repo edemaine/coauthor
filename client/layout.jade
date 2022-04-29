@@ -65,7 +65,7 @@ template(name="layout")
           a#archive
     .collapse.navbar-collapse#navbar
       form.navbar-form.input-group.searchForm
-        input.form-control.searchText(type="text", placeholder="Search", value=search)
+        input.form-control.searchText(type="text", placeholder=searchPlaceholder, value=search)
       .navbar-btn.btn-group
         if couldSuper
           if super
