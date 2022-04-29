@@ -180,9 +180,17 @@ export parseSearch = (search, group) ->
           wants.push coauthors: regex
       when 'root:'
         if negate
-          wants.push root: $ne: token
+          wants.push $and: [
+            root: $ne: token
+          ,
+            _id: $ne: token
+          ]
         else
-          wants.push root: token
+          wants.push $or: [
+            root: token
+          ,
+            _id: token
+          ]
       when 'is:', 'isnt:', 'not:'
         negate = not negate if colon == 'isnt:' or colon == 'not:'
         switch token
@@ -257,6 +265,11 @@ formatParsedSearch = (query, group) ->
     parts = (formatParsedSearch part for part in query.$and)
     if (emojis = checkAllEmoji parts, group) and emojis.prefix == 'no '
       return "no emoji#{emojis.suffix}"
+    if parts.length == 2 and
+       _.isEqual(['root'], _.keys query.$and[0]) and
+       _.isEqual(['_id'], _.keys query.$and[1]) and
+       _.isEqual query.$and[0].root, query.$and[1]._id
+      return parts[0].replace /strictly /, ''
     if parts.length > 1
       parts =
         for part in parts
@@ -287,6 +300,11 @@ formatParsedSearch = (query, group) ->
        _.isEqual(['body'], _.keys query.$or[1]) and
        _.isEqual query.$or[0].title, query.$or[1].body
       parts[0].replace /in title$/, 'in title or body'
+    else if parts.length == 2 and
+       _.isEqual(['root'], _.keys query.$or[0]) and
+       _.isEqual(['_id'], _.keys query.$or[1]) and
+       _.isEqual query.$or[0].root, query.$or[1]._id
+      parts[0].replace /strictly /, ''
     else if (emojis = checkAllEmoji parts, group) and not emojis.prefix
       "any emoji#{emojis.suffix}"
     else
@@ -365,7 +383,7 @@ formatParsedSearch = (query, group) ->
     if root == null
       "root message"
     else
-      "in thread #{formatMessageSearch root}"
+      "strictly in thread #{formatMessageSearch root}"
   else if _.isEqual keys, ['file']
     if _.isEqual query.file, null
       'not a file'
