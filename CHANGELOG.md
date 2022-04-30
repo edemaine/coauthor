@@ -7,6 +7,12 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2022-04-30
+
+* Search now supports parentheses for mixing AND and OR queries arbitrarily.
+  For example, `always (this | that)` searches for messages containing
+  both word `always` and either `this` or `that`.
+
 ## 2022-04-29
 
 * When filling in the search box in a thread view,

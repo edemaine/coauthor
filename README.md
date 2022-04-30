@@ -196,6 +196,7 @@ To see what's changed in Coauthor recently, check out the
     to search for regular expressions with spaces in them; normally,
     spaces act as an AND query.
   * Connect words/phrases with `|` to get an OR query instead.
+  * Use parentheses to mix AND and OR arbitrarily, e.g. `always (this | that)`.
   * `by:username` searches for messages coauthored by a specified username
     (which can include `*`s or use regular expressions via `regex:`);
     `by:me` is shorthand for searching for your own username.

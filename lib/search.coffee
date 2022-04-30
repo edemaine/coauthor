@@ -35,14 +35,49 @@ unescapeRegExp = (regex) ->
 export parseSearch = (search, group) ->
   ## Quoted strings turn off separation by spaces.
   ## Last quoted strings doesn't have to be terminated.
-  tokenRe = /(\s+)|((?:"[^"]*"|'[^']*'|[^'"\s|])+)('[^']*$|"[^"]*$)?|'([^']*)$|"([^"]*)$|([|])/g
-  wants = []
-  options = [wants]
+  tokenRe = /(\s+)|((?:"[^"]*"|'[^']*'|[^'"\s\|\(\)])+)('[^']*$|"[^"]*$)?|'([^']*)$|"([^"]*)$|([\|\(\)])/g
+  wants = []         # array of Mongo queries that will be $and'd together
+  options = [wants]  # array of wants that will be $or'd together
+  stack = []         # stack of strict-ancestor options objects
+
+  makeQuery = (options) ->
+    parts =
+      for option in options
+        switch option.length
+          when 0  # no wants: ignore
+            continue
+          when 1  # one want
+            option = option[0]
+            continue unless option?  # skip recursive empty queries
+            option
+          else    # multiple wants: $and together
+            $and: option
+    switch parts.length
+      when 0  # no options
+        null  ## special signal for nothing / bad search
+      when 1  # one option
+        parts[0]
+      else    # multiple options: $or together
+        $or: parts
+
   while (token = tokenRe.exec search)?
     continue if token[1]  ## ignore whitespace tokens
 
-    if token[6]  ## | = OR
-      options.push wants = []
+    if token[6]  # top-level grouping operators
+      switch token[6]
+        when '|'  # OR
+          options.push wants = []
+        when '('  # start group
+          stack.push options
+          options = [wants = []]
+        when ')'  # end group
+          childQuery = makeQuery options
+          if stack.length
+            options = stack.pop()
+            wants = options[options.length-1]
+            wants.push childQuery
+          else  # extra ')': pretend there was a leading '('
+            options = [wants = [childQuery]]
       continue
 
     ## Check for negation and/or leading commands followed by colon
@@ -232,22 +267,12 @@ export parseSearch = (search, group) ->
                 file: null
           else
             console.warn "Unknown 'is:' specification '#{token}'" if Meteor.isClient
-  options =
-    for wants in options
-      switch wants.length
-        when 0
-          continue
-        when 1
-          wants[0]
-        else
-          $and: wants
-  switch options.length
-    when 0
-      null  ## special signal for nothing / bad search
-    when 1
-      options[0]
-    else
-      $or: options
+  ## Close any still-open groups, pretending there are extra ')'s at the end.
+  while stack.length
+    childQuery = makeQuery options
+    options = stack.pop()
+    options[options.length-1].push childQuery
+  makeQuery options
 
 export formatSearch = (search, group) ->
   query = parseSearch search, group

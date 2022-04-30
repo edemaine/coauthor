@@ -122,6 +122,7 @@ Template.layout.events
           group: routeGroup()
     else
       if (message = routeMessage())
+        search = "(#{search})" if /\|/.test search
         search = "#{search} root:#{message2root message}"
       Router.go resolveSlash Router.path 'search', protectSlash
         group: routeGroupOrWild()
