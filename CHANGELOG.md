@@ -9,6 +9,8 @@ instead of version numbers.
 
 ## 2022-07-04
 
+* Better copy/pasting behavior with messages containing mathematics,
+  thanks to KaTeX 0.16.0.
 * [Link](README.md#user-tips) to better ways to input accented characters
 
 ## 2022-04-30
