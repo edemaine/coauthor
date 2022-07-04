@@ -7,6 +7,10 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2022-07-04
+
+* [Link](README.md#user-tips) to better ways to input accented characters
+
 ## 2022-04-30
 
 * Search now supports parentheses for mixing AND and OR queries arbitrarily.

@@ -330,11 +330,12 @@ To see what's changed in Coauthor recently, check out the
   with [SwiftKey keyboard](https://play.google.com/store/apps/details?id=com.touchtype.swiftkey)
   seems to work best for editing messages in Coauthor.
   (Firefox and Gboard have cursor positioning issues.)
-* LaTeX mode supports LaTeX accents (like `\'e`), but other modes do not.  To
-  easily type accented characters (e.g., on Windows where this is not easy), try
-  [this Chrome extension](https://chrome.google.com/webstore/detail/fastaccent/gkadokkbkifbfpiljldcnnpkebpannhb/related?hl=en-GB)
+* LaTeX mode supports LaTeX accents (like `\'e`), but other modes do not.
+  To easily type Unicode accented characters,
+  use [WinCompose](https://github.com/samhocevar/wincompose) on Windows,
+  [set up a compose key on Linux](https://help.ubuntu.com/community/ComposeKey),
   or
-  [this Firefox extension](https://addons.mozilla.org/en-us/firefox/addon/easyaccent/).
+  [press and hold keys on MacOS](https://support.apple.com/guide/mac-help/enter-characters-with-accent-marks-on-mac-mh27474/mac).
 * Conversely, if you're on modern MacOS, holding down letter keys will bring
   up an accent tool instead of repeating the key.  If you'd rather repeat the
   key (e.g. for Vim mode),
