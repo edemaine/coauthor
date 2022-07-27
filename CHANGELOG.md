@@ -11,6 +11,8 @@ instead of version numbers.
 
 * URLs with "false Markdown" in them fixed thanks to updated markdown-it
   [[#426](https://github.com/edemaine/coauthor/issues/426)]
+* Small messaeditor bug fixes via
+  [CodeMirror 5.65.7](https://codemirror.net/5/doc/releases.html)
 
 ## 2022-07-04
 
