@@ -7,6 +7,11 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2022-07-27
+
+* URLs with "false Markdown" in them fixed thanks to updated markdown-it
+  [[#426](https://github.com/edemaine/coauthor/issues/426)]
+
 ## 2022-07-04
 
 * Better copy/pasting behavior with messages containing mathematics,
