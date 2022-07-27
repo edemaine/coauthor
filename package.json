@@ -37,7 +37,7 @@
     "codemirror": "5.65.7",
     "cookie": "^0.4.1",
     "dayjs": "^1.11.1",
-    "dompurify": "^2.3.6",
+    "dompurify": "2.3.10",
     "exif-parser": "^0.1.12",
     "file-saver": "^2.0.5",
     "highlight.js": "^10.7.2",
