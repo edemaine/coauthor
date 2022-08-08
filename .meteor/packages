@@ -9,7 +9,7 @@ email@2.2.0
 #ecmascript@0.14.3
 #coffeescript@2.3.2_1
 coffeescript-compiler@2.3.2_1
-edemaine:solid@0.2.2
+edemaine:solid@0.2.3
 edemaine:solid-template-helper@0.1.0
 underscore@1.0.10
 accounts-password@2.2.0

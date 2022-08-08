@@ -41,7 +41,7 @@ edemaine:accounts-ui-bootstrap-3@1.3.0
 edemaine:file-collection@2.0.0
 edemaine:sharejs@0.11.1
 edemaine:sharejs-codemirror@5.40.0
-edemaine:solid@0.2.2
+edemaine:solid@0.2.3
 edemaine:solid-template-helper@0.1.0
 ejson@1.1.1
 email@2.2.0

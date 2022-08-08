@@ -96,6 +96,7 @@
       "client/users.coffee",
       "client/solid/*",
       "node_modules/solid*/**/*.jsx"
-    ]
+    ],
+    "verbose": false
   }
 }
