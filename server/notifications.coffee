@@ -460,8 +460,12 @@ notificationEmail = (notifications) ->
           html += "<P><B>#{authorsHTML}</B> #{verb} #{adjectivesHTML.join ''}message #{linkToMessage msg, user, true, true} in the thread #{linkToMessage rootmsg, true, true} #{dates}:"
           text += "#{authorsText} #{verb} #{adjectivesText.join ''}message #{linkToMessage msg, user, false, true} in the thread #{linkToMessage rootmsg, user, false, true} #{dates}:"
         else
-          html += "<P><B>#{authorsHTML}</B> #{verb} #{adjectivesHTML.join ''}root message in the thread #{linkToMessage msg, user, true, true} #{dates}:"
-          text += "#{authorsText} #{verb} #{adjectivesText.join ''}root message in the thread #{linkToMessage msg, user, false, true} #{dates}:"
+          if verb == 'created'
+            noun = 'thread'
+          else
+            noun = 'root message in the thread'
+          html += "<P><B>#{authorsHTML}</B> #{verb} #{adjectivesHTML.join ''}#{noun} #{linkToMessage msg, user, true, true} #{dates}:"
+          text += "#{authorsText} #{verb} #{adjectivesText.join ''}#{noun} #{linkToMessage msg, user, false, true} #{dates}:"
         html += '\n\n'
         text += '\n\n'
         ## xxx also could use diff on body
