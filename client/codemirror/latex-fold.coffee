@@ -53,54 +53,63 @@ CodeMirror.registerGlobalHelper "fold", "tex-fold",
                         return [i, j + END.length - 1]
 
         else if startswith(line, "\\[")
+          if start.line+1 <= cm.lastLine()
             for i in [start.line+1..cm.lastLine()]
                 if startswith(cm.getLine(i).trimLeft(), "\\]")
                     return [i, 0]
 
         else if startswith(line, "\\(")
+          if start.line+1 <= cm.lastLine()
             for i in [start.line+1..cm.lastLine()]
                 if startswith(cm.getLine(i).trimLeft(), "\\)")
                     return [i, 0]
 
         else if startswith(line, "\\documentclass")
+          if start.line+1 <= cm.lastLine()
             # pre-amble
             for i in [start.line+1..cm.lastLine()]
                 if startswith(cm.getLine(i).trimLeft(), "\\begin{document}")
                     return [i - 1, 0]
 
         else if startswith(line, "\\chapter")
+          if start.line+1 <= cm.lastLine()
             # book chapter
             for i in [start.line+1..cm.lastLine()]
                 if startswith(cm.getLine(i).trimLeft(), ["\\chapter", "\\end{document}"])
                     return [i - 1, 0]
-            return [cm.lastLine(), 0]
+          return [cm.lastLine(), 0]
 
         else if startswith(line, "\\section")
+          if start.line+1 <= cm.lastLine()
             # article section
             for i in [start.line+1..cm.lastLine()]
                 if startswith(cm.getLine(i).trimLeft(), ["\\chapter", "\\section", "\\end{document}"])
                     return [i - 1, 0]
-            return [cm.lastLine(), 0]
+          return [cm.lastLine(), 0]
 
         else if startswith(line, "\\subsection")
+          if start.line+1 <= cm.lastLine()
             # article subsection
             for i in [start.line+1..cm.lastLine()]
                 if startswith(cm.getLine(i).trimLeft(), ["\\chapter", "\\section", "\\subsection", "\\end{document}"])
                     return [i - 1, 0]
-            return [cm.lastLine(), 0]
+          return [cm.lastLine(), 0]
         else if startswith(line, "\\subsubsection")
+          if start.line+1 <= cm.lastLine()
             # article subsubsection
             for i in [start.line+1..cm.lastLine()]
                 if startswith(cm.getLine(i).trimLeft(), ["\\chapter", "\\section", "\\subsection", "\\subsubsection", "\\end{document}"])
                     return [i - 1, 0]
-            return [cm.lastLine(), 0]
+          return [cm.lastLine(), 0]
         else if startswith(line, "\\subsubsubsection")
+          if start.line+1 <= cm.lastLine()
             # article subsubsubsection
             for i in [start.line+1..cm.lastLine()]
                 if startswith(cm.getLine(i).trimLeft(), ["\\chapter", "\\section", "\\subsection", "\\subsubsection", "\\subsubsubsection", "\\end{document}"])
                     return [i - 1, 0]
-            return [cm.lastLine(), 0]
+          return [cm.lastLine(), 0]
         else if startswith(line, "%\\begin{}")
+          if start.line+1 <= cm.lastLine()
             # support what texmaker supports for custom folding -- http://tex.stackexchange.com/questions/44022/code-folding-in-latex
             for i in [start.line+1..cm.lastLine()]
                 if startswith(cm.getLine(i).trimLeft(), "%\\end{}")

@@ -11,7 +11,8 @@ instead of version numbers.
 
 * Support folding of LaTeX `\section`, `\begin{itemize}`, etc.
   in Markdown format (not just LaTeX), as it supports this syntax too.
-* Fix code folding when changing between formats in message editor via
+* Bug fixes in LaTeX folding
+* Fix folding when changing between formats in message editor via
   [CodeMirror 5.65.8](https://codemirror.net/5/doc/releases.html)
 
 ## 2022-08-08
