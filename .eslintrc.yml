@@ -72,6 +72,7 @@ globals:
   defaultFormat: readonly
   deleteFile: readonly
   displayUser: readonly
+  displayUserLastName: readonly
   escapeGroup: readonly
   escapeRegExp: readonly
   escapeUser: readonly
