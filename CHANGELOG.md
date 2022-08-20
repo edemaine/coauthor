@@ -9,6 +9,9 @@ instead of version numbers.
 
 ## 2022-08-20
 
+* Table of contents displays all message coauthors instead of creator.
+  For more than two coauthors, it just shows last names.
+  [[#607](https://github.com/edemaine/coauthor/issues/607)]
 * Support folding of LaTeX `\section`, `\begin{itemize}`, etc.
   in Markdown format (not just LaTeX), as it supports this syntax too.
 * Bug fixes in LaTeX folding

@@ -1715,9 +1715,19 @@ export WrappedTableOfContents = React.memo ({message, parent, index}) ->
     not (routeHere message._id) and           # never fold if top-level message
     not editing                               # never fold if editing
   , [message._id, editing]
-  creator = useTracker ->
-    displayUser message.creator
-  , [message.creator]
+  #creator = useTracker ->
+  #  displayUser message.creator
+  #, [message.creator]
+  author = useTracker ->
+    if message.coauthors.length == 1
+      displayUser message.coauthors[0]
+    else if message.coauthors.length > 1
+      (for author in message.coauthors
+        displayUserLastName author
+      ).join ', '
+    else
+      displayUser message.creator
+  , [message.coauthors.join(' '), message.creator]
   children = useChildren message, true
   inView = useTracker ->
     messageInView.get message._id
@@ -1740,8 +1750,8 @@ export WrappedTableOfContents = React.memo ({message, parent, index}) ->
         <MessageIcons message={message}/>
         <span dangerouslySetInnerHTML={__html: formattedTitle}/>
         {' '}
-        <span className="creator">
-          [{creator}]
+        <span className="author">
+          [{author}]
         </span>
       </a>
     </>

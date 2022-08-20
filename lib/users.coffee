@@ -18,6 +18,14 @@ import {escapeKey, unescapeKey, validKey} from './escape'
   user = findUsername username
   user?.profile?.fullname?.trim?() or user?.username or username
 
+@displayUserLastName = (username) ->
+  display = displayUser username
+  space = display.lastIndexOf ' '
+  if space >= 0
+    display[space+1..]
+  else
+    display
+
 @linkToAuthor = (group, user, options) ->
   {title, prefix, me} = options if options?
   username = user.username ? user
