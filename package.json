@@ -34,7 +34,7 @@
     "bootstrap-slider": "git+https://github.com/edemaine/bootstrap-slider.git#preventOverflow-dist",
     "chart.js": "^2.9.4",
     "classnames": "^2.2.6",
-    "codemirror": "5.65.7",
+    "codemirror": "5.65.8",
     "cookie": "^0.4.1",
     "dayjs": "^1.11.1",
     "dompurify": "2.3.10",

@@ -7,6 +7,11 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2022-08-20
+
+* Fix code folding when changing between formats in message editor via
+  [CodeMirror 5.65.8](https://codemirror.net/5/doc/releases.html)
+
 ## 2022-08-08
 
 * Improve wording in email notifications for thread creation
@@ -16,7 +21,7 @@ instead of version numbers.
 
 * URLs with "false Markdown" in them fixed thanks to updated markdown-it
   [[#426](https://github.com/edemaine/coauthor/issues/426)]
-* Small messaeditor bug fixes via
+* Small message editor bug fixes via
   [CodeMirror 5.65.7](https://codemirror.net/5/doc/releases.html)
 
 ## 2022-07-04
