@@ -1,6 +1,6 @@
 CodeMirror = require 'codemirror'
 
-## The following code is copyright 2014 by William Stein
+## The following code is originally copyright 2014 by William Stein
 ## [https://github.com/sagemath/cloud/blob/0233cdd61f9f81190fa5673daaac38c7fc37e821/page/misc_page.coffee#L439]
 ## and licensed under the BSD license
 ## [https://groups.google.com/forum/#!topic/codemirror/tTeNuMy58VI]
@@ -22,7 +22,9 @@ startswith = (s, x) ->
                 return true
         return false
 
-CodeMirror.registerHelper "fold", "stex", (cm, start) ->
+CodeMirror.registerGlobalHelper "fold", "tex-fold",
+  ((mode) -> mode.name != 'xml'),
+  (cm, start) ->
     line = cm.getLine(start.line).trimLeft()
     find_close = () ->
         BEGIN = "\\begin"
