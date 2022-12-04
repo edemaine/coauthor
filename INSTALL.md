@@ -15,13 +15,18 @@ Here is how to get a **local test server** running:
 4. **Make a superuser account:**
    * Open the website [http://localhost:3000/](http://localhost:3000/)
    * Create an account
-   * `meteor mongo`
+   * `meteor mongo` (On production deployment, you will need a different command; see below)
    * Give your account permissions as follows:
+   
+      ```
+      db.users.update({username: 'edemaine'}, {$set: {'roles.*': ['read', 'post', 'edit', 'super', 'admin']}})
+      ```
+      After execution, this should look like:
 
-     ```
-     meteor:PRIMARY> db.users.update({username: 'edemaine'}, {$set: {'roles.*': ['read', 'post', 'edit', 'super', 'admin']}})
-     WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
-     ```
+        ```
+        meteor:PRIMARY> db.users.update({username: 'edemaine'}, {$set: {'roles.*': ['read', 'post', 'edit', 'super', 'admin']}})
+        WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+        ```
 
      `*` means all groups, so this user gets all permissions globally.
 
@@ -70,13 +75,19 @@ Installation instructions:
    [timezone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
    (used as the default email notification timezone for all users).
 5. `cd .deploy`
-6. `mup setup` to install all necessary software on the server
-7. `mup deploy` each time you want to deploy code to server
+6. [Read if you are Ubuntu 22; might be relevant to others as well] There is a known issue with Ubuntu 22 and ssh2 if you are using an RSA ssh key (https://github.com/mscdex/ssh2/issues/989#issuecomment-1117074996). Follow the linked comment to get around this issue before continuing the steps. In particular, add ``PubkeyAcceptedKeyTypes=+ssh-rsa`` to the end of file ``/etc/ssh/sshd_config`` (for example by doing ``sudo nano /etc/ssh/sshd_config``). Then, you need to restart the SSH service: ``sudo systemctl restart sshd.service``. Otherwise, your SSH connections might not get through.
+7. `mup setup` to install all necessary software on the server
+8. `mup deploy` each time you want to deploy code to server
    (initially and after each `git pull`)
 8. If you proxy the resulting server from another web server,
    you'll probably want to `meteor remove force-ssl` to remove the automatic
    redirection from `http` to `https`.
-
+9. To access mongodb deployed using meteor-up (mup) on the deployed production instance (for example to set permissions for a user account as explained above and as necessary to start using the software), execute the following command (for reference: https://meteor-up.com/docs.html#accessing-the-database) on the instance:
+      ```
+      docker exec -it mongodb mongo coauthor
+      ```
+   ***NOTE***: You may need to change ``coauthor`` with your app name if you replaced the app name in ``mup.js``.
+10. If you are deploying on AWS EC2 instance, by default AWS blocks outbound traffic on port 25 (SMTP). If you need that enabled, you will need to contact them to enable it (see this link for details: https://aws.amazon.com/premiumsupport/knowledge-center/ec2-port-25-throttle/).
 ### Email
 
 You'll also need an SMTP server to send email notifications.
@@ -102,6 +113,8 @@ notifications sent from.
 If you want `coauthor@yourhostname.com` to receive email,
 add an alias like `coauthor: edemaine@mit.edu` to `/etc/aliases`
 and then run `sudo newaliases`.
+
+See note above regarding AWS EC2 blocking port 25 outbound traffic.
 
 ### Disabling Email
 
