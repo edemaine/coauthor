@@ -643,26 +643,29 @@ export parseCoauthorAuthorUrl = (url) ->
     author: match[2]
 
 postprocessCoauthorLinks = (text) ->
-  text.replace ///(<img\s[^<>]*src\s*=\s*['"])#{coauthorLinkRe}///ig,
-    (match, html, id) ->
-      html + urlToFile id
-      #msg = Messages.findOne id
-      #if msg? and msg.file
-      #  html + urlToFile msg
-      #else
-      #  if msg?
-      #    console.warn "Couldn't detect image in message #{id} -- must be text?"
-      #  else
-      #    console.warn "Couldn't find group for message #{id} (likely subscription issue)"
-      #  match
-  .replace ///(<a\s[^<>]*href\s*=\s*['"])#{coauthorLinkHashRe}///ig,
-    (match, html, id, hash) ->
+  text.replace ///(<img\s[^<>]*)(src\s*=\s*['"])#{coauthorLinkRe}///ig,
+    (match, img, src, id) ->
+      ## xxx Should we subscribe to the linked message when we can't find it?
+      msg = Messages.findOne id
+      title = titleOrFilename(msg) ? ''
+      if msg?.deleted or not msg?.published
+        classes = []
+        classes.push 'deleted' if msg?.deleted
+        classes.push 'unpublished' unless msg?.published
+        img += """ class="#{classes.join ' '}" """
+        warning = "WARNING: Image is #{classes.join(' and ').toUpperCase()} so will NOT BE VISIBLE to most users!"
+        img = """<div class="warning #{classes.join ' '}">#{warning.replace /[A-Z]{2,}/g, "<b>$&</b>"}</div>#{img}"""
+        title = "#{warning} #{title}"
+      img += """title="#{escapeForQuotedHTML title}" """ if title?
+      img + src + urlToFile id
+  .replace ///(<a\s[^<>]*)(href\s*=\s*['"])#{coauthorLinkHashRe}///ig,
+    (match, a, href, id, hash) ->
       ## xxx Should we subscribe to the linked message when we can't find it?
       ## (This would just be to get its title, so maybe not worth it.)
       msg = Messages.findOne id
-      if msg?.title
-        html = """<a title="#{escapeForQuotedHTML msg.title}" href=#{html[html.length-1]}"""
-      html + urlFor('message',
+      if (title = titleOrFilename msg)
+        a += """title="#{escapeForQuotedHTML title}" """
+      a + href + urlFor('message',
         group: msg?.group or wildGroup
         message: id
       ) + (hash ? '')
@@ -1002,6 +1005,12 @@ export formatTitleOrFilename = (msg, options) ->
     formatTitle msg.format, msg.title, {...options, id: msg._id}
   else
     formatFilename msg, options
+
+export titleOrFilename = (msg) ->
+  return unless msg?
+  return msg.title if msg.title?.trim().length
+  return unless msg.file?
+  return findFile(msg.file)?.filename
 
 #@stripHTMLTags = (html) ->
 #  html.replace /<[^>]*>/gm, ''

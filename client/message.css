@@ -53,14 +53,6 @@ input.title { width: calc(100% + 5px); margin: 0px -5px 0px 0px; }
   justify-content: space-between; align-items: center; }
 .fileDescriptionText { flex-grow: 1; }
 
-/* White background for uploaded images or embedded SVG, in case of
- * transparency + dark theme.  But don't touch KaTeX's SVG! (e.g. \sqrt)
- */
-.message-body img, .message-body svg, .message-file img {
-  background: white; outline: solid 10px white;
-}
-.message-body .katex svg { background: inherit; outline: none; }
-
 .sideBySide { display: flex; align-items: stretch; }
 .sideBySide .editorContainer { flex: 1 1; width: 50%; margin: 0px; display: inline-block; }
 .sideBySide .bodyContainer { flex: 1 1; overflow: scroll; }

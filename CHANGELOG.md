@@ -7,6 +7,14 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2023-04-22
+
+* Visual warning when embedding image that is deleted or unpublished,
+  so unlikely to be visible to other users.
+  [[#574](https://github.com/edemaine/coauthor/issues/574)]
+* White border around images in dark mode is now thinner and
+  no longer overlaps neighboring content.
+
 ## 2022-08-20
 
 * Table of contents displays all message coauthors instead of creator.
