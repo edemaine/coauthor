@@ -44,7 +44,9 @@ module.exports = {
       // You shouldn't need to change this:
       MONGO_OPLOG_URL: 'mongodb://mongodb/local',
       // Set to fill available RAM:
-      NODE_OPTIONS: '--trace-warnings --max-old-space-size=8192'
+      NODE_OPTIONS: '--trace-warnings --max-old-space-size=3584'
+      //NODE_OPTIONS: '--trace-warnings --max-old-space-size=4096'
+      //NODE_OPTIONS: '--trace-warnings --max-old-space-size=8192'
     },
     // If you're upgrading the database, you probably need to increase this:
     deployCheckWaitTime: 200,
