@@ -648,10 +648,10 @@ postprocessCoauthorLinks = (text) ->
       ## xxx Should we subscribe to the linked message when we can't find it?
       msg = Messages.findOne id
       title = titleOrFilename(msg) ? ''
-      if msg?.deleted or not msg?.published
+      if msg? and (msg.deleted or not msg.published)
         classes = []
-        classes.push 'deleted' if msg?.deleted
-        classes.push 'unpublished' unless msg?.published
+        classes.push 'deleted' if msg.deleted
+        classes.push 'unpublished' unless msg.published
         img += """ class="#{classes.join ' '}" """
         warning = "WARNING: Image is #{classes.join(' and ').toUpperCase()} so will NOT BE VISIBLE to most users!"
         img = """<div class="warning #{classes.join ' '}">#{warning.replace /[A-Z]{2,}/g, "<b>$&</b>"}</div>#{img}"""
