@@ -22,10 +22,10 @@ export Users = (props) ->
   <ErrorBoundary>
     <h3>
       <Show when={props.messageID? or props.group != wildGroup}
-            fallback="Global permissions for all groups">
+            fallback="GLOBAL permissions for ALL groups">
         {'Permissions for '}
         <Show when={props.messageID?}>
-          thread &ldquo;
+          THREAD &ldquo;
           <a href={pathFor 'message', {group: props.group, message: props.messageID}}>
             {titleOrUntitled if hasMessage() then message else title: '(loading)'}
           </a>
@@ -50,46 +50,52 @@ export Users = (props) ->
         </Show>
       </div>
     </h3>
-    <table className="table table-striped table-hover users clearfix">
-      <thead>
-        <tr>
-          <th>Username</th>
-          <TextTooltip title="Permission to see the group at all, and read all messages within">
-            <th className="text-help">Read</th>
-          </TextTooltip>
-          <TextTooltip title="Permission to post new messages and replies to the group, and to edit those authored messages">
-            <th className="text-help">Post</th>
-          </TextTooltip>
-          <TextTooltip title="Permission to edit all messages, not just previously authored messages">
-            <th className="text-help">Edit</th>
-          </TextTooltip>
-          <TextTooltip title="Permission to perform dangerous operations: history-destroying superdelete and XML import">
-            <th className="text-help">Super</th>
-          </TextTooltip>
-          <TextTooltip title="Permission to administer other users in the group, i.e., to change their permissions">
-            <th className="text-help">Admin</th>
-          </TextTooltip>
-        </tr>
-      </thead>
-      <tbody>
-        <For each={users()}>{(user) ->
-          <ErrorBoundary>
-            <User group={props.group} messageID={props.messageID} user={user} admin={admin()}/>
-          </ErrorBoundary>
-        }</For>
-        <ErrorBoundary>
-          <Anonymous group={props.group} messageID={props.messageID} admin={admin()}/>
-        </ErrorBoundary>
-        {###
-        <Show when={props.group != wildGroup and not props.messageID?}>
-          <ErrorBoundary>
-            <UserInvitations group={props.group}/>
-          </ErrorBoundary>
-        </Show>
-        ###}
-      </tbody>
-    </table>
+    <UserTable group={props.group} messageID={props.messageID}
+     users={users()} admin={admin()} anonymous/>
+    {###
+    <Show when={props.group != wildGroup and not props.messageID?}>
+      <ErrorBoundary>
+        <UserInvitations group={props.group}/>
+      </ErrorBoundary>
+    </Show>
+    ###}
   </ErrorBoundary>
+
+export UserTable = (props) ->
+  <table className="table table-striped table-hover users clearfix">
+    <thead>
+      <tr>
+        <th>Username</th>
+        <TextTooltip title="Permission to see the group at all, and read all messages within">
+          <th className="text-help">Read</th>
+        </TextTooltip>
+        <TextTooltip title="Permission to post new messages and replies to the group, and to edit those authored messages">
+          <th className="text-help">Post</th>
+        </TextTooltip>
+        <TextTooltip title="Permission to edit all messages, not just previously authored messages">
+          <th className="text-help">Edit</th>
+        </TextTooltip>
+        <TextTooltip title="Permission to perform dangerous operations: history-destroying superdelete and XML import">
+          <th className="text-help">Super</th>
+        </TextTooltip>
+        <TextTooltip title="Permission to administer other users in the group, i.e., to change their permissions">
+          <th className="text-help">Admin</th>
+        </TextTooltip>
+      </tr>
+    </thead>
+    <tbody>
+      <For each={props.users}>{(user) ->
+        <ErrorBoundary>
+          <User group={props.group} messageID={props.messageID} user={user} admin={props.admin}/>
+        </ErrorBoundary>
+      }</For>
+      <Show when={props.anonymous}>
+        <ErrorBoundary>
+          <Anonymous group={props.group} messageID={props.messageID} admin={props.admin}/>
+        </ErrorBoundary>
+      </Show>
+    </tbody>
+  </table>
 
 onRole = (props, e) ->
   td = e.currentTarget.parentNode
