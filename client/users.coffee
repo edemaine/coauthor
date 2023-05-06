@@ -4,7 +4,7 @@ import {createFind, createFindOne, createTracker} from 'solid-meteor-data'
 import {ErrorBoundary} from './solid/ErrorBoundary'
 import {TextTooltip} from './solid/TextTooltip'
 import {formatDate} from './lib/date'
-import {allRoles} from '/lib/groups'
+import {allRoles, messagePartialMembers} from '/lib/groups'
 
 Template.users.helpers
   Users: -> Users
@@ -15,23 +15,29 @@ export Users = (props) ->
     group: messageRoleCheck props.group, props.messageID, 'admin'
     wild: messageRoleCheck wildGroup, props.messageID, 'admin'
   [hasMessage, message] = createFindOne -> findMessage props.messageID
-  users = createFind ->
-    Meteor.users.find {},
-      sort: [['createdAt', 'asc']]
+  messageTitle = createMemo ->
+    titleOrUntitled if hasMessage() then message else title: '(loading)'
+  fullMembers = createFind -> groupFullMembers props.group
+  partialMembers = createFind ->
+    if props.messageID?
+      messagePartialMembers props.group, props.messageID
+    else
+      groupPartialMembers props.group
+  isWild = -> props.group == wildGroup
 
   <ErrorBoundary>
-    <h3>
-      <Show when={props.messageID? or props.group != wildGroup}
+    <h2>
+      <Show when={props.messageID? or not isWild()}
             fallback="GLOBAL permissions for ALL groups">
         {'Permissions for '}
         <Show when={props.messageID?}>
           THREAD &ldquo;
           <a href={pathFor 'message', {group: props.group, message: props.messageID}}>
-            {titleOrUntitled if hasMessage() then message else title: '(loading)'}
+            {messageTitle}
           </a>
           &rdquo;{' in '}
         </Show>
-        <Show when={props.group != wildGroup} fallback="all groups">
+        <Show when={not isWild()} fallback="all groups">
           group &ldquo;
           <a href={pathFor 'group', group: props.group}>{props.group}</a>
           &rdquo;
@@ -43,17 +49,56 @@ export Users = (props) ->
             Edit Group Permissions
           </a>
         </Show>
-        <Show when={props.group != wildGroup and admin().wild}>
+        <Show when={not isWild() and admin().wild}>
           <a href={pathFor 'users', group: wildGroup} className="btn btn-danger">
             Edit Global Permissions
           </a>
         </Show>
       </div>
-    </h3>
-    <UserTable group={props.group} messageID={props.messageID}
-     users={users()} admin={admin()} anonymous/>
+    </h2>
+    <Show when={props.messageID?}>
+      <UserTable users={partialMembers()}
+       group={props.group} messageID={props.messageID}
+       admin={admin()} anonymous={props.messageID?}>
+        Explicit permission to thread &ldquo;
+        <a href={pathFor 'message', {group: props.group, message: props.messageID}}>
+          {messageTitle}
+        </a>
+        &rdquo;
+      </UserTable>
+    </Show>
+    <UserTable users={fullMembers()}
+     group={props.group} messageID={props.messageID}
+     admin={admin()} anonymous={not props.messageID?}>
+      <Show when={not isWild()} fallback="Global users">
+        Full members of group &ldquo;
+        <a href={pathFor 'group', group: props.group}>{props.group}</a>
+        &rdquo;
+        <Show when={props.messageID?}>
+          {' can automatically access the thread'}
+        </Show>
+      </Show>
+    </UserTable>
+    <Show when={not isWild() and not props.messageID?}>
+      <UserTable users={partialMembers()}
+       group={props.group} messageID={props.messageID}
+       admin={admin()} anonymous={not props.messageID?}>
+        Partial members of group &ldquo;
+        <a href={pathFor 'group', group: props.group}>{props.group}</a>
+        &rdquo;
+      </UserTable>
+    </Show>
+    <hr/>
+    <h3>All Coauthor Users</h3>
+    <Show when={true}>{->
+      all = createFind ->
+        Meteor.users.find {},
+          sort: [['createdAt', 'asc']]
+      <UserTable users={all()}
+       group={props.group} messageID={props.messageID} admin={admin()}/>
+    }</Show>
     {###
-    <Show when={props.group != wildGroup and not props.messageID?}>
+    <Show when={not isWild() and not props.messageID?}>
       <ErrorBoundary>
         <UserInvitations group={props.group}/>
       </ErrorBoundary>
@@ -61,11 +106,17 @@ export Users = (props) ->
     ###}
   </ErrorBoundary>
 
-export UserTable = (props) ->
+export UserTable = (props) -> <>
+  {if props.children
+    <>
+      <hr/>
+      <h3>{props.children}</h3>
+    </>
+  }
   <table className="table table-striped table-hover users clearfix">
     <thead>
       <tr>
-        <th>Username</th>
+        <th>User</th>
         <TextTooltip title="Permission to see the group at all, and read all messages within">
           <th className="text-help">Read</th>
         </TextTooltip>
@@ -96,6 +147,7 @@ export UserTable = (props) ->
       </Show>
     </tbody>
   </table>
+</>
 
 onRole = (props, e) ->
   td = e.currentTarget.parentNode

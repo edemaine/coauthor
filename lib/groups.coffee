@@ -266,6 +266,13 @@ if Meteor.isServer
 @sortedGroupPartialMembers = (group, options) ->
   _.sortBy groupPartialMembers(group, options).fetch(), userSortKey
 
+export messagePartialMembers = (group, message, options) ->
+  Meteor.users.find
+    "rolesPartial.#{escapeGroup group}.#{message}":
+      $exists: true
+      $ne: {}
+  , options
+
 Meteor.methods
   setRole: (group, message, user, role, yesno) ->
     check group, String
