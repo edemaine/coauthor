@@ -45,13 +45,16 @@ import {escapeKey, unescapeKey, validKey} from './escape'
   link
 
 ## Sort by last name if available
-@userSortKey = (username) ->
+export userSortKey = (username) ->
   display = displayUser username
   space = display.lastIndexOf ' '
   if space >= 0
     display[space+1..] + ", " + display[...space]
   else
     display
+
+export sortUsers = (users) ->
+  _.sortBy users, userSortKey
 
 @validUsername = (username) ->
   validKey(username) and

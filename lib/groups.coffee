@@ -4,6 +4,7 @@ import {Mongo} from 'meteor/mongo'
 import {escapeKey, unescapeKey, validKey} from './escape'
 import {subscribedToMessage} from './notifications'
 import {profilingStartup} from './profiling'
+import {sortUsers, userSortKey} from './users'
 
 @wildGroup = '*'
 export anonymousUser = '*'
@@ -244,7 +245,7 @@ if Meteor.isServer
   #, options
 
 @sortedGroupMembers = (group) ->
-  _.sortBy groupMembers(group), userSortKey
+  sortUsers groupMembers group
 
 @groupFullMembers = (group, options) ->
   Meteor.users.find
@@ -254,7 +255,7 @@ if Meteor.isServer
   , options
 
 @sortedGroupFullMembers = (group, options) ->
-  _.sortBy groupFullMembers(group, options).fetch(), userSortKey
+  sortUsers groupFullMembers(group, options).fetch()
 
 @groupPartialMembers = (group, options) ->
   Meteor.users.find
@@ -264,7 +265,7 @@ if Meteor.isServer
   , options
 
 @sortedGroupPartialMembers = (group, options) ->
-  _.sortBy groupPartialMembers(group, options).fetch(), userSortKey
+  sortUsers groupPartialMembers(group, options).fetch()
 
 export messagePartialMembers = (group, message, options) ->
   Meteor.users.find

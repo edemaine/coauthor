@@ -3,6 +3,7 @@ import {useTracker} from 'meteor/react-meteor-data'
 Typeahead = React.lazy -> import('react-bootstrap-typeahead/es/components/Typeahead')
 
 import {ErrorBoundary} from './ErrorBoundary'
+import {sortUsers} from '/lib/users'
 
 import 'react-bootstrap-typeahead/css/Typeahead.css'
 
@@ -28,7 +29,7 @@ export WrappedUserInput = React.memo ({group, omit, placeholder, onSelect}) ->
       omitted = (user for user in users when not omit user)
     else
       omitted = users
-    _.sortBy omitted, userSortKey
+    sortUsers omitted
   , [users, omit]
   amSuper = useTracker ->
     canSuper()

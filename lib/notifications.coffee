@@ -1,6 +1,7 @@
 import {Mongo} from 'meteor/mongo'
 
 import {profiling} from './profiling'
+import {sortUsers} from './users'
 
 @Notifications = new Mongo.Collection 'notifications'
 
@@ -127,4 +128,4 @@ export sortedMessageSubscribers = (msg, options = {}) ->
     options.fields.username = true
     options.fields['profile.fullname'] = true  ## for sorting by fullname
   users = messageSubscribers msg, options
-  _.sortBy users, userSortKey
+  sortUsers users

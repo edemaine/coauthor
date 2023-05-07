@@ -8,6 +8,7 @@ import {defaultNotificationDelays, notificationsSeparate, notifySelf, messageSub
 import {escapeTag, linkToTag, sortTags, tagValueToString} from '/lib/tags'
 import {profiling, profilingStartup, isProfiling} from '/lib/profiling'
 import {timezoneCanon} from '/lib/settings'
+import {sortUsers} from '/lib/users'
 
 ## Only server needs dayjs plugins
 import dayjs from 'dayjs'
@@ -439,7 +440,7 @@ notificationEmail = (notifications) ->
           ## Ignore coauthors on creation if it's still just the creator
           delete changed.coauthors if _.isEqual msg.coauthors, [msg.creator]
           delete changed.access if msg.access?.length == 0
-        authors = _.sortBy notification.authors, userSortKey
+        authors = sortUsers notification.authors
         authorsText = (displayUser author for author in authors).join ', '
         authorsHTML = (linkToAuthor msg.group, author for author in authors).join ', '
         if messageUpdates.length == 1

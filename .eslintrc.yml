@@ -143,7 +143,6 @@ globals:
   urlFor: readonly
   urlToInternalFile: readonly
   urlToFile: readonly
-  userSortKey: readonly
   validGroup: readonly
   validUsername: readonly
   wildGroup: readonly

@@ -7,6 +7,7 @@ import {dateMax} from './dates'
 import {groupDefaultSort} from './groups'
 import {autopublish, defaultFormat} from './settings'
 import {escapeTag, validTags} from './tags'
+import {sortUsers} from './users'
 
 idleUpdate = 1000      ## one second of idle time before edits update message
 export idleStop = 60*60*1000  ## one hour of idle time before auto stop editing
@@ -237,8 +238,7 @@ export sortedMessageReaders = (msg, options = {}) ->
   if options.fields?
     options.fields.username = true
     options.fields['profile.fullname'] = true  ## for sorting by fullname
-  users = messageReaders msg, options
-  _.sortBy users, userSortKey
+  sortUsers messageReaders msg, options
 
 if Meteor.isServer
   Meteor.publish 'messages.all', (group) ->
