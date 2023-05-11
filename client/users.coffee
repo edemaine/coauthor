@@ -228,8 +228,8 @@ onRole = (props, e) ->
     console.error "Unrecognized state: #{old}"
 
 export User = (props) ->
-  escapedGroup = createMemo -> escapeGroup props.group
-  partialMember = createTracker ->
+  escapedGroup = createMemo => escapeGroup props.group
+  partialMember = createTracker =>
     return if props.messageID?
     ids = (id for id of props.user.rolesPartial?[escapedGroup()])
     return unless ids.length
@@ -237,13 +237,24 @@ export User = (props) ->
       Messages.findOne(id) ?
         _id: id
         title: '(loading)'
-  roles = createMemo ->
+  roles = createMemo =>
     message = props.user.rolesPartial?[escapedGroup()]?[props.messageID] ? [] \
       if props.messageID?
     group = props.user.roles?[escapedGroup()] ? []
     global = props.user.roles?[wildGroup] ? [] if props.group != wildGroup
     first = message ? group
     {message, group, global, first}
+  levels = {}
+  for role in allRoles  ### eslint-disable-line coffee/no-unused-vars ###
+    do (role) =>
+      levels[role] = createMemo =>
+        r = roles()
+        l = []
+        l.push role in r.message if r.message?
+        l.push role in r.group if r.group?
+        l.push role in r.global if r.global?
+        l.pop() until l.length <= 1 or l[l.length-1]
+        l
   authorLink = -> pathFor 'author',
     group: props.group
     author: props.user.username
@@ -269,20 +280,14 @@ export User = (props) ->
           joined {formatDate props.user.createdAt}
         </div>
       </th>
-      {
-      r = roles()
-      for role in allRoles
-        levels = []
-        levels.push role in r.message if r.message?
-        levels.push role in r.group if r.group?
-        levels.push role in r.global if r.global?
-        levels.pop() until levels.length == 1 or levels[levels.length-1]
+      <For each={allRoles}>{(role) =>
         showLevel = (i) ->
-          return if i >= levels.length
-          level = if levels[i] then 'YES' else 'NO'
+          l = levels[role]()
+          return if i >= l.length
+          level = if l[i] then 'YES' else 'NO'
           level += '*' if i == 1 + props.messageID?  # global override
           space = if i == 0 then '' else 'space'
-          if i == levels.length - 1  # last level
+          if i == l.length - 1  # last level
             if i == 0
               level
             else
@@ -291,7 +296,7 @@ export User = (props) ->
             <del className={space}>{level}</del>
         <td data-role={role}>
           {if props.admin.group
-            <button className="roleButton btn #{if levels[0] then 'btn-success' else 'btn-danger'}"
+            <button className="roleButton btn #{if levels[role]()[0] then 'btn-success' else 'btn-danger'}"
              onClick={[onRole, props]}>
               {showLevel 0}
             </button>
@@ -301,7 +306,7 @@ export User = (props) ->
           {showLevel 1}
           {showLevel 2}
         </td>
-      }
+      }</For>
     </tr>
     <Show when={partialMember()?.length}>
       {### Extra row to get parity right ###}
