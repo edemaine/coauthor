@@ -292,13 +292,13 @@ export User = (props) ->
     <tr data-username={props.user.username}>
       <td className="user">
         <span className="name">
-          {if fullname = props.user.profile?.fullname 
+          {if (fullname = props.user.profile?.fullname)
             <Highlight text={fullname + ' = '}/>
           }
           <a href={authorLink()}>@{props.user.username}</a>
         </span>
         <span className="email">
-          {if email = props.user.emails?[0]
+          {if (email = props.user.emails?[0])
             <Highlight text=" (#{email.address}#{if email.verified then '' else ', unverified'})"/>
           else
             ' (no email)'
