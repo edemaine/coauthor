@@ -117,20 +117,27 @@ export UserSearch = (props) ->
       sort: [['createdAt', 'desc']]
       limit: parseLimit()
   #usersReverse = => [...users()].reverse()
+  LimitInput = =>
+    <input class="form-control input-sm limit" placeholder="all"
+     type="number" value={limit()}
+     onChange={(e) => setLimit e.currentTarget.value}/>
+  MoreButton = =>
+    <Button variant="success" size="sm"
+     onClick={=> setLimit ((parseLimit() ? 0) + 10).toString()}>
+      More
+    </Button>
+  AllButton = =>
+    <Button variant="warning" size="sm" onClick={=> setLimit ''}
+     disabled={not parseLimit()?}>
+      All
+    </Button>
   <>
     <h3 class="form-inline">
       <Badge bg="secondary">{count()}</Badge>
       {' All Coauthor users, limited to latest '}
       <div class="input-group">
-        <input class="form-control input-sm limit" placeholder="all"
-         type="number" value={limit()}
-         onChange={(e) => setLimit e.currentTarget.value}/>
-        <span class="input-group-btn">
-          <Button variant="warning" size="sm" onClick={=> setLimit ''}
-           disabled={parseLimit()?}>
-            All
-          </Button>
-        </span>
+        <LimitInput/>
+        <span class="input-group-btn"><AllButton/></span>
         :
       </div>
     </h3>
@@ -138,20 +145,16 @@ export UserSearch = (props) ->
     <p/>
     <UserTable users={users()}
       group={props.group} messageID={props.messageID} admin={props.admin}/>
-    <Show when={count() > users().length}>
-      <div class="form-inline">
-        <input class="form-control input-sm limit" placeholder="all"
-         type="number" value={limit()}
-         onChange={(e) => setLimit e.currentTarget.value}/>
-        {' '}
-        out of {count()} users shown
-        {' '}
-        <ButtonGroup>
-          <Button variant="success" onClick={=> setLimit ((parseLimit() ? 0) + 10).toString()}>More</Button>
-          <Button variant="warning" onClick={=> setLimit ''}>All</Button>
-        </ButtonGroup>
-      </div>
-    </Show>
+    <div class="form-inline">
+      <LimitInput/>
+      {' '}
+      out of {count()} users shown
+      {' '}
+      <ButtonGroup>
+        <MoreButton/>
+        <AllButton/>
+      </ButtonGroup>
+    </div>
   </>
 
 export UserTable = (props) -> <>
