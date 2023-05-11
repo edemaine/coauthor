@@ -10,3 +10,14 @@ tr.partialMemberSep + tr.partialMember > td
 
 input.limit
   width: 6em !important
+
+// Force inline form, even for small screens
+.form-inline
+  .input-group
+    display: inline-table
+    vertical-align: middle  // roughly align with text
+    > .form-control
+      float: none  // fix vertical alignment
+      width: auto
+    .input-group-btn
+      width: auto

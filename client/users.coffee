@@ -3,6 +3,7 @@ import {createMemo, createSignal, Show, For} from 'solid-js'
 import {createFind, createFindOne, createTracker} from 'solid-meteor-data'
 import Badge from 'solid-bootstrap/esm/Badge'
 import Button from 'solid-bootstrap/esm/Button'
+import ButtonGroup from 'solid-bootstrap/esm/ButtonGroup'
 
 import {ErrorBoundary} from './solid/ErrorBoundary'
 import {TextTooltip} from './solid/TextTooltip'
@@ -105,12 +106,16 @@ export Users = (props) ->
   </ErrorBoundary>
 
 export UserSearch = (props) ->
-  [limit, setLimit] = createSignal 10
+  [limit, setLimit] = createSignal '10'
+  parseLimit = ->
+    parsed = Math.round parseFloat limit()
+    parsed = undefined if isNaN parsed
+    parsed
   count = createTracker -> Meteor.users.find({}).count()
   users = createFind ->
     Meteor.users.find {},
       sort: [['createdAt', 'desc']]
-      limit: if isNaN limit() then undefined else limit()
+      limit: parseLimit()
   #usersReverse = => [...users()].reverse()
   <>
     <h3 class="form-inline">
@@ -119,20 +124,34 @@ export UserSearch = (props) ->
       <div class="input-group">
         <input class="form-control input-sm limit" placeholder="all"
          type="number" value={limit()}
-         onChange={(e) => setLimit Math.round parseFloat e.currentTarget.value}
-         />
+         onChange={(e) => setLimit e.currentTarget.value}/>
         <span class="input-group-btn">
-          <Button variant="warning" size="sm" onClick={=> setLimit undefined}>
+          <Button variant="warning" size="sm" onClick={=> setLimit ''}
+           disabled={parseLimit()?}>
             All
           </Button>
         </span>
+        :
       </div>
-      :
     </h3>
     {### <input class="form-control" placeholder="Search"/> ###}
     <p/>
     <UserTable users={users()}
       group={props.group} messageID={props.messageID} admin={props.admin}/>
+    <Show when={count() > users().length}>
+      <div class="form-inline">
+        <input class="form-control input-sm limit" placeholder="all"
+         type="number" value={limit()}
+         onChange={(e) => setLimit e.currentTarget.value}/>
+        {' '}
+        out of {count()} users shown
+        {' '}
+        <ButtonGroup>
+          <Button variant="success" onClick={=> setLimit ((parseLimit() ? 0) + 10).toString()}>More</Button>
+          <Button variant="warning" onClick={=> setLimit ''}>All</Button>
+        </ButtonGroup>
+      </div>
+    </Show>
   </>
 
 export UserTable = (props) -> <>
