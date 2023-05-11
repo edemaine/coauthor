@@ -114,13 +114,28 @@ export Users = (props) ->
 
 export UserSearch = (props) ->
   [limit, setLimit] = createSignal '10'
+  [search, setSearch] = createSignal ''
   parseLimit = ->
     parsed = Math.round parseFloat limit()
     parsed = undefined if isNaN parsed
     parsed
-  count = createTracker -> Meteor.users.find({}).count()
+  query = createMemo =>
+    if (pattern = search())?
+      pattern =
+        $regex: escapeRegExp pattern
+        $options: 'i'
+      $or: [
+        username: pattern
+      ,
+        'profile.fullname': pattern
+      ,
+        emails: $elemMatch: address: pattern
+      ]
+    else
+      {}
+  count = createTracker -> Meteor.users.find(query()).count()
   users = createFind ->
-    Meteor.users.find {},
+    Meteor.users.find query(),
       sort: [['createdAt', 'desc']]
       limit: parseLimit()
   #usersReverse = => [...users()].reverse()
@@ -148,7 +163,13 @@ export UserSearch = (props) ->
         :
       </div>
     </h3>
-    {### <input class="form-control" placeholder="Search"/> ###}
+    <div class="input-group">
+      <input class="form-control" placeholder="Search" value={search()}
+       onInput={(e) => setSearch e.currentTarget.value}/>
+      <span class="input-group-btn">
+        <Button variant="warning" onClick={=> setSearch ''}>Reset</Button>
+      </span>
+    </div>
     <p/>
     <UserTable users={users()}
       group={props.group} messageID={props.messageID} admin={props.admin}/>
