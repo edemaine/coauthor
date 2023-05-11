@@ -94,8 +94,7 @@ export Users = (props) ->
     </UserTable>
     <Show when={not isWild() and not props.messageID?}>
       <UserTable users={partialMembers()}
-       group={props.group} messageID={props.messageID}
-       admin={admin()} anonymous={not props.messageID?}>
+       group={props.group} messageID={props.messageID} admin={admin()}>
         Partial members of group &ldquo;
         <a href={pathFor 'group', group: props.group}>{props.group}</a>
         &rdquo;:
@@ -179,7 +178,7 @@ export UserTable = (props) -> <>
   <table className="table table-striped table-hover users clearfix">
     <thead>
       <tr>
-        <th>User</th>
+        <th className="user">User</th>
         <TextTooltip title="Permission to see the group at all, and read all messages within">
           <th className="text-help">Read</th>
         </TextTooltip>
@@ -261,39 +260,37 @@ export User = (props) ->
 
   <>
     <tr data-username={props.user.username}>
-      <th>
-        <div className="name">
-          {if (fullname = props.user.profile?.fullname)
-            "#{fullname} ("
+      <td className="user">
+        <span className="name">
+          {if fullname = props.user.profile?.fullname 
+            fullname + ' = '
           }
-          <a href={authorLink()}>{props.user.username}</a>
-          {', '}
-          {if (email = props.user.emails?[0])?
-            email.address +
-            if email.verified then '' else ' (unverified)'
+          <a href={authorLink()}>@{props.user.username}</a>
+        </span>
+        <span className="email">
+          {if email = props.user.emails?[0]
+            " (#{email.address}#{if email.verified then '' else ', unverified'})"
           else
-            'no email'
+            ' (no email)'
           }
-          {')' if props.user.profile?.fullname}
-        </div>
+        </span>
         <div className="createdAt">
           joined {formatDate props.user.createdAt}
         </div>
-      </th>
+      </td>
       <For each={allRoles}>{(role) =>
         showLevel = (i) ->
           l = levels[role]()
           return if i >= l.length
           level = if l[i] then 'YES' else 'NO'
           level += '*' if i == 1 + props.messageID?  # global override
-          space = if i == 0 then '' else 'space'
           if i == l.length - 1  # last level
             if i == 0
               level
             else
-              <b className={space}>{level}</b>
+              <b>{level}</b>
           else
-            <del className={space}>{level}</del>
+            <del>{level}</del>
         <td data-role={role}>
           {if props.admin.group
             <button className="roleButton btn #{if levels[role]()[0] then 'btn-success' else 'btn-danger'}"
@@ -339,9 +336,9 @@ export Anonymous = (props) ->
       'Need global administrator privileges to change anonymous access'
 
   <tr data-username="*">
-    <th>
+    <td className="user">
       <i>&lt;anonymous&gt;</i>
-    </th>
+    </td>
     <For each={allRoles}>{(role) ->
       btnclass = -> if role in roles() then 'btn-success' else 'btn-danger'
       level = -> if role in roles() then 'YES' else 'NO'

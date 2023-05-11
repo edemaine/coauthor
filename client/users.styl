@@ -1,3 +1,20 @@
+table.users
+  table-layout: fixed
+  th, td
+    text-align: center
+    width: 71px
+  // First column
+  .user, .partialMember > td
+    width: auto
+    text-align: left
+    vertical-align: middle
+  .name
+    font-weight: bold
+  // Crossed-out and final permissions on their own lines
+  // (for uniform column widths)
+  b, del
+    display: block
+
 .createdAt
   font-weight: normal
   font-size: smaller
