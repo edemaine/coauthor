@@ -29,6 +29,19 @@ export Users = (props) ->
       groupPartialMembers props.group
   isWild = -> props.group == wildGroup
 
+  EditGroupPermissions = =>
+    <Show when={props.messageID? and admin().group}>
+      <a href={pathFor 'users', group: props.group} className="btn btn-warning">
+        Edit Group Permissions
+      </a>
+    </Show>
+  EditGlobalPermissions = =>
+    <Show when={not isWild() and admin().wild}>
+      <a href={pathFor 'users', group: wildGroup} className="btn btn-danger">
+        Edit Global Permissions
+      </a>
+    </Show>
+
   <ErrorBoundary>
     <h2>
       <Show when={props.messageID? or not isWild()}
@@ -48,16 +61,8 @@ export Users = (props) ->
         </Show>
       </Show>
       <div className="links btn-group pull-right">
-        <Show when={props.messageID? and admin().group}>
-          <a href={pathFor 'users', group: props.group} className="btn btn-warning">
-            Edit Group Permissions
-          </a>
-        </Show>
-        <Show when={not isWild() and admin().wild}>
-          <a href={pathFor 'users', group: wildGroup} className="btn btn-danger">
-            Edit Global Permissions
-          </a>
-        </Show>
+        <EditGroupPermissions/>
+        <EditGlobalPermissions/>
       </div>
     </h2>
     <Show when={props.messageID?}>
@@ -83,6 +88,9 @@ export Users = (props) ->
         </Show>
         :
       </Show>
+      <div className="links btn-group pull-right">
+        <EditGroupPermissions/>
+      </div>
     </UserTable>
     <Show when={not isWild() and not props.messageID?}>
       <UserTable users={partialMembers()}
