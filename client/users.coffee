@@ -114,11 +114,11 @@ export Users = (props) ->
 
 export UserSearch = (props) ->
   [limit, setLimit] = createSignal '10'
-  [search, setSearch] = createSignal ''
   parseLimit = ->
     parsed = Math.round parseFloat limit()
     parsed = undefined if isNaN parsed
     parsed
+  [search, setSearch] = createSignal ''
   query = createMemo =>
     if (pattern = search())?
       pattern =
@@ -171,7 +171,7 @@ export UserSearch = (props) ->
       </span>
     </div>
     <p/>
-    <UserTable users={users()}
+    <UserTable users={users()} search={search()}
       group={props.group} messageID={props.messageID} admin={props.admin}/>
     <div class="form-inline">
       <LimitInput/>
@@ -220,7 +220,7 @@ export UserTable = (props) -> <>
     <tbody>
       <For each={props.users}>{(user) ->
         <ErrorBoundary>
-          <User group={props.group} messageID={props.messageID} user={user} admin={props.admin}/>
+          <User user={user} group={props.group} messageID={props.messageID} admin={props.admin} search={props.search}/>
         </ErrorBoundary>
       }</For>
       <Show when={props.anonymous}>
@@ -278,19 +278,28 @@ export User = (props) ->
   authorLink = -> pathFor 'author',
     group: props.group
     author: props.user.username
+  regExp = createMemo ->
+    new RegExp escapeRegExp(props.search), 'ig' if props.search
+  Highlight = (props) =>
+    <Show when={regExp()} fallback={props.text}>
+      <span innerHTML={
+        _.escape props.text
+        .replace regExp(), '<span class="highlight">$&</span>'
+      }/>
+    </Show>
 
   <>
     <tr data-username={props.user.username}>
       <td className="user">
         <span className="name">
           {if fullname = props.user.profile?.fullname 
-            fullname + ' = '
+            <Highlight text={fullname + ' = '}/>
           }
           <a href={authorLink()}>@{props.user.username}</a>
         </span>
         <span className="email">
           {if email = props.user.emails?[0]
-            " (#{email.address}#{if email.verified then '' else ', unverified'})"
+            <Highlight text=" (#{email.address}#{if email.verified then '' else ', unverified'})"/>
           else
             ' (no email)'
           }
