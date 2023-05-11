@@ -159,12 +159,14 @@ export UserSearch = (props) ->
 
 export UserTable = (props) -> <>
   {if props.children
-    <hr/>
-    <h3>
-      <Badge bg="secondary">{props.users.length}</Badge>
-      {' '}
-      {props.children}
-    </h3>
+    <>
+      <hr/>
+      <h3>
+        <Badge bg="secondary">{props.users.length}</Badge>
+        {' '}
+        {props.children}
+      </h3>
+    </>
   }
   <table className="table table-striped table-hover users clearfix">
     <thead>
