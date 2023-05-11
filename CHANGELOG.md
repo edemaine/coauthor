@@ -7,6 +7,15 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2023-05-11
+
+* New administrative interface for managing Users in a group
+  * Split into multiple sections (members of various types
+    vs. other users to add)
+  * More consistent (and faster) layout of table
+  * Initially show only latest 10 users, with buttons for more/all
+  * Support for searching among users
+
 ## 2023-04-22
 
 * Visual warning when embedding image that is deleted or unpublished,
