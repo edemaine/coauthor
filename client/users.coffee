@@ -1,5 +1,8 @@
-import {createMemo, Show, For} from 'solid-js'
+### eslint-disable react/no-unknown-property ###
+import {createMemo, createSignal, Show, For} from 'solid-js'
 import {createFind, createFindOne, createTracker} from 'solid-meteor-data'
+import Badge from 'solid-bootstrap/esm/Badge'
+import Button from 'solid-bootstrap/esm/Button'
 
 import {ErrorBoundary} from './solid/ErrorBoundary'
 import {TextTooltip} from './solid/TextTooltip'
@@ -64,7 +67,7 @@ export Users = (props) ->
         <a href={pathFor 'message', {group: props.group, message: props.messageID}}>
           {messageTitle}
         </a>
-        &rdquo;
+        &rdquo;:
       </UserTable>
     </Show>
     <UserTable users={fullMembers()}
@@ -77,6 +80,7 @@ export Users = (props) ->
         <Show when={props.messageID?}>
           {' can automatically access the thread'}
         </Show>
+        :
       </Show>
     </UserTable>
     <Show when={not isWild() and not props.messageID?}>
@@ -85,18 +89,12 @@ export Users = (props) ->
        admin={admin()} anonymous={not props.messageID?}>
         Partial members of group &ldquo;
         <a href={pathFor 'group', group: props.group}>{props.group}</a>
-        &rdquo;
+        &rdquo;:
       </UserTable>
     </Show>
     <hr/>
-    <h3>All Coauthor Users</h3>
-    <Show when={true}>{->
-      all = createFind ->
-        Meteor.users.find {},
-          sort: [['createdAt', 'asc']]
-      <UserTable users={all()}
+    <UserSearch
        group={props.group} messageID={props.messageID} admin={admin()}/>
-    }</Show>
     {###
     <Show when={not isWild() and not props.messageID?}>
       <ErrorBoundary>
@@ -106,12 +104,45 @@ export Users = (props) ->
     ###}
   </ErrorBoundary>
 
+export UserSearch = (props) ->
+  [limit, setLimit] = createSignal 10
+  count = createTracker -> Meteor.users.find({}).count()
+  users = createFind ->
+    Meteor.users.find {},
+      sort: [['createdAt', 'desc']]
+      limit: if isNaN limit() then undefined else limit()
+  #usersReverse = => [...users()].reverse()
+  <>
+    <h3 class="form-inline">
+      <Badge bg="secondary">{count()}</Badge>
+      {' All Coauthor users, limited to latest '}
+      <div class="input-group">
+        <input class="form-control input-sm limit" placeholder="all"
+         type="number" value={limit()}
+         onChange={(e) => setLimit Math.round parseFloat e.currentTarget.value}
+         />
+        <span class="input-group-btn">
+          <Button variant="warning" size="sm" onClick={=> setLimit undefined}>
+            All
+          </Button>
+        </span>
+      </div>
+      :
+    </h3>
+    {### <input class="form-control" placeholder="Search"/> ###}
+    <p/>
+    <UserTable users={users()}
+      group={props.group} messageID={props.messageID} admin={props.admin}/>
+  </>
+
 export UserTable = (props) -> <>
   {if props.children
-    <>
-      <hr/>
-      <h3>{props.children}</h3>
-    </>
+    <hr/>
+    <h3>
+      <Badge bg="secondary">{props.users.length}</Badge>
+      {' '}
+      {props.children}
+    </h3>
   }
   <table className="table table-striped table-hover users clearfix">
     <thead>
