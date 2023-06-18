@@ -494,7 +494,7 @@ formatMessageSearch = (messageId) ->
     else
       "#{messageId}"
   url = pathFor 'message',
-    group: message?.group ? wildGroup
+    GROUP: message?.group ? wildGroup
     message: messageId
   """<a href="#{url}">#{title}</a>"""
 

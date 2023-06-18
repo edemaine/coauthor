@@ -28,16 +28,12 @@ import {autopublish} from '/lib/settings'
 import {groupTags, sortTags} from '/lib/tags'
 
 @routeGroup = ->
-  Router.current()?.params?.group
+  Router.current()?.params?.GROUP
 
 @routeGroupOrWild = ->
   routeGroup() ? wildGroup
 
 Template.registerHelper 'routeGroup', routeGroup
-
-Template.registerHelper 'routeGroupOrWildData', ->
-  group: routeGroupOrWild()
-  0: '*'
 
 Template.registerHelper 'wildGroup', ->
   routeGroup() == wildGroup
@@ -68,9 +64,9 @@ Template.registerHelper 'groupDataOrWild', ->
 
 @linkToSort = (sortBy) ->
   unparsed = unparseSort sortBy
-  return pathFor 'group', group: routeGroup() unless unparsed
+  return pathFor 'group', GROUP: routeGroup() unless unparsed
   pathFor 'group' + unparsed[0],
-    group: routeGroup()
+    GROUP: routeGroup()
     sortBy: unparsed[1..]
   .replace /%2B/g, '+'  # converts to space later
 
@@ -227,12 +223,12 @@ export GroupButtons = React.memo ({group, can, sortBy, clusterBy, tags}) ->
         Meteor.call 'messageEditStart', result
         if newTab
           url = urlFor 'message',
-            group: group
+            GROUP: group
             message: result
           window.open url, '_blank'
         else
           Router.go 'message',
-            group: group
+            GROUP: group
             message: result
       else
         console.error "messageNew did not return problem -- not authorized?"
@@ -289,25 +285,25 @@ export GroupButtons = React.memo ({group, can, sortBy, clusterBy, tags}) ->
     <div className="btn-group">
       <TextTooltip title="Show all messages you have authored or been @mentioned in">
         <a className="btn btn-default myPostsButton #{unless user? then 'disabled'}"
-         href={if user? then pathFor 'author', {group: group, author: user.username}}>
+         href={if user? then pathFor 'author', {GROUP: group, author: user.username}}>
           My Posts
         </a>
       </TextTooltip>
       <TextTooltip title="Show the last n messages, updating live">
         <a className="btn btn-default liveButton"
-         href={pathFor 'live', group: group}>
+         href={pathFor 'live', GROUP: group}>
           Live Feed
         </a>
       </TextTooltip>
       <TextTooltip title="Show all messages since a specified time in the past">
         <a className="btn btn-default sinceButton"
-         href={pathFor 'since', group: group}>
+         href={pathFor 'since', GROUP: group}>
           Catchup Since...
         </a>
       </TextTooltip>
       <TextTooltip title="Plot number of messages over time, by you and for entire group">
         <a className="btn btn-default statsButton"
-         href={pathFor 'stats', {group: group, username: user?.username}}>
+         href={pathFor 'stats', {GROUP: group, username: user?.username}}>
           Statistics
         </a>
       </TextTooltip>
@@ -374,7 +370,7 @@ export GroupSorts = React.memo ({sortBy, clusterBy, tags}) ->
         </TextTooltip>
       }
       <TextTooltip title="Reset to group's default sort order">
-        <a href={pathFor 'group', group: routeGroup()}
+        <a href={pathFor 'group', GROUP: routeGroup()}
         className="btn btn-warning btn-xs">
           Reset
         </a>
@@ -598,7 +594,7 @@ GroupMembers.displayName = 'GroupMembers'
 export MessageShort = React.memo ({message, clusterBy}) ->
   messageLink = useMemo ->
     pathFor 'message',
-      group: message.group
+      GROUP: message.group
       message: message._id
   , [message]
   formattedTitle = useTracker ->
@@ -719,7 +715,7 @@ Template.groupRename.events
         console.error 'groupRename:', error
       else
         Router.go 'group',
-          group: groupNew
+          GROUP: groupNew
   'click .cancelButton': (e) ->
     e.preventDefault()
     e.stopPropagation()
@@ -734,7 +730,7 @@ Template.superdeleteImport.events
     sub = Meteor.subscribe 'messages.imported', t.data.group, ->
       count = 0
       Messages.find
-        group: t.data.group
+        GROUP: t.data.group
         imported: $ne: null
       .forEach (msg) ->
         count += 1

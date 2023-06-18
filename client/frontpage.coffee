@@ -71,7 +71,7 @@ Template.groupNew.events
         console.error 'groupNew:', error
       else
         Router.go 'group',
-          group: group
+          GROUP: group
   'click .cancelButton': (e) ->
     e.preventDefault()
     e.stopPropagation()

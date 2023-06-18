@@ -35,7 +35,7 @@ template(name="mismatchedGroupMessage")
       p Message &ldquo;<b>#{_id}</b>&rdquo; does not belong to group &ldquo;<b>#{routeGroup}</b>&rdquo;.
       p Perhaps it moved?  Here is a link to the message in the correct group, &ldquo;<b>#{group}</b>&rdquo;:
       p
-        a(href="{{pathFor 'message' group=group message=_id}}") {{urlFor 'message' group=group message=_id}}
+        a(href="{{pathFor 'message' GROUP=group message=_id}}") {{urlFor 'message' GROUP=group message=_id}}
 
 template(name="submessage")
   div

@@ -280,7 +280,7 @@ notificationDo = (to) ->
 linkToGroup = (group, html) ->
   #url = Meteor.absoluteUrl "#{group}"
   url = urlFor 'group',
-    group: group
+    GROUP: group
   if html
     "<a href=\"#{url}\">#{group}</a>"
   else
@@ -289,7 +289,7 @@ linkToGroup = (group, html) ->
 linkToMessage = (msg, user, html, quote = false) ->
   #url = Meteor.absoluteUrl "#{msg.group}/m/#{msg._id}"
   url = urlFor 'message',
-    group: msg.group
+    GROUP: msg.group
     message: msg._id
   if html
     options =

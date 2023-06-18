@@ -14,7 +14,7 @@ Template.live.helpers
 Template.live.events
   'change #limitInput': (e, t) ->
     Router.go 'live',
-      group: @group
+      GROUP: @group
       limit: t.find('#limitInput').value
 
   'submit form': (e, t) ->

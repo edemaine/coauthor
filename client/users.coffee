@@ -31,13 +31,13 @@ export Users = (props) ->
 
   EditGroupPermissions = =>
     <Show when={props.messageID? and admin().group}>
-      <a href={pathFor 'users', group: props.group} className="btn btn-warning">
+      <a href={pathFor 'users', GROUP: props.group} className="btn btn-warning">
         Edit Group Permissions
       </a>
     </Show>
   EditGlobalPermissions = =>
     <Show when={not isWild() and admin().wild}>
-      <a href={pathFor 'users', group: wildGroup} className="btn btn-danger">
+      <a href={pathFor 'users', GROUP: wildGroup} className="btn btn-danger">
         Edit Global Permissions
       </a>
     </Show>
@@ -49,14 +49,14 @@ export Users = (props) ->
         {'Permissions for '}
         <Show when={props.messageID?}>
           THREAD &ldquo;
-          <a href={pathFor 'message', {group: props.group, message: props.messageID}}>
+          <a href={pathFor 'message', {GROUP: props.group, message: props.messageID}}>
             {messageTitle}
           </a>
           &rdquo;{' in '}
         </Show>
         <Show when={not isWild()} fallback="all groups">
           group &ldquo;
-          <a href={pathFor 'group', group: props.group}>{props.group}</a>
+          <a href={pathFor 'group', GROUP: props.group}>{props.group}</a>
           &rdquo;
         </Show>
       </Show>
@@ -70,7 +70,7 @@ export Users = (props) ->
        group={props.group} messageID={props.messageID}
        admin={admin()} anonymous={props.messageID?}>
         Explicit permission to thread &ldquo;
-        <a href={pathFor 'message', {group: props.group, message: props.messageID}}>
+        <a href={pathFor 'message', {GROUP: props.group, message: props.messageID}}>
           {messageTitle}
         </a>
         &rdquo;:
@@ -81,7 +81,7 @@ export Users = (props) ->
      admin={admin()} anonymous={not props.messageID?}>
       <Show when={not isWild()} fallback="Global users">
         Full members of group &ldquo;
-        <a href={pathFor 'group', group: props.group}>{props.group}</a>
+        <a href={pathFor 'group', GROUP: props.group}>{props.group}</a>
         &rdquo;
         <Show when={props.messageID?}>
           {' can automatically access the thread'}
@@ -96,7 +96,7 @@ export Users = (props) ->
       <UserTable users={partialMembers()}
        group={props.group} messageID={props.messageID} admin={admin()}>
         Partial members of group &ldquo;
-        <a href={pathFor 'group', group: props.group}>{props.group}</a>
+        <a href={pathFor 'group', GROUP: props.group}>{props.group}</a>
         &rdquo;:
       </UserTable>
     </Show>
@@ -276,7 +276,7 @@ export User = (props) ->
         l.pop() until l.length <= 1 or l[l.length-1]
         l
   authorLink = -> pathFor 'author',
-    group: props.group
+    GROUP: props.group
     author: props.user.username
   regExp = createMemo ->
     new RegExp escapeRegExp(props.search), 'ig' if props.search
@@ -345,7 +345,7 @@ export User = (props) ->
           <For each={partialMember()}>{(message) ->
             <>
               {" • "}
-              <a href={pathFor 'users.message', {group: props.group, message: message._id}}>
+              <a href={pathFor 'users.message', {GROUP: props.group, message: message._id}}>
                 {titleOrUntitled message}
               </a>
             </>

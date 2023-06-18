@@ -48,14 +48,14 @@ savePage = (zip, group, filename) ->
   for linkType in [pathFor, urlFor]
     ## Links to internal messages
     re = linkType 'message',
-      group: group
+      GROUP: group
       message: 'MESSAGE'
     .replace /MESSAGE/, "(#{idRegex})"
     html = html.replace ///(<[aA]\b[^<>]*[hH][rR][eE][fF]\s*=\s*['"])#{re}///g,
       "$1$2.html"
     ## Links to internal groups
     re = linkType 'group',
-      group: group
+      GROUP: group
     html = html.replace ///(<[aA]\b[^<>]*[hH][rR][eE][fF]\s*=\s*['"])#{re}(?!/)///g,
       "$1index.html"
   ## Fix other internal links to refer to Coauthor site
@@ -178,7 +178,7 @@ export downloadGroup = (group) ->
   for id, count in ids
     updateUploading -> @[title].progress = Math.floor 100 * count / ids.length
     Router.go 'message',
-      group: group
+      GROUP: group
       message: id
     # Some positive waiting is necessary for router to activate and page to
     # render.  Wait for a fairly positive value to avoid pummeling the server.
@@ -191,7 +191,7 @@ export downloadGroup = (group) ->
   updateUploading -> @[title].progress = 100
   ## Go back to group page
   Router.go 'group',
-    group: group
+    GROUP: group
   ## Download ZIP
   blob = await zip.generateAsync type: 'blob'
   (await import('file-saver')).saveAs blob, "#{group}.zip"

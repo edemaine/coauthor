@@ -16,9 +16,9 @@ Router.configure
     Subscribe.subscribe 'groups'
   ]
 
-Router.route '/:group/m/:message',
+Router.route '/:GROUP/m/:message',
   #Session.set 'group', Groups.findOne
-  #  name: @params.group
+  #  name: @params.GROUP
   #if Session.get 'group'
   #  Session.set 'message', Messages.findOne
   #    url: @params.message
@@ -37,24 +37,24 @@ Router.route '/:group/m/:message',
       #Subscribe.subscribe 'emoji.submessages', @params.message
     ]
     ## Wild message links will get redirected to the proper group; wait on that
-    unless @params.group == wildGroup
+    unless @params.GROUP == wildGroup
       subs.push ...[
-        Subscribe.subscribe 'messages.root', @params.group
-        Subscribe.subscribe 'groups.members', @params.group
-        Subscribe.subscribe 'tags', @params.group
-        Subscribe.subscribe 'files', @params.group
+        Subscribe.subscribe 'messages.root', @params.GROUP
+        Subscribe.subscribe 'groups.members', @params.GROUP
+        Subscribe.subscribe 'tags', @params.GROUP
+        Subscribe.subscribe 'files', @params.GROUP
       ]
     subs
   data: ->
     _id: @params.message
   #dataNotFoundTemplate: 'NotFound'
   action: ->
-    if @params.group == wildGroup
+    if @params.GROUP == wildGroup
       if @ready()
         msg = findMessage @params.message
         if msg?.group
           return @redirect 'message',
-            group: msg.group
+            GROUP: msg.group
             message: @params.message
           ,
             replaceState: true
@@ -65,131 +65,131 @@ Router.route '/:group/m/:message',
       @render()
   fastRender: true
 
-# Want to write /:group/:sortBy?, but this would match everything
+# Want to write /:GROUP/:sortBy?, but this would match everything
 for sortChar in ['', '+', '-']
-  Router.route '/:group' + (sortChar and "/#{sortChar}:sortBy"),
+  Router.route '/:GROUP' + (sortChar and "/#{sortChar}:sortBy"),
     name: 'group' + sortChar
     template: 'group'
     subscriptions: -> [
-      Subscribe.subscribe 'messages.root', @params.group
-      #Subscribe.subscribe 'emoji.root', @params.group
-      Subscribe.subscribe 'groups.members', @params.group
-      Subscribe.subscribe 'tags', @params.group
+      Subscribe.subscribe 'messages.root', @params.GROUP
+      #Subscribe.subscribe 'emoji.root', @params.GROUP
+      Subscribe.subscribe 'groups.members', @params.GROUP
+      Subscribe.subscribe 'tags', @params.GROUP
     ]
     data: ->
-      group: @params.group
+      group: @params.GROUP
     fastRender: true
 
 defaultSince = '1 hour'
 
-Router.route '/:group/since/:since?',
+Router.route '/:GROUP/since/:since?',
   name: 'since'
   subscriptions: -> [
-    Subscribe.subscribe 'messages.since', @params.group, (@params.since ? defaultSince)
-    Subscribe.subscribe 'messages.root', @params.group unless @params.group == wildGroup
-    Subscribe.subscribe 'groups.members', @params.group
-    Subscribe.subscribe 'tags', @params.group
-    Subscribe.subscribe 'files', @params.group
+    Subscribe.subscribe 'messages.since', @params.GROUP, (@params.since ? defaultSince)
+    Subscribe.subscribe 'messages.root', @params.GROUP unless @params.GROUP == wildGroup
+    Subscribe.subscribe 'groups.members', @params.GROUP
+    Subscribe.subscribe 'tags', @params.GROUP
+    Subscribe.subscribe 'files', @params.GROUP
   ]
   data: ->
-    group: @params.group
+    group: @params.GROUP
     since: @params.since ? defaultSince
   fastRender: true
 
 defaultLiveLimit = 10
 
-Router.route '/:group/live/:limit?',
+Router.route '/:GROUP/live/:limit?',
   name: 'live'
   subscriptions: -> [
-    Subscribe.subscribe 'messages.live', @params.group, (@params.limit ? defaultLiveLimit)
-    Subscribe.subscribe 'messages.root', @params.group unless @params.group == wildGroup
-    Subscribe.subscribe 'groups.members', @params.group
-    Subscribe.subscribe 'tags', @params.group
-    Subscribe.subscribe 'files', @params.group
+    Subscribe.subscribe 'messages.live', @params.GROUP, (@params.limit ? defaultLiveLimit)
+    Subscribe.subscribe 'messages.root', @params.GROUP unless @params.GROUP == wildGroup
+    Subscribe.subscribe 'groups.members', @params.GROUP
+    Subscribe.subscribe 'tags', @params.GROUP
+    Subscribe.subscribe 'files', @params.GROUP
   ]
   data: ->
-    group: @params.group
+    group: @params.GROUP
     limit: @params.limit ? defaultLiveLimit
   fastRender: true
 
-Router.route '/:group/author/:author',
+Router.route '/:GROUP/author/:author',
   name: 'author'
   subscriptions: -> [
-    Subscribe.subscribe 'messages.author', @params.group, @params.author
-    Subscribe.subscribe 'messages.root', @params.group unless @params.group == wildGroup
-    Subscribe.subscribe 'groups.members', @params.group
-    Subscribe.subscribe 'tags', @params.group
-    Subscribe.subscribe 'files', @params.group
+    Subscribe.subscribe 'messages.author', @params.GROUP, @params.author
+    Subscribe.subscribe 'messages.root', @params.GROUP unless @params.GROUP == wildGroup
+    Subscribe.subscribe 'groups.members', @params.GROUP
+    Subscribe.subscribe 'tags', @params.GROUP
+    Subscribe.subscribe 'files', @params.GROUP
   ]
   data: ->
-    group: @params.group
+    group: @params.GROUP
     author: @params.author
   fastRender: true
 
-#Router.route '/:group/tag/:tag',
+#Router.route '/:GROUP/tag/:tag',
 #  name: 'tag'
 #  subscriptions: -> [
-#    Subscribe.subscribe 'messages.root', @params.group
-#    Subscribe.subscribe 'messages.tag', @params.group, @params.tag
-#    Subscribe.subscribe 'groups.members', @params.group
-#    Subscribe.subscribe 'files', @params.group
+#    Subscribe.subscribe 'messages.root', @params.GROUP
+#    Subscribe.subscribe 'messages.tag', @params.GROUP, @params.tag
+#    Subscribe.subscribe 'groups.members', @params.GROUP
+#    Subscribe.subscribe 'files', @params.GROUP
 #  ]
 #  data: ->
-#    group: @params.group
+#    group: @params.GROUP
 #    tag: @params.tag
 #  fastRender: true
 
-Router.route '/:group/stats/:username?',
+Router.route '/:GROUP/stats/:username?',
   name: 'stats'
   template: 'stats'
   subscriptions: -> [
-    #Subscribe.subscribe 'messages.author', @params.group, @params.username if @params.username
-    Subscribe.subscribe 'messages.all', @params.group
-    Subscribe.subscribe 'groups.members', @params.group
+    #Subscribe.subscribe 'messages.author', @params.GROUP, @params.username if @params.username
+    Subscribe.subscribe 'messages.all', @params.GROUP
+    Subscribe.subscribe 'groups.members', @params.GROUP
   ]
   data: ->
-    group: @params.group
+    group: @params.GROUP
     username: @params.username
     unit: @params.query.unit
   fastRender: true
 
-Router.route '/:group/search/:search([^]*)',
+Router.route '/:GROUP/search/:search([^]*)',
   name: 'search'
   subscriptions: -> [
-    Subscribe.subscribe 'messages.search', @params.group, @params.search
-    Subscribe.subscribe 'messages.root', @params.group unless @params.group == wildGroup
-    Subscribe.subscribe 'groups.members', @params.group
-    Subscribe.subscribe 'tags', @params.group
-    Subscribe.subscribe 'files', @params.group
+    Subscribe.subscribe 'messages.search', @params.GROUP, @params.search
+    Subscribe.subscribe 'messages.root', @params.GROUP unless @params.GROUP == wildGroup
+    Subscribe.subscribe 'groups.members', @params.GROUP
+    Subscribe.subscribe 'tags', @params.GROUP
+    Subscribe.subscribe 'files', @params.GROUP
   ]
   data: ->
-    group: @params.group
+    group: @params.GROUP
     search: @params.search
   fastRender: true
 
-Router.route '/:group/users',
+Router.route '/:GROUP/users',
   name: 'users'
   subscriptions: -> [
-    Subscribe.subscribe 'users', @params.group
-    Subscribe.subscribe 'messages.root', @params.group unless @params.group == wildGroup  ## for title links
+    Subscribe.subscribe 'users', @params.GROUP
+    Subscribe.subscribe 'messages.root', @params.GROUP unless @params.GROUP == wildGroup  ## for title links
   ]
   data: ->
-    group: @params.group
+    group: @params.GROUP
   fastRender: true
 
-Router.route '/:group/users/:message',
+Router.route '/:GROUP/users/:message',
   name: 'users.message'
   template: 'users'
   subscriptions: -> [
-    Subscribe.subscribe 'users', @params.group
-    Subscribe.subscribe 'messages.root', @params.group unless @params.group == wildGroup  ## for title links
+    Subscribe.subscribe 'users', @params.GROUP
+    Subscribe.subscribe 'messages.root', @params.GROUP unless @params.GROUP == wildGroup  ## for title links
   ]
   data: ->
-    group: @params.group
+    group: @params.GROUP
     message: @params.message
   fastRender: true
 
-Router.route '/:group/settings',
+Router.route '/:GROUP/settings',
   name: 'settings'
   fastRender: true
 

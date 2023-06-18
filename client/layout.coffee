@@ -47,27 +47,29 @@ Template.layout.helpers
   linkToUsers: ->
     if (message = routeMessage())
       pathFor 'users.message',
-        group: routeGroupOrWild()
+        GROUP: routeGroupOrWild()
         message: message2root message
     else
-      pathFor 'users', group: routeGroupOrWild()
+      pathFor 'users', GROUP: routeGroupOrWild()
   linkToUsersExit: ->
     if (message = routeMessage())
       pathFor 'message',
-        group: routeGroupOrWild()
+        GROUP: routeGroupOrWild()
         message: message
     else
-      pathFor 'group', group: routeGroupOrWild()
+      pathFor 'group', GROUP: routeGroupOrWild()
+  linkToSettings: ->
+    pathFor 'settings', GROUP: routeGroupOrWild()
   linkToGroup: ->
     router = Router.current()
     route = Router.current().route?.getName()
     if linkToRoutes[route]
       resolveSlash pathFor route,
         protectSlash _.extend _.omit(router.params, 'length'),
-          group: @name
+          GROUP: @name
     else
       pathFor 'group',
-        group: @name
+        GROUP: @name
   searchPlaceholder: ->
     if routeGroupOrWild() == wildGroup
       'Search globally'
@@ -119,13 +121,13 @@ Template.layout.events
         Router.go 'frontpage'
       else
         Router.go 'group',
-          group: routeGroup()
+          GROUP: routeGroup()
     else
       if (message = routeMessage())
         search = "(#{search})" if /\|/.test search
         search = "#{search} root:#{message2root message}"
       Router.go resolveSlash Router.path 'search', protectSlash
-        group: routeGroupOrWild()
+        GROUP: routeGroupOrWild()
         search: search
         0: '*'
         1: '*'

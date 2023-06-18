@@ -110,7 +110,7 @@ export RootHeader = React.memo ({message}) ->
   <div className="panel panel-default root" data-message={root._id}>
     <div className="panel-heading compact title">
       <div className="message-left-buttons push-down btn-group btn-group-xs">
-        <a className="btn btn-info focusButton" aria-label="Focus" href={pathFor 'message', {group: root.group, message: root._id}}>
+        <a className="btn btn-info focusButton" aria-label="Focus" href={pathFor 'message', {GROUP: root.group, message: root._id}}>
           <span className="fas fa-sign-in-alt" aria-hidden="true"/>
         </a>
       </div>
@@ -173,7 +173,7 @@ Template.message.helpers
 
 export MessageID = React.memo ({messageID}) ->
   {group, message} = useTracker ->
-    group: routeGroup()
+    GROUP: routeGroup()
     message: Messages.findOne messageID
   , [messageID]
   <ErrorBoundary>
@@ -181,7 +181,7 @@ export MessageID = React.memo ({messageID}) ->
       if message.group == group
         <Message message={message}/>
       else if group == wildGroup
-        Router.go 'message', {group: message.group, message: message._id}
+        Router.go 'message', {GROUP: message.group, message: message._id}
         null
       else
         <Blaze template="mismatchedGroupMessage" _id={message._id} group={message.group}/>
@@ -392,7 +392,7 @@ MessageInfoBoxes = React.memo ({message}) ->
           {for pinnedMessage in pinnedMessages
             <li key={pinnedMessage._id}>
               <a href={pathFor 'message',
-                group: message.group
+                GROUP: message.group
                 message: pinnedMessage._id
               }>
                 <span className="fas fa-thumbtack"/>
@@ -485,7 +485,7 @@ updateFileQuery = _.debounce ->
 messageOnDragStart = (message) -> (e) ->
   #url = "coauthor:#{message._id}"
   url = urlFor 'message',
-    group: message.group
+    GROUP: message.group
     message: message._id
   e.dataTransfer.effectAllowed = 'linkMove'
   e.dataTransfer.setData 'text/plain', url
@@ -624,7 +624,7 @@ MessageNeighbors = React.memo ({message}) ->
   renderNeighbor = (neighbor, icon, label) ->
     if neighbor?
       url = pathFor 'message',
-        group: neighbor.group
+        GROUP: neighbor.group
         message: neighbor._id
       <OverlayTrigger placement="top" flip overlay={(props) ->
         <Tooltip {...props}>
@@ -652,7 +652,7 @@ export MessageParent = React.memo ({message}) ->
   , [message._id]
   return null unless parent?
   <TextTooltip title={parent.title}>
-    <a className="btn btn-info" href="#{pathFor 'message', {group: parent.group, message: parent._id}}#">
+    <a className="btn btn-info" href="#{pathFor 'message', {GROUP: parent.group, message: parent._id}}#">
       <span className="fas fa-chevron-up" aria-label="Parent"/>
     </a>
   </TextTooltip>
@@ -1498,7 +1498,7 @@ export ReplyButtons = React.memo ({message, prefix}) ->
       else if result
         Meteor.call 'messageEditStart', result, (error2, result2) ->
           scrollToMessage result
-          #Router.go 'message', {group: group, message: result}
+          #Router.go 'message', {GROUP: group, message: result}
       else
         console.error "messageNew did not return message ID -- not authorized?"
   attachFiles = (files, e) ->
@@ -1741,7 +1741,7 @@ export WrappedTableOfContents = React.memo ({message, parent, index}) ->
          onDragEnter={addDragOver} onDragLeave={removeDragOver}
          onDragOver={dragOver} onDrop={dropOn}/>
       }
-      <a href={pathFor 'message', {group: message.group, message: message._id}}
+      <a href={pathFor 'message', {GROUP: message.group, message: message._id}}
        data-id={message._id}
        className="onMessageDrop #{if isRoot then 'title' else ''} #{messageClass.call message} #{inView}"
        onDragStart={messageOnDragStart message}
@@ -2486,7 +2486,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
                     </TextTooltip>
                 }
                 <TextTooltip title="Zoom in/focus on just the subthread of this message and its descendants">
-                  <a className="btn btn-info focusButton" aria-label="Focus" href={pathFor 'message', {group: message.group, message: message._id}} draggable="true" onDragStart={messageOnDragStart message}>
+                  <a className="btn btn-info focusButton" aria-label="Focus" href={pathFor 'message', {GROUP: message.group, message: message._id}} draggable="true" onDragStart={messageOnDragStart message}>
                     <span className="fas fa-sign-in-alt" aria-hidden="true"/>
                   </a>
                 </TextTooltip>

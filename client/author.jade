@@ -19,7 +19,7 @@ template(name='author')
                   a.btn.btn-danger.makePartialMember Make Partial Member
                 else
                   a.btn.btn-danger.makePartialMember Remove Membership
-            a.btn.btn-default.statsButton(href="{{pathFor 'stats' group=group username=author}}") Statistics
+            a.btn.btn-default.statsButton(href="{{pathFor 'stats' GROUP=group username=author}}") Statistics
       .panel-body
         each messages
           +submessageHeader

@@ -26,18 +26,18 @@ template(name="layout")
           if wildGroup
             a.navbar-brand(href="{{pathFor 'frontpage'}}") Coauthor
           else
-            a.navbar-brand(href="{{pathFor 'group' group=routeGroup}}") Coauthor
+            a.navbar-brand(href="{{pathFor 'group' GROUP=routeGroup}}") Coauthor
         else
           a.navbar-brand(href="{{pathFor 'frontpage'}}") Coauthor
       ul.nav.navbar-nav
         li.dropdown.halflink
           //- Repetition is necessary to avoid space between links
           if groupData
-            a.link(href="{{pathFor 'group' group=routeGroup}}") #{routeGroup}
+            a.link(href="{{pathFor 'group' GROUP=routeGroup}}") #{routeGroup}
             a.dropdown-toggle(href="#", data-toggle="dropdown", role="button", aria-expanded="false")
               span.caret
           else if routeGroup
-            a.link(href="{{pathFor 'group' group=routeGroup}}") #{routeGroup}?
+            a.link(href="{{pathFor 'group' GROUP=routeGroup}}") #{routeGroup}?
             a.dropdown-toggle(href="#", data-toggle="dropdown", role="button", aria-expanded="false")
               span.caret
           else
@@ -78,7 +78,7 @@ template(name="layout")
           else
             a.btn.btn-warning.usersButton(href="{{linkToUsers}}") Users
         if currentUser
-          a.btn.btn-default.settingsButton(href="{{pathFor 'settings' data=routeGroupOrWildData}}") Settings
+          a.btn.btn-default.settingsButton(href="{{linkToSettings}}") Settings
       ul.nav.navbar-nav.navbar-right
         +loginButtons
   .container-fluid

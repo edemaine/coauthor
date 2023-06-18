@@ -47,7 +47,7 @@ template(name="frontpage")
 template(name="groupList")
   .list-group
     each groups
-      a.list-group-item(href="{{pathFor 'group' group=name}}")= name
+      a.list-group-item(href="{{pathFor 'group' GROUP=name}}")= name
 
 template(name="groupNew")
   .modal
