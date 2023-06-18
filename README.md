@@ -42,16 +42,16 @@ To see what's changed in Coauthor recently, check out the
 
   * [GitHub-flavored Markdown](https://guides.github.com/features/mastering-markdown/)
     (default), e.g., `*italic*`, `**bold**`, `~~strikethrough~~`,
-    `# Heading`, `## Subheading`, \`code\`, `> Block quote`,
-    <code>\`\`\`multiple lines of code\`\`\`</code>
+    `# Heading`, `## Subheading`, `` `code` ``, `> Block quote`,
+    ` ```multiple lines of code``` `
     (including [language-based highlighting](https://highlightjs.org/)
-     if you start with <code>\`\`\`language</code>),
+     if you start with ` ```language `),
     links via `[text](url)`, images via `![caption](url)`,
     lists via `*` or `1.`, to-do lists via `* [ ]` and `* [x]`,
     [tables](http://www.tablesgenerator.com/markdown_tables), etc.
     Also supports all LaTeX commands listed below that start with a letter
     (notably, not accents) and math mode, and all HTML commands listed below.
-  * LaTeX, limited.  Beyond extensive math mode support (see below),
+  * LaTeX, limited.  Beyond extensive math mode support (see above),
     the following features are supported in text mode; feel free to ask
     for more.  `%...`, `\def\macro{...}`, `\let\macro=\mac`, `\protect`,
     `\sout`, `\emph`, `\textit`, `\textup`, `\textnormal`, `\textrm`, `\textlf`,
