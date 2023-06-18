@@ -7,6 +7,10 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2023-06-18
+
+* Fix for Safari 16.4+
+
 ## 2023-05-11
 
 * New administrative interface for managing Users in a group

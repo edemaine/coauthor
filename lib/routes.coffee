@@ -6,6 +6,10 @@ in ../client/layout.coffee, so that changing the group will preserve
 the details of the route.
 ###
 
+# IronRouter builds params on top of an Array.  Array.prototype.group
+# wrecks havoc with our use of `group` route param.
+delete Array.prototype.group
+
 #@Subscribe = Meteor
 @Subscribe = new SubsManager
 
