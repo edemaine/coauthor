@@ -1664,6 +1664,18 @@ export MessageReplace = React.memo ({message, tabindex}) ->
   </>
 MessageReplace.displayName = 'MessageReplace'
 
+export MessageDetach = React.memo ({message, tabindex}) ->
+  detachFile = (e) ->
+    diff =
+      file: null
+      finished: true
+    Meteor.call 'messageUpdate', message._id, diff
+
+  <TextTooltip title="Remove the file attachment of this message. The old file will still be available through History.">
+    <button className="btn btn-warning detachButton" tabIndex={tabindex} onClick={detachFile}>Remove File</button>
+  </TextTooltip>
+MessageDetach.displayName = 'MessageDetach'
+
 export TableOfContentsID = React.memo ({messageID, parent, index}) ->
   message = useTracker ->
     Messages.findOne messageID
@@ -2695,6 +2707,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
                       <MessageImage message={message}/>
                     }
                     <MessageReplace message={message} tabindex={tabindex0+9}/>
+                    {###<MessageDetach message={message} tabindex={tabindex0+10}/>###}
                   </div>
                 </div>
               }
