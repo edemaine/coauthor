@@ -1627,7 +1627,7 @@ export ReplyButtons = React.memo ({message, prefix}) ->
   </Dropdown>
 ReplyButtons.displayName = 'ReplyButtons'
 
-export MessageReplace = React.memo ({message, tabindex}) ->
+export MessageReplace = React.memo ({message, tabindex, right}) ->
   replaceInput = useRef()
 
   replaceFiles = (files, e, t) ->
@@ -1651,6 +1651,9 @@ export MessageReplace = React.memo ({message, tabindex}) ->
   {buttonProps, dropProps, inputProps} = uploaderProps replaceFiles, replaceInput
 
   <>
+    {if right
+      <input className="replaceInput" type="file" ref={replaceInput} {...inputProps}/>
+    }
     {if message.file
       <TextTooltip title="Replace the file attachment of this message with a new file. Alternatively, you can drag a file onto this button. The old file will still be available through History.">
         <button className="btn btn-info replaceButton" tabIndex={tabindex} {...buttonProps} {...dropProps}>Replace File</button>
@@ -1660,7 +1663,9 @@ export MessageReplace = React.memo ({message, tabindex}) ->
         <button className="btn btn-info replaceButton" tabIndex={tabindex} {...buttonProps} {...dropProps}>Add File</button>
       </TextTooltip>
     }
-    <input className="replaceInput" type="file" ref={replaceInput} {...inputProps}/>
+    {unless right
+      <input className="replaceInput" type="file" ref={replaceInput} {...inputProps}/>
+    }
   </>
 MessageReplace.displayName = 'MessageReplace'
 
@@ -2706,7 +2711,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
                     {if messageFileType == 'image'
                       <MessageImage message={message}/>
                     }
-                    <MessageReplace message={message} tabindex={tabindex0+9}/>
+                    <MessageReplace message={message} tabindex={tabindex0+9} right/>
                     {###<MessageDetach message={message} tabindex={tabindex0+10}/>###}
                   </div>
                 </div>
