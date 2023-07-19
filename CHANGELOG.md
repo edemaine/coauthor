@@ -7,6 +7,14 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2023-07-19
+
+* Regular messages can now gain a file attachment later in life, via a new
+  Add File button.  Note that each message can still only have one file
+  attachment (use more messages for more files, e.g. via Reply/Attach).
+  Also, it's not yet possible to remove the file attachment.
+* Placement of Replace File button changed (and now matches Add File).
+
 ## 2023-06-18
 
 * Fix for Safari 16.4+
