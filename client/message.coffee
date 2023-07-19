@@ -1652,9 +1652,15 @@ export MessageReplace = React.memo ({message, tabindex}) ->
 
   <>
     <input className="replaceInput" type="file" ref={replaceInput} {...inputProps}/>
-    <TextTooltip title="Replace the file attachment of this message with a new file. Alternatively, you can drag a file onto this button. The old file will still be available through History.">
-      <button className="btn btn-info replaceButton" tabIndex={tabindex} {...buttonProps} {...dropProps}>Replace File</button>
-    </TextTooltip>
+    {if message.file
+      <TextTooltip title="Replace the file attachment of this message with a new file. Alternatively, you can drag a file onto this button. The old file will still be available through History.">
+        <button className="btn btn-info replaceButton" tabIndex={tabindex} {...buttonProps} {...dropProps}>Replace File</button>
+      </TextTooltip>
+    else
+      <TextTooltip title="Add a file attachment to this message. Note that each message can have only one file attachment. Alternatively, you can drag a file onto this button.">
+        <button className="btn btn-info replaceButton" tabIndex={tabindex} {...buttonProps} {...dropProps}>Add File</button>
+      </TextTooltip>
+    }
   </>
 MessageReplace.displayName = 'MessageReplace'
 
@@ -2733,6 +2739,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
                     Stop Editing
                   </button>
                 }
+                <MessageReplace message={message} />
                 {if can.reply
                   <ReplyButtons message={message} prefix="Another "/>
                 }
