@@ -1651,7 +1651,6 @@ export MessageReplace = React.memo ({message, tabindex}) ->
   {buttonProps, dropProps, inputProps} = uploaderProps replaceFiles, replaceInput
 
   <>
-    <input className="replaceInput" type="file" ref={replaceInput} {...inputProps}/>
     {if message.file
       <TextTooltip title="Replace the file attachment of this message with a new file. Alternatively, you can drag a file onto this button. The old file will still be available through History.">
         <button className="btn btn-info replaceButton" tabIndex={tabindex} {...buttonProps} {...dropProps}>Replace File</button>
@@ -1661,6 +1660,7 @@ export MessageReplace = React.memo ({message, tabindex}) ->
         <button className="btn btn-info replaceButton" tabIndex={tabindex} {...buttonProps} {...dropProps}>Add File</button>
       </TextTooltip>
     }
+    <input className="replaceInput" type="file" ref={replaceInput} {...inputProps}/>
   </>
 MessageReplace.displayName = 'MessageReplace'
 
@@ -2621,9 +2621,6 @@ export WrappedSubmessage = React.memo ({message, read}) ->
                 </OverlayTrigger>
               else unless folded
                 <>
-                  {if message.file and can.edit
-                    <MessageReplace message={message} tabindex={tabindex0+7}/>
-                  }
                   <OverlayTrigger flip overlay={(props) ->
                     <Tooltip {...props}>
                       {if can.edit
@@ -2728,9 +2725,9 @@ export WrappedSubmessage = React.memo ({message, read}) ->
             {unless read
               <EmojiButtons message={message} can={can}/>
             }
-            {if editing
-              <div className="btn-group pull-right">
-                {if editStopping
+            <div className="btn-group pull-right">
+              {if editing
+                if editStopping
                   <button className="btn btn-info editButton disabled" title="Waiting for save to complete before stopping editing...">
                     Stop Editing
                   </button>
@@ -2738,16 +2735,14 @@ export WrappedSubmessage = React.memo ({message, read}) ->
                   <button className="btn btn-info editButton" onClick={onEdit}>
                     Stop Editing
                   </button>
-                }
+              }
+              {if can.reply and not read
                 <MessageReplace message={message} />
-                {if can.reply
-                  <ReplyButtons message={message} prefix="Another "/>
-                }
-              </div>
-            else
-              if can.reply and not read
-                <ReplyButtons message={message}/>
-            }
+              }
+              {if can.reply
+                <ReplyButtons message={message} prefix="Another "/>
+              }
+            </div>
           </div>
         </div>
         {if children.length

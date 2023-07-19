@@ -47,7 +47,6 @@ input.title { width: calc(100% + 5px); margin: 0px -5px 0px 0px; }
 .btn.label { float: none; height: 20px; } /* +Tag manual height adjustment */
 /* input.title ~ .message-right-buttons { margin: 0px; } */
 .message-response-buttons { margin: 8px 0px 10px 0px; }
-.message-reply-buttons { margin-left: 4px; }
 .fileDescription { padding: 0.5ex 0.5em; border-bottom: 1px solid #337ab7;
   display: flex; flex-direction: row;
   justify-content: space-between; align-items: center; }
