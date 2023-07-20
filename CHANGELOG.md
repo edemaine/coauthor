@@ -13,6 +13,7 @@ instead of version numbers.
   Add File button.  Note that each message can still only have one file
   attachment (use more messages for more files, e.g. via Reply/Attach).
   Also, it's not yet possible to remove the file attachment.
+  [[#588](https://github.com/edemaine/coauthor/issues/588)]
 * Placement of Replace File button changed (and now matches Add File).
 
 ## 2023-06-18
