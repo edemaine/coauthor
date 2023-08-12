@@ -24,7 +24,7 @@
   "homepage": "https://github.com/edemaine/coauthor",
   "dependencies": {
     "@babel/runtime": "^7.12.5",
-    "@edemaine/codemirror-spell-checker": "^0.0.1",
+    "@edemaine/codemirror-spell-checker": "0.0.2",
     "@fortawesome/fontawesome-svg-core": "6.4.0",
     "@fortawesome/free-solid-svg-icons": "6.4.0",
     "@fortawesome/react-fontawesome": "0.2.0",

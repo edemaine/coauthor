@@ -7,6 +7,12 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2023-08-12
+
+* Editor no longer considers foreign (non-ASCII) characters spelling errors.
+  (They are simply ignored, as the dictionary is English only.)
+  [[#615](https://github.com/edemaine/coauthor/discussions/615)]
+
 ## 2023-07-19
 
 * Regular messages can now gain a file attachment later in life, via a new
