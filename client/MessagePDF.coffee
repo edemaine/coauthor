@@ -66,7 +66,10 @@ WrappedMessagePDF = React.memo ({file}) ->
         pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'  # in /public
         Session.set 'pdfjsLoading', false
     ## Load PDF file
-    size = findFile(file).length
+    fileData = findFile file
+    unless fileData?
+      return setProgress 0
+    size = fileData.length
     loader = pdfjs.getDocument urlToInternalFile file
     loader.onProgress = (data) ->
       setProgress Math.round 100 * data.loaded / size
