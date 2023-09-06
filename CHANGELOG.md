@@ -7,6 +7,11 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2023-09-06
+
+* Rename replies from "Another" to "New".
+  (In particular, makes more sense with threads with private replies.)
+
 ## 2023-08-12
 
 * Editor no longer considers foreign (non-ASCII) characters spelling errors.

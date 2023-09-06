@@ -1613,7 +1613,7 @@ export ReplyButtons = React.memo ({message, prefix}) ->
             else
               <TextTooltip placement="left" title="Start a new #{adjectives}child message of this one that starts in the published state, so everyone in this thread can see it immediately#{if defaultDeleted then ' (once undeleted)' else ''}.">
                 <button className="btn btn-success btn-block">
-                  {prefix unless prefix == 'Unpublished '}
+                  {prefix}
                   Published Reply
                 </button>
               </TextTooltip>
@@ -2758,7 +2758,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
                 <MessageReplace message={message} />
               }
               {if can.reply
-                <ReplyButtons message={message} prefix="Another "/>
+                <ReplyButtons message={message} prefix="New "/>
               }
             </div>
           </div>
