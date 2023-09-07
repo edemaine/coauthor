@@ -7,6 +7,11 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2023-09-07
+
+* Fix sorting a group by multiple fields, some in reverse
+  [[#623](https://github.com/edemaine/coauthor/discussions/623)]
+
 ## 2023-09-06
 
 * Rename replies from "Another" to "New".

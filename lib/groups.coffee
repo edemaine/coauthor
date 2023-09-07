@@ -480,6 +480,9 @@ mongosort = (key) ->
                 titleSort value
         else
           throw new Error "Invalid sort key: '#{sort.key}'"
+    ## To reverse sort, we reverse before and after the sort,
+    ## so that less-significant sorts already done aren't affected.
+    msgs.reverse() if sort.reverse
     msgs = _.sortBy msgs, key
     msgs.reverse() if sort.reverse
   msgs = _.sortBy msgs,
