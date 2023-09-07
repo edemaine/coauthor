@@ -11,6 +11,7 @@ instead of version numbers.
 
 * Fix sorting a group by multiple fields, some in reverse
   [[#623](https://github.com/edemaine/coauthor/discussions/623)]
+* Fix reactivity of fullname and email when administering Users
 
 ## 2023-09-06
 

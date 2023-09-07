@@ -278,7 +278,7 @@ export User = (props) ->
   authorLink = -> pathFor 'author',
     group: props.group
     author: props.user.username
-  regExp = createMemo ->
+  regExp = createMemo =>
     new RegExp escapeRegExp(props.search), 'ig' if props.search
   Highlight = (props) =>
     <Show when={regExp()} fallback={props.text}>
@@ -287,22 +287,19 @@ export User = (props) ->
         .replace regExp(), '<span class="highlight">$&</span>'
       }/>
     </Show>
+  email = createMemo => props.user.emails?[0]
 
   <>
     <tr data-username={props.user.username}>
       <td className="user">
         <span className="name">
-          {if (fullname = props.user.profile?.fullname)
-            <Highlight text={fullname + ' = '}/>
-          }
+          <Highlight text={props.user.profile?.fullname + ' = '}/>
           <a href={authorLink()}>@{props.user.username}</a>
         </span>
         <span className="email">
-          {if (email = props.user.emails?[0])
-            <Highlight text=" (#{email.address}#{if email.verified then '' else ', unverified'})"/>
-          else
-            ' (no email)'
-          }
+          <Show when={email()} fallback=" (no email)">
+            <Highlight text=" (#{email().address}#{if email().verified then '' else ', unverified'})"/>
+          </Show>
         </span>
         <div className="createdAt">
           joined {formatDate props.user.createdAt}
