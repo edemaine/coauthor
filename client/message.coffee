@@ -1471,8 +1471,8 @@ export ReplyButtons = React.memo ({message, prefix}) ->
         'default'
     else
       'warning'
-  unless defaultPublished
-    prefix ?= 'Unpublished '
+  #unless defaultPublished
+  #  prefix ?= 'Unpublished '
 
   onReply = (e) ->
     e.preventDefault()
@@ -2772,7 +2772,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
             </div>
             <div className="panel-body panel-secondbody hidden-print clearfix">
               {if can.reply and not read
-                <ReplyButtons message={message}/>
+                <ReplyButtons message={message} prefix="New "/>
               }
               <span className="message-title">
                 <a className="btn btn-default btn-xs linkToTop" aria-label="Top" href="##{message._id}">
