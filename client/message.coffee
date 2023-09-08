@@ -938,6 +938,7 @@ export BelowEditor = React.memo ({message, preview, safeToStopEditing, editStopp
     Meteor.call 'messageUpdate', message._id,
       coauthors: $addToSet: [coauthor.username]
   onRemoveCoauthor = (e) ->
+    return unless e.target.dataset.username
     e.preventDefault()
     Meteor.call 'messageUpdate', message._id,
       coauthors: $pull: [e.target.dataset.username]
@@ -945,9 +946,11 @@ export BelowEditor = React.memo ({message, preview, safeToStopEditing, editStopp
     Meteor.call 'messageUpdate', message._id,
       access: $addToSet: [user.username]
   onAddAccessButton = (e) ->
+    return unless e.target.dataset.username
     Meteor.call 'messageUpdate', message._id,
       access: $addToSet: [e.target.dataset.username]
   onRemoveAccess = (e) ->
+    return unless e.target.dataset.username
     e.preventDefault()
     Meteor.call 'messageUpdate', message._id,
       access: $pull: [e.target.dataset.username]
