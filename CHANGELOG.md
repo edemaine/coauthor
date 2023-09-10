@@ -7,6 +7,10 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2023-09-10
+
+* Fix sticky header in group view getting covered up by math in thread titles.
+
 ## 2023-09-07
 
 * Fix sorting a group by multiple fields, some in reverse
