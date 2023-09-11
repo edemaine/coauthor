@@ -2739,7 +2739,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
                 <div className="message-body" ref={messageBodyRef}
                  dangerouslySetInnerHTML={__html: formattedBody}/>
                 {if messageFileType == 'pdf'
-                  <MessagePDF file={message.file}/>
+                  <MessagePDF file={historified.file}/>
                 }
                 {if historified.file
                   <>

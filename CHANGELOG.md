@@ -9,6 +9,7 @@ instead of version numbers.
 
 ## 2023-09-10
 
+* Fix viewing old PDF files in History
 * Fix sticky header in group view getting covered up by math in thread titles.
 
 ## 2023-09-07
