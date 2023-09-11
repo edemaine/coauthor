@@ -1651,6 +1651,7 @@ export MessageFileDescription = React.memo ({message, history, messageFileType, 
   </div>
 
 export MessageFile = React.memo ({message, history, tabindex}) ->
+  historified = history ? message
   replaceInput = useRef()
 
   replaceFiles = (files, e, t) ->
@@ -1683,6 +1684,25 @@ export MessageFile = React.memo ({message, history, tabindex}) ->
       file: history.file
       finished: true
     Meteor.call 'messageUpdate', message._id, diff
+  extractFile = (e) ->
+    reply = {}
+    reply.private = message.private if message.private?
+    reply.published = Boolean message.published unless message.published
+    reply.deleted = message.deleted if message.deleted
+    reply.file = historified.file
+    reply.finished = true
+    Meteor.call 'messageNew', message.group, message._id, null, reply, (error, result) ->
+      if error
+        console.error error
+      else if result
+        unless history
+          diff =
+            file: null
+            finished: true
+          Meteor.call 'messageUpdate', message._id, diff
+        scrollToMessage result
+      else
+        console.error "messageNew did not return message ID -- not authorized?"
 
   <Dropdown className="btn-group">
     <Dropdown.Toggle variant="info" tabIndex={tabindex} {...dropProps}>
@@ -1698,6 +1718,13 @@ export MessageFile = React.memo ({message, history, tabindex}) ->
             <Dropdown.Item href="#">
               <TextTooltip title="Replace the embedded file of this message with this old file.#{if disabled then ' (Not currently possible because the embedded file is the same.)' else ''}" placement="left">
                 <button disabled={disabled} className="btn btn-warning btn-block restoreFile" tabIndex={tabindex} onClick={restoreFile}>Restore File</button>
+              </TextTooltip>
+            </Dropdown.Item>
+          </li>
+          <li>
+            <Dropdown.Item href="#">
+              <TextTooltip title="Extract the embedded file of this historical message into its own reply message, without changing the current message." placement="left">
+                <button className="btn btn-warning btn-block extractFile" tabIndex={tabindex} onClick={extractFile}>Extract File</button>
               </TextTooltip>
             </Dropdown.Item>
           </li>
@@ -1717,6 +1744,15 @@ export MessageFile = React.memo ({message, history, tabindex}) ->
               }
             </Dropdown.Item>
           </li>
+          {if message.file
+            <li>
+              <Dropdown.Item href="#">
+                <TextTooltip title="Extract the embedded file of this message into its own reply message, removing it from the current message." placement="left">
+                  <button className="btn btn-warning btn-block extractFile" tabIndex={tabindex} onClick={extractFile}>Extract File</button>
+                </TextTooltip>
+              </Dropdown.Item>
+            </li>
+          }
           {if message.file
             <li>
               <Dropdown.Item href="#">

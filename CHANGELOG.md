@@ -7,6 +7,15 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2023-09-11
+
+* More File UI redesign:
+  [[#624](https://github.com/edemaine/coauthor/issues/624)]
+  * "Extract File" lets you move an embedded file from a message
+    into its own reply message.
+  * "Extract File" from History view lets you copy an old embedded file
+    into its own reply message.
+
 ## 2023-09-10
 
 * File UI redesign:
