@@ -26,7 +26,7 @@
 // Dropdown menus
 
 .dropdown-menu
-  &.actionMenu
+  &.actionMenu, &.fileMenu
     min-width: 140px
     background: #d9edf7
     /.dark &
@@ -182,6 +182,24 @@ bootstrap-3-button(bg-color) // based on mixins/buttons.less
       width: auto
     .rbt
       display: inline-block
+
+// MessageFileDescription
+
+.fileDescription
+  display: flex
+  flex-direction: row
+  flex-wrap: wrap
+  justify-content: space-between
+  align-items: center
+  padding-block: 0.5ex
+.bodyContainer > .fileDescription:first-child
+  padding-inline: 15px
+  border-bottom: 1px solid #337ab7
+.fileDescriptionText
+  flex-grow: 1
+.file-right-buttons
+  flex-shrink: 0
+  margin-left: auto
 
 // TableOfContents
 

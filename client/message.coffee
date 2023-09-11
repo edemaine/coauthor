@@ -1001,6 +1001,9 @@ export BelowEditor = React.memo ({message, preview, safeToStopEditing, editStopp
         else
           <button className="btn btn-default togglePreview" onClick={onTogglePreview}>Preview</button>
         }
+        {unless message.file
+          <MessageFile message={message} history={history}/>
+        }
       </div>
       <div className="alert alert-#{if safeToStopEditing then 'success' else 'danger'} below-editor-alert">
         {if safeToStopEditing
@@ -1630,7 +1633,25 @@ export ReplyButtons = React.memo ({message, prefix}) ->
   </Dropdown>
 ReplyButtons.displayName = 'ReplyButtons'
 
-export MessageReplace = React.memo ({message, tabindex, right}) ->
+export MessageFileDescription = React.memo ({message, history, messageFileType, description, menu, tabindex}) ->
+  <div className="fileDescription">
+    <div className="fileDescriptionText">
+      <span className="fas fa-paperclip"/>
+      {' '}
+      <span dangerouslySetInnerHTML={__html: description}/>
+    </div>
+    {if menu and not history
+      <div className="file-right-buttons btn-group hidden-print">
+        {if messageFileType == 'image'
+          <MessageImage message={message}/>
+        }
+        <MessageFile message={message} history={history} tabindex={tabindex}/>
+        {###<MessageDetach message={message} tabindex={tabindex0+10}/>###}
+      </div>
+    }
+  </div>
+
+export MessageFile = React.memo ({message, history, tabindex}) ->
   replaceInput = useRef()
 
   replaceFiles = (files, e, t) ->
@@ -1653,24 +1674,29 @@ export MessageReplace = React.memo ({message, tabindex, right}) ->
       Files.resumable.addFile file, e
   {buttonProps, dropProps, inputProps} = uploaderProps replaceFiles, replaceInput
 
-  <>
-    {if right
-      <input className="replaceInput" type="file" ref={replaceInput} {...inputProps}/>
-    }
-    {if message.file
-      <TextTooltip title="Replace the file attachment of this message with a new file. Alternatively, you can drag a file onto this button. The old file will still be available through History.">
-        <button className="btn btn-info replaceButton" tabIndex={tabindex} {...buttonProps} {...dropProps}>Replace File</button>
-      </TextTooltip>
-    else
-      <TextTooltip title="Add a file attachment to this message. Note that each message can have only one file attachment. Alternatively, you can drag a file onto this button.">
-        <button className="btn btn-info replaceButton" tabIndex={tabindex} {...buttonProps} {...dropProps}>Add File</button>
-      </TextTooltip>
-    }
-    {unless right
-      <input className="replaceInput" type="file" ref={replaceInput} {...inputProps}/>
-    }
-  </>
-MessageReplace.displayName = 'MessageReplace'
+  <Dropdown className="btn-group">
+    <Dropdown.Toggle variant="info" tabIndex={tabindex} {...dropProps}>
+      {"File "}
+      <span className="caret"/>
+    </Dropdown.Toggle>
+    <input className="replaceInput" type="file" ref={replaceInput} {...inputProps}/>
+    <Dropdown.Menu align="right" className="fileMenu buttonMenu">
+      <li>
+        <Dropdown.Item href="#">
+          {if message.file
+            <TextTooltip title="Replace the embedded file of this message with a new file. Alternatively, you can drag a file onto the File button. The old file will still be available through History." placement="left">
+              <button className="btn btn-warning btn-block replaceButton" tabIndex={tabindex} {...buttonProps} {...dropProps}>Replace File</button>
+            </TextTooltip>
+          else
+            <TextTooltip title="Embed one file into this message. Note that each message can have only one such embedded file; use multiple replies for multiple files. Alternatively, you can drag a file onto the File button." placement="left">
+              <button className="btn btn-warning btn-block replaceButton" tabIndex={tabindex} {...buttonProps} {...dropProps}>Embed One File</button>
+            </TextTooltip>
+          }
+        </Dropdown.Item>
+      </li>
+    </Dropdown.Menu>
+  </Dropdown>
+MessageFile.displayName = 'MessageFile'
 
 export MessageDetach = React.memo ({message, tabindex}) ->
   detachFile = (e) ->
@@ -2704,20 +2730,10 @@ export WrappedSubmessage = React.memo ({message, read}) ->
           {if preview.on
             <div className="bodyContainer" style={{height: if previewSideBySide then preview.height else 'auto'}}>
               {if historified.file and editing
-                <div className="fileDescription">
-                  <div className="fileDescriptionText">
-                    <span className="fas fa-paperclip"/>
-                    {' '}
-                    <span dangerouslySetInnerHTML={__html: formattedFile.description}/>
-                  </div>
-                  <div className="file-right-buttons btn-group hidden-print">
-                    {if messageFileType == 'image'
-                      <MessageImage message={message}/>
-                    }
-                    <MessageReplace message={message} tabindex={tabindex0+9} right/>
-                    {###<MessageDetach message={message} tabindex={tabindex0+10}/>###}
-                  </div>
-                </div>
+                <MessageFileDescription message={message} history={history}
+                 messageFileType={messageFileType}
+                 description={formattedFile.description}
+                 menu={can.edit} tabindex={tabindex0+9}/>
               }
               <div className="panel-body">
                 <div className="message-body" ref={messageBodyRef}
@@ -2727,10 +2743,12 @@ export WrappedSubmessage = React.memo ({message, read}) ->
                 }
                 {if historified.file
                   <>
-                    <p className="message-file" ref={messageFileRef}
+                    <div className="message-file" ref={messageFileRef}
                      dangerouslySetInnerHTML={__html: formattedFile.file}/>
-                    <p className="message-file-description"
-                     dangerouslySetInnerHTML={__html: formattedFile.description}/>
+                    <MessageFileDescription message={message} history={history}
+                     messageFileType={messageFileType}
+                     description={formattedFile.description}
+                     menu={can.edit} tabindex={tabindex0+9}/>
                   </>
                 }
               </div>
@@ -2756,9 +2774,6 @@ export WrappedSubmessage = React.memo ({message, read}) ->
                   <button className="btn btn-info editButton" onClick={onEdit}>
                     Stop Editing
                   </button>
-              }
-              {if can.reply and not read
-                <MessageReplace message={message} />
               }
               {if can.reply
                 <ReplyButtons message={message} prefix="New "/>
