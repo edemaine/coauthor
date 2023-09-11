@@ -895,7 +895,7 @@ export MessageEditor_ = React.memo ({messageID, setEditor, tabindex}) ->
    }/>
 MessageEditor_.displayName = 'MessageEditor_'
 
-export BelowEditor = React.memo ({message, preview, safeToStopEditing, editStopping}) ->
+export BelowEditor = React.memo ({message, history, preview, safeToStopEditing, editStopping}) ->
   migrated = useTracker ->
     migrateWant.get()
   , []
@@ -1640,9 +1640,9 @@ export MessageFileDescription = React.memo ({message, history, messageFileType, 
       {' '}
       <span dangerouslySetInnerHTML={__html: description}/>
     </div>
-    {if menu and not history
+    {if menu
       <div className="file-right-buttons btn-group hidden-print">
-        {if messageFileType == 'image'
+        {if messageFileType == 'image' and not history
           <MessageImage message={message}/>
         }
         <MessageFile message={message} history={history} tabindex={tabindex}/>
@@ -1678,6 +1678,11 @@ export MessageFile = React.memo ({message, history, tabindex}) ->
       file: null
       finished: true
     Meteor.call 'messageUpdate', message._id, diff
+  restoreFile = (e) ->
+    diff =
+      file: history.file
+      finished: true
+    Meteor.call 'messageUpdate', message._id, diff
 
   <Dropdown className="btn-group">
     <Dropdown.Toggle variant="info" tabIndex={tabindex} {...dropProps}>
@@ -1686,27 +1691,42 @@ export MessageFile = React.memo ({message, history, tabindex}) ->
     </Dropdown.Toggle>
     <input className="replaceInput" type="file" ref={replaceInput} {...inputProps}/>
     <Dropdown.Menu align="right" className="fileMenu buttonMenu">
-      <li>
-        <Dropdown.Item href="#">
+      {if history
+        disabled = (message.file == history.file)
+        <>
+          <li>
+            <Dropdown.Item href="#">
+              <TextTooltip title="Replace the embedded file of this message with this old file.#{if disabled then ' (Not currently possible because the embedded file is the same.)' else ''}" placement="left">
+                <button disabled={disabled} className="btn btn-warning btn-block restoreFile" tabIndex={tabindex} onClick={restoreFile}>Restore File</button>
+              </TextTooltip>
+            </Dropdown.Item>
+          </li>
+        </>
+      else
+        <>
+          <li>
+            <Dropdown.Item href="#">
+              {if message.file
+                <TextTooltip title="Replace the embedded file of this message with a new file. Alternatively, you can drag a file onto the File button. The old file will still be available through History." placement="left">
+                  <button className="btn btn-warning btn-block replaceButton" tabIndex={tabindex} {...buttonProps} {...dropProps}>Replace File</button>
+                </TextTooltip>
+              else
+                <TextTooltip title="Embed one file into this message. Note that each message can have only one such embedded file; use multiple replies for multiple files. Alternatively, you can drag a file onto the File button." placement="left">
+                  <button className="btn btn-warning btn-block replaceButton" tabIndex={tabindex} {...buttonProps} {...dropProps}>Embed One File</button>
+                </TextTooltip>
+              }
+            </Dropdown.Item>
+          </li>
           {if message.file
-            <TextTooltip title="Replace the embedded file of this message with a new file. Alternatively, you can drag a file onto the File button. The old file will still be available through History." placement="left">
-              <button className="btn btn-warning btn-block replaceButton" tabIndex={tabindex} {...buttonProps} {...dropProps}>Replace File</button>
-            </TextTooltip>
-          else
-            <TextTooltip title="Embed one file into this message. Note that each message can have only one such embedded file; use multiple replies for multiple files. Alternatively, you can drag a file onto the File button." placement="left">
-              <button className="btn btn-warning btn-block replaceButton" tabIndex={tabindex} {...buttonProps} {...dropProps}>Embed One File</button>
-            </TextTooltip>
+            <li>
+              <Dropdown.Item href="#">
+                <TextTooltip title="Remove the embedded file of this message. The old file will still be available (and restorable) through History." placement="left">
+                  <button className="btn btn-danger btn-block removeFile" tabIndex={tabindex} onClick={removeFile}>Remove File</button>
+                </TextTooltip>
+              </Dropdown.Item>
+            </li>
           }
-        </Dropdown.Item>
-      </li>
-      {if message.file
-        <li>
-          <Dropdown.Item href="#">
-            <TextTooltip title="Remove the embedded file of this message. The old file will still be available through History." placement="left">
-              <button className="btn btn-danger btn-block removeFile" tabIndex={tabindex} onClick={removeFile}>Remove File</button>
-            </TextTooltip>
-          </Dropdown.Item>
-        </li>
+        </>
       }
     </Dropdown.Menu>
   </Dropdown>
@@ -2724,7 +2744,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
               <>
                 <MessageEditor message={message} setEditBody={setEditBody} tabindex={tabindex0+19}/>
                 {unless previewSideBySide
-                  <BelowEditor message={message} preview={preview} safeToStopEditing={safeToStopEditing} editStopping={editStopping}/>
+                  <BelowEditor message={message} history={history} preview={preview} safeToStopEditing={safeToStopEditing} editStopping={editStopping}/>
                 }
               </>
             }
