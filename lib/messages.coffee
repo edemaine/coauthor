@@ -66,6 +66,10 @@ if Meteor.isServer
     ['id', 1]
     ['updated', 1]
   ]
+  ## We check diffs for the last use of a file before deleting it.
+  MessagesDiff.createIndex [
+    ['file', 1]
+  ]
 
 export rootMessages = (group) ->
   query =
@@ -1529,12 +1533,19 @@ Meteor.methods
           ,
             multi: true
     
-    ## Delete all associated files.
+    ## Delete all associated files, if this is the last use of them.
     MessagesDiff.find
       id: message
     .forEach (diff) ->
       if diff.file
-        deleteFile diff.file
+        lastUse = true
+        MessagesDiff.find
+          file: diff.file
+          id: $ne: message
+        .forEach (other) ->
+          lastUse = false
+        if lastUse
+          deleteFile diff.file
     ## Delete all diffs for this message.
     MessagesDiff.remove
       id: message
