@@ -884,7 +884,7 @@ _messageUpdate = (id, message, authors = null, old = null) ->
     title: Match.Optional String
     body: Match.Optional String
     format: Match.Optional String
-    file: Match.Optional String
+    file: Match.Optional Match.OneOf String, null
     tags: Match.Optional Match.Where validTags
     #children: Match.Optional [String]  ## must be set via messageParent
     #parent: Match.Optional String      ## use children, not parent
@@ -931,7 +931,7 @@ _messageUpdate = (id, message, authors = null, old = null) ->
   ## authorship or access is administrative, so doesn't feel worthy of your
   ## own authorship.  In that spirit, neither do tags and labels.
   #unless coauthorsMod? or accessMod?
-  if message.title? or message.body? or message.file?
+  if message.title? or message.body? or 'file' of message
     for author in authors
       if author not in (message.coauthors ? old.coauthors)
         message.coauthors ?= _.clone old.coauthors

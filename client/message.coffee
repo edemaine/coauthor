@@ -1646,7 +1646,6 @@ export MessageFileDescription = React.memo ({message, history, messageFileType, 
           <MessageImage message={message}/>
         }
         <MessageFile message={message} history={history} tabindex={tabindex}/>
-        {###<MessageDetach message={message} tabindex={tabindex0+10}/>###}
       </div>
     }
   </div>
@@ -1674,6 +1673,12 @@ export MessageFile = React.memo ({message, history, tabindex}) ->
       Files.resumable.addFile file, e
   {buttonProps, dropProps, inputProps} = uploaderProps replaceFiles, replaceInput
 
+  removeFile = (e) ->
+    diff =
+      file: null
+      finished: true
+    Meteor.call 'messageUpdate', message._id, diff
+
   <Dropdown className="btn-group">
     <Dropdown.Toggle variant="info" tabIndex={tabindex} {...dropProps}>
       {"File "}
@@ -1694,21 +1699,18 @@ export MessageFile = React.memo ({message, history, tabindex}) ->
           }
         </Dropdown.Item>
       </li>
+      {if message.file
+        <li>
+          <Dropdown.Item href="#">
+            <TextTooltip title="Remove the embedded file of this message. The old file will still be available through History." placement="left">
+              <button className="btn btn-danger btn-block removeFile" tabIndex={tabindex} onClick={removeFile}>Remove File</button>
+            </TextTooltip>
+          </Dropdown.Item>
+        </li>
+      }
     </Dropdown.Menu>
   </Dropdown>
 MessageFile.displayName = 'MessageFile'
-
-export MessageDetach = React.memo ({message, tabindex}) ->
-  detachFile = (e) ->
-    diff =
-      file: null
-      finished: true
-    Meteor.call 'messageUpdate', message._id, diff
-
-  <TextTooltip title="Remove the file attachment of this message. The old file will still be available through History.">
-    <button className="btn btn-warning detachButton" tabIndex={tabindex} onClick={detachFile}>Remove File</button>
-  </TextTooltip>
-MessageDetach.displayName = 'MessageDetach'
 
 export TableOfContentsID = React.memo ({messageID, parent, index}) ->
   message = useTracker ->
