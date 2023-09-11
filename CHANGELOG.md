@@ -9,13 +9,20 @@ instead of version numbers.
 
 ## 2023-09-10
 
+* File UI redesign:
+  [[#624](https://github.com/edemaine/coauthor/issues/624)]
+  * New "File" dropdown next to every embedded file description and when editing
+  * Replaces old "Add File" and "Replace File" buttons
+    * "Embed One File" makes clear that only one file can be embedded
+    * You can drag and drop a file onto the File dropdown, like before.
+  * You can now Remove a file, or Restore a previous version from History.
 * Fix viewing old PDF files in History
 * Fix sticky header in group view getting covered up by math in thread titles.
 
 ## 2023-09-07
 
 * Fix sorting a group by multiple fields, some in reverse
-  [[#623](https://github.com/edemaine/coauthor/discussions/623)]
+  [[#623](https://github.com/edemaine/coauthor/issues/623)]
 * Fix reactivity of fullname and email when administering Users
 
 ## 2023-09-06
