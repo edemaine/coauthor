@@ -11,7 +11,7 @@ body, .nonmath { font-family: 'Merriweather', serif; }
   a.navbar-brand { padding-right: 0px; }
 }
 
-.footer { position: fixed; bottom: 0px; right: 0px; width: 50%; margin: 1ex }
+.footer { position: fixed; z-index: 10; bottom: 0px; right: 0px; width: 50%; margin: 1ex }
 .footer .alert { margin-bottom: 0 }
 .credits { font-style: italic; font-size: small; margin-top: 1.5ex; padding: 6px }
 
