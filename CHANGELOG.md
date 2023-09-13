@@ -9,7 +9,7 @@ instead of version numbers.
 
 ## 2023-09-13
 
-* Fix excess horizontal scrollbars in messages with display math
+* Fix excess horizontal scrollbars in messages, especially with display math
 
 ## 2023-09-11
 
