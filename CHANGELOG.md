@@ -7,6 +7,10 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2023-09-13
+
+* Fix excess horizontal scrollbars in messages with display math
+
 ## 2023-09-11
 
 * More File UI redesign:
