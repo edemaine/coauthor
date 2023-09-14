@@ -2786,6 +2786,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
             }
           </div>
           {if preview.on
+          <>
             <div className="bodyContainer" style={{height: if previewSideBySide then preview.height else 'auto'}}>
               {if historified.file and editing
                 <MessageFileDescription message={message} history={history}
@@ -2796,22 +2797,24 @@ export WrappedSubmessage = React.memo ({message, read}) ->
               <div className="panel-body">
                 <div className="message-body" ref={messageBodyRef}
                  dangerouslySetInnerHTML={__html: formattedBody}/>
-                {if messageFileType == 'pdf'
-                  <MessagePDF file={historified.file}/>
-                }
-                {if historified.file
-                  <>
-                    <div className="message-file" ref={messageFileRef}
-                     dangerouslySetInnerHTML={__html: formattedFile.file}/>
-                    <MessageFileDescription message={message} history={history}
-                     messageFileType={messageFileType}
-                     description={formattedFile.description}
-                     menu={can.edit} tabindex={tabindex0+9}/>
-                  </>
-                }
               </div>
             </div>
-          }
+            <div className="bodyFile">
+              {if messageFileType == 'pdf'
+                <MessagePDF file={historified.file}/>
+              }
+              {if historified.file
+                <>
+                  <div className="message-file" ref={messageFileRef}
+                    dangerouslySetInnerHTML={__html: formattedFile.file}/>
+                  <MessageFileDescription message={message} history={history}
+                    messageFileType={messageFileType}
+                    description={formattedFile.description}
+                    menu={can.edit} tabindex={tabindex0+9}/>
+                </>
+              }
+            </div>
+          </>}
         </div>
         {if previewSideBySide
           <BelowEditor message={message} preview={preview} safeToStopEditing={safeToStopEditing} editStopping={editStopping}/>
