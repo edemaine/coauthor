@@ -21,9 +21,27 @@ export sortKeys = ['title', 'creator', 'published', 'updated', 'posts', 'emoji',
 export defaultSort = '-published'
 
 titleDigits = 10
-@titleSort = (title) ->
+@titleSort = (title, format) ->
   title = title.title if title.title?
-  title.toLowerCase().replace /\d+/g, (n) -> s.lpad n, titleDigits, '0'
+  until title == oldTitle
+    oldTitle = title
+    title = title.replace /^\s+/, ''
+    # Remove math openers
+    title = title.replace ///
+      ^ ( \$ | \\ [\(\[] ) (?= .*? \1 )
+    ///, ''
+    if format == 'markdown'
+      # Remove Markdown formatting openers
+      title = title.replace ///
+        ^ ( [*_]+ | ~~ ) (?= \S ( .*? \S )? \1 ) |
+        ^ ( `+ ) (?= .*? \1 )
+      ///, ''
+  # Remove leading backslashes (e.g. \alpha -> alpha)
+  title.replace /^\\+/, ''
+  # Case insensitive
+  .toLowerCase()
+  # Make 10 sort after 9 by left-padding all numbers with zeros
+  .replace /\d+/g, (n) -> s.lpad n, titleDigits, '0'
 
 @Groups = new Mongo.Collection 'groups'
 
@@ -452,7 +470,7 @@ mongosort = (key) ->
   for sort in sorts[..].reverse()
     switch sort.key
       when 'title'
-        key = (msg) -> titleSort msg.title
+        key = (msg) -> titleSort msg.title, msg.format
       when 'creator'
         key = (msg) -> userSortKey msg.creator
       when 'subscribe'

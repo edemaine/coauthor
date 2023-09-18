@@ -7,6 +7,12 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2023-09-18
+
+* Improve title sorting to ignore leading nonprinting characters:
+  whitespace, `\`, entering math mode (`$`, `\(`, `\[`),
+  starting Markdown formatting (`*`, `_`, `~~`, `` ` ``).
+
 ## 2023-09-14
 
 * Fix clipping of Rotate and File dropdowns which made them nonfunctional
