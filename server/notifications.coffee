@@ -604,7 +604,7 @@ notificationEmail = (notifications) ->
             bullet """File upload: "#{file.filename}" (#{file.length} bytes)""",
                     "File upload: &ldquo;#{file.filename}&rdquo; (#{file.length} bytes)"
           else
-            bullet "File upload: #{msg.file}?"
+            bullet "File upload: REMOVED"
         if changed.rotate
           delta = angle180 (msg.rotate ? 0) - (old?.rotate ? 0)
           if delta != 0
