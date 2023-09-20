@@ -84,7 +84,6 @@ globals:
   findGroup: readonly
   findMessage: readonly
   findMessageParent: readonly
-  findMessageRoot: readonly
   findUser: readonly
   findUsername: readonly
   fullMemberOfGroup: readonly
@@ -95,7 +94,6 @@ globals:
   groupPartialMembers: readonly
   groupPartialMessagesWithRole: readonly
   groupRoleCheck: readonly
-  groupSortedBy: readonly
   groupVisible: readonly
   haveExplicitAccess: readonly
   highlight: readonly

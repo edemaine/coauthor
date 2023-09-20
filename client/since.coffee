@@ -1,5 +1,6 @@
 import {formatDate} from './lib/date'
-import {parseSince} from '/lib/messages'
+import {groupDefaultSort} from '/lib/groups'
+import {findMessageRoot, messagesSortedBy, parseSince} from '/lib/messages'
 
 Template.since.onCreated ->
   @autorun ->
@@ -17,15 +18,18 @@ messagesSince = (group, since) ->
 
 topMessagesSince = (group, since) ->
   #console.log parseSince since
+  ## Least significant: sort by increasing creation time
   msgs = messagesSince group, since
   .fetch()
-  ## xxx should use default sort, not title sort?
-  ## Sort roots before their descendants via '<'/'>' add-on characters
-  msgs = _.sortBy msgs, (msg) ->
-    if msg.root
-      titleSort (Messages.findOne(msg.root)?.title ? '') + '>'
-    else
-      titleSort (msg.title ? '') + '<'
+  ## Then sort by group's default sort order
+  defaultSort = groupDefaultSort group
+  ## ...after sorting roots before their descendants
+  defaultSort.push
+    key: 'root'
+    reversed: true
+  ## ...applying sort to message root, not the message
+  msgs = messagesSortedBy msgs, defaultSort, (keyOf) -> (msg) ->
+    keyOf findMessageRoot msg
   ## Form a set of all message IDs in match
   byId = {}
   for msg in msgs

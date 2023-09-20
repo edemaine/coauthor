@@ -7,6 +7,11 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2023-09-20
+
+* Since view now sorts by group's default sort, instead of increasing title.
+  [[#600](https://github.com/edemaine/coauthor/issues/600)]
+
 ## 2023-09-18
 
 * Improve title sorting to ignore leading nonprinting characters:

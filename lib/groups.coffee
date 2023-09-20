@@ -2,9 +2,9 @@ import {check, Match} from 'meteor/check'
 import {Mongo} from 'meteor/mongo'
 
 import {escapeKey, unescapeKey, validKey} from './escape'
-import {subscribedToMessage} from './notifications'
+import {messagesSortedBy, mongoSort} from './messages'
 import {profilingStartup} from './profiling'
-import {sortUsers, userSortKey} from './users'
+import {sortUsers} from './users'
 
 @wildGroup = '*'
 export anonymousUser = '*'
@@ -438,26 +438,15 @@ Meteor.methods
         $unset: "roles.#{escapeGroup groupOld}": ''
         $set: "roles.#{escapeGroup groupNew}": roles
 
-mongosort = (key) ->
-  switch key
-    when 'posts'
-      'submessageCount'
-    when 'updated'
-      'submessageLastUpdate'
-    else
-      if key.startsWith 'tag.'
-        'tags'
-      else
-        key
-@groupSortedBy = (group, sorts, options, user = Meteor.user()) ->
+export groupSortedBy = (group, sorts, options, user = Meteor.user()) ->
   query = accessibleMessagesQuery group, user
   return [] unless query?
-  query.root = null
+  query.root = null  # message roots only
   options = {} unless options?
   for sort in sorts
-    #options.sort = [[mongosort(sort.key), if sort.reverse then 'desc' else 'asc']]
+    #options.sort = [[mongoSort(sort.key), if sort.reverse then 'desc' else 'asc']]
     if options.fields
-      options.fields[mongosort sort.key] = true
+      options.fields[mongoSort sort.key] = true
       if sort.key == 'subscribe'  ## fields needed for subscribedToMessage
         options.fields.group = true
         options.fields.root = true
@@ -467,48 +456,4 @@ mongosort = (key) ->
       options.fields.published = true
   msgs = Messages.find query, options
   .fetch()
-  for sort in sorts[..].reverse()
-    switch sort.key
-      when 'title'
-        key = (msg) -> titleSort msg.title, msg.format
-      when 'creator'
-        key = (msg) -> userSortKey msg.creator
-      when 'subscribe'
-        key = (msg) -> subscribedToMessage msg
-      when 'emoji'
-        key = (msg) ->
-          sum = 0
-          if msg.emoji
-            for emoji, users of msg.emoji
-              sum += users.length
-          sum
-      when 'published', 'updated', 'posts'
-        key = mongosort sort.key
-      else
-        if sort.key.startsWith 'tag.'
-          tag = sort.key[4..]
-          key = (msg) ->
-            value = msg.tags?[tag]
-            switch value
-              when undefined
-                '\uffff'  # sort to end
-              when true
-                ''
-              else
-                titleSort value
-        else
-          throw new Error "Invalid sort key: '#{sort.key}'"
-    ## To reverse sort, we reverse before and after the sort,
-    ## so that less-significant sorts already done aren't affected.
-    msgs.reverse() if sort.reverse
-    msgs = _.sortBy msgs, key
-    msgs.reverse() if sort.reverse
-  msgs = _.sortBy msgs,
-    (msg) ->
-      weight = 0
-      weight += 8 if msg.deleted  ## deleted messages go very bottom
-      weight += 4 if msg.minimized  ## minimized messages go bottom
-      weight -= 1 if msg.pinned  ## pinned messages go top
-      weight -= 2 unless msg.published  ## unpublished messages go very top
-      weight
-  msgs
+  messagesSortedBy msgs, sorts

@@ -4,10 +4,11 @@ import {ShareJS} from 'meteor/edemaine:sharejs'
 import dayjs from 'dayjs'
 
 import {dateMax} from './dates'
-import {groupDefaultSort} from './groups'
+import {groupDefaultSort, groupSortedBy} from './groups'
+import {subscribedToMessage} from './notifications'
 import {autopublish, defaultFormat} from './settings'
 import {escapeTag, validTags} from './tags'
-import {sortUsers} from './users'
+import {sortUsers, userSortKey} from './users'
 
 idleUpdate = 1000      ## one second of idle time before edits update message
 export idleStop = 60*60*1000  ## one hour of idle time before auto stop editing
@@ -659,7 +660,7 @@ if Meteor.isServer
       throw new Meteor.Error 'findMessageParent.multiple',
         "Message #{message} has #{parents.length} parents! #{parents}"
 
-@findMessageRoot = (message) ->
+export findMessageRoot = (message) ->
   return message unless message?
   message = findMessage message
   if message.root?
@@ -1650,6 +1651,72 @@ export messageNeighbors = (root) ->
   neighbors.prev = messages[index-1] if index > 0
   neighbors.next = messages[index+1] if index < messages.length - 1
   neighbors
+
+## Given already-fetched messages with enough fields to sort,
+## re-orders by given sort specifications (stably).
+export messagesSortedBy = (msgs, sorts, transform) ->
+  for sort in sorts[..].reverse()
+    switch sort.key
+      when 'title'
+        key = (msg) -> titleSort msg.title, msg.format
+      when 'creator'
+        key = (msg) -> userSortKey msg.creator
+      when 'subscribe'
+        key = (msg) -> subscribedToMessage msg
+      when 'emoji'
+        key = (msg) ->
+          sum = 0
+          if msg.emoji
+            for emoji, users of msg.emoji
+              sum += users.length
+          sum
+      when 'published', 'updated', 'posts', 'root'
+        key = mongoSort sort.key
+      else
+        if sort.key.startsWith 'tag.'
+          tag = sort.key[4..]
+          key = (msg) ->
+            value = msg.tags?[tag]
+            switch value
+              when undefined
+                '\uffff'  # sort to end
+              when true
+                ''
+              else
+                titleSort value
+        else
+          throw new Error "Invalid sort key: '#{sort.key}'"
+    if transform?  # transform key getter
+      if typeof key == 'string'  # convert string to actual getter
+        do (keyString = key) ->
+          key = (msg) -> msg?[keyString]
+      key = transform key
+    ## To reverse sort, we reverse before and after the sort,
+    ## so that less-significant sorts already done aren't affected.
+    msgs.reverse() if sort.reverse
+    msgs = _.sortBy msgs, key
+    msgs.reverse() if sort.reverse
+  msgs = _.sortBy msgs,
+    (msg) ->
+      weight = 0
+      weight += 8 if msg.deleted  ## deleted messages go very bottom
+      weight += 4 if msg.minimized  ## minimized messages go bottom
+      weight -= 1 if msg.pinned  ## pinned messages go top
+      weight -= 2 unless msg.published  ## unpublished messages go very top
+      weight
+  msgs
+
+export mongoSort = (key) ->
+  switch key
+    when 'posts'
+      'submessageCount'
+    when 'updated'
+      'submessageLastUpdate'
+    else
+      if key.startsWith 'tag.'
+        'tags'
+      else
+        key
 
 ## Given a message object, fetch all diffs for that message and construct the
 ## entire sequence history of message objects over time,
