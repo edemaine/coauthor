@@ -13,6 +13,7 @@ instead of version numbers.
   unpublished and pinned messages are sorted higher, and
   minimized and deleted messages are sorted lower, *within each tg cluster*.
   (Previously, this message status sorting was done at a global level.)
+* Pinned messages get colored bright yellow in group view
 
 ## 2023-09-20
 

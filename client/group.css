@@ -11,16 +11,6 @@
 /* match padding of <a> in other columns */
 td.subscribe button.subscribe { margin-top: 5px; }
 
-.table > tbody > tr.messageShort.deleted > td > a, .table > tbody > tr.messageShort.unpublished > td > a { font-size: small; padding: 2px 8px; }
-.table > tbody > tr.messageShort.deleted > td > button.subscribe, .table > tbody > tr.messageShort.unpublished > td > button.subscribe { margin-top: 1px; }
-.table > tbody > tr.messageShort.deleted > td > a { color: #a94442; }
-.table > tbody > tr.messageShort.unpublished > td > a { color: #8a6d3b; }
-.table > tbody > tr.messageShort.private > td > a { color: #5bc0de; }
-.table > tbody > tr.messageShort.minimized > td > a { color: #449d44; }
-.dark .table > tbody > tr.messageShort.deleted > td > a { color: #d9534f; }
-.dark .table > tbody > tr.messageShort.unpublished > td > a { color: #f0ad4e; }
-.dark .table > tbody > tr.messageShort.minimized > td > a { color: #5cb85c; }
-
 .fake-btn { position: relative; float: left; display: inline-block; vertical-align: middle;
   border-top: 1px solid transparent; border-bottom: 1px solid transparent; }
 .btn-group-xs .fake-btn { padding: 1px 0px; font-size: 12px; line-height: 1.5; }

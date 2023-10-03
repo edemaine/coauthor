@@ -67,6 +67,35 @@ table.group
   .label
     color: black
 
+// Message status
+.table > tbody > tr.messageShort
+  &.deleted > td, &.unpublished > td
+    > a
+      font-size: small
+      padding: 2px 8px
+    > button.subscribe
+      margin-top: 1px
+  &.deleted > td > a
+    color: #a94442
+    /.dark &
+      color: #d9534f
+  &.unpublished > td > a
+    color: #8a6d3b
+    /.dark &
+      color: #f0ad4e
+  &.private > td > a
+    color: #5bc0de
+  &.minimized > td > a
+    color: #449d44
+    /.dark &
+      color: #5cb85c
+  &.pinned > td > a
+    color: #4a4a02
+    /.dark &
+      color: #feff09
+  /:root:not(.dark) &.pinned
+    background-color: #ffffbc
+
 .importInput[type="file"]
   display: none
 
