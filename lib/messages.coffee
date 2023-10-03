@@ -1652,10 +1652,32 @@ export messageNeighbors = (root) ->
   neighbors.next = messages[index+1] if index < messages.length - 1
   neighbors
 
+## Given already-fetched messages, promotes pinned and unpublished messages,
+## and demotes minimized and deleted messages.
+sortMessagesByStatus = (msgs) ->
+  _.sortBy msgs, (msg) ->
+    weight = 0
+    weight += 8 if msg.deleted  ## deleted messages go very bottom
+    weight += 4 if msg.minimized  ## minimized messages go bottom
+    weight -= 1 if msg.pinned  ## pinned messages go top
+    weight -= 2 unless msg.published  ## unpublished messages go very top
+    weight
+
 ## Given already-fetched messages with enough fields to sort,
 ## re-orders by given sort specifications (stably).
 export messagesSortedBy = (msgs, sorts, transform) ->
-  for sort in sorts[..].reverse()
+  ## Compute how many leading tag sorts, for leading clustering by tags.
+  leadingTags = 0
+  for sort in sorts
+    if sort.key.startsWith 'tag.'
+      leadingTags++
+    else
+      break
+  ## If only tag sorts, then message status is least significant.
+  if leadingTags == sorts.length
+    msgs = sortMessagesByStatus msgs
+  ## Apply sorts in reverse order, stably (radix sort).
+  for sort, i in sorts[..].reverse()
     switch sort.key
       when 'title'
         key = (msg) -> titleSort msg.title, msg.format
@@ -1696,14 +1718,10 @@ export messagesSortedBy = (msgs, sorts, transform) ->
     msgs.reverse() if sort.reverse
     msgs = _.sortBy msgs, key
     msgs.reverse() if sort.reverse
-  msgs = _.sortBy msgs,
-    (msg) ->
-      weight = 0
-      weight += 8 if msg.deleted  ## deleted messages go very bottom
-      weight += 4 if msg.minimized  ## minimized messages go bottom
-      weight -= 1 if msg.pinned  ## pinned messages go top
-      weight -= 2 unless msg.published  ## unpublished messages go very top
-      weight
+    ## If remaining sorts are by tags, sort by message status now
+    ## (to stay within cluster).
+    if sorts.length-1 - i == leadingTags
+      msgs = sortMessagesByStatus msgs
   msgs
 
 export mongoSort = (key) ->

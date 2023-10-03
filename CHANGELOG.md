@@ -7,6 +7,13 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2023-10-03
+
+* When sorting a group by one or more tags (as the most significant sort),
+  unpublished and pinned messages are sorted higher, and
+  minimized and deleted messages are sorted lower, *within each tg cluster*.
+  (Previously, this message status sorting was done at a global level.)
+
 ## 2023-09-20
 
 * Since view now sorts by group's default sort, instead of increasing title.
