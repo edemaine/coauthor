@@ -2347,19 +2347,23 @@ export WrappedSubmessage = React.memo ({message, read}) ->
     , [imageRefs, imageInternalRefs]
     ## Update default folded status of this message.
     useTracker ->
-      ## Image gets unnaturally folded if it's referenced at least once
-      ## and doesn't have any children (don't want to hide children, and this
-      ## can also lead to infinite loop if children has the image reference)
-      ## and doesn't refer to any other images (which can also lead to bad loops).
+      ## Image gets unnaturally folded if
+      ## * it's referenced at least once;
+      ## * has no body (other than spaces);
+      ## * doesn't have any loadable children (don't want to hide children,
+      ##   and this can also lead to infinite loop if children has the image
+      ##   reference); and
+      ## * doesn't refer to any other images
+      ##   (which can also lead to bad loops).
       newDefault = natural or
-        (not message.children?.length and
+        (not message.body.trimEnd() and not children.length and
         not imageRefs and not imageInternalRefs and
         (!!imageRefCount.get(message._id) or
           !!imageInternalRefCount.get(message.file)))
       if newDefault != defaultFolded.get message._id
         defaultFolded.set message._id, newDefault
         messageFolded.set message._id, newDefault
-    , [message._id, message.file, natural, not message.children?.length, not imageRefs and not imageInternalRefs]
+    , [message._id, message.body, message.file, natural, not message.children?.length, not imageRefs and not imageInternalRefs, children]
 
     absentTags = useTracker ->
       Tags.find

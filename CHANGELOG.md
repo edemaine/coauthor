@@ -9,6 +9,9 @@ instead of version numbers.
 
 ## 2023-10-05
 
+* Image messages no longer "auto-fold" when they're embedded in anther message
+  when the image message has a body (description).
+  [[#632](https://github.com/edemaine/coauthor/issues/632)]
 * Fix bugs where message editor tries and fails to load, and never gives up.
   [[#631](https://github.com/edemaine/coauthor/issues/631)]
   [[#630](https://github.com/edemaine/coauthor/issues/630)]
