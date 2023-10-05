@@ -797,7 +797,9 @@ export MessageEditor = React.memo ({message, setEditBody, tabindex}) ->
         editor.on 'beforeChange', (cm, change) ->
           if change.origin == 'paste' and paste?
             change.text = paste
-            paste = null
+            ## Pasting with multiple cursors can cause multiple changes;
+            ## wait for all of them to complete.
+            queueMicrotask => paste = null
 
         lastAtWord = (cm) ->
           cursor = cm.getCursor()

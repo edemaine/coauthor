@@ -11,6 +11,9 @@ instead of version numbers.
 
 * Fix bug where message editor tries and fails to load, and never gives up.
   [[#631](https://github.com/edemaine/coauthor/issues/631)]
+* Fix paste enhancements (e.g. Coauthor URL simplification)
+  when using multiple editor cursors (via <kbd>Ctrl</kbd>-click)
+  [[#629](https://github.com/edemaine/coauthor/issues/629)]
 
 ## 2023-10-03
 
