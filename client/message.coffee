@@ -2166,9 +2166,10 @@ export WrappedSubmessage = React.memo ({message, read}) ->
     ## Editing toggle
     [editTitle, setEditTitle] = useState ''
     [editBody, setEditBody] = useState null
-      # special value null indicates meaning not editing so safe
+      # special value null indicates meaning not editing so safe --
+      # though we actually allow stopping on '' too in case editor crash-starts
     [editStopping, setEditStopping] = useState()
-    safeToStopEditing = not editBody? or
+    safeToStopEditing = not editBody or
       (message.title == editTitle and message.body == editBody)
     useEffect ->
       setMigrateSafe message._id, safeToStopEditing
