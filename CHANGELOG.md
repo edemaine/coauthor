@@ -11,7 +11,7 @@ instead of version numbers.
 
 * When sorting a group by one or more tags (as the most significant sort),
   unpublished and pinned messages are sorted higher, and
-  minimized and deleted messages are sorted lower, *within each tg cluster*.
+  minimized and deleted messages are sorted lower, *within each tag cluster*.
   (Previously, this message status sorting was done at a global level.)
 * Pinned messages get colored bright yellow in group view
 
