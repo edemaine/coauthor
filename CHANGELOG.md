@@ -7,6 +7,11 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2023-10-05
+
+* Fix bug where message editor tries and fails to load, and never gives up.
+  [[#631](https://github.com/edemaine/coauthor/issues/631)]
+
 ## 2023-10-03
 
 * When sorting a group by one or more tags (as the most significant sort),

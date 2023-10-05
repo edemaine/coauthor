@@ -2178,9 +2178,13 @@ export WrappedSubmessage = React.memo ({message, read}) ->
             setEditStopping false
     , [editStopping, safeToStopEditing]
     ## When component unmounts, editor closes, so mark migration as safe.
+    ## Ditto when component gets re-used for a new message, which can happen
+    ## at the top level (probably because of BlazeJS).
     useEffect ->
-      -> setMigrateSafe message._id, true
-    , []
+      ->
+        setEditBody null
+        setMigrateSafe message._id, true
+    , [message._id]
 
     ## Are we editing?
     editing = editingMessage message, user
