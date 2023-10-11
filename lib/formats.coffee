@@ -642,22 +642,26 @@ export parseCoauthorAuthorUrl = (url) ->
     group: match[1]
     author: match[2]
 
+imageTitleAndWarning = (msg) ->
+  ## xxx Should we subscribe to the linked message when we can't find it?
+  msg = findMessage msg
+  title = titleOrFilename(msg) ? ''
+  attrs = prefix = ''
+  if msg? and (msg.deleted or not msg.published)
+    classes = []
+    classes.push 'deleted' if msg.deleted
+    classes.push 'unpublished' unless msg.published
+    attrs += """class="#{classes.join ' '}" """
+    warning = "WARNING: Image is #{classes.join(' and ').toUpperCase()} so will NOT BE VISIBLE to most users!"
+    prefix = """<div class="warning #{classes.join ' '}">#{warning.replace /[A-Z]{2,}/g, "<b>$&</b>"}</div>"""
+    title = "#{warning} #{title}"
+  attrs += """title="#{escapeForQuotedHTML title}" """ if title
+  {attrs, prefix}
+
 postprocessCoauthorLinks = (text) ->
-  text.replace ///(<img\s[^<>]*)(src\s*=\s*['"])#{coauthorLinkRe}///ig,
-    (match, img, src, id) ->
-      ## xxx Should we subscribe to the linked message when we can't find it?
-      msg = Messages.findOne id
-      title = titleOrFilename(msg) ? ''
-      if msg? and (msg.deleted or not msg.published)
-        classes = []
-        classes.push 'deleted' if msg.deleted
-        classes.push 'unpublished' unless msg.published
-        img += """ class="#{classes.join ' '}" """
-        warning = "WARNING: Image is #{classes.join(' and ').toUpperCase()} so will NOT BE VISIBLE to most users!"
-        img = """<div class="warning #{classes.join ' '}">#{warning.replace /[A-Z]{2,}/g, "<b>$&</b>"}</div>#{img}"""
-        title = "#{warning} #{title}"
-      img += """title="#{escapeForQuotedHTML title}" """ if title?
-      img + src + urlToFile id
+  text.replace ///(<img\s[^<>]*src\s*=\s*['"])#{coauthorLinkRe}///ig,
+    (match, img, id) ->
+      img + urlToFile id
   .replace ///(<a\s[^<>]*)(href\s*=\s*['"])#{coauthorLinkHashRe}///ig,
     (match, a, href, id, hash) ->
       ## xxx Should we subscribe to the linked message when we can't find it?
@@ -669,26 +673,29 @@ postprocessCoauthorLinks = (text) ->
         group: msg?.group or wildGroup
         message: id
       ) + (hash ? '')
-  .replace ///(<img\s[^<>]*src\s*=\s*['"])(#{fileUrlPattern}[^'"]*)(['"][^<>]*>)///ig,
-    (match, prefix, url, isFile, isInternalFile, suffix) ->
+  .replace ///(<img\s[^<>]*)(src\s*=\s*['"])(#{fileUrlPattern}[^'"]*)(['"][^<>]*>)///ig,
+    (match, img, src, url, isFile, isInternalFile, suffix) ->
+      ## xxx Should we subscribe to the linked message when we can't find it?
       if isFile
         msg = findMessage url2file url
         return match unless msg?
+        {attrs, prefix} = imageTitleAndWarning msg
         fileId = msg.file
       else
         fileId = url2internalFile url
       file = findFile fileId
       return match unless file?
+      prefix +
       switch fileType file
         when 'video'
-          formatVideo file, url
+          formatVideo file, url, attrs
         when 'pdf'
           if Meteor.isServer
             """<div>[PDF file &ldquo;<a href="#{url}">#{file.filename}</a>&rdquo;]</div>"""
           else
-            """<div data-messagepdf="#{fileId}"></div>"""
+            """<div #{attrs}data-messagepdf="#{fileId}"></div>"""
         else
-          match
+          img + attrs + src + url + suffix
 
 ## URL regular expression with scheme:// required, to avoid extraneous matching
 export urlRe = /\w+:\/\/[-\w~!$&'()*+,;=.:@%#?\/]+/g
@@ -969,11 +976,11 @@ export formatFileDescription = (msg, file = null) ->
   return formatEmptyFile msg.file unless file.length
   """<i class="odd-file"><a href="#{urlToFile msg}">&lt;#{s.numberFormat file.length}-byte #{file.contentType} file &ldquo;#{file.filename}&rdquo;&gt;</a></i>"""
 
-export formatVideo = (file, url) ->
+export formatVideo = (file, url, attrs = '') ->
   if file?.contentType
-    """<video controls><source src="#{url}" type="#{file.contentType}"></video>"""
+    """<video #{attrs}controls><source src="#{url}" type="#{file.contentType}"></video>"""
   else
-    """<video controls><source src="#{url}"></video>"""
+    """<video #{attrs}controls><source src="#{url}"></video>"""
 
 export formatFile = (msg, file = null) ->
   file = findFile msg.file unless file?

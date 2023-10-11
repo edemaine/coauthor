@@ -439,19 +439,20 @@ ul.pinned
   background: inherit
   border: none
 
-img, div.warning
+img, video, div[data-messagepdf], div.warning
   &.unpublished  // .label-warning background-color
     --warning-color: #f0ad4e
   &.deleted  // .label-danger background-color
     --warning-color: #d9534f
-img.unpublished, img.deleted, div.warning
-  border: 10px solid var(--warning-color)
-img.unpublished, img.deleted
-  border-bottom-left-radius: 4px
-  border-bottom-right-radius: 4px
+  &.unpublished, &.deleted
+    border: 10px solid var(--warning-color)
+    border-bottom-left-radius: 4px
+    border-bottom-right-radius: 4px
 div.warning
   border-top-left-radius: 4px
   border-top-right-radius: 4px
+  border-bottom-left-radius: 0px !important
+  border-bottom-right-radius: 0px !important
   background: var(--warning-color)
   border-bottom: none
   color: black

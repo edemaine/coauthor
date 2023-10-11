@@ -9,6 +9,9 @@ instead of version numbers.
 
 ## 2023-10-11
 
+* Embedded images, videos, and PDFs now all generate warnings if the embedded
+  message is unpublished or deleted, even with `https://coauthor` URLs.
+  [[#633](https://github.com/edemaine/coauthor/issues/633)]
 * Fix math sometimes being incorporated into a link (e.g. `$foo$.In`)
 
 ## 2023-10-05
