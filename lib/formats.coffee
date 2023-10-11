@@ -735,12 +735,12 @@ preprocessKaTeX = (text) ->
   i = 0
   text = replaceMathBlocks text, (block) ->
     math.push block
-    "MATH#{i++}ENDMATH"
+    "!MATH#{i++}ENDMATH!"  # surround with `!` to prevent linkify implicit links
   [text, math]
 
 putMathBack = (tex, math) ->
   ## Restore math
-  tex.replace /MATH(\d+)ENDMATH/g, (match, id) -> _.escape math[id].all
+  tex.replace /!MATH(\d+)ENDMATH!/g, (match, id) -> _.escape math[id].all
 
 postprocessKaTeX = (text, math, initialBold) ->
   return text unless math.length
@@ -751,7 +751,7 @@ postprocessKaTeX = (text, math, initialBold) ->
     weights = [mediumWeight]
   text.replace ///
     (['"(\[{]*)         # left puncutation to pull into math mode
-    MATH(\d+)ENDMATH
+    !MATH(\d+)ENDMATH!
     ([,.!?:;'"\-)\]}]*) # right puncutation to pull into math mode
     (?! -?> ) # prevent accidentally grabbing some of --> (end of HTML comment)
     | ## Detect math within bold mode:
@@ -770,7 +770,7 @@ postprocessKaTeX = (text, math, initialBold) ->
       else if match[...2] == '</'
         weights.pop()
       return match
-    ## MATH...ENDMATH
+    ## !MATH...ENDMATH!
     block = math[id]
     content = block.content
     #.replace /&lt;/g, '<'

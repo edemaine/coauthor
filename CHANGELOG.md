@@ -7,6 +7,10 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2023-10-11
+
+* Fix math sometimes being incorporated into a link (e.g. `$foo$.In`)
+
 ## 2023-10-05
 
 * Image messages no longer "auto-fold" when they're embedded in anther message
