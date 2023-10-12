@@ -7,6 +7,11 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2023-10-12
+
+* Fix bug in Since sorting
+  [[#634](https://github.com/edemaine/coauthor/issues/634)]
+
 ## 2023-10-11
 
 * Embedded images, videos, and PDFs now all generate warnings if the embedded

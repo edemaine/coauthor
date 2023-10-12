@@ -1654,8 +1654,9 @@ export messageNeighbors = (root) ->
 
 ## Given already-fetched messages, promotes pinned and unpublished messages,
 ## and demotes minimized and deleted messages.
-sortMessagesByStatus = (msgs) ->
+sortMessagesByStatus = (msgs, transform) ->
   _.sortBy msgs, (msg) ->
+    msg = transform msg if transform?
     weight = 0
     weight += 8 if msg.deleted  ## deleted messages go very bottom
     weight += 4 if msg.minimized  ## minimized messages go bottom
@@ -1675,7 +1676,7 @@ export messagesSortedBy = (msgs, sorts, transform) ->
       break
   ## If only tag sorts, then message status is least significant.
   if leadingTags == sorts.length
-    msgs = sortMessagesByStatus msgs
+    msgs = sortMessagesByStatus msgs, transform
   ## Apply sorts in reverse order, stably (radix sort).
   for sort, i in sorts[..].reverse()
     switch sort.key
@@ -1709,10 +1710,11 @@ export messagesSortedBy = (msgs, sorts, transform) ->
         else
           throw new Error "Invalid sort key: '#{sort.key}'"
     if transform?  # transform key getter
-      if typeof key == 'string'  # convert string to actual getter
-        do (keyString = key) ->
-          key = (msg) -> msg?[keyString]
-      key = transform key
+      do (origKey = key) ->
+        if typeof key == 'string'  # convert string to actual getter
+          key = (msg) -> transform(msg)?[origKey]
+        else
+          key = (msg) -> origKey transform msg
     ## To reverse sort, we reverse before and after the sort,
     ## so that less-significant sorts already done aren't affected.
     msgs.reverse() if sort.reverse
@@ -1721,7 +1723,7 @@ export messagesSortedBy = (msgs, sorts, transform) ->
     ## If remaining sorts are by tags, sort by message status now
     ## (to stay within cluster).
     if sorts.length-1 - i == leadingTags
-      msgs = sortMessagesByStatus msgs
+      msgs = sortMessagesByStatus msgs, transform
   msgs
 
 export mongoSort = (key) ->

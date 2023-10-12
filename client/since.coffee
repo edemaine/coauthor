@@ -28,8 +28,7 @@ topMessagesSince = (group, since) ->
     key: 'root'
     reversed: true
   ## ...applying sort to message root, not the message
-  msgs = messagesSortedBy msgs, defaultSort, (keyOf) -> (msg) ->
-    keyOf findMessageRoot msg
+  msgs = messagesSortedBy msgs, defaultSort, (msg) -> findMessageRoot msg
   ## Form a set of all message IDs in match
   byId = {}
   for msg in msgs
