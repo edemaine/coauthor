@@ -21,14 +21,11 @@ topMessagesSince = (group, since) ->
   ## Least significant: sort by increasing creation time
   msgs = messagesSince group, since
   .fetch()
-  ## Then sort by group's default sort order
-  defaultSort = groupDefaultSort group
-  ## ...after sorting roots before their descendants
-  defaultSort.push
-    key: 'root'
-    reversed: true
-  ## ...applying sort to message root, not the message
-  msgs = messagesSortedBy msgs, defaultSort, (msg) -> findMessageRoot msg
+  ## Middle significant: sort roots before their descendants
+  msgs = _.sortBy msgs, (msg) -> msg.root?
+  ## Most significant: sort by group's default sort order --
+  ## applying sort to message root, not the message
+  msgs = messagesSortedBy msgs, groupDefaultSort(group), findMessageRoot
   ## Form a set of all message IDs in match
   byId = {}
   for msg in msgs

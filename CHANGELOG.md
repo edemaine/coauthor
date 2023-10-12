@@ -9,7 +9,7 @@ instead of version numbers.
 
 ## 2023-10-12
 
-* Fix bug in Since sorting
+* Fix bugs in Since sorting
   [[#634](https://github.com/edemaine/coauthor/issues/634)]
 
 ## 2023-10-11
