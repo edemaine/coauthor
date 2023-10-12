@@ -1658,8 +1658,9 @@ sortMessagesByStatus = (msgs, transform) ->
   _.sortBy msgs, (msg) ->
     msg = transform msg if transform?
     weight = 0
-    weight += 8 if msg.deleted  ## deleted messages go very bottom
-    weight += 4 if msg.minimized  ## minimized messages go bottom
+    weight += 16 if msg.deleted  ## deleted messages go very bottom
+    weight += 8 if msg.private  ## private messages go middle bottom
+    weight += 4 if msg.minimized  ## minimized messages go somewhat bottom
     weight -= 1 if msg.pinned  ## pinned messages go top
     weight -= 2 unless msg.published  ## unpublished messages go very top
     weight

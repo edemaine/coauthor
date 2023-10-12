@@ -11,6 +11,7 @@ instead of version numbers.
 
 * Fix bugs in Since sorting
   [[#634](https://github.com/edemaine/coauthor/issues/634)]
+* Private root messages now sort between minimized and deleted
 
 ## 2023-10-11
 
