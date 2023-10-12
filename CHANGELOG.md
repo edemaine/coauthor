@@ -9,6 +9,8 @@ instead of version numbers.
 
 ## 2023-10-12
 
+* Superusers can now start private threads (e.g. for course staff discussion)
+  from the "New Thread" dropdown on the Group page
 * Fix bugs in Since sorting
   [[#634](https://github.com/edemaine/coauthor/issues/634)]
 * Private root messages now sort between minimized and deleted
@@ -22,7 +24,7 @@ instead of version numbers.
 
 ## 2023-10-05
 
-* Image messages no longer "auto-fold" when they're embedded in anther message
+* Image messages no longer "auto-fold" when they're embedded in another message
   when the image message has a body (description).
   [[#632](https://github.com/edemaine/coauthor/issues/632)]
 * Fix bugs where message editor tries and fails to load, and never gives up.

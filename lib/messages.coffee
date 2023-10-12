@@ -1290,7 +1290,7 @@ Meteor.methods
     ## "Reply All" behavior: Initial access for a private message
     ## includes all coauthors and access of parent message,
     ## except for the actual author of this message which isn't needed.
-    if message.private
+    if message.private and parent?
       message.access = _.clone pmsg.coauthors
       for username in pmsg.access ? []
         message.access.push username unless username in message.access

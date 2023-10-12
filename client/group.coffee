@@ -147,6 +147,7 @@ export Group = React.memo ({group, groupData}) ->
   can = useTracker ->
     post: canPost group
     import: canImport group
+    super: canSuper group
     globalSuper: canSuper wildGroup
   , [group]
 
@@ -219,6 +220,8 @@ export GroupButtons = React.memo ({group, can, sortBy, clusterBy, tags}) ->
         message.published = true
       else
         message.published = defaultPublished
+    if 'true' == e.currentTarget.getAttribute 'data-private'
+      message.private = true
     Meteor.call 'messageNew', group, null, null, message, (error, result) ->
       #e.target.removeClass 'disabled'
       if error
@@ -284,6 +287,17 @@ export GroupButtons = React.memo ({group, can, sortBy, clusterBy, tags}) ->
             }
           </Dropdown.Item>
         </li>
+        {if can.super
+          <li>
+            <Dropdown.Item href="#" data-private={true} onClick={onPost} onAuxClick={onPost}>
+              <TextTooltip placement="left" title="Start a new private #{if defaultPublished then '' else 'un'}published root message.">
+                <button className="btn btn-info btn-block postButton">
+                  New Private Root Message
+                </button>
+              </TextTooltip>
+            </Dropdown.Item>
+          </li>
+        }
       </Dropdown.Menu>
     </Dropdown>
     <div className="btn-group">
