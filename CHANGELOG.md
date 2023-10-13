@@ -7,6 +7,11 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2023-10-13
+
+* Fix multiple \$math\$ chunks connected only by punctuation
+  [[#636](https://github.com/edemaine/coauthor/issues/636)]
+
 ## 2023-10-12
 
 * Superusers can now start private threads (e.g. for course staff discussion)

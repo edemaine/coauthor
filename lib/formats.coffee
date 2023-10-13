@@ -572,12 +572,14 @@ formats =
     [text, ticks] = preprocessMarkdownTicks text
     ## Support what we can of LaTeX before doing Markdown conversion.
     [text, math] = latex2htmlLight text, me
+    #console.log text, math
     ## Put Markdown verbatims back in.
     text = putTicksBack text, ticks
     if title  ## use "single-line" version of Markdown
       text = markdownInline text
     else
       text = markdown text
+    #console.log 'markdown', text
     ## Convert <ol start=...> output from Markdown to CSS-compatible reset.
     text = text.replace /<ol start="([\d+])">/ig, (match, start) ->
       """<ol style="counter-reset: enum #{-1 + parseInt start}">"""
@@ -761,6 +763,7 @@ postprocessKaTeX = (text, math, initialBold) ->
     !MATH(\d+)ENDMATH!
     ([,.!?:;'"\-)\]}]*) # right puncutation to pull into math mode
     (?! -?> ) # prevent accidentally grabbing some of --> (end of HTML comment)
+    (?! MATH ) # prevent accidentally grabbing part of !MATH
     | ## Detect math within bold mode:
     <span([^<>]*)> |
     <b\b |
