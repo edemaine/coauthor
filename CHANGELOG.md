@@ -9,6 +9,15 @@ instead of version numbers.
 
 ## 2023-10-13
 
+* New LaTeX forms of
+  [HTML `<details>`/`<summary>` tags](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/details):
+  * `\begin{details}...\end{details}` or `\begin{+}...\end{+}` to make basic
+    `<details>...</details>` text that's hidden until clicked.
+  * `\begin{details}[header]` or `\begin{+}[header]` to change the default
+    "Details" text to desired header.
+  * `\begin{proof+}`, `\begin{theorem+}`, etc. to make a proof that's
+     hidden with header "Proof", "Theorem", etc. (essentially shorthand for
+     `\begin{+}\begin{proof}`).
 * Fix multiple \$math\$ chunks connected only by punctuation
   [[#636](https://github.com/edemaine/coauthor/issues/636)]
 

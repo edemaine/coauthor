@@ -472,14 +472,25 @@ latex2htmlCommandsAlpha = (tex, math) ->
       else
         value = "-#{value}"
       """<span style="margin-top: #{value}#{unit};">#{arg}</span>"""
+  .replace /\\begin\s*{(details|\+)}(\s*\[((?:[^\]{}]|{(?:[^{}]|{[^{}]*})})*)\])?/g,
+    (m, env, x, opt) ->
+      '<details>' + if opt then "<summary>#{opt}</summary>" else ''
+  .replace /\\end\s*{(details|\+)}/g, '</details>'
+  .replace /(\\begin\s*{([^{}]+))\+}(\s*\[((?:[^\]{}]|{(?:[^{}]|{[^{}]*})})*)\])?/g,
+    (m, prefix, env, rest, opt) ->
+      """<details>
+      <summary>#{capitalize env}#{if opt then " (#{opt})" else ''}</summary>
+      #{prefix}}#{rest ? ''}
+      """
+  .replace /(\\end\s*{[^{}]+)\+}/g, "$1}</details>"
   .replace /\\begin\s*{(problem|question|idea|theorem|conjecture|lemma|corollary|fact|observation|proposition|claim|definition|example)}(\s*\[([^\]]*)\])?/g, (m, env, x, opt) -> """<blockquote class="thm"><p><b>#{capitalize env}#{if opt then " (#{opt})" else ''}:</b> """
   .replace /\\end\s*{(problem|question|idea|theorem|conjecture|lemma|corollary|fact|observation|proposition|claim|definition|example)}/g, '</blockquote>'
   .replace /\\begin\s*{(quote)}/g, '<blockquote><p>'
   .replace /\\end\s*{(quote)}/g, '</blockquote>'
-  .replace /\\begin\s*{(proof|pf)}(\s*\[([^\]]*)\])?/g, (m, env, x, opt) -> "<b>Proof#{if opt then " (#{opt})" else ''}:</b> "
+  .replace /\\begin\s*{(proof|pf)}(\s*\[((?:[^\]{}]|{(?:[^{}]|{[^{}]*})})*)\])?/g, (m, env, x, opt) -> "<b>Proof#{if opt then " (#{opt})" else ''}:</b> "
   .replace /\\end\s*{(proof|pf)}/g, ' <span class="pull-right">&#8718;</span></p><p class="clearfix">'
-  .replace /\\begin\s*{center}([^]*?)\\end\s*{center}/g, (m, body) ->
-    """<div class="center">#{body}</div>"""
+  .replace /\\begin\s*{center}/g, '<div class="center">'
+  .replace /\\end\s*{center}/g, '</div>'
   .replace latexSimpleCommandsRe, (match, name) -> latexSimpleCommands[name]
   ## The following tweaks are not LaTeX actually, but useful in all modes,
   ## so we do them here.
@@ -740,6 +751,14 @@ processAtMentions = (text, me) ->
       match
 
 preprocessKaTeX = (text) ->
+  text = text
+  .replace /(\\begin\s*{(?:equation|eqnarray|align|alignat|gather|CD)\*?)\+}/g,
+    """<details>
+    <summary>Equation</summary>
+    $1}
+    """
+  .replace /(\\end\s*{(?:equation|eqnarray|align|alignat|gather|CD)\*?)\+}/g,
+    "$1}</details>"
   math = []
   i = 0
   text = replaceMathBlocks text, (block) ->
