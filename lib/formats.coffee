@@ -677,7 +677,7 @@ imageTitleAndWarning = (msg) ->
   attrs += """title="#{escapeForQuotedHTML title}" """ if title
   {attrs, prefix}
 
-postprocessCoauthorLinks = (text) ->
+postprocessCoauthorLinks = (text, msgId) ->
   text
   .replace ///(<img\s[^<>]*src\s*=\s*['"])#{coauthorLinkRe}///ig,
     (match, img, id) ->
@@ -697,7 +697,10 @@ postprocessCoauthorLinks = (text) ->
         a += """title="#{escapeForQuotedHTML title}" """
         if suffixId == id
           a += """class="coauthor-link" """
-          suffix = """#{suffixLeft}<img src="#{Meteor.absoluteUrl 'favicon32.png'}" class="natural">#{formatTitle msg.format, title, id: msg._id}#{suffixRight}"""
+          text = formatTitle msg.format, title, id: msg._id
+          if msgId? and findMessage(msgId)?.group != msg.group
+            text = "[#{escapeForHTML msg.group}] #{text}"
+          suffix = """#{suffixLeft}<img src="#{Meteor.absoluteUrl 'favicon32.png'}" class="natural">#{text}#{suffixRight}"""
       suffix ?= ''
       a + href + url + suffix
   .replace ///(<img\s[^<>]*)(src\s*=\s*['"])(#{fileUrlPrefixPattern}[^'"]*)(['"][^<>]*>)///ig,
@@ -952,7 +955,7 @@ formatEither = (isTitle, format, text, options) ->
   else
     text = postprocessKaTeX text, math, bold
   text = linkify text  ## Extra support for links, unliked LaTeX
-  text = postprocessCoauthorLinks text
+  text = postprocessCoauthorLinks text, id
   text = postprocessLinks text
   text = formatSearchHighlight isTitle, text
   text = sanitize text
