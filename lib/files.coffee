@@ -48,13 +48,15 @@ if Meteor.isServer
     ['metadata._Resumable', 1]
   ]
 
-@fileUrlPrefix = "/file/"
-@fileAbsoluteUrlPrefix = Meteor.absoluteUrl fileUrlPrefix[1..]
-@internalFileUrlPrefix = "#{Files.baseURL}/id/"
-@internalFileAbsoluteUrlPrefix = Meteor.absoluteUrl internalFileUrlPrefix[1..]
-@fileUrlPattern =
-  "(?:(#{fileUrlPrefix}|#{fileAbsoluteUrlPrefix})|" +
+export messageFileUrlPrefix = "/file/"
+export messageFileAbsoluteUrlPrefix = Meteor.absoluteUrl messageFileUrlPrefix[1..]
+export internalFileUrlPrefix = "#{Files.baseURL}/id/"
+export internalFileAbsoluteUrlPrefix = Meteor.absoluteUrl internalFileUrlPrefix[1..]
+export fileUrlPrefixPattern =
+  "(?:(#{messageFileUrlPrefix}|#{messageFileAbsoluteUrlPrefix})|" +
    "(#{internalFileUrlPrefix}|#{internalFileAbsoluteUrlPrefix}))"
+export messageFileUrlPrefixPattern =
+  "(?:#{messageFileUrlPrefix}|#{messageFileAbsoluteUrlPrefix})"
 
 ## If given object has a `file` and either a `diffId` field or no `_id` field,
 ## then we make a link to the internal file object instead of the file
@@ -63,10 +65,10 @@ if Meteor.isServer
   if id.diffId? or (id.file? and not id._id?)
     urlToInternalFile id
   else
-    "#{fileAbsoluteUrlPrefix}#{id._id ? id}"
+    "#{messageFileAbsoluteUrlPrefix}#{id._id ? id}"
 
 @url2file = (url) ->
-  for prefix in [fileUrlPrefix, fileAbsoluteUrlPrefix]
+  for prefix in [messageFileUrlPrefix, messageFileAbsoluteUrlPrefix]
     if url[...prefix.length] == prefix
       return url[prefix.length..]
   throw new Meteor.Error 'url2file.invalid', "Bad file URL #{url}"

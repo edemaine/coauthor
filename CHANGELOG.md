@@ -7,6 +7,16 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2023-10-16
+
+* Improve dragging/pasting behavior of Coauthor messages/images:
+  * Dragging or pasting a message's embedded image will always inline the image
+    (`![](coauthor:...)` in Markdown, `\includegraphics{coauthor:...}`
+    in LaTeX, and `<img src="coauthor:...">` in HTML).
+  * Dragging or pasting a message that has an embedded image will inline the
+    image if the message has no body (description) and no children,
+    and the cursor is at a space or table delimiter.
+
 ## 2023-10-13
 
 * New LaTeX forms of

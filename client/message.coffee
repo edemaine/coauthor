@@ -27,7 +27,8 @@ import {useElementWidth} from './lib/resize'
 import {setMigrateSafe, migrateWant} from './lib/migrate'
 import {prefersReducedMotion, scrollBehavior} from './lib/scroll'
 import {allEmoji} from '/lib/emoji'
-import {availableFormats, formatBody, formatFile, formatFileDescription, formatTitleOrFilename, parseCoauthorAuthorUrl, parseCoauthorMessageUrl} from '/lib/formats'
+import {messageFileUrlPrefix, messageFileAbsoluteUrlPrefix, internalFileUrlPrefix, internalFileAbsoluteUrlPrefix} from '/lib/files'
+import {availableFormats, formatBody, formatFile, formatFileDescription, formatTitleOrFilename, parseCoauthorAuthorUrl, parseCoauthorMessageUrl, parseCoauthorMessageFileUrl} from '/lib/formats'
 import {ancestorMessages, descendantMessagesQuery, messageDiffsExpanded, messageNeighbors, sortedMessageReaders} from '/lib/messages'
 import {autosubscribe, defaultNotificationsOn, messageSubscribers} from '/lib/notifications'
 import {autopublish, defaultKeyboard, userKeyboard, themeEditor} from '/lib/settings'
@@ -482,7 +483,7 @@ updateFileQuery = _.debounce ->
         fileQueries[id].file = fields.file
 , 100
 
-messageOnDragStart = (message) -> (e) ->
+messageOnDragStart = (message, isFile) -> (e) ->
   #url = "coauthor:#{message._id}"
   url = urlFor 'message',
     group: message.group
@@ -491,7 +492,7 @@ messageOnDragStart = (message) -> (e) ->
   e.dataTransfer.setData 'text/plain', url
   e.dataTransfer.setData 'application/coauthor-id', message._id
   e.dataTransfer.setData 'application/coauthor-type',
-    if message.file
+    if isFile and message.file
       fileType message.file
     else
       'message'
@@ -703,14 +704,24 @@ export MessageEditor = React.memo ({message, setEditBody, tabindex}) ->
         editor.setOption 'dragDrop', false
         ## Embed files as images if dragged to beginning of line or after
         ## a space or table separator (| for Markdown, & for LaTeX).
+        ## pos==true forces embedding, used when dragging actual images.
         useImage = (pos) ->
-          pos.ch == 0 or
+          pos == true or pos.ch == 0 or
           /^[\s|&]$/.test editor.getRange
             line: pos.line
             ch: pos.ch - 1
           , pos
-        embedFile = (type, id, pos) ->
-          if useImage pos
+        embedFile = (id, pos, type) ->
+          pos ?= editor.getCursor()
+          ## Automatically embed file if it has an attached file and either
+          ## we dragged the image itself, or the message has an empty body
+          ## other than spaces and no children (same as auto-fold rules).
+          type = undefined if type == 'message'
+          unless type?
+            msg = findMessage id
+            if msg?.file? and (pos == true or (not msg.body.trimEnd() and not msg.children.length))
+              type = fileType msg.file
+          if type? and useImage pos
             switch type
               when 'image', 'video', 'pdf'
                 switch findMessage(messageID)?.format
@@ -734,9 +745,11 @@ export MessageEditor = React.memo ({message, setEditBody, tabindex}) ->
             pos = editor.coordsChar
               left: e.x
               top: e.y
-            replacement = embedFile type, id, pos
+            replacement = embedFile id, pos, type
           else if (match = parseCoauthorMessageUrl text, true)?
             replacement = "coauthor:#{match.message}#{match.hash}"
+          else if (match = parseCoauthorMessageFileUrl text, true)?
+            replacement = embedFile match.message
           else if (match = parseCoauthorAuthorUrl text)?
             replacement = "@#{match.author}"
           else
@@ -787,11 +800,12 @@ export MessageEditor = React.memo ({message, setEditBody, tabindex}) ->
           else if 'text/plain' in e.clipboardData.types
             text = e.clipboardData.getData 'text/plain'
             if (match = parseCoauthorMessageUrl text, true)?
-              paste = ["coauthor:#{match.message}#{match.hash}"]
-              if not match.hash
-                msg = findMessage match.message
-                if msg?.file? and type = fileType msg.file
-                  paste = [embedFile type, match.message, editor.getCursor()]
+              if match.hash
+                paste = ["coauthor:#{match.message}#{match.hash}"]
+              else
+                paste = [embedFile match.message]
+            else if (match = parseCoauthorMessageFileUrl text)?
+              paste = [embedFile match.message, true]
             else if (match = parseCoauthorAuthorUrl text)?
               paste = ["@#{match.author}"]
         editor.on 'beforeChange', (cm, change) ->
@@ -2307,12 +2321,12 @@ export WrappedSubmessage = React.memo ({message, read}) ->
         messageImages = {}
         messageImagesInternal = {}
         for elt in messageBodyRef.current.querySelectorAll """
-          img[src^="#{fileUrlPrefix}"],
-          img[src^="#{fileAbsoluteUrlPrefix}"],
+          img[src^="#{messageFileUrlPrefix}"],
+          img[src^="#{messageFileAbsoluteUrlPrefix}"],
           img[src^="#{internalFileUrlPrefix}"],
           img[src^="#{internalFileAbsoluteUrlPrefix}"],
-          video source[src^="#{fileUrlPrefix}"],
-          video source[src^="#{fileAbsoluteUrlPrefix}"],
+          video source[src^="#{messageFileUrlPrefix}"],
+          video source[src^="#{messageFileAbsoluteUrlPrefix}"],
           video source[src^="#{internalFileUrlPrefix}"],
           video source[src^="#{internalFileAbsoluteUrlPrefix}"],
           div[data-messagepdf]
@@ -2414,7 +2428,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
   messageFileRef = useRef()
   useEffect ->
     return if folded or history? or not messageFileRef.current?
-    listener = messageOnDragStart message
+    listener = messageOnDragStart message, true
     elts = messageFileRef.current.querySelectorAll 'img, video, a, canvas'
     elt.addEventListener 'dragstart', listener for elt in elts
     -> elt.removeEventListener 'dragstart', listener for elt in elts
@@ -2428,8 +2442,8 @@ export WrappedSubmessage = React.memo ({message, read}) ->
     ## Transform any images embedded within message body
     trackers =
       for img in messageBodyRef.current.querySelectorAll """
-        img[src^="#{fileUrlPrefix}"],
-        img[src^="#{fileAbsoluteUrlPrefix}"]
+        img[src^="#{messageFileUrlPrefix}"],
+        img[src^="#{messageFileAbsoluteUrlPrefix}"]
       """
         Tracker.autorun ->
           imgMessage = findMessage url2file img.src

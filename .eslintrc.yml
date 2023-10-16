@@ -76,10 +76,7 @@ globals:
   escapeGroup: readonly
   escapeRegExp: readonly
   escapeUser: readonly
-  fileAbsoluteUrlPrefix: readonly
   fileType: readonly
-  fileUrlPattern: readonly
-  fileUrlPrefix: readonly
   findFile: readonly
   findGroup: readonly
   findMessage: readonly

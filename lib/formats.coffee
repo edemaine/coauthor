@@ -1,3 +1,4 @@
+import {fileUrlPrefixPattern, messageFileUrlPrefixPattern} from './files'
 import {untitledMessage} from './messages'
 import {parseSearch} from './search'
 
@@ -655,6 +656,11 @@ export parseCoauthorAuthorUrl = (url) ->
     group: match[1]
     author: match[2]
 
+export parseCoauthorMessageFileUrl = (url) ->
+  match = ///^#{messageFileUrlPrefixPattern}(.*)$///.exec url
+  return unless match?
+  message: match[1]
+
 imageTitleAndWarning = (msg) ->
   ## xxx Should we subscribe to the linked message when we can't find it?
   msg = findMessage msg
@@ -686,7 +692,7 @@ postprocessCoauthorLinks = (text) ->
         group: msg?.group or wildGroup
         message: id
       ) + (hash ? '')
-  .replace ///(<img\s[^<>]*)(src\s*=\s*['"])(#{fileUrlPattern}[^'"]*)(['"][^<>]*>)///ig,
+  .replace ///(<img\s[^<>]*)(src\s*=\s*['"])(#{fileUrlPrefixPattern}[^'"]*)(['"][^<>]*>)///ig,
     (match, img, src, url, isFile, isInternalFile, suffix) ->
       ## xxx Should we subscribe to the linked message when we can't find it?
       if isFile

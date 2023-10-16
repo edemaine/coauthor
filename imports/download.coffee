@@ -1,6 +1,6 @@
 import {formatDate} from '/client/lib/date'
 import {messageFolded} from '/client/message.coffee'
-import {updateUploading} from '/lib/files'
+import {messageFileUrlPrefix, updateUploading} from '/lib/files'
 import {rootMessages} from '/lib/messages'
 
 title = 'Downloading ZIP archive...'
@@ -72,15 +72,15 @@ savePage = (zip, group, filename) ->
     extension = (/(\.[^.]*)$/.exec actualFile?.filename ? '')?[0] ? ''
     files[id] = "files/#{id}#{extension}"
     get.push
-      url: Meteor.absoluteUrl fileUrlPrefix + id
+      url: Meteor.absoluteUrl messageFileUrlPrefix + id
       file: files[id]
     files[id] = "files/#{id}#{extension}"
-  html = html.replace ///(<(?:[iI][mM][gG]|[sS][oO][uU][rR][cC][eE])\b[^<>]*[sS][rR][cC]\s*=\s*['"])(?:#{escapeRegExp Meteor.absoluteUrl()[...-1]})?#{escapeRegExp fileUrlPrefix}(#{idRegex})(['"])///g,
+  html = html.replace ///(<(?:[iI][mM][gG]|[sS][oO][uU][rR][cC][eE])\b[^<>]*[sS][rR][cC]\s*=\s*['"])(?:#{escapeRegExp Meteor.absoluteUrl()[...-1]})?#{escapeRegExp messageFileUrlPrefix}(#{idRegex})(['"])///g,
     fixFile = (match, left, id, right) ->
       mapped = mapFile id
       return match unless mapped?
       "#{left}#{mapped}#{right}"
-  html = html.replace ///(<[aA]\b[^<>]*[hH][rR][eE][fF]\s*=\s*['"])(?:#{escapeRegExp Meteor.absoluteUrl()[...-1]})?#{escapeRegExp fileUrlPrefix}(#{idRegex})(['"])///g, fixFile
+  html = html.replace ///(<[aA]\b[^<>]*[hH][rR][eE][fF]\s*=\s*['"])(?:#{escapeRegExp Meteor.absoluteUrl()[...-1]})?#{escapeRegExp messageFileUrlPrefix}(#{idRegex})(['"])///g, fixFile
   ## Transform tooltips back into titles
   html = html.replace /\btitle=(''|"")\b/ig, ''
   html = html.replace /\bdata-original-title=/g, 'title='
