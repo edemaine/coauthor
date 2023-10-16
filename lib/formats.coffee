@@ -678,20 +678,27 @@ imageTitleAndWarning = (msg) ->
   {attrs, prefix}
 
 postprocessCoauthorLinks = (text) ->
-  text.replace ///(<img\s[^<>]*src\s*=\s*['"])#{coauthorLinkRe}///ig,
+  text
+  .replace ///(<img\s[^<>]*src\s*=\s*['"])#{coauthorLinkRe}///ig,
     (match, img, id) ->
       img + urlToFile id
-  .replace ///(<a\s[^<>]*)(href\s*=\s*['"])#{coauthorLinkHashRe}///ig,
-    (match, a, href, id, hash) ->
+  .replace ///(<a\s[^<>]*)(href\s*=\s*['"])#{coauthorLinkHashRe}((['"]>)coauthor:([^<>]*)(</a>))?///ig,
+    (match, a, href, id, hash, suffix, suffixLeft, suffixId, suffixRight) ->
       ## xxx Should we subscribe to the linked message when we can't find it?
       ## (This would just be to get its title, so maybe not worth it.)
-      msg = Messages.findOne id
-      if (title = titleOrFilename msg)
-        a += """title="#{escapeForQuotedHTML title}" """
-      a + href + urlFor('message',
+      msg = findMessage id
+      title = titleOrFilename msg
+      url = urlFor('message',
         group: msg?.group or wildGroup
         message: id
-      ) + (hash ? '')
+      )
+      url += hash if hash?
+      if title
+        a += """title="#{escapeForQuotedHTML title}" """
+        if suffixId == id
+          a += """class="coauthor-link" """
+          suffix = """#{suffixLeft}<img src="#{Meteor.absoluteUrl 'favicon32.png'}" class="natural">#{escapeForHTML title}#{suffixRight}"""
+      a + href + url + suffix
   .replace ///(<img\s[^<>]*)(src\s*=\s*['"])(#{fileUrlPrefixPattern}[^'"]*)(['"][^<>]*>)///ig,
     (match, img, src, url, isFile, isInternalFile, suffix) ->
       ## xxx Should we subscribe to the linked message when we can't find it?

@@ -9,6 +9,7 @@ instead of version numbers.
 
 ## 2023-10-16
 
+* Raw `coauthor:...` links now get rendered with message title when available
 * Improve dragging/pasting behavior of Coauthor messages/images:
   * Dragging or pasting a message's embedded image will always inline the image
     (`![](coauthor:...)` in Markdown, `\includegraphics{coauthor:...}`

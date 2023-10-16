@@ -432,7 +432,7 @@ ul.pinned
 
 // White background/frame for uploaded images or embedded SVG, in case of
 // transparency + dark theme.  But don't touch KaTeX's SVG! (e.g. \sqrt)
-.message-body img, .message-body svg, .message-file img
+.message-body img:not(.natural), .message-body svg, .message-file img
   background: white
   border: solid 5px white
 .message-body .katex svg
@@ -456,3 +456,11 @@ div.warning
   background: var(--warning-color)
   border-bottom: none
   color: black
+
+// Automatic coauthor:... links
+.coauthor-link
+  > img
+    width: 1.25em
+    margin-right: 0.25em
+  &:hover > img
+    filter: brightness(1.5)
