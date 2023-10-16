@@ -697,7 +697,7 @@ postprocessCoauthorLinks = (text) ->
         a += """title="#{escapeForQuotedHTML title}" """
         if suffixId == id
           a += """class="coauthor-link" """
-          suffix = """#{suffixLeft}<img src="#{Meteor.absoluteUrl 'favicon32.png'}" class="natural">#{escapeForHTML title}#{suffixRight}"""
+          suffix = """#{suffixLeft}<img src="#{Meteor.absoluteUrl 'favicon32.png'}" class="natural">#{formatTitle msg.format, title, id: msg._id}#{suffixRight}"""
       suffix ?= ''
       a + href + url + suffix
   .replace ///(<img\s[^<>]*)(src\s*=\s*['"])(#{fileUrlPrefixPattern}[^'"]*)(['"][^<>]*>)///ig,
