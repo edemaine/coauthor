@@ -711,11 +711,12 @@ postprocessCoauthorLinks = (text, msgId) ->
       if title
         a += """title="#{escapeForQuotedHTML title}" """
         if suffixId == id
-          a += """class="coauthor-link" """
+          #a += """class="coauthor-link" """
           text = formatTitle msg.format, title, id: msg._id
           if msgId? and findMessage(msgId)?.group != msg.group
             text = "[#{escapeForHTML msg.group}] #{text}"
-          suffix = """#{suffixLeft}<img src="#{Meteor.absoluteUrl 'favicon32.png'}" class="natural">#{text}#{suffixRight}"""
+          #suffix = """#{suffixLeft}<img src="#{Meteor.absoluteUrl 'favicon32.png'}" class="natural">#{text}#{suffixRight}"""
+          suffix = """#{suffixLeft}#{text}#{suffixRight}"""
       suffix ?= ''
       a + href + url + suffix
   .replace ///(<img\s[^<>]*)(src\s*=\s*['"])(#{fileUrlPrefixPattern}[^'"]*)(['"][^<>]*>)///ig,
