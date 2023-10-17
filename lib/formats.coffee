@@ -623,10 +623,24 @@ formats =
   html: (text, title) ->
     linkify text
 
-export coauthorLinkBodyRe = "/?/?([a-zA-Z0-9]+)"
+export coauthorLinkPrefixRe = "coauthor:/?/?"
+export coauthorLinkBodyRe = "([a-zA-Z0-9]+)"
 export coauthorLinkBodyHashRe = "#{coauthorLinkBodyRe}(#[a-zA-Z0-9]*)?"
-export coauthorLinkRe = "coauthor:#{coauthorLinkBodyRe}"
-export coauthorLinkHashRe = "coauthor:#{coauthorLinkBodyHashRe}"
+export coauthorLinkRe = "#{coauthorLinkPrefixRe}#{coauthorLinkBodyRe}"
+export coauthorLinkHashRe = "#{coauthorLinkPrefixRe}#{coauthorLinkBodyHashRe}"
+coauthorEitherLinkRe = coauthorEitherLinkHashRe = null
+
+export initLinkRes = ->
+  return if coauthorEitherLinkRe?
+  coauthorEitherLinkPrefixRe = "(?:#{coauthorLinkPrefixRe}|#{urlFor 'message',
+    group: '.*'
+    message: ''
+    0: '*'
+    1: '*'
+  .replace /\./g, '[^/#]'
+  }/)"
+  coauthorEitherLinkRe = "#{coauthorEitherLinkPrefixRe}#{coauthorLinkBodyRe}"
+  coauthorEitherLinkHashRe = "#{coauthorEitherLinkPrefixRe}#{coauthorLinkBodyHashRe}"
 
 export parseCoauthorMessageUrl = (url, simplify) ->
   match = new RegExp("^#{urlFor 'message',
@@ -678,11 +692,12 @@ imageTitleAndWarning = (msg) ->
   {attrs, prefix}
 
 postprocessCoauthorLinks = (text, msgId) ->
+  initLinkRes()
   text
   .replace ///(<img\s[^<>]*src\s*=\s*['"])#{coauthorLinkRe}///ig,
     (match, img, id) ->
       img + urlToFile id
-  .replace ///(<a\s[^<>]*)(href\s*=\s*['"])#{coauthorLinkHashRe}((['"]>)coauthor:([^<>]*)(</a>))?///ig,
+  .replace ///(<a\s[^<>]*)(href\s*=\s*['"])#{coauthorEitherLinkHashRe}((['"]>)#{coauthorEitherLinkRe}(</a>))?///ig,
     (match, a, href, id, hash, suffix, suffixLeft, suffixId, suffixRight) ->
       ## xxx Should we subscribe to the linked message when we can't find it?
       ## (This would just be to get its title, so maybe not worth it.)
