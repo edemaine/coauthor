@@ -7,6 +7,15 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2023-10-18
+
+* Simplify and improve dragging/pasting behavior of Coauthor messages/images:
+  * Dragging or pasting an embedded image, or a message with an embedded image,
+    will inline the image only if you're dragging/pasting at the beginning
+    of a line (possibly with indentation).
+  * When dragging a message (not embedded image), the message must also have
+    no body and no children to be considered for inlining.
+
 ## 2023-10-16
 
 * Raw `coauthor:...` links now get rendered with message title when available

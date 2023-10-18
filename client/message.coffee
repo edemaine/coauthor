@@ -707,12 +707,12 @@ export MessageEditor = React.memo ({message, setEditBody, tabindex}) ->
         ## pos==true forces embedding, used when dragging actual images.
         useImage = (pos) ->
           pos == true or pos.ch == 0 or
-          /^[\s|&]$/.test editor.getRange
+          /^\s*$/.test editor.getRange
             line: pos.line
-            ch: pos.ch - 1
+            ch: 0
           , pos
         embedFile = (id, pos, type) ->
-          pos ?= editor.getCursor()
+          pos ?= editor.getCursor 'from'
           ## Automatically embed file if it has an attached file and either
           ## we dragged the image itself, or the message has an empty body
           ## other than spaces and no children (same as auto-fold rules).
@@ -739,17 +739,20 @@ export MessageEditor = React.memo ({message, setEditBody, tabindex}) ->
           id = e.dataTransfer?.getData 'application/coauthor-id'
           username = e.dataTransfer?.getData 'application/coauthor-username'
           type = e.dataTransfer?.getData 'application/coauthor-type'
+          pos = editor.coordsChar
+            left: e.x
+            top: e.y
           if username
             replacement = "@#{username}"
           else if id
-            pos = editor.coordsChar
-              left: e.x
-              top: e.y
             replacement = embedFile id, pos, type
           else if (match = parseCoauthorMessageUrl text, true)?
-            replacement = "coauthor:#{match.message}#{match.hash}"
+            if match.hash
+              replacement = "coauthor:#{match.message}#{match.hash}"
+            else
+              replacement = embedFile match.message, pos
           else if (match = parseCoauthorMessageFileUrl text, true)?
-            replacement = embedFile match.message
+            replacement = embedFile match.message, pos
           else if (match = parseCoauthorAuthorUrl text)?
             replacement = "@#{match.author}"
           else
@@ -805,7 +808,7 @@ export MessageEditor = React.memo ({message, setEditBody, tabindex}) ->
               else
                 paste = [embedFile match.message]
             else if (match = parseCoauthorMessageFileUrl text)?
-              paste = [embedFile match.message, true]
+              paste = [embedFile match.message]
             else if (match = parseCoauthorAuthorUrl text)?
               paste = ["@#{match.author}"]
         editor.on 'beforeChange', (cm, change) ->
