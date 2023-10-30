@@ -675,15 +675,19 @@ export parseCoauthorMessageFileUrl = (url) ->
   return unless match?
   message: match[1]
 
-imageTitleAndWarning = (msg) ->
+imageTitleAndWarning = (fileMsg, containerMsg) ->
   ## xxx Should we subscribe to the linked message when we can't find it?
-  msg = findMessage msg
-  title = titleOrFilename(msg) ? ''
+  fileMsg = findMessage fileMsg
   attrs = prefix = ''
-  if msg? and (msg.deleted or not msg.published)
-    classes = []
-    classes.push 'deleted' if msg.deleted
-    classes.push 'unpublished' unless msg.published
+  return {attrs, prefix} unless fileMsg?
+  # Only look up container message if we need it (e.g. file is deleted)
+  container = => containerMsg = findMessage containerMsg
+  title = titleOrFilename(fileMsg) ? ''
+  classes = []
+  classes.push 'deleted' if fileMsg.deleted and not container().deleted
+  classes.push 'unpublished' if not fileMsg.published and container().published
+  classes.push 'private' if fileMsg.private and not container().private
+  if classes.length
     attrs += """class="#{classes.join ' '}" """
     warning = "WARNING: Image is #{classes.join(' and ').toUpperCase()} so will NOT BE VISIBLE to most users!"
     prefix = """<div class="warning #{classes.join ' '}">#{warning.replace /[A-Z]{2,}/g, "<b>$&</b>"}</div>"""
@@ -723,10 +727,10 @@ postprocessCoauthorLinks = (text, msgId) ->
     (match, img, src, url, isFile, isInternalFile, suffix) ->
       ## xxx Should we subscribe to the linked message when we can't find it?
       if isFile
-        msg = findMessage url2file url
-        return match unless msg?
-        {attrs, prefix} = imageTitleAndWarning msg
-        fileId = msg.file
+        fileMsg = findMessage url2file url
+        return match unless fileMsg?
+        {attrs, prefix} = imageTitleAndWarning fileMsg, msgId
+        fileId = fileMsg.file
       else
         fileId = url2internalFile url
       file = findFile fileId

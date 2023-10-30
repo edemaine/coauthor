@@ -7,6 +7,13 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2023-10-30
+
+* Warn about private images inlined within public messages
+  [[#635](https://github.com/edemaine/coauthor/issues/635)]
+* Warn about deleted/unpublished images only when inlined within
+  deleted/unpublished messages
+
 ## 2023-10-18
 
 * Simplify and improve dragging/pasting behavior of Coauthor messages/images:
