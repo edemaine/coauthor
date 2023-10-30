@@ -50,7 +50,12 @@ mathMode =
     'math'
 
 CodeMirror.defineMode "gfm-math", (config, modeConfig) ->
-  CodeMirror.overlayMode CodeMirror.getMode(config, 'gfm'), mathMode, 'gfm'
+  CodeMirror.overlayMode(
+    CodeMirror.getMode config,
+      name: 'gfm'
+      gitHubSpice: false  # disable Git commit SHA highlighting
+    mathMode, 'gfm'
+  )
 
 CodeMirror.defineMIME "text/x-gfm-math", "gfm-math"
 
