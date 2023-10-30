@@ -22,7 +22,16 @@ export WrappedUserInput = React.memo ({group, omit, placeholder, onSelect}) ->
   users = useTracker ->
     Meteor.users.find
       username: $in: groupMembers group
-    .fetch()
+    ,
+      fields:
+        username: true
+        profile: true
+    .map (user) =>
+      user.label = "@#{user.username}"
+      if user.profile?.fullname
+        #key += " #{user.profile.fullname}"
+        user.label = "#{user.profile.fullname} #{user.label}"
+      user
   , []
   sorted = useMemo ->
     if omit?
@@ -49,19 +58,12 @@ export WrappedUserInput = React.memo ({group, omit, placeholder, onSelect}) ->
      placeholder={placeholder}/>
   }>
     <Typeahead ref={ref} placeholder={placeholder} id="userInput#{count}"
-     options={sorted} labelKey={labelKey} align="left" flip
+     options={sorted} labelKey="label" align="left" flip
      allowNew={allowNew if amSuper}
      onChange={onChange}/>
   </Suspense>
 WrappedUserInput.displayName = 'WrappedUserInput'
 
-labelKey = (user) ->
-  key = "@#{user.username}"
-  if user.profile?.fullname
-    #key += " #{user.profile.fullname}"
-    key = "#{user.profile.fullname} #{key}"
-  key
-
 allowNew = (results, {text}) ->
   text = text.trim()
-  text and not results.some (user) -> user.username == text
+  text and not results.some (user) => user.username == text
