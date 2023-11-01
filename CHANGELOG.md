@@ -7,6 +7,12 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2023-11-01
+
+* Support `\begin{remark}` and `\begin{note}` theorem-like environments,
+  without the enlargement that theorem environments normally get.
+  `\begin{example}` is also no longer large.
+
 ## 2023-10-30
 
 * Warn about private images inlined within public messages

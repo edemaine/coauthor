@@ -93,11 +93,12 @@ To see what's changed in Coauthor recently, check out the
     `~`, `--`, `---`, `{`, `}`, `\\`, `\item`, `\item[...]`;
     `\begin/\end` for environments `verbatim`, `CJK`, `itemize`,
     `enumerate` (including [enumerate.sty's optional argument](http://ctan.mirrors.hoobly.com/macros/latex/required/tools/enumerate.pdf))
-    `quote`, `center`,
+    `quote`, `center`,
     `tabular` (basic but including `\multicolumn` and `\multirow`),
-    `equation`, `eqnarray`, `align`, `alignat`, `gather`, `CD`,
-    `problem`, `question`, `example`, `idea`, `theorem`, `conjecture`, `lemma`,
-    `corollary`, `fact`, `observation`, `proposition`, `claim`, `proof`,
+    `equation`, `eqnarray`, `align`, `alignat`, `gather`, `CD`,
+    `problem`, `question`, `example`, `remark`, `note`, `idea`,
+    `theorem`, `conjecture`, `lemma`, `corollary`, `fact`,
+    `observation`, `proposition`, `claim`, `proof`,
     and some extra environments:
     `details` or `+` (text that's hidden until clicked, like
     [HTML `<details>` tag](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/details),
