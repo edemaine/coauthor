@@ -484,8 +484,8 @@ latex2htmlCommandsAlpha = (tex, math) ->
       #{prefix}}#{rest ? ''}
       """
   .replace /(\\end\s*{[^{}]+)\+}/g, "$1}</details>"
-  .replace /\\begin\s*{(problem|question|idea|theorem|conjecture|lemma|corollary|fact|observation|proposition|claim|definition|example|remark|note)}(\s*\[([^\]]*)\])?/g, (m, env, x, opt) -> """<blockquote#{if env in ['example', 'remark', 'note'] then '' else ' class="thm"'}><p><b>#{capitalize env}#{if opt then " (#{opt})" else ''}:</b> """
-  .replace /\\end\s*{(problem|question|idea|theorem|conjecture|lemma|corollary|fact|observation|proposition|claim|definition|example|remark|note)}/g, '</blockquote>'
+  .replace /\\begin\s*{(problem|question|idea|theorem|conjecture|lemma|corollary|fact|observation|proposition|claim|definition|example|remark|note|hint)}(\s*\[([^\]]*)\])?/g, (m, env, x, opt) -> """<blockquote#{if env in ['example', 'remark', 'note', 'hint'] then '' else ' class="thm"'}><p><b>#{capitalize env}#{if opt then " (#{opt})" else ''}:</b> """
+  .replace /\\end\s*{(problem|question|idea|theorem|conjecture|lemma|corollary|fact|observation|proposition|claim|definition|example|remark|note|hint)}/g, '</blockquote>'
   .replace /\\begin\s*{(quote)}/g, '<blockquote><p>'
   .replace /\\end\s*{(quote)}/g, '</blockquote>'
   .replace /\\begin\s*{(proof|pf)}(\s*\[((?:[^\]{}]|{(?:[^{}]|{[^{}]*})})*)\])?/g, (m, env, x, opt) -> "<b>Proof#{if opt then " (#{opt})" else ''}:</b> "

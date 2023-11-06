@@ -96,7 +96,7 @@ To see what's changed in Coauthor recently, check out the
     `quote`, `center`,
     `tabular` (basic but including `\multicolumn` and `\multirow`),
     `equation`, `eqnarray`, `align`, `alignat`, `gather`, `CD`,
-    `problem`, `question`, `example`, `remark`, `note`, `idea`,
+    `problem`, `question`, `hint`, `example`, `remark`, `note`, `idea`,
     `theorem`, `conjecture`, `lemma`, `corollary`, `fact`,
     `observation`, `proposition`, `claim`, `proof`,
     and some extra environments:

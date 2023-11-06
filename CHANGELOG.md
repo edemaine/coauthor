@@ -7,6 +7,10 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2023-11-15
+
+* Support `\begin{hint}` / `\begin{hint+}` environments (for problem hints).
+
 ## 2023-11-01
 
 * Support `\begin{remark}` and `\begin{note}` theorem-like environments,
