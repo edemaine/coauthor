@@ -275,7 +275,6 @@ texAlign =
 splitOutside = (text, re) ->
   re = ///[{}]|<[^<>]*>|&\#x?\d+;|(#{re.source})|\\.///g
   braces = 0
-  tags = 0
   start = 0
   parts = []
   while (match = re.exec text)?
