@@ -269,6 +269,26 @@ texAlign =
   raggedright: 'left'
   centering: 'center'
 
+## Split string at all matches of given regular expression `re`,
+## while ignoring `text` context that is nested within unescaped braces
+## or HTML <tags> and &#123; character codes.
+splitOutside = (text, re) ->
+  re = ///[{}]|<[^<>]*>|&\#x?\d+;|(#{re.source})|\\.///g
+  braces = 0
+  tags = 0
+  start = 0
+  parts = []
+  while (match = re.exec text)?
+    if match[0] == '{'
+      braces++
+    else if match[0] == '}'
+      braces--
+    else if match[1]? and braces == 0
+      parts.push text[start...match.index]
+      start = match.index + match[0].length
+  parts.push text[start..]
+  parts
+
 ## Process all commands starting with \ followed by a letter a-z.
 ## This is not a valid escape sequence in Markdown, so can be safely supported
 ## in Markdown too.
@@ -277,15 +297,15 @@ latex2htmlCommandsAlpha = (tex, math) ->
   ## Process tabular environments first in order to split cells at &
   ## (so e.g. \bf is local to the cell)
   .replace /\\begin\s*{tabular}\s*{([^{}]*)}([^]*?)\\end\s*{tabular}/g, (m, cols, body) ->
-    cols = cols.replace /|/g, '' # not yet supported
+    cols = cols.replace /\|/g, '' # not yet supported
     body = body.replace /\\hline\s*|\\cline\s*{[^{}]*}/g, '' # not yet supported
     skip = (0 for colnum in [0...cols.length])
     '<table>' +
-      (for row in body.split /(?:\\\\|\[DOUBLEBACKSLASH\])/ #(?:\s*\\(?:hline|cline\s*{[^{}]*}))?/
+      (for row in splitOutside body, /(?:\\\\|\[DOUBLEBACKSLASH\])/ #(?:\s*\\(?:hline|cline\s*{[^{}]*}))?/
          #console.log row
          continue unless row.trim()
          "<tr>\n" +
-         (for col, colnum in row.split '&'
+         (for col, colnum in splitOutside row, /&/
             if skip[colnum]
               skip[colnum] -= 1
               continue
