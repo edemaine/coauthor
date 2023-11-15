@@ -304,10 +304,12 @@ latex2htmlCommandsAlpha = (tex, math) ->
       (for row in splitOutside body, /(?:\\\\|\[DOUBLEBACKSLASH\])/ #(?:\s*\\(?:hline|cline\s*{[^{}]*}))?/
          #console.log row
          continue unless row.trim()
+         colnum = 0
          "<tr>\n" +
-         (for col, colnum in splitOutside row, /&/
+         (for col in splitOutside row, /&/
             if skip[colnum]
-              skip[colnum] -= 1
+              skip[colnum]--
+              colnum++
               continue
             align = cols[colnum]
             attrs = ''
@@ -316,9 +318,12 @@ latex2htmlCommandsAlpha = (tex, math) ->
             ## entry, you must put the \multirow inside the \multicolumn"
             ## [http://ctan.mirrors.hoobly.com/macros/latex/contrib/multirow/multirow.pdf]
             if (match = /\\multicolumn\s*(\d+|{\s*(\d+)\s*})\s*(\w|{([^{}]*)})\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/.exec col)?
-              attrs += " colspan=\"#{match[2] ? match[1]}\""
+              colspan = parseInt match[2] ? match[1], 10
+              attrs += " colspan=\"#{colspan}\""
               align = match[4] ? match[3]
               col = match[5]
+            else
+              colspan = 1
             ## In HTML, rowspan means that later rows shouldn't specify <td>s
             ## for that column, while in LaTeX, they are still present.
             if (match = /\\multirow\s*(\d+|{\s*(\d+)\s*})\s*(\*|{([^{}]*)})\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/.exec col)?
@@ -338,6 +343,7 @@ latex2htmlCommandsAlpha = (tex, math) ->
                   " style=\"#{style}text-align: right\""
                 else
                   style
+            colnum += colspan
             "<td#{attrs}>#{col}</td>\n"
          ).join('') +
          "</tr>\n"

@@ -16,8 +16,11 @@ instead of version numbers.
   By contrast, optional arguments add parentheses:
   `\begin{theorem 1}` produces "Theorem (1)", and
   `\begin{proof}[sketch]` produces "Proof (sketch)".
-* `\begin{tabular}` improvements: skip over `\&`, HTML tags/character codes,
-  and braced content, which makes it possible to include URLs with `&`s.
+* `\begin{tabular}` improvements:
+  * Skip over `\&`, HTML tags/character codes, and braced content,
+    which makes it possible to include URLs with `&`s.
+  * Fix column computations when using both `\multirow` and `\multicolumn`
+    (in separate cells).
 
 ## 2023-11-01
 
