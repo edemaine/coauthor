@@ -10,6 +10,12 @@ instead of version numbers.
 ## 2023-11-15
 
 * Support `\begin{hint}` / `\begin{hint+}` environments (for problem hints).
+* Support extra text after theorem-like environments, for finer control.
+  For example, `\begin{theorem 1}` produces "Theorem 1", and
+  `\begin{proof sketch}` produces "Proof sketch".
+  By contrast, optional arguments add parentheses:
+  `\begin{theorem 1}` produces "Theorem (1)", and
+  `\begin{proof}[sketch]` produces "Proof (sketch)".
 
 ## 2023-11-01
 

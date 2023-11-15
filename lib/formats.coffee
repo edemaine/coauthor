@@ -484,12 +484,12 @@ latex2htmlCommandsAlpha = (tex, math) ->
       #{prefix}}#{rest ? ''}
       """
   .replace /(\\end\s*{[^{}]+)\+}/g, "$1}</details>"
-  .replace /\\begin\s*{(problem|question|idea|theorem|conjecture|lemma|corollary|fact|observation|proposition|claim|definition|example|remark|note|hint)}(\s*\[([^\]]*)\])?/g, (m, env, x, opt) -> """<blockquote#{if env in ['example', 'remark', 'note', 'hint'] then '' else ' class="thm"'}><p><b>#{capitalize env}#{if opt then " (#{opt})" else ''}:</b> """
-  .replace /\\end\s*{(problem|question|idea|theorem|conjecture|lemma|corollary|fact|observation|proposition|claim|definition|example|remark|note|hint)}/g, '</blockquote>'
+  .replace /\\begin\s*{(problem|question|idea|theorem|conjecture|lemma|corollary|fact|observation|proposition|claim|definition|example|remark|note|hint)([^{}]*)}(\s*\[([^\]]*)\])?/g, (m, env, rest, x, opt) -> """<blockquote#{if /^(example|remark|note|hint)/.test env then '' else ' class="thm"'}><p><b>#{capitalize env}#{rest}#{if opt then " (#{opt})" else ''}:</b> """
+  .replace /\\end\s*{(problem|question|idea|theorem|conjecture|lemma|corollary|fact|observation|proposition|claim|definition|example|remark|note|hint)([^{}]*)}/g, '</blockquote>'
   .replace /\\begin\s*{(quote)}/g, '<blockquote><p>'
   .replace /\\end\s*{(quote)}/g, '</blockquote>'
-  .replace /\\begin\s*{(proof|pf)}(\s*\[((?:[^\]{}]|{(?:[^{}]|{[^{}]*})})*)\])?/g, (m, env, x, opt) -> "<b>Proof#{if opt then " (#{opt})" else ''}:</b> "
-  .replace /\\end\s*{(proof|pf)}/g, ' <span class="pull-right">&#8718;</span></p><p class="clearfix">'
+  .replace /\\begin\s*{(proof|pf)([^{}]*)}(\s*\[((?:[^\]{}]|{(?:[^{}]|{[^{}]*})})*)\])?/g, (m, env, rest, x, opt) -> "<b>Proof#{rest}#{if opt then " (#{opt})" else ''}:</b> "
+  .replace /\\end\s*{(proof|pf)([^{}]*)}/g, ' <span class="pull-right">&#8718;</span></p><p class="clearfix">'
   .replace /\\begin\s*{center}/g, '<div class="center">'
   .replace /\\end\s*{center}/g, '</div>'
   .replace latexSimpleCommandsRe, (match, name) -> latexSimpleCommands[name]
