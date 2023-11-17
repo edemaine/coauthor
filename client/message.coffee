@@ -450,13 +450,12 @@ threadMentions = {}
 
 imageRefCount = new ReactiveDict
 imageInternalRefCount = new ReactiveDict
-id2dom = {}
 scrollToLater = null
 fileQuery = null
 fileQueries = {}
 
-checkImage = (id) ->
-  if id2dom[id]? or imageRefCount.get id
+checkImage = (id, isLoaded) ->
+  if isLoaded or imageRefCount.get id
     return if id of fileQueries
     fileQueries[id] = true
   else
@@ -504,7 +503,7 @@ export naturallyFolded = (message) -> message.minimized or message.deleted
 
 export scrollToMessage = (id) ->
   id = id[1..] if id[0] == '#'
-  if (dom = id2dom[id])?
+  if (dom = document.getElementById id)?
     scrollToLater = null
     $('html, body').animate
       scrollTop: Math.max 0, $(dom).offset().top - 15
@@ -2287,17 +2286,14 @@ export WrappedSubmessage = React.memo ({message, read}) ->
 
     ## One-time effects
     useEffect ->
-      ## Maintain id2dom mapping
-      id2dom[message._id] = ref.current
-      checkImage message._id
       ## Scroll to this message if it's been requested.
       if scrollToLater == message._id
         scrollToLater = null
         scrollToMessage message._id
-      ## Restore id2dom mapping
+      ## Watch for changes to file
+      checkImage message._id, true
       ->
-        delete id2dom[message._id]
-        checkImage message._id
+        checkImage message._id, false
     , [message._id]
 
     ## Give focus to Title input if we just started editing this message,

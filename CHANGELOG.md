@@ -7,6 +7,12 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2023-11-17
+
+* Fix scrolling to a message when clicking on it in table of contents
+  (a long-standing but rare bug).
+  [[#608](https://github.com/edemaine/coauthor/issues/608)]
+
 ## 2023-11-15
 
 * Support `\begin{hint}` / `\begin{hint+}` environments (for problem hints).
