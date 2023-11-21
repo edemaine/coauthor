@@ -27,7 +27,7 @@ topMessagesSince = (group, since) ->
   ## applying sort to message root, not the message
   msgs = messagesSortedBy msgs, groupDefaultSort(group), findMessageRoot
   ## Restrict children pointers to within match and avoid duplicates
-  msgs = restrictChildren msgs
+  restrictChildren msgs
 
 Template.since.helpers
   messages: ->
