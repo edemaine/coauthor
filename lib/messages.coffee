@@ -1658,6 +1658,7 @@ sortMessagesByStatus = (msgs, transform) ->
   _.sortBy msgs, (msg) ->
     msg = transform msg if transform?
     weight = 0
+    return weight unless msg?
     weight += 16 if msg.deleted  ## deleted messages go very bottom
     weight += 8 if msg.private  ## private messages go middle bottom
     weight += 4 if msg.minimized  ## minimized messages go somewhat bottom
@@ -1682,15 +1683,15 @@ export messagesSortedBy = (msgs, sorts, transform) ->
   for sort, i in sorts[..].reverse()
     switch sort.key
       when 'title'
-        key = (msg) -> titleSort msg.title, msg.format
+        key = (msg) -> msg and titleSort msg.title, msg.format
       when 'creator'
-        key = (msg) -> userSortKey msg.creator
+        key = (msg) -> msg and userSortKey msg.creator
       when 'subscribe'
-        key = (msg) -> subscribedToMessage msg
+        key = (msg) -> msg and subscribedToMessage msg
       when 'emoji'
         key = (msg) ->
           sum = 0
-          if msg.emoji
+          if msg?.emoji
             for emoji, users of msg.emoji
               sum += users.length
           sum
@@ -1700,7 +1701,7 @@ export messagesSortedBy = (msgs, sorts, transform) ->
         if sort.key.startsWith 'tag.'
           tag = sort.key[4..]
           key = (msg) ->
-            value = msg.tags?[tag]
+            value = msg?.tags?[tag]
             switch value
               when undefined
                 '\uffff'  # sort to end
