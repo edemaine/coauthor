@@ -19,13 +19,14 @@ messagesSearch = (group, search) ->
 topMessagesSearch = (group, search) ->
   msgs = messagesSearch group, search
   return [] unless msgs?
+  ## Least significant: sort by increasing creation time
   msgs = msgs.fetch()
-  ## Least significant: sort by group's default sort order --
-  ## applying sort to message root, not the message
-  msgs = messagesSortedBy msgs, groupDefaultSort(group), findMessageRoot
   ## Middle significant: sort roots before their descendants
   msgs = _.sortBy msgs, (msg) -> msg.root?
-  ## Most significant: sort by group name
+  ## Most significant: sort by group's default sort order --
+  ## applying sort to message root, not the message
+  msgs = messagesSortedBy msgs, groupDefaultSort(group), findMessageRoot
+  ## Mostest significant: sort by group name
   msgs = _.sortBy msgs, 'group'
   ## Form a set of all message IDs in match
   byId = {}
