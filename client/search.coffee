@@ -1,3 +1,5 @@
+import {groupDefaultSort} from '/lib/groups'
+import {findMessageRoot, messagesSortedBy} from '/lib/messages'
 import {formatSearch, parseSearch} from '/lib/search'
 
 Template.search.onCreated ->
@@ -18,13 +20,13 @@ topMessagesSearch = (group, search) ->
   msgs = messagesSearch group, search
   return [] unless msgs?
   msgs = msgs.fetch()
-  ## xxx should use default sort, not title sort?
-  msgs = _.sortBy msgs, (msg) ->
-    msg.group + '/' +
-    if msg.root
-      titleSort (Messages.findOne(msg.root)?.title ? '')
-    else
-      titleSort msg.title
+  ## Least significant: sort by group's default sort order --
+  ## applying sort to message root, not the message
+  msgs = messagesSortedBy msgs, groupDefaultSort(group), findMessageRoot
+  ## Middle significant: sort roots before their descendants
+  msgs = _.sortBy msgs, (msg) -> msg.root?
+  ## Most significant: sort by group name
+  msgs = _.sortBy msgs, 'group'
   ## Form a set of all message IDs in match
   byId = {}
   for msg in msgs
