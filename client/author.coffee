@@ -1,10 +1,14 @@
+import {restrictChildren} from '/lib/messages'
+
 Template.author.onCreated ->
   @autorun ->
     setTitle "Author #{Template.currentData()?.author}"
 
 Template.author.helpers
   messages: ->
-    messagesBy @group, @author, true # include @mentions
+    msgs = messagesBy @group, @author, true # include @mentions
+    .fetch()
+    restrictChildren msgs
   messageCountText: ->
     pluralize messagesBy(@group, @author).count(), 'message'
   wildLink: ->

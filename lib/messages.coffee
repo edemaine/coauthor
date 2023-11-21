@@ -358,6 +358,23 @@ if Meteor.isServer
     mentions.push match[1]
   mentions
 
+## Sets `readChildren` on each message to only include `children` that are
+## within the set of matching children.  Returns top-level messages
+## that aren't such children, avoiding duplication in display.
+export restrictChildren = (msgs) ->
+  ## Form a set of all message IDs in match
+  byId = {}
+  for msg in msgs
+    byId[msg._id] = msg
+  ## Restrict children pointers to within match
+  for msg in msgs
+    msg.readChildren = (byId[child] for child in msg.children when child of byId)
+  ## Return the messages that are not children within the set
+  for msg in msgs
+    for child in msg.readChildren
+      delete byId[child._id]
+  msg for msg in msgs when msg._id of byId
+
 if Meteor.isServer
   Meteor.publish 'messages.author', (group, author) ->
     check group, String

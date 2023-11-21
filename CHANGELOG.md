@@ -19,6 +19,7 @@ instead of version numbers.
   * Fix escaping search queries with backslash:
     `\:`, `\"`, `\|`, `\(`, `\)`, `\\`
   * Newly allow escaping of `*` with `\*`
+* Author view no longer lists messages multiple times
 
 ## 2023-11-17
 

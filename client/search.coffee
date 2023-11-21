@@ -1,5 +1,5 @@
 import {groupDefaultSort} from '/lib/groups'
-import {findMessageRoot, messagesSortedBy} from '/lib/messages'
+import {findMessageRoot, messagesSortedBy, restrictChildren} from '/lib/messages'
 import {formatSearch, parseSearch} from '/lib/search'
 
 Template.search.onCreated ->
@@ -28,27 +28,14 @@ topMessagesSearch = (group, search) ->
   msgs = messagesSortedBy msgs, groupDefaultSort(group), findMessageRoot
   ## Mostest significant: sort by group name
   msgs = _.sortBy msgs, 'group'
-  ## Form a set of all message IDs in match
-  byId = {}
-  for msg in msgs
-    byId[msg._id] = msg
-  ## Restrict children pointers to within match
-  for msg in msgs
-    msg.readChildren = (byId[child] for child in msg.children when child of byId)
-  ## Return the messages that are not children within the set
-  for msg in msgs
-    for child in msg.readChildren
-      delete byId[child._id]
+  ## Restrict children pointers to within match and avoid duplicates
+  msgs = restrictChildren msgs
+  ## Set `newGroup` for group headers
   lastGroup = null
   for msg in msgs
-    continue unless msg._id of byId
     if lastGroup != msg.group
       msg.newGroup = lastGroup = msg.group
-    msg
-  #groups = _.groupBy msgs, (msg) ->
-  #pairs = _.pairs groups
-  #pairs.sort()
-  #for pair in pairs
+  msgs
 
 Template.search.helpers
   messages: ->
