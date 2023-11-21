@@ -132,8 +132,9 @@ export Group = React.memo ({group, groupData}) ->
     for sort in sortBy
       if sort.key.startsWith 'tag.'
         clusterBy.push sort.key[4..]
-      #else
-      #  primarySort ?= sort
+      else
+        break
+        #primarySort ?= sort
     clusterBy = null unless clusterBy.length
     clusterBy
     #{clusterBy, primarySort}
