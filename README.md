@@ -200,11 +200,13 @@ To see what's changed in Coauthor recently, check out the
   * Negative match with minus sign
     (e.g., `-word` excludes documents with whole `word`).
   * Search for a regular expression via `regex:...`.
-  * Use quotes (`'...'` or `"..."`) to search for phrases or `regex:"..."`
+  * Use double quotes (`"..."`) to search for phrases or `regex:"..."`
     to search for regular expressions with spaces in them; normally,
     spaces act as an AND query.
   * Connect words/phrases with `|` to get an OR query instead.
   * Use parentheses to mix AND and OR arbitrarily, e.g. `always (this | that)`.
+  * Escape special characters with backslash:
+    `\:`, `\"`, `\|`, `\(`, `\)`, `\\`, `\*`.
   * `by:username` searches for messages coauthored by a specified username
     (which can include `*`s or use regular expressions via `regex:`);
     `by:me` is shorthand for searching for your own username.

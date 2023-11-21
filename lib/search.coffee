@@ -35,7 +35,11 @@ unescapeRegExp = (regex) ->
 export parseSearch = (search, group) ->
   ## Quoted strings turn off separation by spaces.
   ## Last quoted strings doesn't have to be terminated.
-  tokenRe = /(\s+)|((?:"[^"]*"|'[^']*'|[^'"\s\|\(\)])+)('[^']*$|"[^"]*$)?|'([^']*)$|"([^"]*)$|([\|\(\)])/g
+  tokenRe = ///
+    (\s+) |
+    ([\|\(\)]) |
+    ( (?: " (?:[^"\\]|\\.)* (?:"|$) | [^"\s\|\(\)\\] | \\. )+ )
+  ///g
   wants = []         # array of Mongo queries that will be $and'd together
   options = [wants]  # array of wants that will be $or'd together
   stack = []         # stack of strict-ancestor options objects
@@ -63,8 +67,8 @@ export parseSearch = (search, group) ->
   while (token = tokenRe.exec search)?
     continue if token[1]  ## ignore whitespace tokens
 
-    if token[6]  # top-level grouping operators
-      switch token[6]
+    if token[2]  # top-level grouping operators
+      switch token[2]
         when '|'  # OR
           options.push wants = []
         when '('  # start group
@@ -84,19 +88,12 @@ export parseSearch = (search, group) ->
     colon = /^-?(?:(?:regex|title|body|tag|emoji|by|root|is|isnt|not):)*/.exec token[0]
     colon = colon[0]
     ## Remove quotes (which are just used for avoiding space parsing).
-    if token[4]
-      token = token[4]  ## unterminated initial '
-    else if token[5]
-      token = token[5]  ## unterminated initial "
-    else
-      token = (token[2].replace /"([^"]|\\")*"|'([^']|\\')*'/g, (match) ->
-        match[1...match.length-1]
-      ) + (token[3] ? '')[1..]
+    token = token[3].replace /(^|[^\\](?:\\\\)*)"((?:[^"\\]|\\[^])*)(?:"|$)/g, "$1$2"
     ## Remove leading colon part if we found one.
     ## (Can't have had quotes or escapes.)
     token = token[colon.length..]
     ## Remove escapes.
-    token = token.replace /\\([:'"\\])/g, '$1'
+    token = token.replace /\\([:"\|\(\)\\])/g, '$1'
     ## Construct regex for token
     regexMode = 0 <= colon.indexOf 'regex:'
     colon = colon.replace /regex:/g, '' if regexMode
@@ -109,14 +106,16 @@ export parseSearch = (search, group) ->
         if starStart
           word = word[1..]
           return unless word
-        starEnd = word[word.length-1] == '*'
+        starEnd = /[^\\]\*$/.test word
         if starEnd
           word = word[0...word.length-1]
           return unless word
         regex = escapeRegExp word
         ## Outside regex mode, lower-case letters are case-insensitive
         regex = caseInsensitiveRegExp regex
-        regex = regex.replace /\\\*/g, '\\S*'  ## * was already escaped
+        regex = regex
+        .replace /(^|[^\\])\\\*/g, '$1\\S*' # * in input becomes singly escaped
+        .replace /\\\\\\\*/g, '\\*'  # \* in input becomes doubly escaped
         if not starStart and regex.match /^[\[\w]/  ## a or [aA]
           regex = "\\b#{regex}"
         if not starEnd and regex.match /[\w\]]$/  ## a or [aA]

@@ -11,6 +11,12 @@ instead of version numbers.
 
 * Only cluster by leading tags in the sort order, so if you click to sort by
   e.g. Updated then there's no longer awkward clustering by repeated tags.
+* Search no longer supports quoting phrases with single quotes, so that it's
+  easier to search for possessives (e.g. `Erik's`).
+  [[#638](https://github.com/edemaine/coauthor/issues/638)]
+* Fix escaping search queries with backslash: `\:`, `\"`, `\|`, `\(`, `\)`, `\\`
+* Newly allow escaping of `*` with `\*`
+  [[#29](https://github.com/edemaine/coauthor/issues/29)]
 
 ## 2023-11-17
 
