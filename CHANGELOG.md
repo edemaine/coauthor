@@ -7,6 +7,10 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2023-12-05
+
+* Remove small (100ms) race where Stop Editing could lose your changes
+
 ## 2023-11-21
 
 * Only cluster by leading tags in the sort order, so if you click to sort by

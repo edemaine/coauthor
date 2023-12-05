@@ -658,7 +658,7 @@ export MessageParent = React.memo ({message}) ->
   </TextTooltip>
 MessageParent.displayName = 'MessageParent'
 
-export MessageEditor = React.memo ({message, setEditBody, tabindex}) ->
+export MessageEditor = React.memo ({message, setEditBody, setEditDirty, tabindex}) ->
   messageID = message._id
   [editor, setEditor] = useState()
   useEffect ->
@@ -883,9 +883,21 @@ export MessageEditor = React.memo ({message, setEditBody, tabindex}) ->
         #    #  when 'latex'
         #    #    e.dataTransfer.setData('text/plain', "\\href{#{id}}{}")
         #    e.dataTransfer.setData('text/plain', "<IMG SRC='coauthor:#{id}'>")
-    editor.on 'change',
-      _.debounce => setEditBody editor.getDoc().getValue()
-      , 100
+    init = true
+    updateBody = _.debounce =>
+      ## When we update body, mark as no longer dirty
+      setEditBody editor.getDoc().getValue()
+      setEditDirty false
+    , 100
+    editor.on 'change', =>
+      if init
+        ## On first change (initial load), immediately update body
+        setEditBody editor.getDoc().getValue()
+      else
+        ## Future changes: Immediate mark editor as dirty,
+        ## but debounce actual body update
+        setEditDirty true
+        updateBody()
   , [editor]
   useTracker ->
     return unless editor?
@@ -2184,9 +2196,11 @@ export WrappedSubmessage = React.memo ({message, read}) ->
     [editBody, setEditBody] = useState null
       # special value null indicates meaning not editing so safe --
       # though we actually allow stopping on '' too in case editor crash-starts
+    [editDirty, setEditDirty] = useState false
     [editStopping, setEditStopping] = useState()
     safeToStopEditing = not editBody or
-      (message.title == editTitle and message.body == editBody)
+      (not editDirty and
+       message.title == editTitle and message.body == editBody)
     useEffect ->
       setMigrateSafe message._id, safeToStopEditing
       if editStopping and safeToStopEditing
@@ -2202,6 +2216,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
     useEffect ->
       ->
         setEditBody null
+        setEditDirty false
         setMigrateSafe message._id, true
     , [message._id]
 
@@ -2239,6 +2254,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
         unless lastTitle.current?
           setEditTitle lastTitle.current = message.title
           setEditBody message.body
+          setEditDirty false
         ## Update input's value when title changes on server
         else if message.title != lastTitle.current
           lastTitle.current = message.title
@@ -2259,6 +2275,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
         lastTitle.current = null
         savedTitles.current = []
         setEditBody null
+        setEditDirty false
       undefined
     , [editing, editTitle, message.title]
 
@@ -2802,7 +2819,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
           <div className="editorContainer">
             {if editing
               <>
-                <MessageEditor message={message} setEditBody={setEditBody} tabindex={tabindex0+19}/>
+                <MessageEditor message={message} setEditBody={setEditBody} setEditDirty={setEditDirty} tabindex={tabindex0+19}/>
                 {unless previewSideBySide
                   <BelowEditor message={message} history={history} preview={preview} safeToStopEditing={safeToStopEditing} editStopping={editStopping}/>
                 }
