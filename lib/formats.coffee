@@ -211,16 +211,16 @@ boldWeight = 700
 ## (e.g. % should not be a comment when in a URL or verbatim).
 latex2htmlVerb = (tex) ->
   tex.replace /\\begin\s*{verbatim}([^]*?)\\end\s*{verbatim}/g,
-    (match, verb) -> "<pre>#{latexEscape verb}</pre>"
-  .replace /\\url\s*{([^{}]*)}/g, (match, url) ->
+    (match, verb) => "<pre>#{latexEscape verb}</pre>"
+  .replace /\\url\s*{([^{}]*)}/g, (match, url) =>
     url = latexURL url
     """<a href="#{url}">#{latexEscape url}</a>"""
   .replace /\\href\s*{([^{}]*)}\s*{((?:[^{}]|{[^{}]*})*)}/g,
-    (match, url, text) ->
+    (match, url, text) =>
       url = latexURL url
       """<a href="#{url}">#{text}</a>"""
   .replace /\\begin\s*{CJK(\*?)}\s*{UTF8}\s*{[^{}]*}(.*?)\\end{CJK\*?}/g,
-    (match, star, text) ->
+    (match, star, text) =>
       text = text.replace /\s+/g, '' if star
       text
 
@@ -293,6 +293,10 @@ splitOutside = (text, re) ->
 ## in Markdown too.
 latex2htmlCommandsAlpha = (tex, math) ->
   tex = tex
+  ## \verb is here instead of latex2htmlVerb so that it's processed after
+  ## math blocks are extracted (as KaTeX has its own \verb support)
+  .replace /\\verb(.)(.*?)\1/g,
+    (match, char, verb) => "<code>#{latexEscape verb}</code>"
   ## Process tabular environments first in order to split cells at &
   ## (so e.g. \bf is local to the cell)
   .replace /\\begin\s*{tabular}\s*{([^{}]*)}([^]*?)\\end\s*{tabular}/g, (m, cols, body) ->
