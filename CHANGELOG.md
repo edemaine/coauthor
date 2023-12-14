@@ -7,6 +7,10 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2023-12-14
+
+* Copy/pasting a URL from a message no longer adds extraneous zero-width spaces
+
 ## 2023-12-05
 
 * Remove small (100ms) race where Stop Editing could lose your changes

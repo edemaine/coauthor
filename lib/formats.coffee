@@ -782,7 +782,7 @@ postprocessLinks = (text) ->
       match
     else
       match.replace /\/+/g, (slash) ->
-        "#{slash}&#8203;"  ## Add zero-width space after every slash group
+        "#{slash}<wbr>"  ## Allow linebreak after every slash group
 
 @allUsernames = ->
   Meteor.users.find {}, fields: username: 1
