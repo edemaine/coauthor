@@ -94,7 +94,9 @@ To see what's changed in Coauthor recently, check out the
     `\begin/\end` for environments `verbatim`, `CJK`, `itemize`,
     `enumerate` (including [enumerate.sty's optional argument](http://ctan.mirrors.hoobly.com/macros/latex/required/tools/enumerate.pdf))
     `quote`, `center`,
-    `tabular` (basic but including `\multicolumn` and `\multirow`),
+    `tabular` (including `\multicolumn` and `\multirow`,
+    column styles `l`, `c`, `r`, `p{width}`, `m{width}`, `b{width}`,
+    and `*{n}{...}` repetition),
     `equation`, `eqnarray`, `align`, `alignat`, `gather`, `CD`,
     `problem`, `question`, `hint`, `example`, `remark`, `note`, `idea`,
     `theorem`, `conjecture`, `lemma`, `corollary`, `fact`,
