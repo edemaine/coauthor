@@ -10,9 +10,10 @@ instead of version numbers.
 ## 2023-12-14
 
 * `\begin{tabular}` improvements:
+  * `p{width}`, `m{width}`, and `b{width}` columns supported
   * `*` repetitions supported: `*3c` is shorthand for `ccc`,
-    `*{10}{c}` is shorthand for `cccccccccc`,
-    `*3{lr}` is shorthand for `lrlrlr`.
+    `*3{lr}` is shorthand for `lrlrlr`,
+    `*{10}{c}` is shorthand for `cccccccccc`.
 * Copy/pasting a URL from a message no longer adds extraneous zero-width spaces
 * `\verb|$|` now works both inside and outside math mode
 

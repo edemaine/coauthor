@@ -288,6 +288,14 @@ splitOutside = (text, re) ->
   parts.push text[start..]
   parts
 
+colStyle =
+  c: 'text-align: center;'
+  l: 'text-align: left;'
+  r: 'text-align: right;'
+  p: 'vertical-align: top;'
+  m: 'vertical-align: middle;'
+  b: 'vertical-align: bottom;'
+
 ## Process all commands starting with \ followed by a letter a-z.
 ## This is not a valid escape sequence in Markdown, so can be safely supported
 ## in Markdown too.
@@ -299,17 +307,31 @@ latex2htmlCommandsAlpha = (tex, math) ->
     (match, char, verb) => "<code>#{latexEscape verb}</code>"
   ## Process tabular environments first in order to split cells at &
   ## (so e.g. \bf is local to the cell)
-  .replace /\\begin\s*{tabular}\s*{((?:[^{}]|{[^{}]*})*)}([^]*?)\\end\s*{tabular}/g, (m, cols, body) ->
+  .replace /\\begin\s*{tabular}\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}([^]*?)\\end\s*{tabular}/g, (m, cols, body) ->
     cols = cols.replace /\|/g, '' # not yet supported
     body = body.replace /\\hline\s*|\\cline\s*{[^{}]*}/g, '' # not yet supported
-    cols = cols.replace /\*(\d|{\d+})([^{}]|{(?:[^{}]|{[^{}]*})*})/g,
+    cols = cols.replace /\*\s*(\d|{\s*\d+\s*})\s*([^{}\s]|{(?:[^{}]|{[^{}]*})*})/g,
       (match, repeat, body) =>
         body = body[1...-1] if body[0] == '{'
-        repeat = parseInt (repeat.replace /[{}]/g, ''), 10
+        repeat = repeat[1...-1] if repeat.startsWith '{'
+        repeat = parseInt repeat, 10
         repeat = 0 if repeat < 0
         repeat = 1000 if repeat > 1000
         body.repeat repeat
-    skip = (0 for colnum in [0...cols.length])
+    parseAlign = (pattern) =>
+      pattern = pattern[1...-1] if pattern.startsWith '{'
+      align = pattern[0]
+      width = pattern[1..]
+      width = width[1...-1] if width.startsWith '{'
+      style = ''
+      if align of colStyle
+        style += colStyle[align]
+      if width
+        style += "width: #{width};"
+      style
+    colStyles = []
+    cols.replace /(\w)({[^{}]*})?/g, (match) => colStyles.push parseAlign match
+    skip = {}
     '<table>' +
       (for row in splitOutside body, /(?:\\\\|\[DOUBLEBACKSLASH\])/ #(?:\s*\\(?:hline|cline\s*{[^{}]*}))?/
          #console.log row
@@ -321,38 +343,31 @@ latex2htmlCommandsAlpha = (tex, math) ->
               skip[colnum]--
               colnum++
               continue
-            align = cols[colnum]
             attrs = ''
-            style = ''
+            style = colStyles[colnum]
             ## "If you want to use both \multirow and \multicolumn on the same
             ## entry, you must put the \multirow inside the \multicolumn"
             ## [http://ctan.mirrors.hoobly.com/macros/latex/contrib/multirow/multirow.pdf]
-            if (match = /\\multicolumn\s*(\d+|{\s*(\d+)\s*})\s*(\w|{([^{}]*)})\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/.exec col)?
-              colspan = parseInt match[2] ? match[1], 10
+            if (match = /\\multicolumn\s*(\d|{\s*\d+\s*})\s*(\w|{[^{}]*})\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/.exec col)?
+              colspan = parseInt (match[1].replace /[{}]/g, ''), 10
               attrs += " colspan=\"#{colspan}\""
-              align = match[4] ? match[3]
-              col = match[5]
+              style = parseAlign match[2]
+              col = match[3]
             else
               colspan = 1
             ## In HTML, rowspan means that later rows shouldn't specify <td>s
             ## for that column, while in LaTeX, they are still present.
-            if (match = /\\multirow\s*(\d+|{\s*(\d+)\s*})\s*(\*|{([^{}]*)})\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/.exec col)?
-              rowspan = parseInt match[2] ? match[1]
+            if (match = /\\multirow\s*(\d|{\s*\d+\s*})\s*([\w\*]|{[^{}]*})\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/.exec col)?
+              rowspan = parseInt (match[1].replace /[{}]/g, ''), 10
+              skip[colnum] ?= 0
               skip[colnum] += rowspan - 1
               attrs += " rowspan=\"#{rowspan}\""
-              style = 'vertical-align: middle; '
-              #width = match[4] ? match[3]
-              col = match[5]
-            attrs +=
-              switch align
-                when 'c'
-                  " style=\"#{style}text-align: center\""
-                when 'l'
-                  " style=\"#{style}text-align: left\""
-                when 'r'
-                  " style=\"#{style}text-align: right\""
-                else
-                  style
+              style += 'vertical-align: middle;'
+              if (width = match[2]) and width != '*'
+                width = width[1...-1] if width.startsWith '{'
+                style += "width: #{width};"
+              col = match[3]
+            attrs += " style=\"#{style}\"" if style
             colnum += colspan
             "<td#{attrs}>#{col}</td>\n"
          ).join('') +
