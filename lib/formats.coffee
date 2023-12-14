@@ -299,9 +299,16 @@ latex2htmlCommandsAlpha = (tex, math) ->
     (match, char, verb) => "<code>#{latexEscape verb}</code>"
   ## Process tabular environments first in order to split cells at &
   ## (so e.g. \bf is local to the cell)
-  .replace /\\begin\s*{tabular}\s*{([^{}]*)}([^]*?)\\end\s*{tabular}/g, (m, cols, body) ->
+  .replace /\\begin\s*{tabular}\s*{((?:[^{}]|{[^{}]*})*)}([^]*?)\\end\s*{tabular}/g, (m, cols, body) ->
     cols = cols.replace /\|/g, '' # not yet supported
     body = body.replace /\\hline\s*|\\cline\s*{[^{}]*}/g, '' # not yet supported
+    cols = cols.replace /\*(\d|{\d+})([^{}]|{(?:[^{}]|{[^{}]*})*})/g,
+      (match, repeat, body) =>
+        body = body[1...-1] if body[0] == '{'
+        repeat = parseInt (repeat.replace /[{}]/g, ''), 10
+        repeat = 0 if repeat < 0
+        repeat = 1000 if repeat > 1000
+        body.repeat repeat
     skip = (0 for colnum in [0...cols.length])
     '<table>' +
       (for row in splitOutside body, /(?:\\\\|\[DOUBLEBACKSLASH\])/ #(?:\s*\\(?:hline|cline\s*{[^{}]*}))?/
