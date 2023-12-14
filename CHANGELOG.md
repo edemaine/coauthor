@@ -10,6 +10,7 @@ instead of version numbers.
 ## 2023-12-14
 
 * Copy/pasting a URL from a message no longer adds extraneous zero-width spaces
+* `\verb|$|` now works inside math mode
 
 ## 2023-12-05
 

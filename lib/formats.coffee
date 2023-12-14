@@ -33,7 +33,7 @@ escapeForQuotedHTML = (s) ->
 replaceMathBlocks = (text, replacer) ->
   #console.log text
   blocks = []
-  re = /[{}]|\$\$?|\\(begin|end)\s*{((?:equation|eqnarray|align|alignat|gather|CD)\*?)}|(\\par(?![a-zA-Z])|\n[ \f\r\t\v]*\n\s*)|\\./g
+  re = /[{}]|\$\$?|\\(begin|end)\s*{((?:equation|eqnarray|align|alignat|gather|CD)\*?)}|(\\par(?![a-zA-Z])|\n[ \f\r\t\v]*\n\s*)|\\verb(.).*?\4|\\./g
   block = null
   startBlock = (b) ->
     block = b
