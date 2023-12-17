@@ -1477,7 +1477,7 @@ export uploaderProps = (callback, inputRef) ->
     onInput: (e) ->
       callback e.target.files, e
 
-export ReplyButtons = React.memo ({message, prefix}) ->
+export ReplyButtons = React.memo ({message, prefix, can}) ->
   attachInput = useRef()
   defaultPublished = useTracker ->
     autopublish()
@@ -1655,6 +1655,18 @@ export ReplyButtons = React.memo ({message, prefix}) ->
               </TextTooltip>
             }
           </Dropdown.Item>
+        </li>
+      }
+      {if can.super and not message.private and not privateReply
+        <li>
+          <TextTooltip placement="left" title="Start a new #{adjectives}child message of this one, visible only to coauthors and those explicitly given access#{once}, initially set to coauthors of the message you're replying to.">
+            <Dropdown.Item href="#" data-privacy="private" onClick={onReply}>
+              <button className="btn btn-info btn-block replyButton">
+                {prefix}
+                Private Reply
+              </button>
+            </Dropdown.Item>
+          </TextTooltip>
         </li>
       }
     </Dropdown.Menu>
@@ -2878,7 +2890,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
                   </button>
               }
               {if can.reply
-                <ReplyButtons message={message} prefix="New "/>
+                <ReplyButtons message={message} prefix="New " can={can}/>
               }
             </div>
           </div>
@@ -2892,7 +2904,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
             </div>
             <div className="panel-body panel-secondbody hidden-print clearfix">
               {if can.reply and not read
-                <ReplyButtons message={message} prefix="New "/>
+                <ReplyButtons message={message} prefix="New " can={can}/>
               }
               <span className="message-title">
                 <a className="btn btn-default btn-xs linkToTop" aria-label="Top" href="##{message._id}">
