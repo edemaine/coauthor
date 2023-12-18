@@ -14,6 +14,8 @@ instead of version numbers.
   [[#346](https://github.com/edemaine/coauthor/issues/346)]
 * PDFs remember your previous page when you click on a link,
   adding back/forward navigation buttons similar to browser back/forward.
+* <kbd>+</kbd> and <kbd>-</kbd> keys now advance pages in the current PDF.
+  (Click or mouse over a PDF to make it the current PDF.)
 
 ## 2023-12-17
 

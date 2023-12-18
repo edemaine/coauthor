@@ -1,3 +1,5 @@
+import {currentPDF} from './MessagePDF'
+
 export ignoreKey = (e) ->
   e.target.tagName in ['INPUT', 'TEXTAREA'] or
   e.target.className.includes('CodeMirror') or
@@ -12,3 +14,7 @@ document.addEventListener 'keydown', (e) ->
       e.preventDefault()
       e.stopPropagation()
       Session.set 'super', not Session.get 'super'  # toggle Become Superuser
+    when '-'
+      currentPDF?.current -1
+    when '+', '='
+      currentPDF?.current +1

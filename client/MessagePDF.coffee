@@ -11,6 +11,8 @@ import {themeDocument} from '/lib/settings'
 #pdf2svg = false  # controls pdf.js rendering mode
 pdfjs = null  # will become import of 'pdfjs-dist'
 
+export currentPDF = null
+
 export messageTheme = new ReactiveDict
 
 export getMessageTheme = (fileId) ->
@@ -53,6 +55,7 @@ WrappedMessagePDF = React.memo ({file}) ->
   [page, setPage] = useState()
   [annotations, setAnnotations] = useState []
   [annotationsTransform, setAnnotationsTransform] = useState()
+  thisPDF = useRef()
 
   useTracker ->
     ## Reset
@@ -109,6 +112,8 @@ WrappedMessagePDF = React.memo ({file}) ->
     unless inView
       replaceCanvas canvasRef, nullCanvas() if canvasRef.current.width
       return
+    ## Keep track of latest rendered PDF
+    currentPDF = thisPDF
     ## Secondary canvas for double-buffered rendering
     canvas = document.createElement 'canvas'
     context = canvas.getContext '2d'
@@ -170,6 +175,8 @@ WrappedMessagePDF = React.memo ({file}) ->
   onChangePage = (delta) => (e) =>
     e.currentTarget.blur()
     setPageNum clipPage pageNum + delta
+  thisPDF.current = (delta) =>
+    setPageNum clipPage pageNum + delta
   onInputPage = (e) =>
     setPageInput e.currentTarget.value
     p = Math.round e.currentTarget.valueAsNumber
@@ -188,8 +195,10 @@ WrappedMessagePDF = React.memo ({file}) ->
     setFit newFit
   onTheme = (e) =>
     messageTheme.set file, oppositeTheme theme
+  onFocus = (e) =>
+    currentPDF = thisPDF
 
-  <div ref={ref}>
+  <div ref={ref} onFocus={onFocus} onMouseEnter={onFocus} onClick={onFocus}>
     {if progress?
       <div className="progress">
         <div className="progress-bar" role="progressbar" aria-valuemin="0" aria-valuenow={progress} aria-valuemax="100" style={width: "#{progress}%"; minWidth: "2em"}>
@@ -233,12 +242,12 @@ WrappedMessagePDF = React.memo ({file}) ->
               <span className="fas #{if theme == 'dark' then 'fa-sun' else 'fa-moon'}" aria-hidden="true"/>
             </button>
           </TextTooltip>
-          <TextTooltip title="Previous page">
+          <TextTooltip title="Previous page (-)">
             <button className="btn btn-default prevPage #{if pageNum <= 1 then 'disabled'}" aria-label="Previous page" onClick={onChangePage -1}>
               <span className="fas fa-backward" aria-hidden="true"/>
             </button>
           </TextTooltip>
-          <TextTooltip title="Next page">
+          <TextTooltip title="Next page (+)">
             <button className="btn btn-default nextPage #{if pageNum >= numPages then 'disabled'}" aria-label="Next page" onClick={onChangePage +1}>
               <span className="fas fa-forward" aria-hidden="true"/>
             </button>
