@@ -7,6 +7,12 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2023-12-18
+
+* PDFs now support typing a page number manually,
+  which makes it easier to navigate large documents.
+  [[#346](https://github.com/edemaine/coauthor/issues/346)]
+
 ## 2023-12-17
 
 * Superusers can now make private replies (e.g. for student feedback)

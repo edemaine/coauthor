@@ -41,6 +41,7 @@ WrappedMessagePDF = React.memo ({file}) ->
   canvasRef = useRef()
   [progress, setProgress] = useState 0
   [rendering, setRendering] = useState false
+  [pageInput, setPageInput] = useState 1
   [pageNum, setPageNum] = useState()
   [numPages, setNumPages] = useState()
   [fit, setFit] = useState 'page'
@@ -155,16 +156,26 @@ WrappedMessagePDF = React.memo ({file}) ->
     -> renderTask.cancel()
   , [page, elementWidth, fit, inView]
 
-  onChangePage = (delta) -> (e) ->
-    e.currentTarget.blur()
-    newPage = pageNum + delta
+  useEffect =>
+    setPageInput pageNum if pageNum?
+  , [pageNum]
+
+  clipPage = (newPage) =>
     newPage = 1 if newPage < 1
     newPage = numPages if newPage > numPages
-    setPageNum newPage
-  onFit = (newFit) -> (e) ->
+    newPage
+  onChangePage = (delta) => (e) =>
+    e.currentTarget.blur()
+    setPageNum clipPage pageNum + delta
+  onInputPage = (e) =>
+    setPageInput e.currentTarget.value
+    p = Math.round e.currentTarget.valueAsNumber
+    if 1 <= p <= numPages
+      setPageNum p
+  onFit = (newFit) => (e) =>
     e.currentTarget.blur()
     setFit newFit
-  onTheme = (e) ->
+  onTheme = (e) =>
     messageTheme.set file, oppositeTheme theme
 
   <div ref={ref}>
@@ -207,8 +218,12 @@ WrappedMessagePDF = React.memo ({file}) ->
           </TextTooltip>
         </div>
         <span className="pdfStatus">
-          <span className="space">
-            page {pageNum} of {numPages}
+          <span className="space form-inline">
+            page
+            <input className="form-control input-xs" type="number"
+             value={pageInput} onChange={onInputPage} min="1" max={numPages}
+             onBlur={(e) => setPageInput pageNum} />
+            of {numPages}
           </span>
           {if rendering
             <i className="space">(rendering)</i>
