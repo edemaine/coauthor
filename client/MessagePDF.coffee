@@ -1,6 +1,8 @@
 import React, {useEffect, useRef, useState} from 'react'
 import {useTracker} from 'meteor/react-meteor-data'
 import {useInView} from 'react-intersection-observer'
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger'
+import Tooltip from 'react-bootstrap/Tooltip'
 
 import {ErrorBoundary} from './ErrorBoundary'
 import {resolveTheme, oppositeTheme} from './theme'
@@ -242,16 +244,20 @@ WrappedMessagePDF = React.memo ({file}) ->
               <span className="fas #{if theme == 'dark' then 'fa-sun' else 'fa-moon'}" aria-hidden="true"/>
             </button>
           </TextTooltip>
-          <TextTooltip title="Previous page (-)">
+          <OverlayTrigger placement="top" flip overlay={(props) =>
+            <Tooltip {...props}>Previous page (or type <kbd>-</kbd>)</Tooltip>
+          }>
             <button className="btn btn-default prevPage #{if pageNum <= 1 then 'disabled'}" aria-label="Previous page" onClick={onChangePage -1}>
               <span className="fas fa-backward" aria-hidden="true"/>
             </button>
-          </TextTooltip>
-          <TextTooltip title="Next page (+)">
+          </OverlayTrigger>
+          <OverlayTrigger placement="top" flip overlay={(props) =>
+            <Tooltip {...props}>Next page (or type <kbd>+</kbd>)</Tooltip>
+          }>
             <button className="btn btn-default nextPage #{if pageNum >= numPages then 'disabled'}" aria-label="Next page" onClick={onChangePage +1}>
               <span className="fas fa-forward" aria-hidden="true"/>
             </button>
-          </TextTooltip>
+          </OverlayTrigger>
         </div>
         <span className="pdfStatus">
           <span className="space form-inline">
