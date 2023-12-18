@@ -44,6 +44,8 @@ WrappedMessagePDF = React.memo ({file}) ->
   [pageInput, setPageInput] = useState 1
   [pageNum, setPageNum] = useState()
   [numPages, setNumPages] = useState()
+  [pageBack, setPageBack] = useState []
+  [pageForward, setPageForward] = useState []
   [fit, setFit] = useState 'page'
   theme = useMessageTheme file
   [dims, setDims] = useState {width: 0, height: 0}
@@ -84,7 +86,7 @@ WrappedMessagePDF = React.memo ({file}) ->
   useEffect ->
     if pdf? and pageNum?
       pdf.getPage pageNum
-      .then (pageLoaded) -> setPage pageLoaded
+      .then (pageLoaded) => setPage pageLoaded
     else
       setPage undefined
     undefined
@@ -156,6 +158,7 @@ WrappedMessagePDF = React.memo ({file}) ->
     -> renderTask.cancel()
   , [page, elementWidth, fit, inView]
 
+  ## Synchronize page input with navigation of page number
   useEffect =>
     setPageInput pageNum if pageNum?
   , [pageNum]
@@ -172,6 +175,14 @@ WrappedMessagePDF = React.memo ({file}) ->
     p = Math.round e.currentTarget.valueAsNumber
     if 1 <= p <= numPages
       setPageNum p
+  onPageBack = (e) =>
+    setPageForward [pageNum, ...pageForward]
+    setPageNum pageBack[0]
+    setPageBack pageBack[1..]
+  onPageForward = (e) =>
+    setPageBack [pageNum, ...pageBack]
+    setPageNum pageForward[0]
+    setPageForward pageForward[1..]
   onFit = (newFit) => (e) =>
     e.currentTarget.blur()
     setFit newFit
@@ -188,6 +199,22 @@ WrappedMessagePDF = React.memo ({file}) ->
     else
       <>
         <div className="btn-group btn-group-xs pdfButtons">
+          {if pageBack.length or pageForward.length
+            <>
+              <TextTooltip title="Back to page #{pageBack[0] ? ''}">
+                <button className="btn btn-default" aria-label="Page back"
+                 onClick={onPageBack} disabled={not pageBack.length}>
+                  <span className="fas fa-arrow-left" aria-hidden="true"/>
+                </button>
+              </TextTooltip>
+              <TextTooltip title="Forward to page #{pageForward[0] ? ''}">
+                <button className="btn btn-default" aria-label="Page forward"
+                 onClick={onPageForward} disabled={not pageForward.length}>
+                  <span className="fas fa-arrow-right" aria-hidden="true"/>
+                </button>
+              </TextTooltip>
+            </>
+          }
           {if fit == 'page'
             <TextTooltip title="Fit to width">
               <button className="btn btn-default fitWidth" aria-label="Fit width" onClick={onFit 'width'}>
@@ -252,8 +279,10 @@ WrappedMessagePDF = React.memo ({file}) ->
             ## Refer to https://github.com/mozilla/pdf.js/blob/master/web/pdf_link_service.js goToDestination & _goToDestinationHelper
             title = "Page #{annotation.explicitPage}"
             ## x,y coordinates given by explicit[1..4]: https://github.com/mozilla/pdf.js/blob/master/web/base_viewer.js scrollPageIntoView
-            onClick = do (annotation) -> (e) ->
+            onClick = do (annotation) => (e) =>
               e.preventDefault()
+              setPageBack [pageNum, ...pageBack]
+              setPageForward []
               setPageNum annotation.explicitPage
           ### eslint-disable coffee/jsx-no-target-blank ###
           <TextTooltip key={annotation.id} title={title}>

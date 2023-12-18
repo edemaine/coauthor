@@ -12,6 +12,8 @@ instead of version numbers.
 * PDFs now support typing a page number manually,
   which makes it easier to navigate large documents.
   [[#346](https://github.com/edemaine/coauthor/issues/346)]
+* PDFs remember your previous page when you click on a link,
+  adding back/forward navigation buttons similar to browser back/forward.
 
 ## 2023-12-17
 
