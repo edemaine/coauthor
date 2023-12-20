@@ -161,7 +161,7 @@ WrappedMessagePDF = React.memo ({file}) ->
       )
     .catch (error) ->
       ## Ignore pdfjs's error when rendering gets canceled from page flipping
-      throw error unless error.name == 'RenderingCancelledException'
+      throw error unless error.name == 'RenderingCancelledException' or error.message.startsWith 'Rendering cancelled, page'
     -> renderTask.cancel()
   , [page, elementWidth, fit, inView]
 
