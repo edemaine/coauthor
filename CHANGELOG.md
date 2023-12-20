@@ -7,6 +7,12 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2023-12-20
+
+* Fix the wrong page's PDF links sometimes showing up when quickly flipping
+  through the pages of a PDF file, especially for slow-to-render pages.
+  [[#534](https://github.com/edemaine/coauthor/issues/534)]
+
 ## 2023-12-18
 
 * PDFs now support typing a page number manually,

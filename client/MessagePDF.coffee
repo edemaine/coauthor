@@ -59,7 +59,7 @@ WrappedMessagePDF = React.memo ({file}) ->
   [annotationsTransform, setAnnotationsTransform] = useState()
   thisPDF = useRef()
 
-  useTracker ->
+  useTracker =>
     ## Reset
     setPdf null
     setProgress 0
@@ -88,7 +88,7 @@ WrappedMessagePDF = React.memo ({file}) ->
       setPdf pdfLoaded
   , [file]
   ## Load page of PDF as page number changes
-  useEffect ->
+  useEffect =>
     if pdf? and pageNum?
       pdf.getPage pageNum
       .then (pageLoaded) => setPage pageLoaded
@@ -98,7 +98,7 @@ WrappedMessagePDF = React.memo ({file}) ->
   , [pdf, pageNum]
   ## Compute page dimensions, and render page if it's in view
   elementWidth = useElementWidth ref
-  useEffect ->
+  useEffect =>
     return unless page? and elementWidth
     viewport = page.getViewport scale: 1
     ## Simulate width: 100%
@@ -136,17 +136,16 @@ WrappedMessagePDF = React.memo ({file}) ->
     renderTask = page.render
       canvasContext: context
       viewport: scaledViewport
+    canceled = false
     Promise.all [renderTask.promise, page.getAnnotations()]
-    .then ([rendered, annotationsLoaded]) ->
+    .then ([rendered, annotationsLoaded]) =>
+      return if canceled
       replaceCanvas canvasRef, canvas
-      setRendering false
-      ## Clear existing annotations, and load this page's annotations
-      setAnnotations []
-      setAnnotationsTransform "scale(#{1/dpiScale},#{1/dpiScale}) matrix(#{scaledViewport.transform.join ','})"
       ## Annotation links, based loosely on
       ## https://stackoverflow.com/a/20141227/7797661
-      setAnnotations(
+      newAnnotations =
         for annotation in annotationsLoaded
+          break if canceled
           if annotation.dest  # local link
             ## Refer to https://github.com/mozilla/pdf.js/blob/master/web/pdf_link_service.js goToDestination & _goToDestinationHelper
             annotation.explicit = await pdf.getDestination annotation.dest
@@ -158,11 +157,16 @@ WrappedMessagePDF = React.memo ({file}) ->
             else
               annotation.explicitPage = 1 + await pdf.getPageIndex annotation.explicit[0]
           annotation
-      )
-    .catch (error) ->
+      return if canceled
+      setRendering false
+      setAnnotations newAnnotations
+      setAnnotationsTransform "scale(#{1/dpiScale},#{1/dpiScale}) matrix(#{scaledViewport.transform.join ','})"
+    .catch (error) =>
       ## Ignore pdfjs's error when rendering gets canceled from page flipping
       throw error unless error.name == 'RenderingCancelledException' or error.message.startsWith 'Rendering cancelled, page'
-    -> renderTask.cancel()
+    =>
+      canceled = true
+      renderTask.cancel()
   , [page, elementWidth, fit, inView]
 
   ## Synchronize page input with navigation of page number
