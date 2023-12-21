@@ -260,14 +260,14 @@ WrappedMessagePDF = React.memo ({file}) ->
             </button>
           </TextTooltip>
           <OverlayTrigger placement="top" flip overlay={(props) =>
-            <Tooltip {...props}>Previous page (or type <kbd>-</kbd>)</Tooltip>
+            <Tooltip {...props}>Previous page (keyboard: <kbd>-</kbd>)</Tooltip>
           }>
             <button className="btn btn-default prevPage #{if pageNum <= 1 then 'disabled'}" aria-label="Previous page" onClick={onChangePage -1}>
               <span className="fas fa-backward" aria-hidden="true"/>
             </button>
           </OverlayTrigger>
           <OverlayTrigger placement="top" flip overlay={(props) =>
-            <Tooltip {...props}>Next page (or type <kbd>+</kbd>)</Tooltip>
+            <Tooltip {...props}>Next page (keyboard: <kbd>+</kbd>)</Tooltip>
           }>
             <button className="btn btn-default nextPage #{if pageNum >= numPages then 'disabled'}" aria-label="Next page" onClick={onChangePage +1}>
               <span className="fas fa-forward" aria-hidden="true"/>

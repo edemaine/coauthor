@@ -240,7 +240,7 @@ Message = React.memo ({message}) ->
     <div className="hidden-print text-right toc-toggle">
       <OverlayTrigger placement="top" flip overlay={(props) ->
         <Tooltip {...props}>
-          Click (or type <kbd>t</kbd>) to toggle the right sidebar
+          Click (or press <kbd>t</kbd>) to toggle the right sidebar
           listing all posts.  Click on post to scroll to that post;
           drag posts to re-order.
         </Tooltip>
@@ -2796,7 +2796,7 @@ export WrappedSubmessage = React.memo ({message, read}) ->
                         <p>Message is <b>protected</b>, so edits are restricted to coauthors and superusers.</p>
                       }
                       {if can.becomeSuper and not can.edit
-                        <p>Become Superuser (or type <kbd>s</kbd>) to edit this message.</p>
+                        <p>Click Become Superuser (or press <kbd>s</kbd>) to edit this message.</p>
                       }
                     </Tooltip>
                   }>
