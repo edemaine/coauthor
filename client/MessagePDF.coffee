@@ -131,13 +131,14 @@ WrappedMessagePDF = React.memo ({file}) ->
     canvas.height = height * dpiScale
     #unless dpiScale == 1
     canvas.style.transform = "scale(#{1/dpiScale},#{1/dpiScale})"
-    canvas.style.transformOrigin = "0% 0%"
-    scaledViewport = page.getViewport scale: dpiScale * width / viewport.width
+    scale = dpiScale * width / viewport.width
+    scaledViewport = page.getViewport {scale}
     setRendering true
     renderTask = page.render
       canvasContext: context
       viewport: scaledViewport
     canceled = false
+    textRender = null
     Promise.all [renderTask.promise, page.getAnnotations()]
     .then ([rendered, annotationsLoaded]) =>
       return if canceled
@@ -162,10 +163,10 @@ WrappedMessagePDF = React.memo ({file}) ->
       setRendering false
       setAnnotations newAnnotations
       setAnnotationsTransform "scale(#{1/dpiScale},#{1/dpiScale}) matrix(#{scaledViewport.transform.join ','})"
+      textRef.current.style.setProperty '--scale-factor', scale
       textRef.current.style.transform = "scale(#{1/dpiScale},#{1/dpiScale})"
-      textRef.current.style.transformOrigin = "0% 0%"
       textRender = pdfjs.renderTextLayer
-        textContentStream: page.streamTextContent()
+        textContentSource: page.streamTextContent()
         container: textRef.current
         viewport: scaledViewport
         isOffscreenCanvasSupported: true
@@ -175,6 +176,8 @@ WrappedMessagePDF = React.memo ({file}) ->
     =>
       canceled = true
       renderTask.cancel()
+      textRender?.cancel()
+      textRef.current?.innerHTML = ''
   , [page, elementWidth, fit, inView]
 
   ## Synchronize page input with navigation of page number
@@ -290,7 +293,6 @@ WrappedMessagePDF = React.memo ({file}) ->
       <div className="annotations" ref={textRef}/>
       <div className="annotations" style={
         transform: annotationsTransform
-        transformOrigin: "0% 0%"
       }>
         {for annotation in annotations
           continue unless annotation.subtype == 'Link'

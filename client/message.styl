@@ -429,6 +429,8 @@ nav.contents
 .pdfBox
   width: 100%
 .pdf
+  > *
+    transform-origin: 0% 0%
   > svg
     width: 100%
     height: auto
@@ -441,14 +443,19 @@ nav.contents
       border: solid hsla(250,75%,50%,33%)
       &:hover
         border: solid hsla(250,75%,50%,66%)
-    > span
+    > span, > br
       position: absolute
       cursor: text
       text-align: initial
       white-space: pre
       transform-origin: 0% 0%
-      width: max-content
-      color: purple
+      color: transparent
+      opacity: 25%
+    ::selection
+      background: blue
+      background: AccentColor
+    > br::selection
+      background: transparent
 @media print
   .pdf > .annotations
     display: none

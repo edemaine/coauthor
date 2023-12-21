@@ -7,6 +7,10 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2023-12-21
+
+* You can now select and copy text from PDFs.
+
 ## 2023-12-20
 
 * Fix the wrong page's PDF links sometimes showing up when quickly flipping
