@@ -1,62 +1,60 @@
 ## https://github.com/cure53/DOMPurify
 
 import createDOMPurify from 'dompurify'
-DOMPurify = null
-queueMicrotask -> # wait for JSDOM to load on server
-  DOMPurify = createDOMPurify window ? new JSDOM('').window
+DOMPurify = createDOMPurify window ? new JSDOM('').window
 
-  DOMPurify.setConfig
-    ADD_TAGS: [
-      'annotation', 'semantics'  # from KaTeX; encoding sanitized below
-      'use'  # href sanitized below
-    ]
-    FORBID_TAGS: [
-      'style'  # can mess with global CSS
-    ]
+DOMPurify.setConfig
+  ADD_TAGS: [
+    'annotation', 'semantics'  # from KaTeX; encoding sanitized below
+    'use'  # href sanitized below
+  ]
+  FORBID_TAGS: [
+    'style'  # can mess with global CSS
+  ]
 
-  ## Individual attribute sanitization
-  DOMPurify.addHook 'uponSanitizeAttribute', (node, event) ->
-    nodeName = -> node.nodeName.toLowerCase()
-    switch event.attrName
-      when 'style'
-        event.attrValue = event.attrValue
-        ## First remove all CSS comments, replacing them with space to avoid
-        ## accidentally forming a /* from surrounding "/" and "*".
-        .replace cssCommentRegex, ' '
-        ## We used to always forbid position:absolute, but KaTeX needs them
-        ## (see e.g. `\not`).  But we do need to forbid position:fixed, because
-        ## this can break outside the overflow:auto constraint of message body.
-        .replace /\bposition\s*:\s*fixed/ig, ''
-      when 'class'
-        ## Implement class whitelist
-        event.attrValue = event.attrValue
-        .replace cssCommentRegex, ' '
-        .split /\s+/
-        .filter allowedClassesSet.has.bind allowedClassesSet
-        .join ' '
-      when 'type'
-        ## Remove type attribute from <input>s; set to "checkbox" below
-        event.keepAttr = false if nodeName() == 'input'
-      when 'href', 'xlink:href', 'action'
-        ## SVG <use> is insecure if it has protocols:
-        ## https://insert-script.blogspot.com/2014/02/svg-fun-time-firefox-svg-vector.html
-        if nodeName() == 'use'
-          event.keepAttr = event.attrValue.startsWith '#'
-      when 'id'
-        ## Localize ids (more processing done in formats)
-        event.attrValue = 'MESSAGE_' + event.attrValue
-  ## Bulk attribute sanitization
-  DOMPurify.addHook 'afterSanitizeAttributes', (node) ->
-    switch node.nodeName.toLowerCase()
-      when 'input'
-        ## Force all <input>s to have type="checkbox" and be disabled
-        node.setAttribute 'type', 'checkbox'
-        node.setAttribute 'disabled', ''
-      when 'annotation'
-        ## Force MathML <annotation> to have encoding set as KaTeX does,
-        ## to avoid potential exploits with encoding="text/html" and maybe SVG.
-        ## See https://github.com/cure53/DOMPurify/blob/81ae4bd8ebfefd5700dd3c7a908725efaae931e6/test/fixtures/expect.js#L1095
-        node.setAttribute 'encoding', 'application/x-tex'
+## Individual attribute sanitization
+DOMPurify.addHook 'uponSanitizeAttribute', (node, event) ->
+  nodeName = -> node.nodeName.toLowerCase()
+  switch event.attrName
+    when 'style'
+      event.attrValue = event.attrValue
+      ## First remove all CSS comments, replacing them with space to avoid
+      ## accidentally forming a /* from surrounding "/" and "*".
+      .replace cssCommentRegex, ' '
+      ## We used to always forbid position:absolute, but KaTeX needs them
+      ## (see e.g. `\not`).  But we do need to forbid position:fixed, because
+      ## this can break outside the overflow:auto constraint of message body.
+      .replace /\bposition\s*:\s*fixed/ig, ''
+    when 'class'
+      ## Implement class whitelist
+      event.attrValue = event.attrValue
+      .replace cssCommentRegex, ' '
+      .split /\s+/
+      .filter allowedClassesSet.has.bind allowedClassesSet
+      .join ' '
+    when 'type'
+      ## Remove type attribute from <input>s; set to "checkbox" below
+      event.keepAttr = false if nodeName() == 'input'
+    when 'href', 'xlink:href', 'action'
+      ## SVG <use> is insecure if it has protocols:
+      ## https://insert-script.blogspot.com/2014/02/svg-fun-time-firefox-svg-vector.html
+      if nodeName() == 'use'
+        event.keepAttr = event.attrValue.startsWith '#'
+    when 'id'
+      ## Localize ids (more processing done in formats)
+      event.attrValue = 'MESSAGE_' + event.attrValue
+## Bulk attribute sanitization
+DOMPurify.addHook 'afterSanitizeAttributes', (node) ->
+  switch node.nodeName.toLowerCase()
+    when 'input'
+      ## Force all <input>s to have type="checkbox" and be disabled
+      node.setAttribute 'type', 'checkbox'
+      node.setAttribute 'disabled', ''
+    when 'annotation'
+      ## Force MathML <annotation> to have encoding set as KaTeX does,
+      ## to avoid potential exploits with encoding="text/html" and maybe SVG.
+      ## See https://github.com/cure53/DOMPurify/blob/81ae4bd8ebfefd5700dd3c7a908725efaae931e6/test/fixtures/expect.js#L1095
+      node.setAttribute 'encoding', 'application/x-tex'
 
 ## https://stackoverflow.com/questions/9329552/explain-regex-that-finds-css-comments
 cssCommentRegex = /\/\*[^*]*\*+(?:[^/*][^*]*\*+)*\//g
