@@ -426,6 +426,32 @@ nav.contents
   height: 20px
   padding: 0px 5px
   margin: 0px 5px
+.pdfBox
+  width: 100%
+.pdf
+  > svg
+    width: 100%
+    height: auto
+  > canvas
+    position: absolute
+  > .annotations
+    position: absolute
+    > a
+      position: absolute
+      border: solid hsla(250,75%,50%,33%)
+      &:hover
+        border: solid hsla(250,75%,50%,66%)
+    > span
+      position: absolute
+      cursor: text
+      text-align: initial
+      white-space: pre
+      transform-origin: 0% 0%
+      width: max-content
+      color: purple
+@media print
+  .pdf > .annotations
+    display: none
 
 // MessageInfoBoxes
 

@@ -66,15 +66,6 @@ input.title { width: calc(100% + 5px); margin: 0px -5px 0px 0px; }
 img, video { max-width: 100%; max-height: 100vh; }
 img { image-orientation: none; } /* we do manual EXIF rotation */
 .center img { width: fit-content; } /* for {center} environment */
-.pdfBox { width: 100%; }
-.pdf > svg { width: 100%; height: auto; }
-.pdf > canvas { position: absolute; }
-.pdf > .annotations { position: absolute; }
-.pdf > .annotations > a { position: absolute; border: hsla(250,75%,50%,33%) solid; }
-.pdf > .annotations > a:hover { border: hsla(250,75%,50%,66%) solid; }
-@media print {
-  .pdf > .annotations > a { display: none; }
-}
 
 .panel-secondbody { margin-top: -10px; padding-top: 0px; padding-bottom: 10px; }
 

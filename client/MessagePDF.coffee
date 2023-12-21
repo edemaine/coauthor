@@ -43,6 +43,7 @@ WrappedMessagePDF = React.memo ({file}) ->
   [viewRef, inView] = useInView
     rootMargin: '100%'  # within one screenful is "in view"
   canvasRef = useRef()
+  textRef = useRef()
   [progress, setProgress] = useState 0
   [rendering, setRendering] = useState false
   [pageInput, setPageInput] = useState 1
@@ -70,7 +71,7 @@ WrappedMessagePDF = React.memo ({file}) ->
       Session.set 'pdfjsLoading', true
       Session.get 'pdfjsLoading'  # rerun tracker once pdfjs loaded
       return import('pdfjs-dist').then (imported) ->
-        pdfjs = imported
+        pdfjs = window.pdfjs = imported
         pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'  # in /public
         Session.set 'pdfjsLoading', false
     ## Load PDF file
@@ -161,6 +162,13 @@ WrappedMessagePDF = React.memo ({file}) ->
       setRendering false
       setAnnotations newAnnotations
       setAnnotationsTransform "scale(#{1/dpiScale},#{1/dpiScale}) matrix(#{scaledViewport.transform.join ','})"
+      textRef.current.style.transform = "scale(#{1/dpiScale},#{1/dpiScale})"
+      textRef.current.style.transformOrigin = "0% 0%"
+      textRender = pdfjs.renderTextLayer
+        textContentStream: page.streamTextContent()
+        container: textRef.current
+        viewport: scaledViewport
+        isOffscreenCanvasSupported: true
     .catch (error) =>
       ## Ignore pdfjs's error when rendering gets canceled from page flipping
       throw error unless error.name == 'RenderingCancelledException' or error.message.startsWith 'Rendering cancelled, page'
@@ -207,7 +215,7 @@ WrappedMessagePDF = React.memo ({file}) ->
   <div ref={ref} onFocus={onFocus} onMouseEnter={onFocus} onClick={onFocus}>
     {if progress?
       <div className="progress">
-        <div className="progress-bar" role="progressbar" aria-valuemin="0" aria-valuenow={progress} aria-valuemax="100" style={width: "#{progress}%"; minWidth: "2em"}>
+        <div className="progress-bar" role="progressbar" aria-valuemin="0" aria-valuenow={progress} aria-valuemax="100" style={width: "#{progress}%", minWidth: "2em"}>
           {progress}%
         </div>
       </div>
@@ -279,6 +287,7 @@ WrappedMessagePDF = React.memo ({file}) ->
     }
     <div className="pdf #{theme}" style={width: "#{dims.width}px", height: "#{dims.height}px"} ref={viewRef}>
       <canvas width="0" height="0" ref={canvasRef}/>
+      <div className="annotations" ref={textRef}/>
       <div className="annotations" style={
         transform: annotationsTransform
         transformOrigin: "0% 0%"
