@@ -10,6 +10,8 @@ instead of version numbers.
 ## 2023-12-21
 
 * You can now select and copy text from PDFs.
+* Clicking on a link in PDF now draws an arrow at the specific location
+  linked to, in addition to flipping to the relevant page.
 
 ## 2023-12-20
 

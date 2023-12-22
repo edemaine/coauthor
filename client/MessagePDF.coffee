@@ -44,6 +44,8 @@ WrappedMessagePDF = React.memo ({file}) ->
     rootMargin: '100%'  # within one screenful is "in view"
   canvasRef = useRef()
   textRef = useRef()
+  annotRef = useRef()
+  arrow = useRef()
   [progress, setProgress] = useState 0
   [rendering, setRendering] = useState false
   [pageInput, setPageInput] = useState 1
@@ -113,6 +115,7 @@ WrappedMessagePDF = React.memo ({file}) ->
     setDims {width, height} unless dims.width == width and dims.height == height
     ## If out of view, destroy any rendering
     unless inView
+      arrow.current?.remove()
       replaceCanvas canvasRef, nullCanvas() if canvasRef.current.width
       return
     ## Keep track of latest rendered PDF
@@ -142,7 +145,9 @@ WrappedMessagePDF = React.memo ({file}) ->
     Promise.all [renderTask.promise, page.getAnnotations()]
     .then ([rendered, annotationsLoaded]) =>
       return if canceled
+      arrow.current?.remove() unless arrow.current?.pageNum == pageNum
       replaceCanvas canvasRef, canvas
+      setAnnotations []  # clear old annotations, while new annotations load
       ## Annotation links, based loosely on
       ## https://stackoverflow.com/a/20141227/7797661
       newAnnotations =
@@ -291,7 +296,7 @@ WrappedMessagePDF = React.memo ({file}) ->
     <div className="pdf #{theme}" style={width: "#{dims.width}px", height: "#{dims.height}px"} ref={viewRef}>
       <canvas width="0" height="0" ref={canvasRef}/>
       <div className="annotations" ref={textRef}/>
-      <div className="annotations" style={
+      <div className="annotations" ref={annotRef} style={
         transform: annotationsTransform
       }>
         {for annotation in annotations
@@ -314,6 +319,37 @@ WrappedMessagePDF = React.memo ({file}) ->
               setPageBack [pageNum, ...pageBack]
               setPageForward []
               setPageNum annotation.explicitPage
+              arrow.current?.remove()
+              arrow.current = a = document.createElement 'span'
+              annotRef.current.appendChild a
+              a.pageNum = annotation.explicitPage
+              a.className = 'fas fa-arrow-right'
+              a.style.left = "#{annotation.explicit[2]}px"
+              a.style.top = "#{annotation.explicit[3]}px"
+              a.style.transform = "rotate(-45deg) translate(-75%, -55%)"
+              a.animate [
+                offset: 0.000
+                opacity: 0.4
+                #transform: "scale(1) rotate(0deg) translate(-100%, -75%)"
+                transform: "scale(3) rotate(0deg) translate(-100%, -55%)"
+              ,
+                offset: 0.075
+                opacity: 0.75
+                transform: "scale(1) rotate(-45deg) translate(-75%, -55%)"
+              ,
+                offset: 0.150
+                transform: "scale(1.75) rotate(-45deg) translate(-90%, -55%)"
+              ,
+                offset: 0.225
+                transform: "scale(1) rotate(-45deg) translate(-75%, -55%)"
+              ,
+                offset: 0.7
+                opacity: 0.75
+              ,
+                offset: 1
+                opacity: 0
+              ], 5000
+              .addEventListener 'finish', => a.remove()
           ### eslint-disable coffee/jsx-no-target-blank ###
           <TextTooltip key={annotation.id} title={title}>
             <a style={
