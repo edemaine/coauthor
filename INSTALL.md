@@ -85,6 +85,9 @@ Make sure that your server has both **DNS** (hostname to IP mapping) *and*
 each other.  Otherwise, many mail servers (such as
 [MIT's](http://kb.mit.edu/confluence/display/istcontrib/554+5.7.1+Delivery+not+authorized))
 will not accept email sent by the server.
+Furthermore, you should set an SPF record such as `"v=spf1 a ~all"`
+(which allows emails from the host's IP address, and marks rest as spam),
+as required by [Gmail](https://support.google.com/a/answer/33786).
 
 If you're using Postfix, modify the `/etc/postfix/main.cf` configuration as
 follows (substituting your own hostname):
