@@ -81,7 +81,9 @@ WrappedMessagePDF = React.memo ({file}) ->
     unless fileData?
       return setProgress 0
     size = fileData.length
-    loader = pdfjs.getDocument urlToInternalFile file
+    loader = pdfjs.getDocument
+      url: urlToInternalFile file
+      isEvalSupported: false
     loader.onProgress = (data) ->
       setProgress Math.round 100 * data.loaded / size
     loader.promise.then (pdfLoaded) ->

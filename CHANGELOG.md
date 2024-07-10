@@ -7,6 +7,10 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2024-07-10
+
+* Security fix for pdfjs, fixing [vulnerability to malicious PDF](https://github.com/advisories/GHSA-wgrm-67xf-hhpq)
+
 ## 2023-12-21
 
 * You can now select and copy text from PDFs.
