@@ -782,8 +782,9 @@ postprocessCoauthorLinks = (text, msgId) ->
         return match unless fileMsg?
         {attrs, prefix} = imageTitleAndWarning fileMsg, msgId
         fileId = fileMsg.file
-      else
+      else # if isInternalFile
         fileId = url2internalFile url
+        attrs = prefix = ''
       file = findFile fileId
       return match unless file?
       prefix +

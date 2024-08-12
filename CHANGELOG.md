@@ -7,6 +7,10 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2024-08-12
+
+* Fix embedding of historical images (internal files)
+
 ## 2024-07-10
 
 * Security fix for pdfjs, fixing [vulnerability to malicious PDF](https://github.com/advisories/GHSA-wgrm-67xf-hhpq)
