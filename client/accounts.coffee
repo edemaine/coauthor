@@ -10,6 +10,12 @@ Accounts.ui.config
     fieldName: 'fullname'
     fieldLabel: 'Full name (FirstName LastName)'
     inputType: 'text'
+    validate: (value, setError) =>
+      if password = document.getElementById 'login-password'
+        if password.value is value
+          setError 'The last field should be your full name, not your password'
+          return false
+      true
   ]
 
 Template._loginButtonsAdditionalLoggedInDropdownActions.helpers # eslint-disable-line meteor/template-names

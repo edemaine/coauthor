@@ -7,6 +7,10 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2025-01-15
+
+* Prevent repeating password in full-name field when signing up for account
+
 ## 2024-08-12
 
 * Fix embedding of historical images (internal files)
