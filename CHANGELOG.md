@@ -14,6 +14,7 @@ instead of version numbers.
   [[#627](https://github.com/edemaine/coauthor/issues/627)]
   by moving them after description preview
   (also improving side-by-side preview)
+* Upgrade DOMPurify library which fixes some XSS vulnerabilities
 
 ## 2024-08-12
 
