@@ -194,9 +194,11 @@ bootstrap-3-button(bg-color) // based on mixins/buttons.less
   justify-content: space-between
   align-items: center
   padding-block: 0.5ex
-.bodyContainer > .fileDescription:first-child
+.editorAndBody + .fileDescription
+  border-top: 1px solid #337ab7
+.editorAndBody + .fileDescription, .resizer + .fileDescription
   padding-inline: 15px
-  border-bottom: 1px solid #337ab7
+  padding-top: 0.5em
 .fileDescriptionText
   flex-grow: 1
 .file-right-buttons

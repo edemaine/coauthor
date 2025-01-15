@@ -10,6 +10,10 @@ instead of version numbers.
 ## 2025-01-15
 
 * Prevent repeating password in full-name field when signing up for account
+* Fix clipping of Rotate and File dropdowns above image
+  [[#627](https://github.com/edemaine/coauthor/issues/627)]
+  by moving them after description preview
+  (also improving side-by-side preview)
 
 ## 2024-08-12
 
