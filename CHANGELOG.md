@@ -10,6 +10,7 @@ instead of version numbers.
 ## 2025-02-06
 
 * Remove duplicate file description in unrendered files (non-images/videos/PDFs)
+* Upgrade KaTeX which fixes a likely irrelevant XSS vulnerability
 
 ## 2025-01-15
 
