@@ -93,6 +93,8 @@ export messageFileUrlPrefixPattern =
   switch file?.contentType
     when 'image/gif', 'image/jpeg', 'image/png', 'image/svg+xml', 'image/webp', 'image/x-icon'
       'image'
+    when 'image/heic', 'image/heif'#, 'image/heic-sequence', 'image/heif-sequence'
+      'heic'
     when 'video/mp4', 'video/ogg', 'video/webm'
       'video'
     when 'application/pdf'

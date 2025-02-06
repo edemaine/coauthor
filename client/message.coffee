@@ -13,6 +13,7 @@ import {Credits} from './layout.coffee'
 import {ErrorBoundary} from './ErrorBoundary'
 import {FormatDate, formatDate} from './lib/date'
 import {ignoreKey} from './keyboard'
+import {MessageHEIC} from './MessageHEIC'
 import {MessageImage, imageTransform, messageRotate} from './MessageImage'
 import {MessagePDF} from './MessagePDF'
 import {TagEdit} from './TagEdit'
@@ -2858,8 +2859,11 @@ export WrappedSubmessage = React.memo ({message, read}) ->
             menu={can.edit} tabindex={tabindex0+9}/>
         }
         <div className="bodyFile">
-          {if messageFileType == 'pdf'
-            <MessagePDF file={historified.file}/>
+          {switch messageFileType
+            when 'pdf'
+              <MessagePDF file={historified.file}/>
+            when 'heic'
+              <MessageHEIC file={historified.file}/>
           }
           {if historified.file
             <>
