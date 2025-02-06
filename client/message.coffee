@@ -2850,7 +2850,8 @@ export WrappedSubmessage = React.memo ({message, read}) ->
         {if previewSideBySide
           <BelowEditor message={message} preview={preview} safeToStopEditing={safeToStopEditing} editStopping={editStopping}/>
         }
-        {if historified.file and editing
+        {if historified.file and editing and (messageFileType == 'pdf' or formattedFile.file)
+          # Duplicate file description above rendered file (if it renders)
           <MessageFileDescription message={message} history={history}
             messageFileType={messageFileType}
             description={formattedFile.description}
