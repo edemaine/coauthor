@@ -7,6 +7,11 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2025-02-10
+
+* Fix superuser's ability to manually delete an internal file via `deleteFile`
+  [[#279](https://github.com/edemaine/coauthor/issues/279)]
+
 ## 2025-02-06
 
 * Remove duplicate file description in unrendered files (non-images/videos/PDFs)

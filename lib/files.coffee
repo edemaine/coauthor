@@ -141,6 +141,10 @@ if Meteor.isServer
       #file.metadata?.uploader == userId or
       fileRoleCheck file, 'read', userId
     remove: (userId, file) ->
+      ## Support `deleteFile` which calls `Files.remove` which goes over socket.
+      ## This sets Meteor.userId but meteor-file-collection
+      ## just checks X-Auth-Token
+      userId ?= Meteor.user()
       #file.metadata?.uploader == userId
       fileRoleCheck file, 'super', userId
 else
