@@ -11,6 +11,8 @@ instead of version numbers.
 
 * Preserve whitespace in Markdown \`backticks\`, LaTeX `\verb`,
   and HTML `<code>`
+* Users search ignores spaces at beginning or end
+  (helpful when copy/pasting names)
 
 ## 2025-02-10
 

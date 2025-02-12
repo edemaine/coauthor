@@ -120,7 +120,7 @@ export UserSearch = (props) ->
     parsed
   [search, setSearch] = createSignal ''
   query = createMemo =>
-    if (pattern = search())?
+    if (pattern = search().trim())
       pattern =
         $regex: escapeRegExp pattern
         $options: 'i'
@@ -171,7 +171,7 @@ export UserSearch = (props) ->
       </span>
     </div>
     <p/>
-    <UserTable users={users()} search={search()}
+    <UserTable users={users()} search={search().trim()}
       group={props.group} messageID={props.messageID} admin={props.admin}/>
     <div class="form-inline">
       <LimitInput/>
