@@ -7,6 +7,11 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2025-02-11
+
+* Preserve whitespace in Markdown \`backticks\`, LaTeX `\verb`,
+  and HTML `<code>`
+
 ## 2025-02-10
 
 * Fix superuser's ability to manually delete an internal file via `deleteFile`
