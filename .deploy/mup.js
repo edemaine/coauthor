@@ -86,7 +86,7 @@ module.exports = {
   // Run 'npm install' before deploying, to ensure packages are up-to-date
   hooks: {
     'pre.deploy': {
-      localCommand: 'npm install'
+      localCommand: 'meteor npm install'
     }
   },
 };
