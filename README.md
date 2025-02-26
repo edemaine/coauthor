@@ -105,9 +105,8 @@ To see what's changed in Coauthor recently, check out the
     `details` or `+` (text that's hidden until clicked, like
     [HTML `<details>` tag](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/details),
     with optional argument for `<summary>`),
-    `proof+`, `theorem+`, etc. (like `proof, `theorem`, etc.
+    `proof+`, `theorem+`, etc. (like `proof`, `theorem`, etc.
     wrapped in `details` environment).
-  [HTML `<details>`/`<summary>` tags](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/details):
     Also supports all HTML commands listed below.
   * HTML, sanitized.  The following tags are allowed; feel free to ask for
     more.  `<h1>`, `<h2>`, `<h3>`, `<h4>`, `<h5>`, `<h6>`,
