@@ -13,5 +13,5 @@ Mongo.Collection.prototype.insertMany = (docs) ->
         throw new Error "Meteor requires document _id fields to be non-empty strings or ObjectIDs"
     else
       doc._id = @_makeNewID()
-  @rawCollection().insert docs
+  @rawCollection().insertMany docs
   (doc._id for doc in docs)

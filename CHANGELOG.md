@@ -9,7 +9,9 @@ instead of version numbers.
 
 ## 2025-03-05
 
-* Improve performance via enabling Meteor oplog tailing for more queries
+* Improve performance via enabling Meteor oplog tailing for more queries,
+  and disabling oplog tailing on GridFS chunks
+* Update to Meteor 2.16.0
 
 ## 2025-02-11
 

@@ -92,6 +92,11 @@
       }
     }
   },
+  "packages": {
+    "mongo": {
+      "oplogExcludeCollections": ["fs.chunks"]
+    }
+  },
   "solid": {
     "match": [
       "client/users.coffee",
