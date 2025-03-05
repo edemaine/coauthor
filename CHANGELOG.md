@@ -13,6 +13,7 @@ instead of version numbers.
   and disabling oplog tailing on GridFS chunks
 * Update to Meteor 2.16.0
 * Upgrade DOMPurify library which fixes an XSS vulnerability
+* Edit button finally looks right
 
 ## 2025-02-11
 
