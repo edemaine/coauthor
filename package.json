@@ -38,7 +38,7 @@
     "codemirror": "5.65.8",
     "cookie": "^0.4.1",
     "dayjs": "^1.11.1",
-    "dompurify": "2.5.8",
+    "dompurify": "3.2.4",
     "exif-parser": "^0.1.12",
     "file-saver": "^2.0.5",
     "highlight.js": "^10.7.2",
@@ -94,7 +94,9 @@
   },
   "packages": {
     "mongo": {
-      "oplogExcludeCollections": ["fs.chunks"]
+      "oplogExcludeCollections": [
+        "fs.chunks"
+      ]
     }
   },
   "solid": {
