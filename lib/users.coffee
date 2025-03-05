@@ -5,7 +5,7 @@ import {escapeKey, unescapeKey, validKey} from './escape'
 
 @findUser = (userId) ->
   if userId?
-    Meteor.users.findOne(userId) ? {}
+    Meteor.users.findOne(userId, sort: _id: 1) ? {}
   else
     {}
 
@@ -13,6 +13,7 @@ import {escapeKey, unescapeKey, validKey} from './escape'
   return username if username.username?
   Meteor.users.findOne
     username: username
+  , sort: username: 1
 
 @displayUser = (username) ->
   user = findUsername username

@@ -7,6 +7,10 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2025-03-05
+
+* Improve performance via enabling Meteor oplog tailing for more queries
+
 ## 2025-02-11
 
 * Preserve whitespace in Markdown \`backticks\`, LaTeX `\verb`,
