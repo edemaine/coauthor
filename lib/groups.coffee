@@ -53,7 +53,9 @@ if Meteor.isServer
   return group if group.name?
   Groups.findOne
     name: group
-  , sort: name: 1
+  ,
+    sort: name: 1
+    ordered: false
 
 export groupDefaultSort = (group) ->
   try

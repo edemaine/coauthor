@@ -660,7 +660,11 @@ if Meteor.isServer
 
 @findMessage = (message, options) ->
   if message? and not message._id?
-    message = Messages.findOne message, {...options, sort: _id: 1}
+    message = Messages.findOne message, {
+      ...options
+      sort: _id: 1
+      ordered: false
+    }
   message
 
 @findMessageParent = (message) ->

@@ -10,11 +10,11 @@ instead of version numbers.
 ## 2025-03-06
 
 * Improve performance of live view (downloads just the necessary messages)
+* Improve performance via enabling Meteor oplog tailing for more queries
 
 ## 2025-03-05
 
-* Improve performance via enabling Meteor oplog tailing for more queries,
-  and disabling oplog tailing on GridFS chunks
+* Improve performance by disabling oplog tailing on GridFS chunks
 * Update to Meteor 2.16.0
 * Upgrade DOMPurify library which fixes an XSS vulnerability
 * Edit button finally looks right
