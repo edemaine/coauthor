@@ -7,6 +7,10 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2025-03-06
+
+* Improve performance of live view (downloads just the necessary messages)
+
 ## 2025-03-05
 
 * Improve performance via enabling Meteor oplog tailing for more queries,

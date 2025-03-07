@@ -440,7 +440,7 @@ if Meteor.isServer
       liveQuery = undeletedMessagesQuery group
       options = liveMessagesLimit limit
       query = maybeAddRootsToQuery group, accessibleQuery, liveQuery, options
-      Messages.find query#, options
+      Messages.find query, options
 
 export parseSince = (since) ->
   try
