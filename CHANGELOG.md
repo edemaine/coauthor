@@ -7,6 +7,11 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2025-03-17
+
+* Fix Since clustering by thread when multiple threads sort identically
+  [[#647](https://github.com/edemaine/coauthor/issues/647)]
+
 ## 2025-03-06
 
 * Improve performance of live view (downloads just the necessary messages)

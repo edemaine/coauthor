@@ -21,6 +21,8 @@ topMessagesSince = (group, since) ->
   ## Least significant: sort by increasing creation time
   msgs = messagesSince group, since
   .fetch()
+  ## Middle significant: cluster by thread (root) id
+  msgs = _.sortBy msgs, (msg) -> msg.root ? msg._id
   ## Middle significant: sort roots before their descendants
   msgs = _.sortBy msgs, (msg) -> msg.root?
   ## Most significant: sort by group's default sort order --
