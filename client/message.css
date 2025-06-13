@@ -82,8 +82,7 @@ s .katex .base, del .katex .base { position: relative; } /* already in KaTeX */
 s .katex .base:after, del .katex .base:after { content: "";
   position: absolute; left: 0; width: 100%; top: 50%; display: block;
   height: 1.3px; background: #c7254e; }
-s, del { text-decoration-color: #c7254e; }
-s a, del a { text-decoration-color: #c7254e; }
+s, del, s a, del a { text-decoration-color: #c7254e; text-decoration-thickness: 0.09em; }
 
 .root { margin-bottom: 0px; } /* glom onto message below */
 

@@ -7,6 +7,10 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2025-06-13
+
+* Restore thicker strikethrough styling (`~~text~~`, `<s>text</s>`) on Firefox
+
 ## 2025-03-17
 
 * Fix Since clustering by thread when multiple threads sort identically
