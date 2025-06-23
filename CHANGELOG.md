@@ -10,7 +10,8 @@ instead of version numbers.
 
 ## 2025-06-18
 
-* Paste image from clipboard creates an attached file and embeds it in the message
+* Pasting an image directly into the editor now uploads it as an attached file
+  and embeds it at the cursor location
   [[#490](https://github.com/edemaine/coauthor/issues/490)]
 
 ## 2025-06-13
