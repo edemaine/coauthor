@@ -4,8 +4,14 @@ This file describes significant changes to Coauthor to an audience of
 both everyday users and administrators running their own Coauthor server.
 To see every change with descriptions aimed at developers, see
 [the Git log](https://github.com/edemaine/coauthor/commits/main).
+
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
+
+## 2025-06-18
+
+* Paste image from clipboard creates an attached file and embeds it in the message
+  [[#490](https://github.com/edemaine/coauthor/issues/490)]
 
 ## 2025-06-13
 
