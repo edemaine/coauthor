@@ -7,6 +7,13 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2025-10-02
+
+* `\newcommand`, `\renewcommand`, `\providecommand`, `\def`, `\xdef`, `\edef`,
+  `\gdef`, `\let` at the top level (text mode) now define macros that
+  work throughout a message, including all math expressions (`$...$`)
+  and limited uses in the top-level text mode (no arguments yet).
+
 ## 2025-06-13
 
 * Restore thicker strikethrough styling (`~~text~~`, `<s>text</s>`) on Firefox

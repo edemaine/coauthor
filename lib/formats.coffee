@@ -209,8 +209,8 @@ boldWeight = 700
 ## These are special (and generally must happen first) because they can have
 ## special LaTeX characters that should not be treated specially
 ## (e.g. % should not be a comment when in a URL or verbatim).
-latex2htmlVerb = (tex) ->
-  tex.replace /\\begin\s*{verbatim}([^]*?)\\end\s*{verbatim}/g,
+latex2htmlVerb = (text) ->
+  text.replace /\\begin\s*{verbatim}([^]*?)\\end\s*{verbatim}/g,
     (match, verb) => "<pre>#{latexEscape verb}</pre>"
   .replace /\\url\s*{([^{}]*)}/g, (match, url) =>
     url = latexURL url
@@ -237,32 +237,6 @@ latexStripComments = (text) ->
         match
     else
       prefix
-
-latex2htmlDef = (tex) ->
-  ## Process \def and \let, and expand all macros.
-  defs = {}
-  tex = tex.replace /\\def\s*\\([a-zA-Z]+)\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, (match, p1, p2) ->
-    defs[p1] = p2
-    ''
-  tex = tex.replace /\\let\s*\\([a-zA-Z]+)\s*=?\s*\\([a-zA-Z]+)\s*/g, (match, p1, p2) ->
-    defs[p1] = "\\#{p2}"
-    ''
-  #for def, val of defs
-  #  console.log "\\#{def} = #{val}"
-  if 0 < _.size defs
-    r = ///
-      ({?)     # allow {\macro} notation to force space after macro
-      \\(#{_.keys(defs).join '|'})
-      (?![a-zA-z])  # ensure full-word match
-      \s*      # consume spaces after \macro, like TeX does
-      (?:{})?  # allow \macro{} notation to force space after macro
-      (}?)     # allow {\macro} notation to force space after macro
-    ///g
-    while r.test tex
-      tex = tex.replace r, (match, left, def, right) ->
-        left = right = '' if left and right
-        left + defs[def] + right
-  tex
 
 texAlign =
   raggedleft: 'right'
@@ -299,12 +273,84 @@ colStyle =
 ## Process all commands starting with \ followed by a letter a-z.
 ## This is not a valid escape sequence in Markdown, so can be safely supported
 ## in Markdown too.
-latex2htmlCommandsAlpha = (tex, math) ->
-  tex = tex
+latex2htmlCommandsAlpha = (text, math) ->
+  macros = {}
+  katexOptions = {macros, globalGroup: true, trust: true}
+  text = text
   ## \verb is here instead of latex2htmlVerb so that it's processed after
   ## math blocks are extracted (as KaTeX has its own \verb support)
   .replace /\\verb(.)(.*?)\1/g,
     (match, char, verb) => "<code>#{latexEscape verb}</code>"
+  ## Top-level \newcommand, \def, \let, etc. execute in KaTeX's global group
+  ## so that macros are available in all math blocks of this message.
+  .replace ///
+    # newcommand command
+    \\(newcommand | renewcommand | providecommand ) \s*
+    # macro name
+    (?: \\([a-zA-Z@]+|.) | \{ [^}]+ \} ) \s*
+    # optional argument
+    (?: \[ [^\]]* \])? \s*
+    # expansion
+    \{ (?:[^{}] | \{ (?:[^{}] | {[^{}]*})* \})* \}
+    |
+    # def command
+    (?: \\(global|long|outer) \s* )? \\(def|gdef|edef|xdef) \s*
+    # macro name
+    \\ ([a-zA-Z@]+|.) \s*
+    # arguments
+    [^{}\n]*
+    # expansion
+    \{ (?:(?:[^{}]|{(?:[^{}]|{[^{}]*})*})*) \}
+    |
+    # let command
+    (?: \\(global|long|outer) \s* )? \\let \s*
+    \\ ([a-zA-Z@]+[ \t]*|.)
+    =? \s*
+    \\ ([a-zA-Z@]+[ \t]*|.)
+  ///g, (match) =>
+    try
+      katex.renderToString match, katexOptions
+      ''
+    catch e
+      throw e unless e instanceof katex.ParseError
+      #console.warn "KaTeX failed to parse $#{content}$: #{e}"
+      title = escapeForQuotedHTML e.toString()
+      latex = escapeForHTML match
+      """<span class="katex-error" title="#{title}">#{latex}</span>"""
+  commands = Object.keys macros
+  if commands.length
+    r = ///
+      ({?)            # allow {\macro} notation to force space after macro
+      (?=\\)          # optimize and force leading backslash
+      (#{commands.map(escapeRegExp).join '|'})  # command
+      (?![a-zA-z@])   # ensure full-word match
+      [ \t]*          # consume spaces after \macro, like TeX does, but not \n
+      (?:{})?         # allow \macro{} notation to force space after macro
+      (}?)            # allow {\macro} notation to force space after macro
+      (?:\\(?=\s))?   # allow \macro\ notation to force space after macro
+    ///g
+    unexpandable = new Set  # macro offsets in text that shouldn't be expanded
+    loop
+      subs = 0
+      delta = 0
+      text = text.replace r, (match, left, command, right, offset) =>
+        return match if unexpandable.has offset + left.length
+        def = macros[command]
+        return match unless def?
+        subs++
+        left = right = '' if left and right  # {\macro} -> \macro
+        if def.unexpandable  # as set by \let
+          unexpandable.add offset + delta + left.length
+        if def.numArgs
+          console.warn "Coauthor doesn't yet support macros with arguments at the top level. Use math mode."
+        def = [...def.tokens]
+        .reverse()
+        .map (token) => token.text
+        .join ''
+        delta += left.length + def.length + right.length - match.length
+        left + def + right
+      break unless subs
+  text = text
   ## Process tabular environments first in order to split cells at &
   ## (so e.g. \bf is local to the cell)
   .replace /\\begin\s*{tabular}\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}([^]*?)\\end\s*{tabular}/g, (m, cols, body) ->
@@ -393,8 +439,8 @@ latex2htmlCommandsAlpha = (tex, math) ->
   .replace /\\textsc\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="font-variant: small-caps">$1</span>'
   .replace /\\textsl\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<i class="slant">$1</i>'
   loop ## Repeat until done to support overlapping matches, e.g. \rm x \it y
-    old = tex
-    tex = tex
+    old = text
+    text = text
     .replace /\\em(?![a-zA-Z])\s*((?:[^{}<>]|{[^{}]*})*)/g, '<em>$1</em>'
     .replace /\\itshape(?![a-zA-Z])\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-style: italic">$1</span>'
     .replace /\\upshape(?![a-zA-Z])\s*((?:[^{}<>]|{[^{}]*})*)/g, '<span style="font-style: normal">$1</span>'
@@ -430,10 +476,10 @@ latex2htmlCommandsAlpha = (tex, math) ->
     ## Alignment
     .replace /\\(raggedleft|raggedright|centering)(?![a-zA-Z])\s*((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)/g, (match, align, content) ->
       """<div style="text-align:#{texAlign[align]};"><p>#{content}</p></div>"""
-    break if old == tex
+    break if old == text
   listStyles = []
   listCounts = []
-  tex = tex
+  text = text
   .replace /\\(uppercase|MakeTextUppercase)\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="text-transform: uppercase">$2</span>'
   .replace /\\(lowercase|MakeTextLowercase)\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="text-transform: lowercase">$2</span>'
   .replace /\\underline\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<u>$1</u>'
@@ -548,36 +594,36 @@ latex2htmlCommandsAlpha = (tex, math) ->
   ## so we do them here.
   .replace /\b[0-9]+(x[0-9]+)+\b/ig, (match) ->
      match.replace /x/ig, '\u00a0×\u00a0'
+  {text, macros}
 
 ## "Light" LaTeX support, using only commands that start with a letter a-z,
 ## so are safe to process in Markdown.  No accent support.
-latex2htmlLight = (tex, me) ->
-  tex = latex2htmlVerb tex
-  tex = latex2htmlDef tex
+latex2htmlLight = (text, me) ->
+  text = latex2htmlVerb text
   ## After \def expansion and verbatim processing, protect math
-  [tex, math] = preprocessKaTeX tex
+  {text, math} = preprocessKaTeX text
   ## After math extraction, process @mentions
-  tex = processAtMentions tex, me
-  tex = latex2htmlCommandsAlpha tex, math
-  [tex, math]
+  text = processAtMentions text, me
+  {text, macros} = latex2htmlCommandsAlpha text, math
+  {text, math, macros}
 
 ## Full LaTeX support, including all supported commands and symbols
 ## (% make comments, ~ makes nonbreaking space, etc.).
-latex2html = (tex, me) ->
-  tex = latex2htmlVerb tex
-  tex = latexStripComments tex
+latex2html = (text, me) ->
+  text = latex2htmlVerb text
+  text = latexStripComments text
   ## Paragraph detection must go before any macro expansion (which eat \n's)
-  tex = tex.replace /\n\n+/g, '\n\\par\n'
-  tex = latex2htmlDef tex
+  text = text.replace /\n\n+/g, '\n\\par\n'
   ## After \def expansion and verbatim processing, protect math
-  [tex, math] = preprocessKaTeX tex
+  {text, math} = preprocessKaTeX text
   ## After math extraction, process @mentions
-  tex = processAtMentions tex, me
+  text = processAtMentions text, me
   ## Start initial paragraph
-  tex = '<p>' + tex
+  text = '<p>' + text
   ## Commands
-  tex = tex.replace /\\\\/g, '[DOUBLEBACKSLASH]'
-  tex = latex2htmlCommandsAlpha tex, math
+  text = text.replace /\\\\/g, '[DOUBLEBACKSLASH]'
+  {text, macros} = latex2htmlCommandsAlpha text, math
+  text = text
   .replace /\\c\s*{s}/g, '&#351;'
   .replace /\\c\s*{z}/g, 'z&#807;'
   .replace /\\v\s*{C}/g, '&#268;'
@@ -620,7 +666,7 @@ latex2html = (tex, me) ->
   .replace /<p>\s*(<h[1-9]>)/g, '$1'
   .replace /<p>(\s*<p>)+/g, '<p>'  ## Remove double paragraph breaks
   .replace /\[DOUBLEBACKSLASH\]/g, '<br>'
-  [tex, math]
+  {text, math, macros}
 
 formats =
   markdown: (text, title, me) ->
@@ -632,9 +678,9 @@ formats =
     #marked.Lexer.rules = {text: /^[^\n]+/} if title
     ## First extract Markdown verbatim environments (backticks) to prevent
     ## LaTeX processing on them (especially math mode, so $ is inert in code).
-    [text, ticks] = preprocessMarkdownTicks text
+    {text, ticks} = preprocessMarkdownTicks text
     ## Support what we can of LaTeX before doing Markdown conversion.
-    [text, math] = latex2htmlLight text, me
+    {text, math, macros} = latex2htmlLight text, me
     #console.log text, math
     ## Put Markdown verbatims back in.
     text = putTicksBack text, ticks
@@ -668,7 +714,7 @@ formats =
         else
           match
     #.replace /(<label\b[^<>]*>)\s*/ig, '$1'
-    [text, math]
+    {text, math, macros}
   latex: (text, title, me) ->
     latex2html text, me
   html: (text, title) ->
@@ -853,15 +899,15 @@ preprocessKaTeX = (text) ->
   text = replaceMathBlocks text, (block) ->
     math.push block
     "!MATH#{i++}ENDMATH!"  # surround with `!` to prevent linkify implicit links
-  [text, math]
+  {text, math}
 
-putMathBack = (tex, math) ->
+putMathBack = (text, math) ->
   ## Restore math
-  tex.replace /!MATH(\d+)ENDMATH!/g, (match, id) -> _.escape math[id].all
+  text.replace /!MATH(\d+)ENDMATH!/g, (match, id) -> _.escape math[id].all
 
-postprocessKaTeX = (text, math, initialBold) ->
+postprocessKaTeX = (text, math, initialBold, macros = {}) ->
   return text unless math.length
-  macros = {}  ## shared across multiple math expressions within same body
+  macros = {...macros}  ## shared across multiple math expressions within same body
   if initialBold
     weights = [boldWeight]
   else
@@ -957,7 +1003,7 @@ preprocessMarkdownTicks = (text) ->
     return match unless right or left.length >= 3
     ticks.push match[pre.length..]
     "#{pre}TICK#{i++}ENDTICK"
-  [text, ticks]
+  {text, ticks}
 
 putTicksBack = (text, ticks) ->
   return text unless ticks.length
@@ -997,14 +1043,15 @@ formatEither = (isTitle, format, text, options) ->
   ## Other formats (currently just HTML) don't touch math,
   ## so we need to preprocess here.
   if format in ['latex', 'markdown']
-    [text, math] = formats[format] text, isTitle, me
+    {text, math, macros} = formats[format] text, isTitle, me
   else
-    [text, math] = preprocessKaTeX text
+    {text, math} = preprocessKaTeX text
     text = processAtMentions text, me
     if format of formats
       text = formats[format] text, isTitle
     else
       console.warn "Unrecognized format '#{format}'"
+    macros = {}
 
   ## Remove space after <li> to prevent shifting the next item right relative
   ## to the item label.  Related to CSS rule for "li > p:first-child".
@@ -1025,7 +1072,7 @@ formatEither = (isTitle, format, text, options) ->
   if leaveTeX
     text = putMathBack text, math
   else
-    text = postprocessKaTeX text, math, bold
+    text = postprocessKaTeX text, math, bold, macros
   text = linkify text  ## Extra support for links, unliked LaTeX
   text = postprocessCoauthorLinks text, id
   text = postprocessLinks text

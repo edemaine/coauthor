@@ -50,64 +50,73 @@ To see what's changed in Coauthor recently, check out the
     lists via `*` or `1.`, to-do lists via `* [ ]` and `* [x]`,
     [tables](http://www.tablesgenerator.com/markdown_tables), etc.
     Also supports all LaTeX commands listed below that start with a letter
-    (notably, not accents) and math mode, and all HTML commands listed below.
+    (notably, not some accents) and math mode, and all HTML commands listed below.
   * LaTeX, limited.  Beyond extensive math mode support (see above),
     the following features are supported in text mode; feel free to ask
-    for more.  `%...`, `\def\macro{...}`, `\let\macro=\mac`, `\protect`,
-    `\sout`, `\emph`, `\textit`, `\textup`, `\textnormal`, `\textrm`, `\textlf`,
-    `\textmd`, `\textbf`, `\textsf`, `\texttt`, `\textsc`, `\textsl`,
-    `\em`, `\itshape`, `\upshape`, `\rmfamily`, `\lfseries`, `\mdseries`,
-    `\bfseries`, `\rmfamily`, `\sffamily`, `\ttfamily`, `\scshape`, `\slshape`,
-    `\rm`, `\normalfont`, `\md`, `\bf`, `\it`, `\sl`, `\sf`, `\tt`, `\sc`,
-    `\bfseries`, `\itseries`, `\mdseries`, `\sffamily`, `\slshape`,
-    `\scshape`, `\ttfamily`, `\centering`, `\raggedright`, `\raggedleft`,
-    `\uppercase`, `\MakeTextUppercase`, `\lowercase`, `\MakeTextLowercase`,
-    `\underline`, `\textcolor{color}{text}`, `\colorbox{backcolor}{text}`,
-    `\url`, `\href{url}{text}`, `\pdftooltip{hovertext}{text}`,
-    `\raisebox{amount}{text}`, `\par`,
-    `\BY{...}`, `\YEAR{...}`,
-    `\chapter`, `\section`, `\subsection`, `\subsubsection`, `\footnote`,
-    `\includegraphics[width/height/scale]{url}`,
-    `\smallskip`, `\medskip`, `\bigskip`, `\noindent`, `\indent`,
-    `\,`, `\thinspace`, `\enspace`, `\space`, `\quad`, `\qquad`,
-    `\negthinspace`, `\negmedspace`, `\negthickspace`,
-    `\"`, `\'`, ```\` ```, `\^`, `\~`, `\=`, `\c`, `\v`, `\u`, `\H`,
-    `\aa`, `\AA`, `\i`, `\j`, `\ss`, `\ae`, `\AE`, `\oe`, `\OE`, `\o`, `\O`,
-    `\S`, `\P`, `\checkmark`,
-    `\textasciitilde`, `\textasciicircum`, `\textbackslash`,
-    `\textbar`, `\textbardbl`,
-    `\textbraceleft`, `\textbraceright`, `\lbrack`, `\rbrack`,
-    `\textcopyright`, `\copyright`, `\textregistered`, `\circledR`,
-    `\textdagger`, `\dag`,
-    `\textdaggerdbl`, `\ddag`,
-    `\textdegree`, `\degree`,
-    `\textdollar`,
-    `\textellipsis`, `\dots`, `\ldots`,
-    `\textendash`, `\textemdash`,
-    `\textless`, `\textgreater`,
-    `\textquoteleft`, `\lq`, `\textquoteright`, `\rq`,
-    `\textquotedblleft`, `\textquotedblright`,
-    `\textsterling`, `\pounds`, `\yen`, `\maltese`,
-    `\textunderscore`, 
-    `\&`, `\$`, `\{`, `\}`, `\%`, `\#`, ``` `` ```, `''`,
-    `~`, `--`, `---`, `{`, `}`, `\\`, `\item`, `\item[...]`;
-    `\begin/\end` for environments `verbatim`, `CJK`, `itemize`,
-    `enumerate` (including [enumerate.sty's optional argument](http://ctan.mirrors.hoobly.com/macros/latex/required/tools/enumerate.pdf))
-    `quote`, `center`,
-    `tabular` (including `\multicolumn` and `\multirow`,
-    column styles `l`, `c`, `r`, `p{width}`, `m{width}`, `b{width}`,
-    and `*{n}{...}` repetition),
-    `equation`, `eqnarray`, `align`, `alignat`, `gather`, `CD`,
-    `problem`, `question`, `hint`, `example`, `remark`, `note`, `idea`,
-    `theorem`, `conjecture`, `lemma`, `corollary`, `fact`,
-    `observation`, `proposition`, `claim`, `proof`,
-    and some extra environments:
-    `details` or `+` (text that's hidden until clicked, like
-    [HTML `<details>` tag](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/details),
-    with optional argument for `<summary>`),
-    `proof+`, `theorem+`, etc. (like `proof`, `theorem`, etc.
-    wrapped in `details` environment).
+    for more.
     Also supports all HTML commands listed below.
+    * Macros defined for all math expressions and for basic use in text mode:
+      `\newcommand\macro{...}`, `\renewcommand\macro{...}`,
+      `\providecommand\macro{...}`, `\def\macro{...}`, `\gdef\macro{...}`,
+      `\edef\macro{...}`, `\xdef\macro{...}`, `\let\macro=\mac`
+    * Text formatting:
+      `\sout`, `\emph`, `\textit`, `\textup`, `\textnormal`, `\textrm`,
+      `\textlf`, `\textmd`, `\textbf`, `\textsf`, `\texttt`, `\textsc`,
+      `\textsl`, `\em`, `\itshape`, `\upshape`, `\rmfamily`, `\lfseries`,
+      `\mdseries`, `\bfseries`, `\rmfamily`, `\sffamily`, `\ttfamily`,
+      `\scshape`, `\slshape`, `\rm`, `\normalfont`, `\md`, `\bf`, `\it`,
+      `\sl`, `\sf`, `\tt`, `\sc`, `\bfseries`, `\itseries`, `\mdseries`,
+      `\sffamily`, `\slshape`, `\scshape`, `\ttfamily`, `\centering`,
+      `\raggedright`, `\raggedleft`, `\uppercase`, `\MakeTextUppercase`,
+      `\lowercase`, `\MakeTextLowercase`, `\underline`,
+      `\textcolor{color}{text}`, `\colorbox{backcolor}{text}`,
+      `\raisebox{amount}{text}`, `\par`,
+      `\BY{...}`, `\YEAR{...}`,
+    * Hyperlinks:
+      `\url`, `\href{url}{text}`, `\pdftooltip{hovertext}{text}`,
+      `\includegraphics[width/height/scale]{url}`,
+    * Sections: `\chapter`, `\section`, `\subsection`, `\subsubsection`, `\footnote`
+    * Spaces: `\smallskip`, `\medskip`, `\bigskip`, `\noindent`, `\indent`,
+      `\,`, `\thinspace`, `\enspace`, `\space`, `\quad`, `\qquad`,
+      `\negthinspace`, `\negmedspace`, `\negthickspace`
+    * Accents: `\"`, `\'`, ```\` ```, `\^`, `\~`, `\=`, `\c`, `\v`, `\u`, `\H`,
+      `\aa`, `\AA`, `\i`, `\j`, `\ss`, `\ae`, `\AE`, `\oe`, `\OE`, `\o`, `\O`,
+      `\S`, `\P`,
+    * Symbols: `\checkmark`, `\textasciitilde`, `\textasciicircum`,
+      `\textbackslash`,
+      `\textbar`, `\textbardbl`,
+      `\textbraceleft`, `\textbraceright`, `\lbrack`, `\rbrack`,
+      `\textcopyright`, `\copyright`, `\textregistered`, `\circledR`,
+      `\textdagger`, `\dag`,
+      `\textdaggerdbl`, `\ddag`,
+      `\textdegree`, `\degree`,
+      `\textdollar`,
+      `\textellipsis`, `\dots`, `\ldots`,
+      `\textendash`, `\textemdash`,
+      `\textless`, `\textgreater`,
+      `\textquoteleft`, `\lq`, `\textquoteright`, `\rq`,
+      `\textquotedblleft`, `\textquotedblright`,
+      `\textsterling`, `\pounds`, `\yen`, `\maltese`,
+      `\textunderscore`, 
+      `\&`, `\$`, `\{`, `\}`, `\%`, `\#`, ``` `` ```, `''`,
+      `~`, `--`, `---`
+    * Misc: `%...`, `\protect`, `{`, `}`, `\\`, `\item`, `\item[...]`;
+    * Environments via `\begin/\end`: `verbatim`, `CJK`, `itemize`,
+      `enumerate` (including [enumerate.sty's optional argument](http://ctan.mirrors.hoobly.com/macros/latex/required/tools/enumerate.pdf))
+      `quote`, `center`,
+      `tabular` (including `\multicolumn` and `\multirow`,
+      column styles `l`, `c`, `r`, `p{width}`, `m{width}`, `b{width}`,
+      and `*{n}{...}` repetition),
+      `equation`, `eqnarray`, `align`, `alignat`, `gather`, `CD`,
+      `problem`, `question`, `hint`, `example`, `remark`, `note`, `idea`,
+      `theorem`, `conjecture`, `lemma`, `corollary`, `fact`,
+      `observation`, `proposition`, `claim`, `proof`,
+      and some extra environments:
+      `details` or `+` (text that's hidden until clicked, like
+      [HTML `<details>` tag](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/details),
+      with optional argument for `<summary>`),
+      `proof+`, `theorem+`, etc. (like `proof`, `theorem`, etc.
+      wrapped in `details` environment).
   * HTML, sanitized.  The following tags are allowed; feel free to ask for
     more.  `<h1>`, `<h2>`, `<h3>`, `<h4>`, `<h5>`, `<h6>`,
     `<blockquote>`, `<p>`, `<div>`, `<span>`,
