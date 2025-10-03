@@ -58,7 +58,9 @@ To see what's changed in Coauthor recently, check out the
     * Macros defined for all math expressions and for basic use in text mode:
       `\newcommand\macro{...}`, `\renewcommand\macro{...}`,
       `\providecommand\macro{...}`, `\def\macro{...}`, `\gdef\macro{...}`,
-      `\edef\macro{...}`, `\xdef\macro{...}`, `\let\macro=\mac`
+      `\edef\macro{...}`, `\xdef\macro{...}`, `\let\macro=\mac`.
+      If you define macros in the root post of a thread, they are available
+      in all messages in that thread.
     * Text formatting:
       `\sout`, `\emph`, `\textit`, `\textup`, `\textnormal`, `\textrm`,
       `\textlf`, `\textmd`, `\textbf`, `\textsf`, `\texttt`, `\textsc`,

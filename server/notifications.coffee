@@ -476,6 +476,7 @@ notificationEmail = (notifications) ->
               leaveTeX: true  # KaTeX CSS not in email
               me: user.username
               id: msg._id
+            .text
             bodyText = msg.body
           else
             bodyHtml = bodyText = '(empty body)'

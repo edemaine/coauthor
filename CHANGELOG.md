@@ -7,6 +7,13 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2025-10-03
+
+* Macros defined at the top-level text mode in the root post of a thread
+  are now available in all messages in that thread, enabling thread-level
+  macro definitions.
+  [[#341](https://github.com/edemaine/coauthor/issues/341)]
+
 ## 2025-10-02
 
 * `\newcommand`, `\renewcommand`, `\providecommand`, `\def`, `\xdef`, `\edef`,

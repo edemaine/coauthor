@@ -29,7 +29,7 @@ import {prefersReducedMotion, scrollBehavior} from './lib/scroll'
 import {allEmoji} from '/lib/emoji'
 import {messageFileUrlPrefix, messageFileAbsoluteUrlPrefix, internalFileUrlPrefix, internalFileAbsoluteUrlPrefix} from '/lib/files'
 import {availableFormats, formatBody, formatFile, formatFileDescription, formatTitleOrFilename, parseCoauthorAuthorUrl, parseCoauthorMessageUrl, parseCoauthorMessageFileUrl} from '/lib/formats'
-import {ancestorMessages, descendantMessagesQuery, messageDiffsExpanded, messageNeighbors, sortedMessageReaders} from '/lib/messages'
+import {ancestorMessages, descendantMessagesQuery, findMessageRoot, messageDiffsExpanded, messageNeighbors, sortedMessageReaders} from '/lib/messages'
 import {autosubscribe, defaultNotificationsOn, messageSubscribers} from '/lib/notifications'
 import {autopublish, defaultKeyboard, userKeyboard, themeEditor} from '/lib/settings'
 import {escapeTag, sortTags} from '/lib/tags'
@@ -73,6 +73,20 @@ switch sharejsEditor
 @routeMessage = ->
   Router.current()?.params?.message
 
+## At the top level, always render the root (even if not visible)
+## and maintain its set of macros, for children to use.
+export monitorRoot = (message) =>
+  useTracker =>
+    root = findMessageRoot message
+    return unless root?
+    try
+      rootMacros.set root._id,
+        formatBody root.format, root.body, id: root._id
+        .macros
+    catch e
+      console.error "Failed to compute macros for #{root._id}: #{e}"
+  , [message._id, message.root, message.format, message.body]
+
 export SubmessageHeader = React.memo ({message}) ->
   <>
     <MaybeRootHeader message={message}/>
@@ -89,6 +103,7 @@ Template.submessageHeaderNoChildren.helpers
   messageNoChildren: -> Object.assign {}, @, children: []
 
 export MaybeRootHeader = React.memo ({message}) ->
+  monitorRoot message
   return null unless message?.root?
   <ErrorBoundary>
     <RootHeader message={message}/>
@@ -193,6 +208,7 @@ export MessageID = React.memo ({messageID}) ->
 MessageID.displayName = 'MessageID'
 
 Message = React.memo ({message}) ->
+  monitorRoot message
   useEffect ->
     setTitle titleOrUntitled message
     undefined
@@ -443,6 +459,10 @@ messagePreviewGet = (messageID) ->
   messagePreview.get(messageID) ? messagePreviewDefault()
 messagePreviewSet = (messageID, change) ->
   messagePreview.set messageID, change messagePreviewGet messageID
+
+## Map from root message ID to that message's macros,
+## which get included in all child messages.
+rootMacros = new ReactiveDict
 
 ## Authors and @mentions tracked throughout Submessage views
 threadAuthors = {}
@@ -2422,6 +2442,10 @@ export WrappedSubmessage = React.memo ({message, read}) ->
     if historified.file
       fileType historified.file
   , [historified.file]
+  macros = useTracker ->
+    return unless message.root
+    rootMacros.get message.root  # deep copies so no aliasing
+  , [message.root]
   formattedTitle = useTracker ->
     for bold in [true, false]
       ## Only render unbold title if we have children (for back pointer)
@@ -2432,14 +2456,18 @@ export WrappedSubmessage = React.memo ({message, read}) ->
         formatTitleOrFilename historified,
           orUntitled: false
           bold: bold
-  , [historified.title, historified.file, historified.format, raw, message.children.length > 0]
+          macros: macros
+  , [historified.title, historified.file, historified.format, raw, message.children.length > 0, macros]
   formattedBody = useTracker ->
     return historified.body unless historified.body
     if raw
       "<PRE CLASS='raw'>#{_.escape historified.body}</PRE>"
     else
-      formatBody historified.format, historified.body, id: historified._id
-  , [historified.body, historified.format, historified._id, raw]
+      formatBody historified.format, historified.body,
+        id: historified._id
+        macros: macros
+      .text
+  , [historified.body, historified.format, historified._id, raw, macros]
   formattedFile = useTracker ->
     file = findFile historified.file
     return {} unless file?

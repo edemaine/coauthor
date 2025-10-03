@@ -273,8 +273,9 @@ colStyle =
 ## Process all commands starting with \ followed by a letter a-z.
 ## This is not a valid escape sequence in Markdown, so can be safely supported
 ## in Markdown too.
-latex2htmlCommandsAlpha = (text, math) ->
-  macros = {}
+latex2htmlCommandsAlpha = (text, math, macros) ->
+  macros ?= {}
+  macroCount = 0
   katexOptions = {macros, globalGroup: true, trust: true}
   text = text
   ## \verb is here instead of latex2htmlVerb so that it's processed after
@@ -310,6 +311,7 @@ latex2htmlCommandsAlpha = (text, math) ->
   ///g, (match) =>
     try
       katex.renderToString match, katexOptions
+      macroCount++
       ''
     catch e
       throw e unless e instanceof katex.ParseError
@@ -317,6 +319,13 @@ latex2htmlCommandsAlpha = (text, math) ->
       title = escapeForQuotedHTML e.toString()
       latex = escapeForHTML match
       """<span class="katex-error" title="#{title}">#{latex}</span>"""
+  ## Remove location info from macro tokens to avoid circular structure
+  if macroCount
+    for key, value of macros
+      continue unless value.tokens?
+      for token in value.tokens
+        delete token.loc
+  ## Expand macros at top-level text mode too. (Math is already factored out.)
   commands = Object.keys macros
   if commands.length
     r = ///
@@ -598,18 +607,18 @@ latex2htmlCommandsAlpha = (text, math) ->
 
 ## "Light" LaTeX support, using only commands that start with a letter a-z,
 ## so are safe to process in Markdown.  No accent support.
-latex2htmlLight = (text, me) ->
+latex2htmlLight = (text, me, macros) ->
   text = latex2htmlVerb text
   ## After \def expansion and verbatim processing, protect math
   {text, math} = preprocessKaTeX text
   ## After math extraction, process @mentions
   text = processAtMentions text, me
-  {text, macros} = latex2htmlCommandsAlpha text, math
+  {text, macros} = latex2htmlCommandsAlpha text, math, macros
   {text, math, macros}
 
 ## Full LaTeX support, including all supported commands and symbols
 ## (% make comments, ~ makes nonbreaking space, etc.).
-latex2html = (text, me) ->
+latex2html = (text, me, macros) ->
   text = latex2htmlVerb text
   text = latexStripComments text
   ## Paragraph detection must go before any macro expansion (which eat \n's)
@@ -622,7 +631,7 @@ latex2html = (text, me) ->
   text = '<p>' + text
   ## Commands
   text = text.replace /\\\\/g, '[DOUBLEBACKSLASH]'
-  {text, macros} = latex2htmlCommandsAlpha text, math
+  {text, macros} = latex2htmlCommandsAlpha text, math, macros
   text = text
   .replace /\\c\s*{s}/g, '&#351;'
   .replace /\\c\s*{z}/g, 'z&#807;'
@@ -669,7 +678,7 @@ latex2html = (text, me) ->
   {text, math, macros}
 
 formats =
-  markdown: (text, title, me) ->
+  markdown: (text, title, me, macros) ->
     ## Escape all characters that can be (in particular, _s) that appear
     ## inside math mode, to prevent Marked from processing them.
     ## The Regex is exactly marked.js's inline.escape.
@@ -680,7 +689,7 @@ formats =
     ## LaTeX processing on them (especially math mode, so $ is inert in code).
     {text, ticks} = preprocessMarkdownTicks text
     ## Support what we can of LaTeX before doing Markdown conversion.
-    {text, math, macros} = latex2htmlLight text, me
+    {text, math, macros} = latex2htmlLight text, me, macros
     #console.log text, math
     ## Put Markdown verbatims back in.
     text = putTicksBack text, ticks
@@ -715,9 +724,9 @@ formats =
           match
     #.replace /(<label\b[^<>]*>)\s*/ig, '$1'
     {text, math, macros}
-  latex: (text, title, me) ->
-    latex2html text, me
-  html: (text, title) ->
+  latex: (text, title, me, macros) ->
+    latex2html text, me, macros
+  html: (text, title, macros) ->
     linkify text
 
 export coauthorLinkPrefixRe = "coauthor:/?/?"
@@ -1033,7 +1042,7 @@ linkToSpecificMessageRegexp = new RegExp "^#{idRegex}(_|$)"
 
 formatEither = (isTitle, format, text, options) ->
   return text unless text?
-  {leaveTeX, bold, me, id} = options if options?
+  {leaveTeX, bold, me, id, macros} = options if options?
 
   ## Markdown format is special because it processes @mentions
   ## at a specific time (after verbatim extraction).
@@ -1043,7 +1052,7 @@ formatEither = (isTitle, format, text, options) ->
   ## Other formats (currently just HTML) don't touch math,
   ## so we need to preprocess here.
   if format in ['latex', 'markdown']
-    {text, math, macros} = formats[format] text, isTitle, me
+    {text, math, macros} = formats[format] text, isTitle, me, macros
   else
     {text, math} = preprocessKaTeX text
     text = processAtMentions text, me
@@ -1089,7 +1098,7 @@ formatEither = (isTitle, format, text, options) ->
       return match unless inTag string, offset
       return if linkToSpecificMessageRegexp.test hash
       "href=\"##{id}_#{hash}\""
-  text
+  {text, macros}
 
 formatEitherSafe = (isTitle, format, text, options) ->
   try
@@ -1097,21 +1106,23 @@ formatEitherSafe = (isTitle, format, text, options) ->
   catch e
     console.error e.stack ? e.toString()
     if isTitle
-      """
+      {text: """
         <span class="label label-danger">Formatting error (bug in Coauthor)</span>
         <code>#{_.escape text}</code>
-      """
+      """}
     else
-      """
+      {text: """
         <div class="alert alert-danger">Formatting error (bug in Coauthor): #{e.toString()}</div>
         <pre>#{_.escape text}</pre>
-      """
+      """}
 
 export formatBody = (format, body, options) ->
   formatEitherSafe false, format, body, options
+  # returns {text, macros}
 
 export formatTitle = (format, title, options) ->
   formatEitherSafe true, format, title, options
+  .text
 
 export formatBadFile = (fileId) ->
   """<i class="bad-file">&lt;unknown file with ID #{fileId}&gt;</i>"""
