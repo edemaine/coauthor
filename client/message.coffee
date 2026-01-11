@@ -854,6 +854,47 @@ export MessageEditor = React.memo ({message, setEditBody, setEditDirty, tabindex
         paste = null
         editor.on 'paste', (cm, e) ->
           paste = null
+          files = []
+          for item in e.clipboardData?.items ? []
+            if item.kind == 'file' and /^image\//.test item.type
+              file = item.getAsFile()
+              files.push file if file?
+          if files.length
+            e.preventDefault()
+            callbacks = {}
+            called = 0
+            insertPos = editor.getCursor()
+            defaultPublished = autopublish()
+            defaultPublished and= Boolean message.published
+            defaultDeleted = Boolean message.deleted
+            for file, i in files
+              do (i) ->
+                file.callback = (file2, done) ->
+                  callbacks[i] = ->
+                    start = _.clone insertPos
+                    Meteor.call 'messageNew', message.group, message._id, null,
+                      file: file2.uniqueIdentifier
+                      deleted: defaultDeleted
+                      published: defaultPublished
+                      finished: true
+                    , (error, result) ->
+                        if error
+                          console.error error
+                        else if result
+                          replacement = embedFile result, true, 'image'
+                          cm.replaceRange replacement, start
+                          insertPos = editor.getCursor()
+                        else
+                          console.error 'messageNew did not return message ID -- not authorized?'
+                        done()
+                  while callbacks[called]?
+                    callbacks[called]()
+                    called += 1
+                file.metadata =
+                  group: message.group
+                  root: message2root message
+                Files.resumable.addFile file, e
+            return
           if pasteHTML and 'text/html' in e.clipboardData.types
             paste = e.clipboardData.getData 'text/html'
             .replace /<!--.*?-->/g, ''
