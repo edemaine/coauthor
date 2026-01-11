@@ -747,6 +747,12 @@ export coauthorLinkRe = "#{coauthorLinkPrefixRe}#{coauthorLinkBodyRe}"
 export coauthorLinkHashRe = "#{coauthorLinkPrefixRe}#{coauthorLinkBodyHashRe}"
 coauthorEitherLinkRe = coauthorEitherLinkHashRe = null
 
+export parseCoauthorLink = (url) ->
+  match = ///^#{coauthorLinkHashRe}$///.exec url
+  return unless match?
+  message: match[1]
+  hash: match[2] ? ''
+
 export initLinkRes = ->
   return if coauthorEitherLinkRe?
   coauthorEitherLinkPrefixRe = "(?:#{coauthorLinkPrefixRe}|#{urlFor 'message',
@@ -758,6 +764,18 @@ export initLinkRes = ->
   }/)"
   coauthorEitherLinkRe = "#{coauthorEitherLinkPrefixRe}#{coauthorLinkBodyRe}"
   coauthorEitherLinkHashRe = "#{coauthorEitherLinkPrefixRe}#{coauthorLinkBodyHashRe}"
+
+export lookupCoauthorLink = (link) ->
+  initLinkRes()
+  match = ///^#{coauthorEitherLinkHashRe}$///.exec link
+  return unless match?
+  message = match[1]
+  hash = match[2] ? ''
+  msg = findMessage message
+  group = msg?.group ? wildGroup
+  url = urlFor 'message', {group, message}
+  url += hash if hash?
+  {...msg, _id: message, group, hash, url}
 
 export parseCoauthorMessageUrl = (url, simplify) ->
   match = new RegExp("^#{urlFor 'message',

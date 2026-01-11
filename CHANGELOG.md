@@ -9,7 +9,8 @@ instead of version numbers.
 
 ## 2026-01-11
 
-* Control/meta-clicking a link in an editor opens it in a new tab
+* When editing a message, hovering over a link shows the message title
+  (if it's a Coauthor link), and control/meta-clicking opens it in a new tab
   [[#521](https://github.com/edemaine/coauthor/issues/521)]
 
 ## 2026-01-10

@@ -21,15 +21,16 @@ import {TextTooltip} from './lib/tooltip'
 import {UserInput} from './UserInput'
 import {UserLink} from './UserLink'
 import {resolveTheme} from './theme'
-import {urlOverlay, urlAtPos} from './codemirror/url'
+import {linkOverlay, linkAtPos} from './codemirror/link'
 import {defaultHeight, emailless, messagePreviewDefault} from './settings.coffee'
 import {forceImgReload} from './lib/forceImgReload'
 import {useElementWidth} from './lib/resize'
 import {setMigrateSafe, migrateWant} from './lib/migrate'
 import {prefersReducedMotion, scrollBehavior} from './lib/scroll'
+import {Ctrl} from './lib/platform'
 import {allEmoji} from '/lib/emoji'
 import {messageFileUrlPrefix, messageFileAbsoluteUrlPrefix, internalFileUrlPrefix, internalFileAbsoluteUrlPrefix} from '/lib/files'
-import {availableFormats, coauthorLinkHashRe, formatBody, formatFile, formatFileDescription, formatTitleOrFilename, parseCoauthorAuthorUrl, parseCoauthorMessageUrl, parseCoauthorMessageFileUrl} from '/lib/formats'
+import {availableFormats, formatBody, formatFile, formatFileDescription, formatTitleOrFilename, lookupCoauthorLink, parseCoauthorAuthorUrl, parseCoauthorMessageUrl, parseCoauthorMessageFileUrl, titleOrFilename} from '/lib/formats'
 import {ancestorMessages, descendantMessagesQuery, findMessageRoot, messageDiffsExpanded, messageNeighbors, sortedMessageReaders} from '/lib/messages'
 import {autosubscribe, defaultNotificationsOn, messageSubscribers} from '/lib/notifications'
 import {autopublish, defaultKeyboard, userKeyboard, themeEditor} from '/lib/settings'
@@ -788,23 +789,67 @@ export MessageEditor = React.memo ({message, setEditBody, setEditDirty, tabindex
         editor.setOption 'dragDrop', true
 
         ## Control clicking URLs opens the links in a new tab
-        editor.addOverlay urlOverlay()
+        editor.addOverlay linkOverlay()
         editor.on 'mousedown', (cm, e) ->
           return unless e.button == 0
           return unless e.ctrlKey or e.metaKey
           pos = editor.coordsChar
             left: e.pageX
             top: e.pageY
-          url = urlAtPos editor, pos
+          url = linkAtPos(editor, pos)?.url
           return unless url
-          if (match = ///^#{coauthorLinkHashRe}$///.exec url)?
-            msg = findMessage match[1]
-            url = urlFor 'message',
-              group: msg?.group or wildGroup
-              message: match[1]
-            url += match[2] if match[2]?
+          if (match = lookupCoauthorLink url)?
+            url = match.url
           e.preventDefault()
           window.open url, '_blank'
+        ## Link tooltips
+        tooltipTextForUrl = (url) ->
+          text = ''
+          if (match = lookupCoauthorLink url)?
+            text += titleOrFilename match
+            if match.group
+              text += " [#{match.group}]"
+            text += '\n'
+          text += "(#{Ctrl}+Click to open link)"
+          text
+        tooltip = undefined
+        makeTooltip = (link) ->
+          tooltip?.remove()
+          tooltip = document.createElement 'ul'
+          tooltip.className = 'CodeMirror-hints'
+          coords = editor.charCoords link.pos, 'page'
+          tooltip.style.left = "#{coords.left}px"
+          tooltip.style.top = "#{coords.bottom}px"
+          body = document.createElement 'li'
+          body.className = 'CodeMirror-hint'
+          body.textContent = tooltipTextForUrl link.url
+          body.addEventListener 'click', =>
+            {url} = link
+            if (match = lookupCoauthorLink url)?
+              url = match.url
+            window.open url, '_blank'
+          tooltip.appendChild body
+          document.body.appendChild tooltip
+        wrapper = editor.getWrapperElement()
+        wrapper.addEventListener 'mouseover', (e) =>
+          target = e.target?.closest?('.cm-link')
+          return unless target?
+          rect = target.getBoundingClientRect()
+          pos = editor.coordsChar
+            left: (rect.left + rect.right) / 2
+            top: (rect.top + rect.bottom) / 2
+          , 'window'
+          link = linkAtPos editor, pos
+          return unless link
+          makeTooltip link
+        wrapper.addEventListener 'mouseout', (e) =>
+          target = e.target?.closest?('.cm-link')
+          return unless target?
+          tooltip?.remove()
+          tooltip = undefined
+        wrapper.addEventListener 'mouseleave', (e) =>
+          tooltip?.remove()
+          tooltip = undefined
 
         paste = null
         editor.on 'paste', (cm, e) ->

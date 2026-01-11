@@ -1,7 +1,7 @@
 import {linkifyIt} from '/lib/markdown'
 import 'codemirror/addon/mode/overlay'
 
-export urlOverlay = ->
+export linkOverlay = ->
   # Cache last line and its links to avoid recomputation
   lastLine = null
   lastLinks = null
@@ -27,12 +27,13 @@ export urlOverlay = ->
     stream.skipToEnd()
     null
 
-export urlAtPos = (editor, pos) ->
+export linkAtPos = (editor, pos) ->
   line = editor.getLine pos.line
   return null unless line?
-  links = urlOverlay().lineLinks line
+  links = linkOverlay().lineLinks line
   return null unless links?
   for link in links
     if link.index <= pos.ch < link.lastIndex
-      return link.url ? link.text
+      # Add pos field to position of start of link
+      return {...link, pos: {...pos, ch: link.index}}
   null
