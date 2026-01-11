@@ -14,6 +14,11 @@ instead of version numbers.
 * Prevent accidental coauthor addition when clicking into window
   [[#652](https://github.com/edemaine/coauthor/issues/652)]
 * Improve coauthor completion color in dark mode
+* Don't linkify URLs inside verbatim environments
+  [[#646](https://github.com/edemaine/coauthor/issues/646)]
+* Prettification of patterns like 5x5 now needs spaces on either side,
+  fixing URLs with such patterns
+  [[#646](https://github.com/edemaine/coauthor/issues/646)]
 
 ## 2025-10-03
 

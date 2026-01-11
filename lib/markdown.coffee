@@ -1,4 +1,4 @@
-import {coauthorLinkBodyHashRe, inTag} from './formats'
+import {coauthorLinkBodyHashRe, inTag, inCode} from './formats'
 
 #markdownMode = 'marked'
 markdownMode = 'markdown-it'
@@ -53,8 +53,9 @@ switch markdownMode
           existing.push [match.index, match.index + match[0].length]
         links.reverse()
         for link in links
-          ## Don't convert links in tags
+          ## Don't convert links in tags or in <code> (e.g. from \verb)
           continue if inTag text, link.index
+          continue if inCode text, link.index
           ## Don't convert links already linked
           linked = false
           for [begin, end] in existing

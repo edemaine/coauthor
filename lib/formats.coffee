@@ -110,6 +110,14 @@ export inTag = (string, offset) ->
       return true
   false
 
+export inCode = (string, offset) ->
+  open = string.lastIndexOf '<code>', offset
+  if open >= 0
+    close = string.lastIndexOf '<', offset
+    if close == open  ## unclosed verbatim tag
+      return true
+  false
+
 latexSymbols =
   '``': '&ldquo;'
   "''": '&rdquo;'
