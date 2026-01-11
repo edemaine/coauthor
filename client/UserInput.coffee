@@ -1,4 +1,4 @@
-import React, {Suspense, useMemo, useRef} from 'react'
+import React, {Suspense, useEffect, useMemo, useRef} from 'react'
 import {useTracker} from 'meteor/react-meteor-data'
 Typeahead = React.lazy -> import('react-bootstrap-typeahead/es/components/Typeahead')
 
@@ -45,6 +45,24 @@ export WrappedUserInput = React.memo ({group, omit, placeholder, onSelect}) ->
   , []
   ref = useRef()
 
+  ## When the input had focus, and user leaves and then refocuses the window,
+  ## the input gets a focus event, which triggers opening the menu.
+  ## This can be bad when clicking into the window:
+  ## it's easy to accidentally select a menu item in the same click
+  ## (if it happens to be where the menu would show).
+  ## So we track whether the window just got focus, and if so,
+  ## hide the menu on input focus.
+  windowJustFocused = useRef false
+  useEffect =>
+    handleFocus = =>
+      windowJustFocused.current = true
+      setTimeout =>
+        windowJustFocused.current = false
+      , 0
+    window.addEventListener 'focus', handleFocus
+    => window.removeEventListener 'focus', handleFocus
+  , []
+
   onChange = (selected) ->
     if selected.length
       if selected[0].customOption
@@ -60,6 +78,7 @@ export WrappedUserInput = React.memo ({group, omit, placeholder, onSelect}) ->
     <Typeahead ref={ref} placeholder={placeholder} id="userInput#{count}"
      options={sorted} labelKey="label" align="left" flip
      allowNew={allowNew if amSuper}
+     onFocus={=> if windowJustFocused.current then ref.current?.hideMenu()}
      onChange={onChange}/>
   </Suspense>
 WrappedUserInput.displayName = 'WrappedUserInput'
