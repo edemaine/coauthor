@@ -11,6 +11,7 @@ instead of version numbers.
 
 * Preserve partial user access when renaming groups
   [[#655](https://github.com/edemaine/coauthor/issues/655)]
+* Improve coauthor completion color in dark mode
 
 ## 2025-10-03
 

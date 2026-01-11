@@ -67,3 +67,7 @@
 .tt-suggestion p {
   margin: 0;
 }
+
+.dark .rbt-input-hint {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
