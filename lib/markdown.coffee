@@ -44,6 +44,7 @@ switch markdownMode
     .add 'coauthor:', validate: ///^#{coauthorLinkBodyHashRe}///
     @markdown = (text) -> markdownIt.render text
     @markdownInline = (text) -> markdownIt.renderInline text
+    linkifyIt = markdownIt.linkify
     @linkify = (text) ->
       links = markdownIt.linkify.match text
       if links?
@@ -67,3 +68,5 @@ switch markdownMode
             """<a href="#{link.url}">#{link.text}</a>""" +
             text[link.lastIndex..]
       text
+
+export {linkifyIt}

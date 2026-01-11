@@ -21,6 +21,7 @@ import {TextTooltip} from './lib/tooltip'
 import {UserInput} from './UserInput'
 import {UserLink} from './UserLink'
 import {resolveTheme} from './theme'
+import {urlOverlay, urlAtPos} from './codemirror/url'
 import {defaultHeight, emailless, messagePreviewDefault} from './settings.coffee'
 import {forceImgReload} from './lib/forceImgReload'
 import {useElementWidth} from './lib/resize'
@@ -28,7 +29,7 @@ import {setMigrateSafe, migrateWant} from './lib/migrate'
 import {prefersReducedMotion, scrollBehavior} from './lib/scroll'
 import {allEmoji} from '/lib/emoji'
 import {messageFileUrlPrefix, messageFileAbsoluteUrlPrefix, internalFileUrlPrefix, internalFileAbsoluteUrlPrefix} from '/lib/files'
-import {availableFormats, formatBody, formatFile, formatFileDescription, formatTitleOrFilename, parseCoauthorAuthorUrl, parseCoauthorMessageUrl, parseCoauthorMessageFileUrl} from '/lib/formats'
+import {availableFormats, coauthorLinkHashRe, formatBody, formatFile, formatFileDescription, formatTitleOrFilename, parseCoauthorAuthorUrl, parseCoauthorMessageUrl, parseCoauthorMessageFileUrl} from '/lib/formats'
 import {ancestorMessages, descendantMessagesQuery, findMessageRoot, messageDiffsExpanded, messageNeighbors, sortedMessageReaders} from '/lib/messages'
 import {autosubscribe, defaultNotificationsOn, messageSubscribers} from '/lib/notifications'
 import {autopublish, defaultKeyboard, userKeyboard, themeEditor} from '/lib/settings'
@@ -759,8 +760,8 @@ export MessageEditor = React.memo ({message, setEditBody, setEditDirty, tabindex
           username = e.dataTransfer?.getData 'application/coauthor-username'
           type = e.dataTransfer?.getData 'application/coauthor-type'
           pos = editor.coordsChar
-            left: e.x
-            top: e.y
+            left: e.pageX
+            top: e.pageY
           if username
             replacement = "@#{username}"
           else if id
@@ -785,6 +786,25 @@ export MessageEditor = React.memo ({message, setEditBody, setEditDirty, tabindex
               getData: -> replacement
           cmDrop e
         editor.setOption 'dragDrop', true
+
+        ## Control clicking URLs opens the links in a new tab
+        editor.addOverlay urlOverlay()
+        editor.on 'mousedown', (cm, e) ->
+          return unless e.button == 0
+          return unless e.ctrlKey or e.metaKey
+          pos = editor.coordsChar
+            left: e.pageX
+            top: e.pageY
+          url = urlAtPos editor, pos
+          return unless url
+          if (match = ///^#{coauthorLinkHashRe}$///.exec url)?
+            msg = findMessage match[1]
+            url = urlFor 'message',
+              group: msg?.group or wildGroup
+              message: match[1]
+            url += match[2] if match[2]?
+          e.preventDefault()
+          window.open url, '_blank'
 
         paste = null
         editor.on 'paste', (cm, e) ->

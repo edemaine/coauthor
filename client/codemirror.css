@@ -12,9 +12,9 @@ div.CodeMirror-cursors > div.CodeMirror-cursor { border-left-width: 3px; }
 .CodeMirror .cm-math { font-style: normal; font-weight: normal; }
 
 /* Spell checking */
-.cm-s-blackboard .cm-spell-error:not(.cm-url):not(.cm-comment):not(.cm-tag):not(.cm-word):not(.cm-math) {
+.cm-s-blackboard .cm-spell-error:not(.cm-link):not(.cm-comment):not(.cm-tag):not(.cm-word):not(.cm-math) {
     background: rgba(255, 0, 0, .2);
 }
-.cm-s-eclipse .cm-spell-error:not(.cm-url):not(.cm-comment):not(.cm-tag):not(.cm-word):not(.cm-math) {
+.cm-s-eclipse .cm-spell-error:not(.cm-link):not(.cm-comment):not(.cm-tag):not(.cm-word):not(.cm-math) {
     background: rgba(255, 0, 0, .075);
 }
