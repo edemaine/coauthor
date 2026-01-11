@@ -7,6 +7,11 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2026-01-10
+
+* Preserve partial user access when renaming groups
+  [[#655](https://github.com/edemaine/coauthor/issues/655)]
+
 ## 2025-10-03
 
 * Macros defined at the top-level text mode in the root post of a thread

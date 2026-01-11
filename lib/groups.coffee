@@ -440,6 +440,14 @@ Meteor.methods
       Meteor.users.update user._id,
         $unset: "roles.#{escapeGroup groupOld}": ''
         $set: "roles.#{escapeGroup groupNew}": roles
+    Meteor.users.find
+      "rolesPartial.#{escapeGroup groupOld}": $exists: true
+    .forEach (user) ->
+      roles = user.rolesPartial?[escapeGroup groupOld]
+      return unless roles?
+      Meteor.users.update user._id,
+        $unset: "rolesPartial.#{escapeGroup groupOld}": ''
+        $set: "rolesPartial.#{escapeGroup groupNew}": roles
 
 export groupSortedBy = (group, sorts, options, user = Meteor.user()) ->
   query = accessibleMessagesQuery group, user
