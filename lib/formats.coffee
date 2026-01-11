@@ -1074,7 +1074,8 @@ formatEither = (isTitle, format, text, options) ->
     text = putMathBack text, math
   else
     text = postprocessKaTeX text, math, bold, macros
-  text = linkify text  ## Extra support for links, unliked LaTeX
+  unless format == 'markdown'  ## markdown runs linkify already
+    text = linkify text  ## Extra support for links, unlike LaTeX
   text = postprocessCoauthorLinks text, id
   text = postprocessLinks text
   text = formatSearchHighlight isTitle, text
