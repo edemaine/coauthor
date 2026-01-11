@@ -726,8 +726,11 @@ formats =
     {text, math, macros}
   latex: (text, title, me, macros) ->
     latex2html text, me, macros
-  html: (text, title, macros) ->
+  html: (text, title, me, macros) ->
+    {text, math} = preprocessKaTeX text
+    text = processAtMentions text, me
     linkify text
+    {text, math, macros: {}}
 
 export coauthorLinkPrefixRe = "coauthor:/?/?"
 export coauthorLinkBodyRe = "([a-zA-Z0-9]+)"
@@ -1044,22 +1047,11 @@ formatEither = (isTitle, format, text, options) ->
   return text unless text?
   {leaveTeX, bold, me, id, macros} = options if options?
 
-  ## Markdown format is special because it processes @mentions
-  ## at a specific time (after verbatim extraction).
-
-  ## LaTeX and Markdown formats are special because they do their own math
-  ## and @mention preprocessing at a specific time during its formatting.
-  ## Other formats (currently just HTML) don't touch math,
-  ## so we need to preprocess here.
-  if format in ['latex', 'markdown']
+  if format of formats
     {text, math, macros} = formats[format] text, isTitle, me, macros
   else
-    {text, math} = preprocessKaTeX text
-    text = processAtMentions text, me
-    if format of formats
-      text = formats[format] text, isTitle
-    else
-      console.warn "Unrecognized format '#{format}'"
+    console.warn "Unrecognized format '#{format}'"
+    math = []
     macros = {}
 
   ## Remove space after <li> to prevent shifting the next item right relative
