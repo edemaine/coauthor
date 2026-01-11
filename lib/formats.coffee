@@ -601,7 +601,7 @@ latex2htmlCommandsAlpha = (text, math, macros) ->
   .replace latexSimpleCommandsRe, (match, name) -> latexSimpleCommands[name]
   ## The following tweaks are not LaTeX actually, but useful in all modes,
   ## so we do them here.
-  .replace /\b[0-9]+(x[0-9]+)+\b/ig, (match) ->
+  .replace /(^|\s)[0-9]+(x[0-9]+)+(\s|$)/ig, (match) ->
      match.replace /x/ig, '\u00a0×\u00a0'
   {text, macros}
 
