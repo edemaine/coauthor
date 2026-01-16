@@ -755,6 +755,22 @@ export MessageEditor = React.memo ({message, setEditBody, setEditDirty, tabindex
               #when 'video'
               #  """<video controls><source src="coauthor:#{id}"></video>"""
           "coauthor:#{id}"
+        embedImageFiles = (files, e, insertPos) ->
+          imageFiles = (file for file in files when /^image\//.test file.type)
+          unless imageFiles.length
+            console.error "Unrecognized file type #{(file.type for file in files).join ', '}"
+            return false
+          if insertPos?
+            editor.setCursor insertPos
+          else
+            insertPos = editor.getCursor()
+          e.preventDefault()
+          attachFiles messageID, imageFiles, e, (result, done) ->
+            replacement = embedFile result, true, 'image'
+            editor.replaceRange replacement, insertPos
+            insertPos = editor.getCursor()
+            done()
+          true
         editor.display.dragFunctions.drop = (e) ->
           text = e.dataTransfer?.getData 'text'
           id = e.dataTransfer?.getData 'application/coauthor-id'
@@ -763,6 +779,9 @@ export MessageEditor = React.memo ({message, setEditBody, setEditDirty, tabindex
           pos = editor.coordsChar
             left: e.pageX
             top: e.pageY
+          if e.dataTransfer?.files?.length and
+             embedImageFiles e.dataTransfer.files, e, pos
+            return
           if username
             replacement = "@#{username}"
           else if id
@@ -898,21 +917,7 @@ export MessageEditor = React.memo ({message, setEditBody, setEditDirty, tabindex
               paste = ["@#{match.author}"]
           ## Image pasting -> attach and embed
           else if e.clipboardData.files?.length
-            for file in e.clipboardData.files
-              if /^image\//.test file.type
-                break
-            files = (file for file in e.clipboardData.files \
-                     when /^image\//.test file.type)
-            unless files.length
-              console.error "Unrecognized file type #{(file.type for file in e.clipboardData.files).join ', '}"
-              return
-            e.preventDefault()
-            insertPos = editor.getCursor()
-            attachFiles messageID, files, e, (result, done) ->
-              replacement = embedFile result, true, 'image'
-              cm.replaceRange replacement, insertPos
-              insertPos = editor.getCursor()
-              done()
+            embedImageFiles e.clipboardData.files, e
             return
         editor.on 'beforeChange', (cm, change) ->
           if change.origin == 'paste' and paste?
