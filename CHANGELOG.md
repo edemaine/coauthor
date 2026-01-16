@@ -8,11 +8,14 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2026-01-16
+
+* You can now paste an image when editing a message, which uploads it
+  as an attached file and embeds it at the cursor location
+  [[#490](https://github.com/edemaine/coauthor/issues/490)]
+
 ## 2026-01-11
 
-* Pasting an image directly into the editor now uploads it as an attached file
-  and embeds it at the cursor location
-  [[#490](https://github.com/edemaine/coauthor/issues/490)]
 * When editing a message, hovering over a link shows the message title
   (if it's a Coauthor link), and control/meta-clicking opens it in a new tab
   [[#521](https://github.com/edemaine/coauthor/issues/521)]
