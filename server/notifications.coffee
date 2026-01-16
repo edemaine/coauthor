@@ -19,6 +19,9 @@ dayjs.extend utc
 dayjs.extend timezone
 dayjs.extend advancedFormat
 
+bootTime = new Date
+console.log 'Booting at local time', bootTime.toString(), '=', bootTime.toUTCString()
+
 export serverTimezone =
   ## Server/default timezone: Use settings's coauthor.timezone if specified.
   ## Otherwise, try dayjs's guessing function.
