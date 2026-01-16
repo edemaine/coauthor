@@ -10,11 +10,11 @@ instead of version numbers.
 
 ## 2026-01-16
 
-* When editing a message, you can now paste an image from the clipboard
-  via <kbd>Ctrl/Cmd-V</kbd>, which uploads the image as an attached file
-  and embeds it at the cursor location
+* When editing a message, you can now paste an image (or video)
+  from the clipboard via <kbd>Ctrl/Cmd-V</kbd>, which uploads it
+  as an attached file and embeds the attachment at the cursor location
   [[#490](https://github.com/edemaine/coauthor/issues/490)]
-* You can now drag image file(s) into a message editor,
+* You can now drag image and/or video file(s) into a message editor,
   which uploads them as attached files and embeds them at the dragged location
   [[#114](https://github.com/edemaine/coauthor/issues/114)]
 

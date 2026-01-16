@@ -756,7 +756,7 @@ export MessageEditor = React.memo ({message, setEditBody, setEditDirty, tabindex
               #  """<video controls><source src="coauthor:#{id}"></video>"""
           "coauthor:#{id}"
         embedImageFiles = (files, e, insertPos) ->
-          imageFiles = (file for file in files when /^image\//.test file.type)
+          imageFiles = (file for file in files when /^(image|video)\//.test file.type)
           unless imageFiles.length
             console.error "Unrecognized file type #{(file.type for file in files).join ', '}"
             return false
