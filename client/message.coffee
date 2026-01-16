@@ -854,6 +854,7 @@ export MessageEditor = React.memo ({message, setEditBody, setEditDirty, tabindex
         paste = null
         editor.on 'paste', (cm, e) ->
           paste = null
+          ## Text pasting
           if pasteHTML and 'text/html' in e.clipboardData.types
             paste = e.clipboardData.getData 'text/html'
             .replace /<!--.*?-->/g, ''
@@ -895,6 +896,24 @@ export MessageEditor = React.memo ({message, setEditBody, setEditDirty, tabindex
               paste = [embedFile match.message]
             else if (match = parseCoauthorAuthorUrl text)?
               paste = ["@#{match.author}"]
+          ## Image pasting -> attach and embed
+          else if e.clipboardData.files?.length
+            for file in e.clipboardData.files
+              if /^image\//.test file.type
+                break
+            files = (file for file in e.clipboardData.files \
+                     when /^image\//.test file.type)
+            unless files.length
+              console.error "Unrecognized file type #{(file.type for file in e.clipboardData.files).join ', '}"
+              return
+            e.preventDefault()
+            insertPos = editor.getCursor()
+            attachFiles messageID, files, e, (result, done) ->
+              replacement = embedFile result, true, 'image'
+              cm.replaceRange replacement, insertPos
+              insertPos = editor.getCursor()
+              done()
+            return
         editor.on 'beforeChange', (cm, change) ->
           if change.origin == 'paste' and paste?
             change.text = paste
@@ -1541,7 +1560,7 @@ export EmojiButtons = React.memo ({message, can}) ->
   </div>
 EmojiButtons.displayName = 'EmojiButtons'
 
-export uploaderProps = (callback, inputRef) ->
+export uploaderProps = (inputRef, callback) ->
   buttonProps:
     onClick: (e) ->
       e.preventDefault()
@@ -1561,6 +1580,45 @@ export uploaderProps = (callback, inputRef) ->
   inputProps:
     onInput: (e) ->
       callback e.target.files, e
+
+attachFiles = (messageID, files, e, onComplete) ->
+  message = findMessage messageID
+  unless message?
+    console.error "attachFiles called without message"
+    return
+  defaultPublished = autopublish()
+  defaultPublished and= Boolean message.published
+  defaultDeleted = Boolean message.deleted
+  callbacks = {}
+  called = 0
+  ## Start all file uploads simultaneously.
+  for file, i in files
+    do (i) ->
+      file.callback = (file2, done) ->
+        ## Set up callback for when this file is completed.
+        callbacks[i] = ->
+          Meteor.call 'messageNew', message.group, message._id, null,
+            file: file2.uniqueIdentifier
+            deleted: defaultDeleted
+            published: defaultPublished
+            finished: true
+          , (error, result) ->
+            if error
+              console.error error
+              done()
+            else if onComplete?
+              onComplete result, done
+            else
+              done()
+        ## But call all the callbacks in order by file, so that replies
+        ## appear in the correct order.
+        while callbacks[called]?
+          callbacks[called]()
+          called++
+    file.metadata =
+      group: message.group
+      root: message2root message
+    Files.resumable.addFile file, e
 
 export ReplyButtons = React.memo ({message, prefix, can}) ->
   attachInput = useRef()
@@ -1622,31 +1680,8 @@ export ReplyButtons = React.memo ({message, prefix, can}) ->
           #Router.go 'message', {group: group, message: result}
       else
         console.error "messageNew did not return message ID -- not authorized?"
-  attachFiles = (files, e) ->
-    callbacks = {}
-    called = 0
-    ## Start all file uploads simultaneously.
-    for file, i in files
-      do (i) ->
-        file.callback = (file2, done) ->
-          ## Set up callback for when this file is completed.
-          callbacks[i] = ->
-            Meteor.call 'messageNew', message.group, message._id, null,
-              file: file2.uniqueIdentifier
-              deleted: defaultDeleted
-              published: defaultPublished
-              finished: true
-            , done
-          ## But call all the callbacks in order by file, so that replies
-          ## appear in the correct order.
-          while callbacks[called]?
-            callbacks[called]()
-            called += 1
-      file.metadata =
-        group: message.group
-        root: message2root message
-      Files.resumable.addFile file, e
-  {buttonProps, dropProps, inputProps} = uploaderProps attachFiles, attachInput
+  {buttonProps, dropProps, inputProps} =
+    uploaderProps attachInput, (files, e) -> attachFiles message._id, files, e
 
   threadPrivacy = message.threadPrivacy ? ['public']
   publicReply = 'public' in threadPrivacy
@@ -1799,7 +1834,7 @@ export MessageFile = React.memo ({message, history, tabindex}) ->
         group: message.group
         root: message2root message
       Files.resumable.addFile file, e
-  {buttonProps, dropProps, inputProps} = uploaderProps replaceFiles, replaceInput
+  {buttonProps, dropProps, inputProps} = uploaderProps replaceInput, replaceFiles
 
   removeFile = (e) ->
     diff =
