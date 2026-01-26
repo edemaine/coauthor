@@ -12,6 +12,7 @@ instead of version numbers.
 
 * Syntax highlighting support for Lean code via ` ```lean ` using
   [highlightjs-lean](https://github.com/leanprover-community/highlightjs-lean)
+* Upgrade highlight.js to 11.11.1, improving highlighting for various languages
 
 ## 2026-01-16
 
