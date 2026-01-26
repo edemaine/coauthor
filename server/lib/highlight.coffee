@@ -2,6 +2,8 @@
 ## See client/lib/highlight.coffee for the more interesting client-side version.
 
 import hljs from 'highlight.js'  # full library
+import lean from 'highlightjs-lean'
+hljs.registerLanguage 'lean', lean
 
 @highlight = (text, lang) ->
   return '' unless lang

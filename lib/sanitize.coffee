@@ -82,6 +82,8 @@ allowedClasses = [
   'fas', 'far', 'fa-check-square', 'fa-square'  # our replacement for disabled checkboxes
   # highlight.js
   'hljs', 'hljs-addition', 'hljs-attr', 'hljs-attribute', 'hljs-built_in', 'hljs-builtin-name', 'hljs-bullet', 'hljs-comment', 'hljs-deletion', 'hljs-emphasis', 'hljs-keyword', 'hljs-link', 'hljs-literal', 'hljs-meta', 'hljs-name', 'hljs-number', 'hljs-params', 'hljs-quote', 'hljs-regexp', 'hljs-section', 'hljs-selector-class', 'hljs-selector-id', 'hljs-selector-tag', 'hljs-string', 'hljs-strong', 'hljs-symbol', 'hljs-tag', 'hljs-template-variable', 'hljs-title', 'hljs-type', 'hljs-variable'
+  # highlightjs-lean
+  'hljs-sorry'
   # KaTeX:
   'mbin', 'mclose', 'minner', 'mopen', 'mrel', 'mord', 'mop', 'mpunct', 'mtight'
   # Above exist but not actually styled so not caught by the following:

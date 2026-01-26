@@ -280,10 +280,15 @@ module.exports = (grunt) ->
 
   ## Compute mapping of highlight.js language aliases to language imports
   highlight = require 'highlight.js'
+  builtinLanguages = highlight.listLanguages()
+  languageImports = {}
+  for language in builtinLanguages
+    languageImports[language] = "highlight.js/lib/languages/#{language}"
   aliases = {}
-  for language in highlight.listLanguages()
+  for language in builtinLanguages
     for alias in highlight.getLanguage(language).aliases ? []
       aliases[alias] = language
+  languageImports.lean = 'highlightjs-lean' unless 'lean' in languageImports
   quote = (x) ->
     if /^[a-zA-Z]+$/.test x
       x
@@ -297,8 +302,8 @@ module.exports = (grunt) ->
 
     languages =
     #{(
-      for language in highlight.listLanguages()
-        "  #{quote language}: -> import('highlight.js/lib/languages/#{language}')"
+      for name in Object.keys(languageImports).sort()
+        "  #{quote name}: -> import('#{languageImports[name]}')"
     ).join '\n'}
 
     aliases =

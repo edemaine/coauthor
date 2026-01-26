@@ -8,6 +8,11 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2026-01-26
+
+* Syntax highlighting support for Lean code via ` ```lean ` using
+  [highlightjs-lean](https://github.com/leanprover-community/highlightjs-lean)
+
 ## 2026-01-16
 
 * When editing a message, you can now paste an image (or video)
