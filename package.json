@@ -53,7 +53,7 @@
     "markdown-it-replacements": "1.0.2",
     "markdown-it-task-checkbox": "1.0.6",
     "meteor-node-stubs": "1.2.7",
-    "pdfjs-dist": "3.11.174",
+    "pdfjs-dist": "4.2.67",
     "react": "^17.0.1",
     "react-bootstrap": "^1.4.3",
     "react-bootstrap-typeahead": "6.4.1",
