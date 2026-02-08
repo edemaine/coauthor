@@ -8,6 +8,11 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2026-02-08
+
+* Fix rare error displaying "Sorted by" section of group view
+  [[#657](https://github.com/edemaine/coauthor/issues/657)]
+
 ## 2026-01-26
 
 * Syntax highlighting support for Lean code via ` ```lean ` using

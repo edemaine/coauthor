@@ -5,6 +5,7 @@ import OverlayTrigger from 'react-bootstrap/OverlayTrigger'
 import Tooltip from 'react-bootstrap/Tooltip'
 import {useTracker} from 'meteor/react-meteor-data'
 import Blaze from 'meteor/gadicc:blaze-react-component'
+import {createDragDropManager} from 'dnd-core'
 import {HTML5Backend} from 'react-dnd-html5-backend'
 import {DndProvider, useDrag, useDrop} from 'react-dnd'
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
@@ -26,6 +27,8 @@ import {groupDefaultSort, groupSortedBy, parseSort, unparseSort} from '/lib/grou
 import {subscribedToMessage} from '/lib/notifications'
 import {autopublish} from '/lib/settings'
 import {groupTags, sortTags} from '/lib/tags'
+
+dndManager = createDragDropManager HTML5Backend, window
 
 @routeGroup = ->
   Router.current()?.params?.group
@@ -113,7 +116,7 @@ export MaybeGroup = React.memo ({group}) ->
   , [group]
 
   if groupData?
-    <DndProvider backend={HTML5Backend}>
+    <DndProvider manager={dndManager}>
       <ErrorBoundary>
         <Group group={group} groupData={groupData}/>
       </ErrorBoundary>
