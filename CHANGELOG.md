@@ -8,6 +8,12 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2026-02-09
+
+* <kbd>Tab</kbd> and <kbd>Shift-Tab</kbd> now indent and dedent items in
+  Markdown lists, if your cursor is on or before the bullet/number.
+  [[#651](https://github.com/edemaine/coauthor/issues/651)]
+
 ## 2026-02-08
 
 * Fix rare error displaying "Sorted by" section of group view

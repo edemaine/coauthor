@@ -22,6 +22,7 @@ import {UserInput} from './UserInput'
 import {UserLink} from './UserLink'
 import {resolveTheme} from './theme'
 import {linkOverlay, linkAtPos} from './codemirror/link'
+import './codemirror/markdown-list-indent'
 import {defaultHeight, emailless, messagePreviewDefault} from './settings.coffee'
 import {forceImgReload} from './lib/forceImgReload'
 import {useElementWidth} from './lib/resize'
@@ -712,6 +713,8 @@ export MessageEditor = React.memo ({message, setEditBody, setEditDirty, tabindex
               theme
         pasteHTML = false
         editor.setOption 'extraKeys',
+          Tab: 'indentMarkdownList'
+          'Shift-Tab': 'dedentMarkdownList'
           Enter: 'xnewlineAndIndentContinueMarkdownList'
           End: 'goLineRight'
           Home: 'goLineLeft'
