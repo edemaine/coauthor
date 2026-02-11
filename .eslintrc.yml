@@ -166,6 +166,12 @@ rules:
   coffee/no-useless-escape: off
   import/default: off
   import/no-named-as-default-member: off
+  import/no-unresolved:
+    - "error"
+    - ignore:
+      # Sadly, the CoffeeScript linter can't coexist with the Civet extension.
+      # So we need to list all .civet files here.
+      - solid/ErrorBoundary
   react/no-unescaped-entities:
     - warn
     - forbid: ['>', '"', '}']
