@@ -9,8 +9,9 @@ email@2.2.6
 #ecmascript@0.14.3
 #coffeescript@2.3.2_1
 coffeescript-compiler@2.3.2_1
-edemaine:solid@0.2.3
+edemaine:solid@0.4.0
 edemaine:solid-template-helper@0.1.0
+edemaine:civet@0.1.0
 underscore@1.6.1
 accounts-password@2.4.0
 sacha:spin
