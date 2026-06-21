@@ -235,7 +235,7 @@ latex2htmlVerb = (text) ->
 
 ## Remove comments, stripping newlines from the input.
 latexStripComments = (text) ->
-  text.replace /(^|[^\\])%.*$\n?/mg, (match, prefix, offset, string) ->
+  text.replace /(^|[^\\])%.*$(?:\n[ \t]*)?/mg, (match, prefix, offset, string) ->
     if inTag string, offset
       ## Potential unclosed HTML tag: leave alone, but process other
       ## %s on the same line after tag closes.
