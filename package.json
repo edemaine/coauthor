@@ -66,7 +66,8 @@
     "roman-numeral": "^0.2.6",
     "solid-bootstrap": "1.0.8",
     "solid-js": "1.4.8",
-    "solid-meteor-data": "0.6.2"
+    "solid-meteor-data": "0.6.2",
+    "texlish": "^0.1.1"
   },
   "devDependencies": {
     "@babel/core": "^7.26.9",
@@ -92,7 +93,8 @@
   "meteor": {
     "nodeModules": {
       "recompile": {
-        "solid-bootstrap": true
+        "solid-bootstrap": true,
+        "texlish": true
       }
     }
   },

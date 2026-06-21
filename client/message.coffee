@@ -49,7 +49,7 @@ switch sharejsEditor
             'gfm-math'  ## Git-flavored Markdown, plus our math extensions
           when 'html'
             'html-math'
-          when 'latex'
+          when 'latex', 'texlish'
             'stex'
           else
             format
@@ -751,7 +751,7 @@ export MessageEditor = React.memo ({message, setEditBody, setEditDirty, tabindex
                 switch findMessage(messageID)?.format
                   when 'markdown'
                     return "![](coauthor:#{id})"
-                  when 'latex'
+                  when 'latex', 'texlish'
                     return "\\includegraphics{coauthor:#{id}}"
                   else #when 'html'
                     return """<img src="coauthor:#{id}">"""

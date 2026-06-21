@@ -32,7 +32,7 @@ To see what's changed in Coauthor recently, check out the
     number of "old versions" that get saved in the history: the server only
     pushes after the document has not changed for 1 second.)
 
-* Three **formats** for writing messages (and easy to add additional formats).
+* Four **formats** for writing messages (and easy to add additional formats).
   All formats support LaTeX math (via `$...$`, `$$...$$`, `\(...\)`, `\[...\]`,
   or `\begin{align/alignat/equation/eqnarray/gather/CD}...\end{align/alignat/equation/eqnarray/gather/CD}`)
   via [KaTeX](https://katex.org/), so math mode supports
@@ -51,6 +51,9 @@ To see what's changed in Coauthor recently, check out the
     [tables](http://www.tablesgenerator.com/markdown_tables), etc.
     Also supports all LaTeX commands listed below that start with a letter
     (notably, not some accents) and math mode, and all HTML commands listed below.
+  * [Texlish](https://texlish.org/) combines the best of Markdown and
+    LaTeX with indentation-based syntax, and compiles to LaTeX.
+    Supports all LaTeX features listed below.
   * LaTeX, limited.  Beyond extensive math mode support (see above),
     the following features are supported in text mode; feel free to ask
     for more.

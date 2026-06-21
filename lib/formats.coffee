@@ -5,9 +5,10 @@ import {parseSearch} from './search'
 katex = require 'katex'
 katex.__defineMacro '\\epsilon', '\\varepsilon'
 
+{compile: compileTexlish} = require 'texlish'
 romanNumeral = require 'roman-numeral'
 
-export availableFormats = ['markdown', 'latex', 'html']
+export availableFormats = ['markdown', 'texlish', 'latex', 'html']
 #export mathjaxFormats = availableFormats
 
 if Meteor.isClient
@@ -734,6 +735,8 @@ formats =
     {text, math, macros}
   latex: (text, title, me, macros) ->
     latex2html text, me, macros
+  texlish: (text, title, me, macros) ->
+    latex2html (compileTexlish text, fragment: true), me, macros
   html: (text, title, me, macros) ->
     {text, math} = preprocessKaTeX text
     text = processAtMentions text, me

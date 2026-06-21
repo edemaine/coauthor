@@ -8,6 +8,11 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2026-06-20
+
+* New [Texlish](https://texlish.org/) message format, which combines the best
+  of Markdown and LaTeX with indentation-based syntax and compiles to LaTeX.
+
 ## 2026-02-09
 
 * <kbd>Tab</kbd> and <kbd>Shift-Tab</kbd> now indent and dedent items in
