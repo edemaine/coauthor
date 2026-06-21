@@ -443,6 +443,7 @@ latex2htmlCommandsAlpha = (text, math, macros) ->
   .replace /\\par(?![a-zA-Z])\s*/g, '<p>'
   .replace /\\sout\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<s>$1</s>'
   .replace /\\emph\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<em>$1</em>'
+  .replace /\\defn\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, """<span style="font-style: italic; font-weight: #{boldWeight}">$1</span>"""
   .replace /\\textit\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="font-style: italic">$1</span>'
   .replace /\\textup\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<span style="font-style: normal">$1</span>'
   .replace /\\textlf\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, """<span style="font-weight: #{lightWeight}">$1</span>"""
@@ -967,7 +968,7 @@ postprocessKaTeX = (text, math, initialBold, macros = {}) ->
   ///g, (match, leftPunct, id, rightPunct, spanArgs) ->
     unless id?
       if spanArgs?
-        spanArgs = /style\s*=\s*['"]font-weight:\s*(\d+)/i.exec spanArgs
+        spanArgs = /style\s*=\s*['"][^'"]*\bfont-weight:\s*(\d+)/i.exec spanArgs
         if spanArgs?
           weights.push parseInt spanArgs[1]
       else if match == '<b' or match == '<strong'

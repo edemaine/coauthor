@@ -12,6 +12,7 @@ instead of version numbers.
 
 * New [Texlish](https://texlish.org/) message format, which combines the best
   of Markdown and LaTeX with indentation-based syntax and compiles to LaTeX.
+* Support `\defn{...}` in LaTeX, rendering bold italic text and math.
 
 ## 2026-02-09
 

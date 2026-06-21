@@ -65,7 +65,7 @@ To see what's changed in Coauthor recently, check out the
       If you define macros in the root post of a thread, they are available
       in all messages in that thread.
     * Text formatting:
-      `\sout`, `\emph`, `\textit`, `\textup`, `\textnormal`, `\textrm`,
+      `\sout`, `\emph`, `\defn`, `\textit`, `\textup`, `\textnormal`, `\textrm`,
       `\textlf`, `\textmd`, `\textbf`, `\textsf`, `\texttt`, `\textsc`,
       `\textsl`, `\em`, `\itshape`, `\upshape`, `\rmfamily`, `\lfseries`,
       `\mdseries`, `\bfseries`, `\rmfamily`, `\sffamily`, `\ttfamily`,
