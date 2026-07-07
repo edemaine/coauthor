@@ -11,6 +11,11 @@ romanNumeral = require 'roman-numeral'
 export availableFormats = ['markdown', 'texlish', 'latex', 'html']
 #export mathjaxFormats = availableFormats
 
+texlishOptions =
+  fragment: true
+  styles:
+    '---': '\\hrule'
+
 if Meteor.isClient
   Template.registerHelper 'formats', ->
     for format in availableFormats
@@ -143,6 +148,7 @@ latexSimpleCommands =
   bigskip: '<div style="padding-top:12pt;"></div>\n'
   medskip: '<div style="padding-top:6pt;"></div>\n'
   smallskip: '<div style="padding-top:3pt;"></div>\n'
+  hrule: '<hr>'
   indent: ''    ## Irrelevant with Coauthor's formatting
   noindent: ''  ## Irrelevant with Coauthor's formatting
   thinspace: '&thinsp;' # narrow nonbreaking space
@@ -214,7 +220,7 @@ lightWeight = 100
 mediumWeight = 400
 boldWeight = 700
 
-## Convert verbatim environment, \url, and \href commands to HTML.
+## Convert verbatim environment, \url, \nolinkurl, and \href commands to HTML.
 ## These are special (and generally must happen first) because they can have
 ## special LaTeX characters that should not be treated specially
 ## (e.g. % should not be a comment when in a URL or verbatim).
@@ -224,6 +230,8 @@ latex2htmlVerb = (text) ->
   .replace /\\url\s*{([^{}]*)}/g, (match, url) =>
     url = latexURL url
     """<a href="#{url}">#{latexEscape url}</a>"""
+  .replace /(?:\\protect\s*)?\\nolinkurl\s*{([^{}]*)}/g, (match, url) =>
+    latexEscape latexURL url
   .replace /\\href\s*{([^{}]*)}\s*{((?:[^{}]|{[^{}]*})*)}/g,
     (match, url, text) =>
       url = latexURL url
@@ -563,6 +571,7 @@ latex2htmlCommandsAlpha = (text, math, macros) ->
   .replace /\\subsubsection\s*\*?\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '<h4>$1</h4><p>'
   .replace /\\paragraph\s*\*?\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}\s*/g, '<p><b>$1</b> '
   .replace /\\footnote\s*{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g, '[$1]'
+  .replace /\\label\s*{[^{}]*}/g, ''
   .replace /\\includegraphics\s*(\[[^\[\]]*\]\s*)?{((?:[^{}]|{(?:[^{}]|{[^{}]*})*})*)}/g,
     (match, optional = '', graphic) ->
       style = ''
@@ -737,7 +746,7 @@ formats =
   latex: (text, title, me, macros) ->
     latex2html text, me, macros
   texlish: (text, title, me, macros) ->
-    latex2html (compileTexlish text, fragment: true), me, macros
+    latex2html (compileTexlish text, texlishOptions), me, macros
   html: (text, title, me, macros) ->
     {text, math} = preprocessKaTeX text
     text = processAtMentions text, me

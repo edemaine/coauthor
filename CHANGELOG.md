@@ -8,6 +8,13 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2026-07-07
+
+* Upgrade to Texlish 0.2.0, which is much closer to Markdown compatible.
+* Support LaTeX `\hrule`, as output by Texlish's `---`.
+* Support LaTeX `\nolinkurl`, as output by Texlish's `<email@domain>`.
+* Minimal support for LaTeX `\label` (no-op), as output by Texlish footnotes.
+
 ## 2026-06-20
 
 * New [Texlish](https://texlish.org/) message format, which combines the best
