@@ -727,7 +727,7 @@ formats =
       (<li\b[^<>]*>\s*)
       (<p>\s*)?
       (<input\b[^<>]*>) \s*
-      (<label[^<>]*>\s*(.*?)</label>)?
+      (<label[^<>]*>\s*([^]*?)</label>)?
     ///ig,
       (match, li, p, input, label, labelInner) ->
         if /type\s*=\s*"checkbox"/.test input

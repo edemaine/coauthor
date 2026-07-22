@@ -8,6 +8,10 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2026-07-22
+
+* Fix formatting of multiline Markdown checklist items.
+
 ## 2026-07-07
 
 * Upgrade to Texlish 0.2.0, which is much closer to Markdown compatible.
