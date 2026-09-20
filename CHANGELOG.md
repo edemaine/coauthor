@@ -11,6 +11,7 @@ instead of version numbers.
 ## 2026-09-20
 
 * Fix autolinking URLs when surrounded by other links
+* Fix `@` mentions in Texlish mode
 
 ## 2026-07-22
 
@@ -584,7 +585,7 @@ instead of version numbers.
 
 ## 2021-10-14
 
-* Clarify that `author` view lists posts by and @mentioning the user
+* Clarify that `author` view lists posts by and `@` mentioning the user
 
 ## 2021-09-29
 

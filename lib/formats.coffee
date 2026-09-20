@@ -13,6 +13,9 @@ export availableFormats = ['markdown', 'texlish', 'latex', 'html']
 
 texlishOptions =
   fragment: true
+  ## For now, reserve @ for Coauthor @mentions, and disable \ref shorthand.
+  ## When we support \ref, we'll need to check \refs for usernames.
+  refShorthand: false
   styles:
     '---': '\\hrule'
 
