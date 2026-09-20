@@ -49,7 +49,7 @@ switch markdownMode
       links = markdownIt.linkify.match text
       if links?
         existing = []
-        linkRe = /<\s*a\b[^]*<\s*\/a\s*>/g
+        linkRe = /<\s*a\b[^]*?<\s*\/a\s*>/g
         while (match = linkRe.exec text)?
           existing.push [match.index, match.index + match[0].length]
         links.reverse()

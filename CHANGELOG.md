@@ -8,6 +8,10 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2026-09-20
+
+* Fix autolinking URLs when surrounded by other links
+
 ## 2026-07-22
 
 * Fix formatting of multiline Markdown checklist items.
