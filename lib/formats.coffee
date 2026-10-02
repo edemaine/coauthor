@@ -643,8 +643,10 @@ latex2htmlLight = (text, me, macros) ->
 latex2html = (text, me, macros) ->
   text = latex2htmlVerb text
   text = latexStripComments text
-  ## Paragraph detection must go before any macro expansion (which eat \n's)
-  text = text.replace /\n\n+/g, '\n\\par\n'
+  ## Paragraph detection must go before any macro expansion (which eat \n's).
+  ## Skip preformatted HTML, including output from verbatim environments.
+  text = text.replace /\n\s*\n|(<pre\b[^>]*>[^]*?(?:<\/pre\s*>|$))/gi,
+    (match, pre) -> pre ? '\n\\par\n'
   ## After \def expansion and verbatim processing, protect math
   {text, math} = preprocessKaTeX text
   ## After math extraction, process @mentions

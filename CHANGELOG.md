@@ -8,6 +8,11 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2026-10-02
+
+* Fix paragraph breaks in LaTeX/Texlish mode: handle whitespace in blank lines,
+  and skip verbatim environments
+
 ## 2026-09-20
 
 * Fix autolinking URLs when surrounded by other links
