@@ -8,6 +8,11 @@ To see every change with descriptions aimed at developers, see
 As a continuously updated web app, Coauthor uses dates
 instead of version numbers.
 
+## 2026-10-04
+
+* Improve Lean 4 syntax highlighting via
+  [highlightjs-lean fork](https://github.com/edemaine/highlightjs-lean/tree/lean4-revamp)
+
 ## 2026-10-02
 
 * Fix paragraph breaks in LaTeX/Texlish mode: handle whitespace in blank lines,
