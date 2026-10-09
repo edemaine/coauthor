@@ -106,6 +106,146 @@ If you want `coauthor@yourhostname.com` to receive email,
 add an alias like `coauthor: edemaine@mit.edu` to `/etc/aliases`
 and then run `sudo newaliases`.
 
+### DKIM Signatures
+
+[DKIM (DomainKeys Identified Mail)](https://en.wikipedia.org/wiki/DomainKeys_Identified_Mail)
+adds a signature to outgoing email that recipients verify using a public key
+in DNS.  Gmail started requiring DKIM signatures or it'll reject your email.
+Here is how to setup OpenDKIM with Postfix on Ubuntu/Debian:
+
+1. Install OpenDKIM and generate a 2048-bit RSA key on the mail server:
+
+   ```sh
+   sudo apt-get install opendkim opendkim-tools
+   sudo install -d -o opendkim -g opendkim -m 0700 /etc/dkimkeys/yourhostname.com
+   sudo -u opendkim opendkim-genkey -b 2048 -d yourhostname.com -s coauthor \
+     -D /etc/dkimkeys/yourhostname.com
+   sudo chmod 0600 /etc/dkimkeys/yourhostname.com/coauthor.private
+   ```
+
+   Keep the `.private` file on the server, readable only by `opendkim`.
+   The `.txt` file contains the public DNS record.  Generate the key once;
+   replacing it after publishing DNS requires publishing the matching new key.
+
+2. Configure `/etc/opendkim.conf` with these settings:
+
+   ```text
+   Syslog                  yes
+   SyslogSuccess           yes
+   Mode                    s
+   Canonicalization        relaxed/relaxed
+   SignatureAlgorithm      rsa-sha256
+   OversignHeaders         From
+   UserID                  opendkim
+   UMask                   007
+   PidFile                 /run/opendkim/opendkim.pid
+   Socket                  inet:8891@127.0.0.1
+   KeyTable                file:/etc/opendkim/KeyTable
+   SigningTable            refile:/etc/opendkim/SigningTable
+   InternalHosts           file:/etc/opendkim/TrustedHosts
+   RequireSafeKeys         yes
+   ```
+
+   Replace conflicting existing settings.  In particular, disable any
+   `Domain`, `Selector`, and `KeyFile` settings when using these tables.
+   The loopback TCP socket is accessible to Postfix even when it runs chrooted.
+   See the [OpenDKIM configuration reference](https://manpages.debian.org/bookworm/opendkim/opendkim.conf.5.en.html)
+   for other options.
+
+   Create `/etc/opendkim` with `sudo install -d -m 0755 /etc/opendkim` and
+   add the following files, owned by root and readable by `opendkim`
+   (e.g., mode `0644`):
+
+   `/etc/opendkim/KeyTable`:
+
+   ```text
+   coauthor._domainkey.yourhostname.com yourhostname.com:coauthor:/etc/dkimkeys/yourhostname.com/coauthor.private
+   ```
+
+   `/etc/opendkim/SigningTable`:
+
+   ```text
+   *@yourhostname.com coauthor._domainkey.yourhostname.com
+   ```
+
+   `/etc/opendkim/TrustedHosts`:
+
+   ```text
+   127.0.0.0/8
+   ::1
+   ::ffff:127.0.0.0/104
+   172.17.0.0/16
+   ```
+
+   Match the Docker subnet to the one trusted by Postfix's `mynetworks`.
+   This lets mail from the Coauthor container be signed; include only
+   networks you trust to send mail for your domain.
+
+   Validate the configuration and start the signer:
+
+   ```sh
+   sudo opendkim -n -x /etc/opendkim.conf
+   sudo systemctl enable opendkim
+   sudo systemctl restart opendkim
+   sudo systemctl is-active opendkim
+   ```
+
+3. Publish the public key in DNS:
+
+   ```sh
+   sudo cat /etc/dkimkeys/yourhostname.com/coauthor.txt
+   ```
+
+   Create one TXT record at `coauthor._domainkey.yourhostname.com` using the
+   quoted strings from that file.  The strings concatenate without added
+   spaces.  DNS allows up to 255 bytes per string, but your DNS interface may
+   impose a smaller limit or require the quoted strings on one line without
+   the zone-file parentheses.  Preserve the complete concatenated value.
+   See [RFC 6376](https://www.rfc-editor.org/rfc/rfc6376.html#section-3.6.2.2)
+   for DKIM TXT record formatting.
+
+   Wait for publication, then check that DNS contains the matching key:
+
+   ```sh
+   dig +short TXT coauthor._domainkey.yourhostname.com
+   sudo opendkim-testkey -d yourhostname.com -s coauthor \
+     -k /etc/dkimkeys/yourhostname.com/coauthor.private -v
+   ```
+
+   The key check must exit successfully before enabling production signing.
+   `record not found` means the record is not yet available.  A `key not secure`
+   message refers to DNSSEC status; it does not by itself indicate a DKIM key
+   mismatch.
+
+4. Enable the signer in `/etc/postfix/main.cf` after the DNS check succeeds:
+
+   ```text
+   smtpd_milters = inet:127.0.0.1:8891
+   non_smtpd_milters = inet:127.0.0.1:8891
+   milter_protocol = 6
+   milter_default_action = accept
+   ```
+
+   If either milter list already contains filters, append the OpenDKIM socket
+   to that list.  `smtpd_milters` covers SMTP submissions, including Docker;
+   `non_smtpd_milters` covers local `sendmail` submissions.  Setting
+   `milter_default_action = accept` keeps delivery working if the signer is
+   unavailable, though those messages may be unsigned.
+
+   ```sh
+   sudo postfix check
+   sudo postfix reload
+   sudo postconf smtpd_milters non_smtpd_milters
+   ```
+
+5. Send a test through Coauthor's configured SMTP path and inspect the
+   received message's full headers.  Look for `dkim=pass` in
+   `Authentication-Results`, with `header.d=yourhostname.com`, and a
+   `DKIM-Signature` header containing `d=yourhostname.com` and `s=coauthor`.
+   Check `/var/log/mail.log` or the system journal for signing and delivery
+   errors.  SPF and DKIM are separate checks; keep the SPF record configured
+   above as well.
+
 ### Disabling Email
 
 If you do not want Coauthor to even ask users for their email address when
